@@ -64,7 +64,7 @@ Rate a completed order item: stars, text, photos, anonymous.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-tile`, `--rating`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-tile`, `--rating`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Encourage detail without pressure.
@@ -91,15 +91,15 @@ Rate a completed order item: stars, text, photos, anonymous.
   <fieldset class="grid gap-1">
     <legend class="text-label">Product quality</legend>
     <div class="flex" data-ds-rating><input type="radio" id="rv1-stars-1" name="rv1-stars" value="1" class="sr-only">
-      <label for="rv1-stars-1" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">1 star</span></label>
+      <label for="rv1-stars-1" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">1 star</span></label>
       <input type="radio" id="rv1-stars-2" name="rv1-stars" value="2" class="sr-only">
-      <label for="rv1-stars-2" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">2 stars</span></label>
+      <label for="rv1-stars-2" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">2 stars</span></label>
       <input type="radio" id="rv1-stars-3" name="rv1-stars" value="3" class="sr-only">
-      <label for="rv1-stars-3" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">3 stars</span></label>
+      <label for="rv1-stars-3" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">3 stars</span></label>
       <input type="radio" id="rv1-stars-4" name="rv1-stars" value="4" class="sr-only">
-      <label for="rv1-stars-4" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">4 stars</span></label>
+      <label for="rv1-stars-4" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">4 stars</span></label>
       <input type="radio" id="rv1-stars-5" name="rv1-stars" value="5" class="sr-only">
-      <label for="rv1-stars-5" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">5 stars</span></label>
+      <label for="rv1-stars-5" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">5 stars</span></label>
     </div>
   </fieldset>
   <div class="grid gap-1.5">
@@ -120,7 +120,7 @@ Rate a completed order item: stars, text, photos, anonymous.
     </div>
     <ul class="grid grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-2" data-ds-tiles aria-labelledby="rv1-photos-label">
       <li data-ds-add>
-        <label for="rv1-photos" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
+        <label for="rv1-photos" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft focus-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
         <input id="rv1-photos" type="file" accept="image/*" multiple class="sr-only">
       </li>
     </ul>

@@ -4,12 +4,31 @@ import { header, bottomTabBar, sidebar } from './ui/nav.mjs';
 import { dialog } from './ui/feedback.mjs';
 
 export const skip = `<a href="#main" class="fixed left-2 top-2 z-toast flex min-h-touch -translate-y-24 items-center rounded-button bg-primary px-4 text-label text-primary-foreground focus:translate-y-0">Skip to content</a>`;
-export const foot = `<footer class="hidden border-t border-border bg-surface-subtle md:block"><div class="mx-auto grid max-w-container gap-8 px-gutter py-8 text-body-sm text-muted-foreground md:grid-cols-4">
-  <div class="grid gap-2"><p class="text-label text-foreground">{{BRAND_NAME}}</p><p>A white-label multi-vendor halal marketplace demo.</p></div>
-  <nav aria-label="Shop" class="grid content-start gap-1"><p class="text-label text-foreground">Shop</p><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Categories</a><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Vouchers</a><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Sell on {{BRAND_NAME}}</a></nav>
-  <nav aria-label="Support" class="grid content-start gap-1"><p class="text-label text-foreground">Support</p><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Help centre</a><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Returns</a><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Contact us</a><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Halal verification policy</a></nav>
-  <nav aria-label="Company" class="grid content-start gap-1"><p class="text-label text-foreground">Company</p><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">About</a><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Terms</a><a href="#" class="inline-flex min-h-touch items-center hover:text-primary">Privacy</a></nav>
-</div><p class="border-t border-border px-gutter py-4 text-center text-caption text-muted-foreground">© {{BRAND_NAME}} · Demo layout. Logo, name and colours are placeholders.</p></footer>`;
+/* Site footer: trust strip, 5 link columns + brand block, legal bar.
+   Below 640px each group is a disclosure (details/summary; the port uses a
+   button with aria-expanded). All copy comes from config — never hardcode the brand. */
+const footLink = (l) => `<li><a href="#" class="inline-flex min-h-9 items-center text-muted-foreground hover:text-primary">${l}</a></li>`;
+const footGroup = (h, links) => `<nav aria-label="${h}" class="sm:flex sm:flex-col sm:gap-3"><details class="group sm:hidden"><summary class="flex min-h-touch w-full cursor-pointer list-none items-center justify-between gap-2 text-left text-label text-foreground [&::-webkit-details-marker]:hidden">${h}${icon('chevron-down', 'shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180')}</summary><ul class="flex flex-col gap-3 pb-3">${links.map(footLink).join('')}</ul></details><p class="hidden text-label text-foreground sm:block">${h}</p><ul class="hidden flex-col gap-3 sm:flex">${links.map(footLink).join('')}</ul></nav>`;
+const FOOT_GROUPS = [
+  ['Shop', ['Categories', 'Halal Food', 'Meat & Seafood', 'Dates & Sweets', 'Modest Fashion', 'Prayer Essentials', 'Books & Quran', 'Vouchers']],
+  ['Support', ['Help centre', 'Track order', 'Returns & refunds', 'Contact us', 'Report a listing']],
+  ['Halal & trust', ['Halal verification policy', 'How we verify sellers', 'Certifier list', 'Community review of religious items']],
+  ['Sell', ['Sell on {{BRAND_NAME}}', 'Seller centre', 'Onboarding guide', 'Halal certification guide']],
+  ['Company', ['About', 'Terms', 'Privacy (Data Privacy Act notice)', 'Cookies']],
+];
+const chip = (l) => `<span class="rounded-badge border border-border bg-surface px-1.5 py-0.5">${l}</span>`;
+export const foot = `<footer class="border-t border-border bg-surface-subtle pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] md:pb-0"><div class="mx-auto max-w-container px-gutter">
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border py-4">
+    <p class="flex items-center gap-2 text-body-sm font-medium text-foreground">${icon('shield-check', 'size-4 shrink-0 text-halal')}Every halal claim is verified by {{BRAND_NAME}}</p>
+    <p class="flex flex-wrap items-center gap-1.5 text-caption text-muted-foreground">${icon('wallet', 'size-4')}<span class="sr-only">Accepted payments:</span>${['COD', 'GCash', 'Maya', 'Cards', 'Bank transfer'].map(chip).join('')}</p>
+    <p class="flex flex-wrap items-center gap-1.5 text-caption text-muted-foreground">${icon('truck', 'size-4')}<span class="sr-only">Delivery partners:</span>${['J&T Express', 'Lalamove', 'Ninja Van'].map(chip).join('')}</p>
+  </div>
+  <div class="grid gap-y-1 py-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-8 sm:py-8 lg:grid-cols-[1.4fr_repeat(5,minmax(0,1fr))]">
+    <div class="flex flex-col gap-3"><p class="text-label text-foreground">{{BRAND_NAME}}</p><p class="max-w-xs text-body-sm text-muted-foreground">Every halal claim verified, delivered across the Philippines.</p><p class="flex items-start gap-2 text-body-sm text-muted-foreground">${icon('mail', 'mt-0.5 size-4 shrink-0')}<span><a href="mailto:support@example.com" class="underline underline-offset-2 hover:text-primary">support@example.com</a><br>Mon–Sat, 9:00–18:00 (PHT)</span></p></div>
+    ${FOOT_GROUPS.map(([h, l]) => footGroup(h, l)).join('')}
+  </div>
+  <div class="flex flex-col gap-1 border-t border-border py-4 text-caption text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><p>© ${new Date().getFullYear()} {{BRAND_NAME}}</p><p>DTI Business Name Reg. No. 0000-0000</p></div>
+</div></footer>`;
 
 /* Public chrome: sticky header + bottom tabs (below lg) + footer. */
 export const publicPage = ({ active = 'Home', main, mainCls = '', headerOpts = {}, tabbar = true } = {}) =>

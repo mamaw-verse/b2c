@@ -64,7 +64,7 @@ Message thread with day dividers, bubbles, product/order cards, safety notice an
 | Announcements | New incoming messages via polite live list. |
 
 ## 8. Tokens used
-`--background`, `--border`, `--border-control`, `--brand-100`, `--brand-700`, `--brand-800`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-field`, `--r-panel`, `--r-search`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--background`, `--border`, `--border-control`, `--brand-100`, `--brand-700`, `--brand-800`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-field`, `--r-panel`, `--r-search`, `--r-tile`, `--sale`, `--sale-soft`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Safety note: “Never pay outside the app.”
@@ -99,7 +99,7 @@ Message thread with day dividers, bubbles, product/order cards, safety notice an
           </div>
           <div class="grid min-w-0 flex-1 content-center gap-1">
             <p class="line-clamp-2 text-body-sm"><a href="#" class="hover:underline">Ajwa dates 500g, premium grade</a></p>
-            <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-body font-extrabold text-sale">₱649</span><span class="sr-only">Original price:</span><s data-price class="text-body-sm text-muted-foreground">₱799</s><span class="badge badge-sale">-19%</span></p>
+            <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-body font-bold text-foreground">₱649</span><span class="sr-only">Original price:</span><s data-price class="text-body-sm text-muted-foreground">₱799</s><span class="badge badge-promo">-19%</span></p>
           </div>
         </div>
       </li>

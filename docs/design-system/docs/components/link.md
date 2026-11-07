@@ -64,7 +64,7 @@ Navigates to another page or section. Underlined inline; brand coloured.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--foreground`, `--foreground-inverse`, `--fs-body`, `--inverse-link`, `--primary`, `--primary-hover`, `--r-panel`, `--ring`, `--surface-inverse`, `--touch-min`, `currentColor (icons)`
+`--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--inverse-link`, `--primary`, `--primary-hover`, `--r-panel`, `--surface-inverse`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Describe the destination.

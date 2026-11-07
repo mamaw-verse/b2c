@@ -59,7 +59,7 @@ Actions on selected queue items; appears when checkboxes are ticked.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-strong`, `--brand-800`, `--brand-950`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--gutter`, `--mod-pending`, `--mod-pending-bg`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--ring`, `--surface`, `--surface-inverse`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `--z-sticky-bar`, `currentColor (icons)`
+`--border`, `--border-strong`, `--brand-800`, `--brand-950`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--gutter`, `--mod-pending`, `--mod-pending-bg`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--surface`, `--surface-inverse`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `--z-sticky-bar`, `currentColor (icons)`
 
 ## 9. Content rules
 - “Assign to me” for workload.

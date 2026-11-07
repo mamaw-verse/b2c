@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { Marketplace } from '@/types/navigation';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -16,6 +17,7 @@ declare module '@inertiajs/core' {
             navCategories: { id: string; name: string; slug: string }[];
             searchSuggestions?: string[];
             unreadCounts?: { chat: number; notifications: number } | null;
+            marketplace: Marketplace;
             [key: string]: unknown;
         };
     }

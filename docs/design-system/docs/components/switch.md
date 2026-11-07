@@ -62,7 +62,7 @@ Immediate on/off setting (notifications, vacation mode, show sold count).
 | Announcements | State change announced natively; save confirmation via Toast. |
 
 ## 8. Tokens used
-`--border-control`, `--dur`, `--ease-out`, `--elevation-popover`, `--fs-body`, `--fs-body-sm`, `--muted-foreground`, `--primary`, `--primary-hover`, `--ring`, `--surface`, `--touch-min`
+`--border-control`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--fs-body`, `--fs-body-sm`, `--muted-foreground`, `--primary`, `--primary-hover`, `--surface`, `--touch-min`
 
 ## 9. Content rules
 - Label the setting, not the action: “Vacation mode”.

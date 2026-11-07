@@ -65,7 +65,7 @@ Short, transient confirmation of something the user just did (“Added to cart�
 | Announcements | Message read politely once. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-800`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-label`, `--inverse-link`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-button`, `--r-panel`, `--ring`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-800`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-label`, `--inverse-link`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-button`, `--r-panel`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Past tense, ≤ 40 characters: “Added to cart”.

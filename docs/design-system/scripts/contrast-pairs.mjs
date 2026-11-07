@@ -10,13 +10,27 @@ export const PAIRS = [
   ['primary', 'surface', T], ['primary', 'background', T], ['primary', 'surface-brand-soft', T],
   ['primary-soft-foreground', 'primary-soft', T], ['primary-hover', 'primary-soft', T],
   ['foreground-inverse', 'surface-inverse', T], ['inverse-link', 'surface-inverse', T], ['inverse-muted', 'surface-inverse', T],
-  ...['success', 'warning', 'danger', 'info', 'sale'].flatMap(c => [[c, 'surface', T], [c, 'background', T], [c, c + '-soft', T]]),
+  ...['success', 'warning', 'danger', 'info', 'sale', 'promo'].flatMap(c => [[c, 'surface', T], [c, 'background', T], [c, c + '-soft', T]]),
+  ['primary-foreground', 'promo', T],
+  // Category nav: default text, hover pill text, active text + indicator
+  ['brand-700', 'brand-50', T], ['brand-700', 'surface', T], ['brand-600', 'surface', U],
   ['halal', 'halal-soft', T], ['halal', 'surface', T], ['halal', 'background', T], ['primary-foreground', 'halal', T], ['primary-foreground', 'halal-hover', T],
   ['rating-foreground', 'surface', T], ['rating-foreground', 'background', T],
   ...['pending', 'flagged', 'hidden', 'suspended', 'resolved'].map(s => ['mod-' + s, 'mod-' + s + '-bg', T]),
   ['border-control', 'surface', U], ['border-control', 'background', U], ['border-control', 'surface-muted', U],
   ...['surface', 'background', 'surface-muted', 'surface-brand-soft', 'surface-hero', 'surface-cta'].map(bg => ['ring', bg, U]),
   ['ring-inverse', 'surface-inverse', U],
+  // Focus ring: the same tokens the base layer uses (see src/base.css).
+  ...['surface', 'background', 'surface-muted', 'surface-brand-soft'].map(bg => ['focus-ring-color', bg, U]),
+  ['focus-ring-on-brand', 'primary', U],
+  ['focus-ring-error', 'surface', U],
+];
+/* Pairs measured inside the .dark token scope (dark theme). */
+export const DARK_PAIRS = [
+  ['foreground', 'surface', T], ['muted-foreground', 'surface', T], ['primary-foreground', 'promo', T],
+  ['focus-ring-color', 'surface', U], ['focus-ring-color', 'background', U], ['focus-ring-color', 'surface-muted', U],
+  ['focus-ring-error', 'surface', U],
+  ['focus-ring-on-brand', 'primary', U],
 ];
 export const REQUIRED = { text: 4.5, ui: 3 };
 // Ratios stated in the seed comments, re-measured by the script.

@@ -14,7 +14,7 @@ final readonly class ListShopProducts
     public function handle(Shop $shop, string $sort = 'relevant'): CursorPaginator
     {
         $paginator = Product::visible()
-            ->with(['halalCertification', 'images'])
+            ->with(['halalCertification', 'images', 'category'])
             ->where('shop_id', $shop->id)
             ->tap(function ($q) use ($sort) {
                 if ($sort === 'sale') {

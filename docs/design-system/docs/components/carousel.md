@@ -66,7 +66,7 @@ Swipeable media gallery with thumbnails, counter and full-screen zoom. CSS scrol
 | Announcements | Slide label read on focus. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--brand-800`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--foreground-inverse`, `--fs-caption`, `--fs-label`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-badge`, `--r-button`, `--r-hero`, `--r-panel`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`, `safe-area-inset-top`
+`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--brand-800`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-caption`, `--fs-label`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-badge`, `--r-button`, `--r-hero`, `--r-panel`, `--r-tile`, `--sale`, `--sale-soft`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`, `safe-area-inset-top`
 
 ## 9. Content rules
 - Alt text describes the photo (“Ajwa dates, tub front view”).

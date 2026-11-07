@@ -66,7 +66,7 @@ Asks for confirmation before destructive or irreversible actions.
 | Announcements | Title + description announced on open. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-950`, `--danger`, `--danger-hover`, `--danger-pressed`, `--dur`, `--ease-out`, `--elevation-sheet`, `--foreground`, `--fs-body`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-button`, `--r-panel`, `--ring`, `--surface`, `--surface-muted`, `--touch-min`, `--z-modal`
+`--border`, `--border-control`, `--brand-950`, `--danger`, `--danger-hover`, `--danger-pressed`, `--dur`, `--ease-out`, `--elevation-sheet`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-button`, `--r-panel`, `--surface`, `--surface-muted`, `--touch-min`, `--z-modal`
 
 ## 9. Content rules
 - Title is a question naming the object.

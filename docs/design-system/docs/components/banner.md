@@ -70,7 +70,7 @@ Persistent inline message about a page or form: account status, shipping delays,
 | Announcements | Injected danger banners use `role=alert`. |
 
 ## 8. Tokens used
-`--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-label`, `--info`, `--info-soft`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-button`, `--r-panel`, `--ring`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-label`, `--info`, `--info-soft`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--r-button`, `--r-panel`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Title says what happened; text says what to do.

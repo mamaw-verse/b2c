@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { shell, renderSheet, renderPreview, renderMd, compNav } from '../sheets/lib/build.mjs';
 import { foundationsBody } from '../sheets/pages/foundations.mjs';
+import { focusBody } from '../sheets/pages/focus.mjs';
 import { icon } from '../sheets/ui/core.mjs';
 
 const order = ['actions', 'forms', 'feedback', 'overlays', 'navigation', 'data-display', 'commerce', 'chat', 'seller', 'admin', 'halal'];
@@ -38,6 +39,7 @@ ${groups.map(([g, items]) => `<section class="mt-10" aria-labelledby="g-${g.repl
 </div>` }));
 
 write('styleguide/foundations.html', shell({ title: 'Foundations', active: 'foundations.html', body: foundationsBody }));
+write('styleguide/focus.html', shell({ title: 'Focus', active: 'focus.html', body: focusBody }));
 
 /* Layouts and screens (Phase 5) */
 let layouts = [], screens = [];

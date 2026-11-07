@@ -63,7 +63,7 @@ The reported content rendered read-only: product listing, review, or chat excerp
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--background`, `--border`, `--border-strong`, `--brand-100`, `--brand-700`, `--danger`, `--danger-soft`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-price`, `--info`, `--info-soft`, `--mod-flagged`, `--mod-flagged-bg`, `--muted-foreground`, `--primary`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-panel`, `--r-tile`, `--rating`, `--ring`, `--sale`, `--sale-soft`, `--surface`, `currentColor (icons)`
+`--background`, `--border`, `--border-strong`, `--brand-100`, `--brand-700`, `--danger`, `--danger-soft`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-price`, `--info`, `--info-soft`, `--mod-flagged`, `--mod-flagged-bg`, `--muted-foreground`, `--primary`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-panel`, `--r-tile`, `--rating`, `--sale`, `--sale-soft`, `--surface`, `currentColor (icons)`
 
 ## 9. Content rules
 - Mask PII (phone, account numbers) — show that it was removed.

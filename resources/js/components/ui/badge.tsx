@@ -11,6 +11,8 @@ const badgeVariants = cva('badge', {
             secondary: '',
             sale: 'badge-sale',
             'sale-solid': 'badge-sale-solid',
+            promo: 'badge-promo',
+            'promo-solid': 'badge-promo-solid',
             success: 'badge-success',
             warning: 'badge-warning',
             danger: 'badge-danger',

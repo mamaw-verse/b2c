@@ -67,7 +67,7 @@ Order in My Purchases: shop, status badge, tracking note, items, total, actions 
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--fs-price`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-panel`, `--r-tile`, `--ring`, `--sale`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--fs-price`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-panel`, `--r-tile`, `--sale`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Status names match the tabs.
@@ -97,7 +97,7 @@ Order in My Purchases: shop, status badge, tracking note, items, total, actions 
         <p class="text-body-sm text-muted-foreground">Premium, 500g · ×2</p>
       </div>
       <div class="text-right">
-        <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span data-price class="text-body font-extrabold text-foreground">₱649</span></p>
+        <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span data-price class="text-body font-bold text-foreground">₱649</span></p>
       </div>
     </li>
   </ul>

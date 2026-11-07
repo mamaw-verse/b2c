@@ -65,6 +65,7 @@ type HalalBadgeProps = {
     body?: string | null;
     showBody?: boolean;
     className?: string;
+    'aria-label'?: string;
 };
 
 export function HalalBadge({
@@ -74,13 +75,14 @@ export function HalalBadge({
     body,
     showBody = false,
     className,
+    'aria-label': ariaLabel,
 }: HalalBadgeProps) {
     const s = HALAL[status];
     const tone = solid && s.solid ? s.solid : s.cls;
     const Icon = s.icon;
 
     return (
-        <span className={cn('badge', tone, className)}>
+        <span aria-label={ariaLabel} className={cn('badge', tone, className)}>
             <Icon aria-hidden="true" className="size-3.5" />
             {short ? s.short : s.label}
             {short && status === 'certified' && (

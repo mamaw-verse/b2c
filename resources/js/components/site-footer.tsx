@@ -1,46 +1,199 @@
 import { usePage } from '@inertiajs/react';
+import {
+    ChevronDown,
+    Facebook,
+    Instagram,
+    Mail,
+    ShieldCheck,
+    Truck,
+    Wallet,
+    Youtube,
+} from 'lucide-react';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import type { FooterLink } from '@/types/navigation';
 
-const groups: [string, string[]][] = [
-    ['Shop', ['Categories', 'Sell']],
-    [
-        'Support',
-        ['Help centre', 'Returns', 'Contact us', 'Halal verification policy'],
-    ],
-    ['Company', ['About', 'Terms', 'Privacy']],
-];
+const socialIcons = { facebook: Facebook, instagram: Instagram, youtube: Youtube };
 
-export function SiteFooter() {
-    const { name } = usePage().props;
+const linkCls =
+    'inline-flex min-h-9 items-center text-muted-foreground hover:text-primary';
+
+function FooterLinkItem({ link, brand }: { link: FooterLink; brand: string }) {
+    return (
+        <li>
+            <a href={link.href} className={linkCls}>
+                {link.label.replace('{brand}', brand)}
+            </a>
+        </li>
+    );
+}
+
+function FooterGroup({
+    heading,
+    links,
+    brand,
+}: {
+    heading: string;
+    links: FooterLink[];
+    brand: string;
+}) {
+    const [open, setOpen] = useState(false);
+    const list = (
+        <ul
+            className={cn(
+                'flex-col gap-3',
+                open ? 'flex' : 'hidden sm:flex',
+            )}
+        >
+            {links.map((link) => (
+                <FooterLinkItem key={link.label} link={link} brand={brand} />
+            ))}
+        </ul>
+    );
 
     return (
-        <footer className="hidden border-t border-border bg-surface-subtle md:block">
-            <div className="mx-auto grid max-w-container gap-8 px-gutter py-8 text-body-sm text-muted-foreground md:grid-cols-4">
-                <div className="grid content-start gap-2">
-                    <p className="text-label text-foreground">{name}</p>
-                    <p>A white-label multi-vendor halal marketplace.</p>
-                </div>
-                {groups.map(([heading, links]) => (
-                    <nav
-                        key={heading}
-                        aria-label={heading}
-                        className="grid content-start gap-1"
-                    >
-                        <p className="text-label text-foreground">{heading}</p>
-                        {links.map((link) => (
-                            <a
-                                key={link}
-                                href="#"
-                                className="inline-flex min-h-touch items-center hover:text-primary"
-                            >
-                                {link === 'Sell' ? `Sell on ${name}` : link}
-                            </a>
-                        ))}
-                    </nav>
-                ))}
-            </div>
-            <p className="border-t border-border px-gutter py-4 text-center text-caption text-muted-foreground">
-                © {name}
+        <nav aria-label={heading} className="sm:flex sm:flex-col sm:gap-3">
+            <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => setOpen(!open)}
+                className="flex min-h-touch w-full items-center justify-between gap-2 text-left text-label text-foreground sm:hidden"
+            >
+                {heading}
+                <ChevronDown
+                    aria-hidden="true"
+                    className={cn(
+                        'shrink-0 text-muted-foreground transition-transform duration-token',
+                        open && 'rotate-180',
+                    )}
+                />
+            </button>
+            <p className="hidden text-label text-foreground sm:block">
+                {heading}
             </p>
+            {list}
+        </nav>
+    );
+}
+
+export function SiteFooter() {
+    const { name, marketplace: m } = usePage().props;
+    const year = new Date().getFullYear();
+
+    const groups: [string, FooterLink[]][] = [
+        ['Shop', m.footer.shop],
+        ['Support', m.footer.support],
+        ['Halal & trust', m.footer.trust],
+        ['Sell', m.footer.sell],
+        ['Company', m.footer.company],
+    ];
+
+    return (
+        <footer className="border-t border-border bg-surface-subtle pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] md:pb-0">
+            <div className="mx-auto max-w-container px-gutter">
+                {/* Trust strip */}
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border py-4">
+                    <p className="flex items-center gap-2 text-body-sm font-medium text-foreground">
+                        <ShieldCheck
+                            aria-hidden="true"
+                            className="size-4 shrink-0 text-halal"
+                        />
+                        Every halal claim is verified by {name}
+                    </p>
+                    <p className="flex flex-wrap items-center gap-1.5 text-caption text-muted-foreground">
+                        <Wallet aria-hidden="true" className="size-4" />
+                        <span className="sr-only">Accepted payments:</span>
+                        {m.payments.map((p) => (
+                            <span
+                                key={p}
+                                className="rounded-badge border border-border bg-surface px-1.5 py-0.5"
+                            >
+                                {p}
+                            </span>
+                        ))}
+                    </p>
+                    <p className="flex flex-wrap items-center gap-1.5 text-caption text-muted-foreground">
+                        <Truck aria-hidden="true" className="size-4" />
+                        <span className="sr-only">Delivery partners:</span>
+                        {m.couriers.map((c) => (
+                            <span
+                                key={c}
+                                className="rounded-badge border border-border bg-surface px-1.5 py-0.5"
+                            >
+                                {c}
+                            </span>
+                        ))}
+                    </p>
+                </div>
+
+                {/* Link columns (accordions below 640px) */}
+                <div className="grid gap-y-1 py-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-8 sm:py-8 lg:grid-cols-[1.4fr_repeat(5,minmax(0,1fr))]">
+                    <div className="flex flex-col gap-3">
+                        <p className="text-label text-foreground">{name}</p>
+                        <p className="max-w-xs text-body-sm text-muted-foreground">
+                            {m.tagline}
+                        </p>
+                        <ul className="flex gap-1">
+                            {m.socials.map((s) => {
+                                const Icon = socialIcons[
+                                    s.icon as keyof typeof socialIcons
+                                ];
+                                return (
+                                    <li key={s.label}>
+                                        <a
+                                            href={s.href}
+                                            aria-label={`${name} on ${s.label}`}
+                                            className="btn btn-icon btn-ghost text-muted-foreground"
+                                        >
+                                            {Icon && (
+                                                <Icon
+                                                    aria-hidden="true"
+                                                    className="size-5"
+                                                />
+                                            )}
+                                            <span className="sr-only">
+                                                {s.label}
+                                            </span>
+                                        </a>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        <p className="flex items-start gap-2 text-body-sm text-muted-foreground">
+                            <Mail
+                                aria-hidden="true"
+                                className="mt-0.5 size-4 shrink-0"
+                            />
+                            <span>
+                                <a
+                                    href={`mailto:${m.support.email}`}
+                                    className="underline underline-offset-2 hover:text-primary"
+                                >
+                                    {m.support.email}
+                                </a>
+                                <br />
+                                {m.support.hours}
+                            </span>
+                        </p>
+                    </div>
+                    {groups.map(([heading, links]) => (
+                        <FooterGroup
+                            key={heading}
+                            heading={heading}
+                            links={links}
+                            brand={name}
+                        />
+                    ))}
+                </div>
+
+                {/* Legal bar */}
+                <div className="flex flex-col gap-1 border-t border-border py-4 text-caption text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                    <p>
+                        © {year} {name}
+                    </p>
+                    <p>{m.registration}</p>
+                </div>
+            </div>
         </footer>
     );
 }

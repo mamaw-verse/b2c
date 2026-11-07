@@ -61,7 +61,7 @@ Supplementary label on hover (pointer) or keyboard focus. Never on touch, never 
 | Announcements | Read as description. |
 
 ## 8. Tokens used
-`--brand-100`, `--dur`, `--ease-out`, `--foreground`, `--foreground-inverse`, `--fs-caption`, `--fs-label`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-badge`, `--r-button`, `--ring`, `--surface-inverse`, `--touch-min`, `--touch-primary`, `--z-toast`, `currentColor (icons)`
+`--brand-100`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-caption`, `--fs-label`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-badge`, `--r-button`, `--surface-inverse`, `--touch-min`, `--touch-primary`, `--z-toast`, `currentColor (icons)`
 
 ## 9. Content rules
 - Short noun/verb phrase.

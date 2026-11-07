@@ -68,7 +68,7 @@ Search field with suggestions (ARIA combobox). Lives in the sticky header on eve
 | Announcements | “3 suggestions” / “No suggestions” via polite live region. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--fs-body`, `--fs-input`, `--muted-foreground`, `--primary`, `--primary-soft`, `--r-field`, `--r-panel`, `--r-search`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--z-sheet`, `currentColor (icons)`
+`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-input`, `--muted-foreground`, `--primary-soft`, `--r-field`, `--r-panel`, `--r-search`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--z-sheet`, `currentColor (icons)`
 
 ## 9. Content rules
 - Placeholder states scope: “Search products and shops”.

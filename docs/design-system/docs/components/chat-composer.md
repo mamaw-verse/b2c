@@ -62,7 +62,7 @@ Message input: attach (photo, product, order), auto-growing textarea, send.
 | Announcements | “Message sent” polite. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-search`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-search`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Placeholder “Type a message”.

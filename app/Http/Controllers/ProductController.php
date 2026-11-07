@@ -38,7 +38,7 @@ final class ProductController
                     'anonymous' => $r->anonymous,
                 ])),
             'related' => Inertia::defer(fn () => Product::visible()
-                ->with(['halalCertification', 'images'])
+                ->with(['halalCertification', 'images', 'category'])
                 ->where('category_id', $product->category_id)
                 ->whereKeyNot($product->id)
                 ->orderByDesc('sold_count')

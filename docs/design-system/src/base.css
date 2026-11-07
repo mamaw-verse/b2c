@@ -17,19 +17,50 @@
      words, truncation and scrollers never widen the page. Any grid-cols-* utility overrides this. */
   .grid { grid-template-columns: minmax(0, 1fr); }
 
-  /* Focus: 3px ring in --ring, 2px offset. Inverse surfaces opt in with .on-inverse. */
+  /* Focus: ONE indicator — a 2px outline in --focus-ring-color with a 2px
+     offset, on :focus-visible only (mouse clicks never show it; text inputs
+     match :focus-visible anyway, so they still indicate focus). Themes only
+     swap the token: .dark sets --focus-ring-color-dark, .on-inverse sets
+     --ring-inverse. Components never restyle focus; they pick one of the
+     shared classes below. */
   .on-inverse {
     background-color: var(--surface-inverse);
     color: var(--foreground-inverse);
+    --focus-ring-color: var(--ring-inverse);
   }
   :where(a, button, input, select, textarea, summary, dialog, [tabindex]):focus-visible,
   :where(a, button, input, select, textarea, summary, [tabindex])[data-force~="focus"] {
-    outline: 3px solid var(--ring);
-    outline-offset: 2px;
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
   }
-  .on-inverse :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
-  .on-inverse :where(a, button, input, select, textarea, summary, [tabindex])[data-force~="focus"] {
-    outline-color: var(--ring-inverse);
+  /* A focusable element inside a clipping ancestor (overflow:hidden) draws
+     the ring inside its own border box. */
+  .focus-inset:is(:focus-visible, [data-force~="focus"]) {
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  /* Composite controls (quantity stepper, field with prefix, OTP group,
+     segmented control, card-as-link): the container carries the ring when an
+     inner control is focus-visible; inner parts never ring on their own.
+     .focus-ring hugs the container border, .focus-ring-inset draws inside it
+     where an ancestor clips the outline. An sr-only input can delegate its
+     ring to the proxy element that follows it (rating stars, option chips). */
+  :is(.focus-ring, .focus-ring-inset):is(:has(:focus-visible), [data-force~="focus"]),
+  :where(input, select, textarea):focus-visible + .focus-ring {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  }
+  .focus-ring:is(:has(:focus-visible), [data-force~="focus"]),
+  :where(input, select, textarea):focus-visible + .focus-ring {
+    outline-offset: 0;
+  }
+  .focus-ring-inset:is(:has(:focus-visible), [data-force~="focus"]) {
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  :is(.focus-ring, .focus-ring-inset):has([aria-invalid="true"]:focus-visible) {
+    outline-color: var(--focus-ring-error);
+    border-color: var(--focus-ring-error);
+  }
+  :is(.focus-ring, .focus-ring-inset) :where(a, button, input, select, textarea, summary, [tabindex]):is(:focus-visible, [data-force~="focus"]) {
+    outline: none;
   }
 
   .icon {
@@ -63,5 +94,17 @@
       transition-duration: 1ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/* Forced colours / high contrast: the system Highlight colour must win over
+   brand tokens, so the single focus indicator survives. Unlayered on purpose:
+   it beats the component rules. The ring is a static outline — nothing to
+   honour in prefers-reduced-motion. */
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+  :is(.focus-ring, .focus-ring-inset):has(:focus-visible),
+  .focus-inset:focus-visible {
+    outline-color: Highlight;
   }
 }

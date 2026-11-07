@@ -17,8 +17,14 @@ export function bottomTabBar({ active = 'Home', fixed = true, items = tabItems, 
 </nav>`;
 }
 
-/** Storefront header. Phone/tablet: sticky search row with cart + chat. Desktop: logo, wide search, account links, category nav. */
-export function header({ fixed = true, cart = 2, chat = 3, back, title, id = 'hdr', cls, desktopNav = true } = {}) {
+/** Category-nav link: one style for all states. Constant weight (no layout
+   shift), --brand-50/--brand-700 hover pill, 2px --brand-600 bottom bar on
+   the current item, shared focus ring. ::before expands the hit area. */
+const catLink = (label, active) =>
+  `<a href="#" class="${cx('relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700', active && 'text-brand-700 after:absolute after:inset-x-3 after:-bottom-1 after:h-0.5 after:bg-brand-600 after:content-[""]')}"${active ? ' aria-current="page"' : ''}>${label}</a>`;
+
+/** Storefront header. Phone/tablet: sticky search row with cart + chat + horizontally scrolling category nav. Desktop: logo, wide search, account links, category nav. */
+export function header({ fixed = true, cart = 2, chat = 3, back, title, id = 'hdr', cls, desktopNav = true, activeCat } = {}) {
   const logo = `<a href="#" class="flex min-h-touch min-w-touch shrink-0 items-center gap-2 text-h4 text-primary max-md:hidden" aria-label="{{BRAND_NAME}} home"><span class="grid size-8 place-items-center rounded-tile bg-primary text-primary-foreground" aria-hidden="true">${icon('store', 'size-5')}</span><span class="hidden lg:inline">{{BRAND_NAME}}</span></a>`;
   return `<header class="${cx(fixed && 'sticky top-0', 'z-header border-b border-border bg-surface pt-safe', cls)}">
   <div class="hidden min-h-[var(--announce-h)] items-center bg-surface-inverse text-caption text-foreground-inverse lg:flex"><p class="mx-auto w-full max-w-container px-gutter">Free shipping over ₱499 · Every halal claim is checked by {{BRAND_NAME}}</p></div>
@@ -31,7 +37,7 @@ export function header({ fixed = true, cart = 2, chat = 3, back, title, id = 'hd
       <span class="hidden items-center gap-1 lg:flex">${iconBtn('bell', 'Notifications', { count: 12, href: '#' })}<a href="#" class="flex min-h-touch items-center gap-2 rounded-button px-2 text-label hover:bg-surface-muted">${avatar('Maria Santos', { size: 'sm', label: false })}<span>Maria</span></a></span>
     </div>
   </div>
-  ${desktopNav ? `<nav aria-label="Categories" class="hidden h-[var(--nav-h)] border-t border-border lg:block"><ul class="mx-auto flex h-full max-w-container items-center gap-1 overflow-x-auto px-gutter">${['Halal Food', 'Meat & Seafood', 'Dates & Sweets', 'Modest Fashion', 'Prayer Essentials', 'Books & Quran'].map(c => `<li><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground">${c}</a></li>`).join('')}<li class="ml-auto flex"><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-primary hover:bg-primary-soft">Sell on {{BRAND_NAME}}</a><a href="#" class="flex min-h-touch items-center rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted">Help</a></li></ul></nav>` : ''}
+  ${desktopNav ? `<nav aria-label="Categories" class="border-t border-border lg:h-[var(--nav-h)]"><ul class="mx-auto flex h-full max-w-container items-stretch gap-1 overflow-x-auto px-gutter [scrollbar-width:none] max-lg:[-webkit-mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] max-lg:[mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)]">${['Halal Food', 'Meat & Seafood', 'Dates & Sweets', 'Modest Fashion', 'Prayer Essentials', 'Books & Quran'].map(c => `<li class="flex">${catLink(c, c === activeCat)}</li>`).join('')}<li class="ml-auto flex">${catLink('Sell on {{BRAND_NAME}}')}${catLink('Help')}</li></ul></nav>` : ''}
 </header>`;
 }
 
@@ -51,15 +57,15 @@ export const breadcrumb = (items) => `<nav aria-label="Breadcrumb" class="overfl
 /** Tabs: horizontally scrollable on phone; underline indicator. */
 export function tabs({ id, items, selected = 0, panels, counts = {}, label, fill, cls }) {
   return `<div class="${cls || ''}"><div role="tablist" aria-label="${label}" class="${cx('flex overflow-x-auto border-b border-border [scrollbar-width:none]', fill && 'md:justify-stretch')}">
-  ${items.map((t, i) => `<button type="button" role="tab" id="${id}-tab-${i}" aria-controls="${id}-panel-${i}" aria-selected="${i === selected}" tabindex="${i === selected ? 0 : -1}" class="${cx('relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]', fill && 'md:flex-1 md:justify-center')}">${t}${counts[i] != null ? `<span class="badge badge-neutral">${counts[i]}</span>` : ''}</button>`).join('')}
+  ${items.map((t, i) => `<button type="button" role="tab" id="${id}-tab-${i}" aria-controls="${id}-panel-${i}" aria-selected="${i === selected}" tabindex="${i === selected ? 0 : -1}" class="${cx('relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset', fill && 'md:flex-1 md:justify-center')}">${t}${counts[i] != null ? `<span class="badge badge-neutral">${counts[i]}</span>` : ''}</button>`).join('')}
 </div>
-${(panels || items.map(() => '')).map((p, i) => `<div role="tabpanel" id="${id}-panel-${i}" aria-labelledby="${id}-tab-${i}" tabindex="0" class="pt-4 focus-visible:outline-offset-0"${i === selected ? '' : ' hidden'}>${p}</div>`).join('')}</div>`;
+${(panels || items.map(() => '')).map((p, i) => `<div role="tabpanel" id="${id}-panel-${i}" aria-labelledby="${id}-tab-${i}" tabindex="0" class="pt-4"${i === selected ? '' : ' hidden'}>${p}</div>`).join('')}</div>`;
 }
 
 /** SegmentedControl: native radios (arrow keys built in). */
 export const segmented = ({ name, options, selected = 0, label, block, size = 'md' }) =>
-  `<fieldset class="${block ? 'flex' : 'inline-flex'} rounded-button bg-surface-muted p-1"><legend class="sr-only">${label}</legend>
-  ${options.map((o, i) => `<label class="${cx('relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring', size === 'sm' ? 'min-h-9 min-w-11 after:absolute after:-inset-y-1' : 'min-h-touch')}"><input type="radio" name="${name}" class="sr-only"${i === selected ? ' checked' : ''}>${o}</label>`).join('')}
+  `<fieldset class="${block ? 'flex' : 'inline-flex'} focus-ring rounded-button bg-surface-muted p-1"><legend class="sr-only">${label}</legend>
+  ${options.map((o, i) => `<label class="${cx('relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover', size === 'sm' ? 'min-h-9 min-w-11 after:absolute after:-inset-y-1' : 'min-h-touch')}"><input type="radio" name="${name}" class="sr-only"${i === selected ? ' checked' : ''}>${o}</label>`).join('')}
 </fieldset>`;
 
 /** Pagination (desktop tables, search results). Phone shows prev / "page x of y" / next. */

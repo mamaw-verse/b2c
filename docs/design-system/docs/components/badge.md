@@ -68,7 +68,7 @@ Badge: non-interactive status or label. Chip: toggleable filter (`aria-pressed`)
 | Announcements | Pressed state via `aria-pressed`. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--border-strong`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--ring`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--border`, `--border-control`, `--border-strong`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Badges ≤ 2 words; status in sentence case.

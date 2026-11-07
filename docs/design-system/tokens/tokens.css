@@ -49,7 +49,17 @@
   --primary:var(--brand-600);  --primary-hover:var(--brand-700);  --primary-pressed:var(--brand-800);
   --primary-foreground:#ffffff;  --primary-soft:var(--brand-50);  --primary-soft-foreground:var(--brand-600);
   --ring:var(--brand-600);
+  /* Text aliases: --text-strong/--text-muted are the canonical names used by
+     the storefront spec; they resolve to the text tokens above. */
+  --text-strong:var(--foreground);
+  --text-muted:var(--muted-foreground);
   --ring-inverse:var(--brand-200);   /* focus ring on inverse surfaces; checked in docs/contrast.md */
+
+  /* Focus ring (one pattern, used by the base layer only):
+     -color: >= 3:1 on the light page surface and control surface
+     -color-dark: >= 3:1 on the dark surface and dark card surface */
+  --focus-ring-color:var(--ring);
+  --focus-ring-color-dark:var(--brand-300);
 }
 
 /* 3. Brand-independent values --------------------------------------------- */
@@ -59,7 +69,11 @@
   --warning:#b54708;  --warning-soft:#fffaeb;
   --danger:#b42318;   --danger-soft:#fef3f2;  --danger-hover:#912018;  --danger-pressed:#7a271a;  /* ADDED: danger button states */
   --info:#175cd3;     --info-soft:#eff8ff;
-  --sale:#c2310f;     --sale-soft:#fff1ed;
+  /* Promo: the only colour allowed to signal a discount (-NN% tag, promo
+     vouchers). Never used for prices — they stay --text-strong. --sale is
+     kept as an alias for existing components. */
+  --promo:#c2310f;    --promo-soft:#fff1ed;
+  --sale:var(--promo);  --sale-soft:var(--promo-soft);
   --rating:#d99b25;   --rating-foreground:#8a5a00;  /* amber is decorative only; the rating number uses -foreground */
 
   /* Halal certification (brand-independent: a trust mark must look the same in every white-label brand).
@@ -85,6 +99,12 @@
   /* Motion */
   --dur-fast:120ms; --dur:200ms; --dur-slow:320ms; --ease-out:cubic-bezier(.2,.8,.2,1);
 
+  /* Focus ring: one 2px indicator, offset 2px. --focus-ring-on-brand is the
+     inset ring on filled brand buttons; --focus-ring-error is light, the
+     .dark scope swaps it for a dark-safe red. */
+  --focus-ring-width:2px; --focus-ring-offset:2px;
+  --focus-ring-on-brand:#ffffff; --focus-ring-error:var(--danger);
+
   /* z-index scale */
   --z-header:40; --z-sticky-bar:45; --z-drawer:60; --z-sheet:70; --z-modal:80; --z-toast:90;
 
@@ -106,6 +126,21 @@
   :root{ --fs-input:.875rem; }
 }
 
+/* Dark scope: token-driven components adapt inside any .dark subtree (the
+   styleguide focus page renders a dark panel; the Laravel port applies .dark
+   on <html>). Values are the same as the app's dark theme. */
+.dark {
+  --background:#0f1512;  --surface:#181f1b;  --surface-subtle:#131a15;  --surface-muted:#212a24;
+  --surface-hero:#12241b;  --surface-cta:#14301f;
+  --foreground:#e8f2eb;  --muted-foreground:#a3b3a8;  --subtle-foreground:#8fa096;
+  --border:#263029;  --border-strong:#303b33;  --border-outline:#3b4840;  --border-control:#55645b;
+  --success-soft:#0e2e1f;  --warning-soft:#33200a;  --danger-soft:#361512;  --info-soft:#10233f;  --promo-soft:#33160e;
+
+  /* Focus ring: lighter green and lighter error for >= 3:1 on dark surfaces. */
+  --focus-ring-color:var(--focus-ring-color-dark);
+  --focus-ring-error:#f97066;
+}
+
 @theme inline {
   --font-sans:"Manrope Variable","Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 
@@ -122,6 +157,8 @@
   --color-border-outline:var(--border-outline); --color-border-control:var(--border-control);
   --color-success:var(--success); --color-success-soft:var(--success-soft); --color-warning:var(--warning); --color-warning-soft:var(--warning-soft);
   --color-danger:var(--danger); --color-danger-soft:var(--danger-soft); --color-danger-hover:var(--danger-hover); --color-danger-pressed:var(--danger-pressed); --color-info:var(--info); --color-info-soft:var(--info-soft);
+  --color-promo:var(--promo); --color-promo-soft:var(--promo-soft);
+  --color-text-strong:var(--text-strong); --color-text-muted:var(--text-muted);
   --color-halal:var(--halal); --color-halal-soft:var(--halal-soft); --color-halal-hover:var(--halal-hover);
   --color-sale:var(--sale); --color-sale-soft:var(--sale-soft); --color-rating:var(--rating); --color-rating-foreground:var(--rating-foreground);
   --color-brand-50:var(--brand-50); --color-brand-100:var(--brand-100); --color-brand-200:var(--brand-200); --color-brand-300:var(--brand-300);
@@ -146,7 +183,7 @@
   --text-body-sm:var(--fs-body-sm); --text-body-sm--line-height:1.5;
   --text-caption:var(--fs-caption); --text-caption--line-height:1.4;
   --text-label:var(--fs-label); --text-label--line-height:1.3; --text-label--font-weight:700;
-  --text-price:var(--fs-price); --text-price--line-height:1.2; --text-price--font-weight:800;
+  --text-price:var(--fs-price); --text-price--line-height:1.2; --text-price--font-weight:700;
   --text-price-lg:var(--fs-price-lg); --text-price-lg--line-height:1.15; --text-price-lg--font-weight:800;
   --text-eyebrow:var(--fs-eyebrow); --text-eyebrow--line-height:1.3; --text-eyebrow--letter-spacing:.1em; --text-eyebrow--font-weight:800;
   --text-th:var(--fs-th); --text-th--line-height:1.3; --text-th--letter-spacing:.04em; --text-th--font-weight:700;

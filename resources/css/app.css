@@ -85,9 +85,20 @@
     --primary-soft: var(--brand-50);
     --primary-soft-foreground: var(--brand-600);
     --ring: var(--brand-600);
+
+    /* Text aliases: --text-strong/--text-muted are the canonical names used by
+       the storefront spec; they resolve to the text tokens above. */
+    --text-strong: var(--foreground);
+    --text-muted: var(--muted-foreground);
     --ring-inverse: var(
         --brand-200
     ); /* focus ring on inverse surfaces; checked in docs/contrast.md */
+
+    /* Focus ring (one pattern, used by the base layer only):
+       -color: >= 3:1 on the light page surface and control surface
+       -color-dark: >= 3:1 on the dark surface and dark card surface */
+    --focus-ring-color: var(--ring);
+    --focus-ring-color-dark: var(--brand-300);
 }
 
 /* 3. Brand-independent values --------------------------------------------- */
@@ -103,8 +114,13 @@
     --danger-pressed: #7a271a;
     --info: #175cd3;
     --info-soft: #eff8ff;
-    --sale: #c2310f;
-    --sale-soft: #fff1ed;
+    /* Promo: the only colour allowed to signal a discount (-NN% tag, promo
+       vouchers). Never used for prices — they stay --text-strong. --sale is
+       kept as an alias for existing components. */
+    --promo: #c2310f;
+    --promo-soft: #fff1ed;
+    --sale: var(--promo);
+    --sale-soft: var(--promo-soft);
     --rating: #d99b25;
     --rating-foreground: #8a5a00; /* amber is decorative only; the rating number uses -foreground */
 
@@ -147,6 +163,14 @@
     --dur-slow: 320ms;
     --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
+    /* Focus ring: one 2px indicator, offset 2px. --focus-ring-on-brand is the
+       inset ring on filled brand buttons; --focus-ring-error is light, the
+       .dark scope swaps it for a dark-safe red. */
+    --focus-ring-width: 2px;
+    --focus-ring-offset: 2px;
+    --focus-ring-on-brand: #ffffff;
+    --focus-ring-error: var(--danger);
+
     /* z-index scale */
     --z-header: 40;
     --z-sticky-bar: 45;
@@ -184,8 +208,8 @@
         --fs-price-lg: 1.625rem;
     }
 }
-@media (min-width: 64rem) {
-    /* desktop */
+@media (min-width: 48rem) {
+    /* tablet and up */
     :root {
         --gutter: 1.5rem;
         --header-h: 4.875rem;
@@ -206,9 +230,38 @@
     }
 }
 
-/* Dark mode: retained per decision D1, but scoped to removed starter-kit
-   variables only so DS components stay light until a dark brand ships. */
+/* Dark mode: the app tokens get dark equivalents here so token-driven
+   components (bg-surface, text-foreground, …) adapt without per-component
+   dark: classes. */
 .dark {
+    /* App design tokens (light values declared under @theme above) */
+    --background: #0f1512;
+    --surface: #181f1b;
+    --surface-subtle: #131a15;
+    --surface-muted: #212a24;
+    --surface-hero: #12241b;
+    --surface-cta: #14301f;
+
+    --foreground: #e8f2eb;
+    --muted-foreground: #a3b3a8;
+    --subtle-foreground: #8fa096;
+
+    --border: #263029;
+    --border-strong: #303b33;
+    --border-outline: #3b4840;
+    --border-control: #55645b;
+
+    /* Focus ring: lighter green and lighter error for >= 3:1 on dark surfaces. */
+    --focus-ring-color: var(--focus-ring-color-dark);
+    --focus-ring-error: #f97066;
+
+    --success-soft: #0e2e1f;
+    --warning-soft: #33200a;
+    --danger-soft: #361512;
+    --info-soft: #10233f;
+    --promo-soft: #33160e;
+
+    /* shadcn-template tokens */
     --card: hsl(0 0% 3.9%);
     --card-foreground: hsl(0 0% 98%);
     --popover: hsl(0 0% 3.9%);
@@ -283,6 +336,10 @@
     --color-danger-pressed: var(--danger-pressed);
     --color-info: var(--info);
     --color-info-soft: var(--info-soft);
+    --color-promo: var(--promo);
+    --color-promo-soft: var(--promo-soft);
+    --color-text-strong: var(--text-strong);
+    --color-text-muted: var(--text-muted);
     --color-halal: var(--halal);
     --color-halal-soft: var(--halal-soft);
     --color-halal-hover: var(--halal-hover);
@@ -357,7 +414,7 @@
     --text-label--font-weight: 700;
     --text-price: var(--fs-price);
     --text-price--line-height: 1.2;
-    --text-price--font-weight: 800;
+    --text-price--font-weight: 700;
     --text-price-lg: var(--fs-price-lg);
     --text-price-lg--line-height: 1.15;
     --text-price-lg--font-weight: 800;
@@ -521,10 +578,16 @@
         @apply border-border outline-ring/50;
     }
 
-    /* Focus: 3px ring in --ring, 2px offset. Inverse surfaces opt in with .on-inverse. */
+    /* Focus: ONE indicator — a 2px outline in --focus-ring-color with a 2px
+     offset, on :focus-visible only (mouse clicks never show it; text inputs
+     match :focus-visible anyway, so they still indicate focus). Themes only
+     swap the token: .dark sets --focus-ring-color-dark, .on-inverse sets
+     --ring-inverse. Components never restyle focus; they pick one of the
+     shared classes below. */
     .on-inverse {
         background-color: var(--surface-inverse);
         color: var(--foreground-inverse);
+        --focus-ring-color: var(--ring-inverse);
     }
     :where(
         a,
@@ -545,15 +608,41 @@
         summary,
         [tabindex]
     )[data-force~='focus'] {
-        outline: 3px solid var(--ring);
-        outline-offset: 2px;
+        outline: var(--focus-ring-width) solid var(--focus-ring-color);
+        outline-offset: var(--focus-ring-offset);
     }
-    /* F-03: wrappers that must clip (overflow-hidden) put .focus-inset on the
-     interactive child so the ring is drawn inside the clip box. */
-    .focus-inset:focus-visible {
-        outline-offset: -3px;
+    /* A focusable element inside a clipping ancestor (overflow:hidden) draws
+     the ring inside its own border box. */
+    .focus-inset:is(:focus-visible, [data-force~='focus']) {
+        outline-offset: calc(-1 * var(--focus-ring-width));
     }
-    .on-inverse
+    /* Composite controls (quantity stepper, field with prefix, OTP group,
+     segmented control, card-as-link): the container carries the ring when an
+     inner control is focus-visible; inner parts never ring on their own.
+     .focus-ring hugs the container border, .focus-ring-inset draws inside it
+     where an ancestor clips the outline. An sr-only input can delegate its
+     ring to the proxy element that follows it (rating stars, option chips). */
+    :is(.focus-ring, .focus-ring-inset):is(
+            :has(:focus-visible),
+            [data-force~='focus']
+        ),
+    :where(input, select, textarea):focus-visible + .focus-ring {
+        outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    }
+    .focus-ring:is(:has(:focus-visible), [data-force~='focus']),
+    :where(input, select, textarea):focus-visible + .focus-ring {
+        outline-offset: 0;
+    }
+    .focus-ring-inset:is(:has(:focus-visible), [data-force~='focus']) {
+        outline-offset: calc(-1 * var(--focus-ring-width));
+    }
+    :is(.focus-ring, .focus-ring-inset):has(
+            [aria-invalid='true']:focus-visible
+        ) {
+        outline-color: var(--focus-ring-error);
+        border-color: var(--focus-ring-error);
+    }
+    :is(.focus-ring, .focus-ring-inset)
         :where(
             a,
             button,
@@ -562,18 +651,8 @@
             textarea,
             summary,
             [tabindex]
-        ):focus-visible,
-    .on-inverse
-        :where(
-            a,
-            button,
-            input,
-            select,
-            textarea,
-            summary,
-            [tabindex]
-        )[data-force~='focus'] {
-        outline-color: var(--ring-inverse);
+        ):is(:focus-visible, [data-force~='focus']) {
+        outline: none;
     }
 
     .icon {
@@ -697,13 +776,49 @@
         @apply border-foreground-inverse bg-transparent text-foreground-inverse hover:bg-brand-800 active:bg-brand-950;
     }
 
+    /* Filled brand buttons: a white ring drawn inside the fill (2px gap), so
+     the single indicator reads against the green, not the page. */
+    .btn:not(
+            .btn-secondary,
+            .btn-outline,
+            .btn-ghost,
+            .btn-neutral,
+            .btn-danger,
+            .btn-inverse
+        ):is(:focus-visible, [data-force~='focus']) {
+        outline-color: var(--focus-ring-on-brand);
+        outline-offset: calc(
+            -1 * (var(--focus-ring-width) + var(--focus-ring-offset))
+        );
+    }
+
     /* Field: input, select, textarea. 16px text on phone/tablet/touch (no iOS zoom). */
     .field {
         @apply block min-h-touch w-full rounded-field border border-border-control bg-surface px-3 text-input text-foreground;
         @apply transition-colors duration-token placeholder:text-subtle-foreground;
-        @apply hover:border-foreground focus-visible:border-primary;
+        @apply hover:border-foreground;
         @apply disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground;
         @apply aria-[invalid=true]:border-danger;
+    }
+    /* Focused fields: the outline hugs the border (offset 0) and the border
+     joins the ring colour, so there is one indicator and no gap. Field-styled
+     containers (the +63 prefix slot) get the same border via :has(); their
+     ring comes from .focus-ring in the base layer. Errors go to the error
+     colour on both. */
+    :is(
+            .field:focus-visible,
+            .field[data-force~='focus'],
+            .field:has(:focus-visible)
+        ) {
+        border-color: var(--focus-ring-color);
+        outline-offset: 0;
+    }
+    :is(
+            .field[aria-invalid='true']:focus-visible,
+            .field[aria-invalid='true'][data-force~='focus']
+        ) {
+        border-color: var(--danger);
+        outline-color: var(--focus-ring-error);
     }
     textarea.field {
         @apply min-h-24 py-2.5;
@@ -747,6 +862,14 @@
     }
     .badge-sale-solid {
         @apply bg-sale text-primary-foreground;
+    }
+    /* Promo badge: the only place a discount may be signalled. Solid variant
+       is the -NN% tag on product-card images (white on --promo, >= 4.5:1). */
+    .badge-promo {
+        @apply bg-promo-soft text-promo;
+    }
+    .badge-promo-solid {
+        @apply bg-promo text-primary-foreground;
     }
     .badge-success {
         @apply bg-success-soft text-success;
@@ -800,5 +923,17 @@
     }
     .panel {
         @apply rounded-panel border border-border bg-surface;
+    }
+}
+
+/* Forced colours / high contrast: the system Highlight colour must win over
+   brand tokens, so the single focus indicator survives. Unlayered on purpose:
+   it beats the component rules above. The ring is a static outline — nothing
+   to honour in prefers-reduced-motion. */
+@media (forced-colors: active) {
+    :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+    :is(.focus-ring, .focus-ring-inset):has(:focus-visible),
+    .focus-inset:focus-visible {
+        outline-color: Highlight;
     }
 }

@@ -61,7 +61,7 @@ Philippine mobile number with fixed +63 prefix, formatted as 9XX XXX XXXX.
 | Announcements | Errors are announced when focus lands on the field (described-by), not via live regions while typing. |
 
 ## 8. Tokens used
-`--border-control`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--r-field`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
+`--border-control`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--r-field`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Accept 09…, 9…, +639… pastes and normalise.
@@ -79,7 +79,7 @@ Philippine mobile number with fixed +63 prefix, formatted as 9XX XXX XXXX.
   <div class="flex items-baseline justify-between gap-2">
     <label for="ph1" class="text-label text-foreground">Mobile number<span class="text-danger" aria-hidden="true"> *</span></label>
   </div>
-  <label for="ph1" class="field flex items-stretch p-0 cursor-text overflow-hidden has-[:focus-visible]:border-primary has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-2"><span class="inline-flex items-center gap-1 border-r border-border-control bg-surface-muted px-3 text-input text-foreground select-none" aria-hidden="true">+63</span><input id="ph1" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="9XX XXX XXXX" maxlength="12" class="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground placeholder:text-subtle-foreground outline-none disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground" data-ds-phone value="917 123 4567" aria-describedby="ph1-help ph1-error"></label>
+  <label for="ph1" class="field focus-ring flex items-stretch p-0 cursor-text overflow-hidden"><span class="inline-flex items-center gap-1 border-r border-border-control bg-surface-muted px-3 text-input text-foreground select-none" aria-hidden="true">+63</span><input id="ph1" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="9XX XXX XXXX" maxlength="12" class="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground placeholder:text-subtle-foreground disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground" data-ds-phone value="917 123 4567" aria-describedby="ph1-help ph1-error"></label>
   <div class="flex gap-2">
     <p id="ph1-help" class="text-body-sm text-muted-foreground">10 digits after +63, e.g. 917 123 4567.</p>
   </div>

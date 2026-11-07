@@ -64,7 +64,7 @@ Explains why a list or page is empty and offers the next action.
 | Announcements | If it replaces results after a search, results count is announced by the search live region. |
 
 ## 8. Tokens used
-`--brand-100`, `--dur`, `--ease-out`, `--fs-body`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--ring`, `--touch-min`, `currentColor (icons)`
+`--brand-100`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--fs-body`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Title states the fact; text gives the reason/next step.

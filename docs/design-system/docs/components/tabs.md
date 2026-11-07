@@ -65,7 +65,7 @@ Switch between views of the same object: order status tabs, shop page tabs, prod
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--foreground`, `--fs-body`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--ring`, `--surface-muted`, `--touch-min`
+`--border`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--surface-muted`, `--touch-min`
 
 ## 9. Content rules
 - Short labels; counts as badges, not in text.
@@ -81,29 +81,29 @@ Switch between views of the same object: order status tabs, shop page tabs, prod
 ```html
 <div class="">
   <div role="tablist" aria-label="Orders" class="flex overflow-x-auto border-b border-border [scrollbar-width:none]">
-    <button type="button" role="tab" id="tb1-tab-0" aria-controls="tb1-panel-0" aria-selected="true" tabindex="0" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">To Pay<span class="badge badge-neutral">1</span></button>
-    <button type="button" role="tab" id="tb1-tab-1" aria-controls="tb1-panel-1" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">To Ship<span class="badge badge-neutral">2</span></button>
-    <button type="button" role="tab" id="tb1-tab-2" aria-controls="tb1-panel-2" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">To Receive<span class="badge badge-neutral">1</span></button>
-    <button type="button" role="tab" id="tb1-tab-3" aria-controls="tb1-panel-3" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">Completed</button>
-    <button type="button" role="tab" id="tb1-tab-4" aria-controls="tb1-panel-4" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">Cancelled</button>
-    <button type="button" role="tab" id="tb1-tab-5" aria-controls="tb1-panel-5" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">Return/Refund</button>
+    <button type="button" role="tab" id="tb1-tab-0" aria-controls="tb1-panel-0" aria-selected="true" tabindex="0" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">To Pay<span class="badge badge-neutral">1</span></button>
+    <button type="button" role="tab" id="tb1-tab-1" aria-controls="tb1-panel-1" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">To Ship<span class="badge badge-neutral">2</span></button>
+    <button type="button" role="tab" id="tb1-tab-2" aria-controls="tb1-panel-2" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">To Receive<span class="badge badge-neutral">1</span></button>
+    <button type="button" role="tab" id="tb1-tab-3" aria-controls="tb1-panel-3" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">Completed</button>
+    <button type="button" role="tab" id="tb1-tab-4" aria-controls="tb1-panel-4" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">Cancelled</button>
+    <button type="button" role="tab" id="tb1-tab-5" aria-controls="tb1-panel-5" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">Return/Refund</button>
   </div>
-  <div role="tabpanel" id="tb1-panel-0" aria-labelledby="tb1-tab-0" tabindex="0" class="pt-4 focus-visible:outline-offset-0">
+  <div role="tabpanel" id="tb1-panel-0" aria-labelledby="tb1-tab-0" tabindex="0" class="pt-4">
     <p class="text-body text-muted-foreground">To Pay orders appear here.</p>
   </div>
-  <div role="tabpanel" id="tb1-panel-1" aria-labelledby="tb1-tab-1" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="tb1-panel-1" aria-labelledby="tb1-tab-1" tabindex="0" class="pt-4" hidden>
     <p class="text-body text-muted-foreground">To Ship orders appear here.</p>
   </div>
-  <div role="tabpanel" id="tb1-panel-2" aria-labelledby="tb1-tab-2" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="tb1-panel-2" aria-labelledby="tb1-tab-2" tabindex="0" class="pt-4" hidden>
     <p class="text-body text-muted-foreground">To Receive orders appear here.</p>
   </div>
-  <div role="tabpanel" id="tb1-panel-3" aria-labelledby="tb1-tab-3" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="tb1-panel-3" aria-labelledby="tb1-tab-3" tabindex="0" class="pt-4" hidden>
     <p class="text-body text-muted-foreground">Completed orders appear here.</p>
   </div>
-  <div role="tabpanel" id="tb1-panel-4" aria-labelledby="tb1-tab-4" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="tb1-panel-4" aria-labelledby="tb1-tab-4" tabindex="0" class="pt-4" hidden>
     <p class="text-body text-muted-foreground">Cancelled orders appear here.</p>
   </div>
-  <div role="tabpanel" id="tb1-panel-5" aria-labelledby="tb1-tab-5" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="tb1-panel-5" aria-labelledby="tb1-tab-5" tabindex="0" class="pt-4" hidden>
     <p class="text-body text-muted-foreground">Return/Refund orders appear here.</p>
   </div>
 </div>

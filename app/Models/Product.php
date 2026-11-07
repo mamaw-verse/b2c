@@ -114,6 +114,9 @@ final class Product extends Model
             'location' => $this->location,
             'free_shipping' => $this->free_shipping,
             'frozen' => $this->frozen,
+            'temperature' => $this->frozen ? 'frozen' : null,
+            'category_slug' => $this->category->slug,
+            'in_stock' => $this->stock > 0,
             'halal_status' => $this->halal_status->value,
             'certifier' => $this->halalCertification?->certifying_body,
             'image_url' => $this->images->first()?->url,
@@ -128,6 +131,7 @@ final class Product extends Model
         return $this->toCard() + [
             'description' => $this->description,
             'stock' => $this->stock,
+            'in_stock' => $this->stock > 0,
             'images' => $this->images->map(fn (ProductImage $image) => [
                 'url' => $image->url,
                 'icon' => $image->icon,
@@ -135,6 +139,7 @@ final class Product extends Model
             'option1_name' => $this->option1_name,
             'option2_name' => $this->option2_name,
             'variations' => $this->variations->map(fn (ProductVariation $v) => [
+                'id' => $v->id,
                 'option1_value' => $v->option1_value,
                 'option2_value' => $v->option2_value,
                 'price' => $v->price,

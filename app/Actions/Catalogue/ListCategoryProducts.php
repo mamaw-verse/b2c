@@ -16,7 +16,7 @@ final readonly class ListCategoryProducts
         $ids = $category->children()->pluck('id')->push($category->id);
 
         $paginator = Product::visible()
-            ->with(['halalCertification', 'images'])
+            ->with(['halalCertification', 'images', 'category'])
             ->whereIn('category_id', $ids)
             ->tap(fn ($q) => match ($sort) {
                 'newest' => $q->latest('created_at'),

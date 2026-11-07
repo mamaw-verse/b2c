@@ -72,7 +72,7 @@ One vocabulary for halal status across storefront, seller centre and moderation:
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--brand-100`, `--brand-700`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-card-hover`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-price`, `--halal`, `--halal-soft`, `--muted-foreground`, `--primary-foreground`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-card`, `--r-tile`, `--rating`, `--ring`, `--sale`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--border`, `--brand-100`, `--brand-700`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-card-hover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--fs-price`, `--halal`, `--halal-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--promo`, `--r-badge`, `--r-button`, `--r-card`, `--r-tile`, `--rating`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - “Halal certified” only after the platform has verified the certificate. Never “halal” from a seller claim alone.

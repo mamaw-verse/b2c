@@ -66,7 +66,7 @@ Buyer review with stars, variation, text, photos, helpful, report and seller res
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--brand-100`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-badge`, `--r-button`, `--r-tile`, `--rating`, `--ring`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--border`, `--brand-100`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-badge`, `--r-button`, `--r-tile`, `--rating`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Mask anonymous names.

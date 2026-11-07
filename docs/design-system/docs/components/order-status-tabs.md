@@ -60,7 +60,7 @@ Tabs for To Pay / To Ship / To Receive / Completed / Cancelled / Return-Refund w
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--fs-price`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--ring`, `--sale`, `--success`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--fs-price`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--sale`, `--success`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Fixed order (lifecycle).
@@ -76,20 +76,20 @@ Tabs for To Pay / To Ship / To Receive / Completed / Cancelled / Return-Refund w
 ```html
 <div class="">
   <div role="tablist" aria-label="My purchases" class="flex overflow-x-auto border-b border-border [scrollbar-width:none]">
-    <button type="button" role="tab" id="ost-tab-0" aria-controls="ost-panel-0" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">To Pay<span class="badge badge-neutral">1</span></button>
-    <button type="button" role="tab" id="ost-tab-1" aria-controls="ost-panel-1" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">To Ship<span class="badge badge-neutral">2</span></button>
-    <button type="button" role="tab" id="ost-tab-2" aria-controls="ost-panel-2" aria-selected="true" tabindex="0" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">To Receive<span class="badge badge-neutral">1</span></button>
-    <button type="button" role="tab" id="ost-tab-3" aria-controls="ost-panel-3" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">Completed</button>
-    <button type="button" role="tab" id="ost-tab-4" aria-controls="ost-panel-4" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">Cancelled</button>
-    <button type="button" role="tab" id="ost-tab-5" aria-controls="ost-panel-5" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-visible:outline-offset-[-3px]">Return/Refund</button>
+    <button type="button" role="tab" id="ost-tab-0" aria-controls="ost-panel-0" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">To Pay<span class="badge badge-neutral">1</span></button>
+    <button type="button" role="tab" id="ost-tab-1" aria-controls="ost-panel-1" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">To Ship<span class="badge badge-neutral">2</span></button>
+    <button type="button" role="tab" id="ost-tab-2" aria-controls="ost-panel-2" aria-selected="true" tabindex="0" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">To Receive<span class="badge badge-neutral">1</span></button>
+    <button type="button" role="tab" id="ost-tab-3" aria-controls="ost-panel-3" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">Completed</button>
+    <button type="button" role="tab" id="ost-tab-4" aria-controls="ost-panel-4" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">Cancelled</button>
+    <button type="button" role="tab" id="ost-tab-5" aria-controls="ost-panel-5" aria-selected="false" tabindex="-1" class="relative flex min-h-touch shrink-0 items-center gap-1.5 whitespace-nowrap px-4 text-label text-muted-foreground hover:text-foreground aria-selected:text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full aria-selected:after:bg-primary focus-inset">Return/Refund</button>
   </div>
-  <div role="tabpanel" id="ost-panel-0" aria-labelledby="ost-tab-0" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="ost-panel-0" aria-labelledby="ost-tab-0" tabindex="0" class="pt-4" hidden>
     <p class="py-6 text-center text-body text-muted-foreground">No orders to pay</p>
   </div>
-  <div role="tabpanel" id="ost-panel-1" aria-labelledby="ost-tab-1" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="ost-panel-1" aria-labelledby="ost-tab-1" tabindex="0" class="pt-4" hidden>
     <p class="py-6 text-center text-body text-muted-foreground">No orders to ship</p>
   </div>
-  <div role="tabpanel" id="ost-panel-2" aria-labelledby="ost-tab-2" tabindex="0" class="pt-4 focus-visible:outline-offset-0">
+  <div role="tabpanel" id="ost-panel-2" aria-labelledby="ost-tab-2" tabindex="0" class="pt-4">
     <article class="bg-surface md:rounded-panel md:border md:border-border">
       <div class="flex items-center gap-2 border-b border-border px-gutter py-2 md:px-4">
         <h3 class="flex min-w-0 flex-1 items-center gap-1.5 text-label"><svg class="icon size-4 shrink-0" aria-hidden="true"><use href="#i-store"/></svg><span class="truncate">Barakah Pantry</span></h3>
@@ -106,7 +106,7 @@ Tabs for To Pay / To Ship / To Receive / Completed / Cancelled / Return-Refund w
             <p class="text-body-sm text-muted-foreground">Premium, 500g · ×2</p>
           </div>
           <div class="text-right">
-            <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span data-price class="text-body font-extrabold text-foreground">₱649</span></p>
+            <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span data-price class="text-body font-bold text-foreground">₱649</span></p>
           </div>
         </li>
       </ul>
@@ -117,13 +117,13 @@ Tabs for To Pay / To Ship / To Receive / Completed / Cancelled / Return-Refund w
       </div>
     </article>
   </div>
-  <div role="tabpanel" id="ost-panel-3" aria-labelledby="ost-tab-3" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="ost-panel-3" aria-labelledby="ost-tab-3" tabindex="0" class="pt-4" hidden>
     <p class="py-6 text-center text-body text-muted-foreground">No orders completed</p>
   </div>
-  <div role="tabpanel" id="ost-panel-4" aria-labelledby="ost-tab-4" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="ost-panel-4" aria-labelledby="ost-tab-4" tabindex="0" class="pt-4" hidden>
     <p class="py-6 text-center text-body text-muted-foreground">No orders cancelled</p>
   </div>
-  <div role="tabpanel" id="ost-panel-5" aria-labelledby="ost-tab-5" tabindex="0" class="pt-4 focus-visible:outline-offset-0" hidden>
+  <div role="tabpanel" id="ost-panel-5" aria-labelledby="ost-tab-5" tabindex="0" class="pt-4" hidden>
     <p class="py-6 text-center text-body text-muted-foreground">No orders with returns</p>
   </div>
 </div>

@@ -66,7 +66,7 @@ Section navigation for account, seller and admin shells: drawer on phone, collap
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--foreground`, `--fs-caption`, `--fs-eyebrow`, `--fs-label`, `--muted-foreground`, `--primary-foreground`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--ring`, `--sale`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
+`--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-caption`, `--fs-eyebrow`, `--fs-label`, `--muted-foreground`, `--primary-foreground`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--sale`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Same order across tiers.

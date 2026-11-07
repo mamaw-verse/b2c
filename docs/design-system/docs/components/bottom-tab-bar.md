@@ -64,7 +64,7 @@ Primary storefront navigation on phone and tablet: Home, Categories, Chat, Notif
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--foreground`, `--fs-caption`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--ring`, `--sale`, `--surface`, `--touch-min`, `currentColor (icons)`, `safe-area-inset-bottom`
+`--border`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-caption`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--sale`, `--surface`, `--touch-min`, `currentColor (icons)`, `safe-area-inset-bottom`
 
 ## 9. Content rules
 - One-word captions; Filipino strings must fit at 360px (test “Mga Abiso”).

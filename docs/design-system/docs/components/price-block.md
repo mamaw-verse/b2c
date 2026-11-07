@@ -69,7 +69,7 @@ Formats price in ₱ with tabular numerals: current, original (struck), discount
 | Announcements | Prices use `data-price` (tabular numerals) and `--sale` only when discounted; struck-through price has sr-only “Original price:”. |
 
 ## 8. Tokens used
-`--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-price`, `--fs-price-lg`, `--muted-foreground`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--sale`, `--sale-soft`, `--surface-muted`
+`--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-price`, `--fs-price-lg`, `--muted-foreground`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--surface-muted`
 
 ## 9. Content rules
 - ₱ prefix, thousands comma, no decimals unless non-zero (₱2,150.50).
@@ -85,7 +85,7 @@ Formats price in ₱ with tabular numerals: current, original (struck), discount
 
 ## 11. HTML usage
 ```html
-<p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-price-lg text-sale">₱349</span><span class="sr-only">Original price:</span><s data-price class="text-body text-muted-foreground">₱599</s><span class="badge badge-sale">-42%</span></p>
+<p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-price-lg text-foreground">₱349</span><span class="sr-only">Original price:</span><s data-price class="text-body text-muted-foreground">₱599</s><span class="badge badge-promo">-42%</span></p>
 ```
 
 ## 12. Test notes

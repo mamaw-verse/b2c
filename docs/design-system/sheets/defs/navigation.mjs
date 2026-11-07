@@ -1,5 +1,6 @@
 import { btn, icon, iconBtn } from '../ui/core.mjs';
 import { bottomTabBar, header, sidebar, breadcrumb, tabs, segmented, pagination, infiniteSentinel } from '../ui/nav.mjs';
+import { foot } from '../layouts.mjs';
 import { media } from '../ui/core.mjs';
 
 const accountItems = [['user', 'My account'], ['package', 'My purchases', 3], ['heart', 'Likes'], ['ticket', 'Vouchers'], ['map-pin', 'Addresses'], ['bell', 'Notifications'], ['settings', 'Settings']];
@@ -27,15 +28,15 @@ export default [
     slug: 'header', name: 'Header', group: 'Navigation', phase: 2,
     purpose: 'Storefront header: compact search row on phone/tablet; announcement bar + logo + wide search + account + category nav on desktop.',
     use: ['All storefront screens.'], avoid: ['Seller/admin (shell headers).'],
-    anatomy: ['Announcement strip (desktop only, `--announce-h`).', 'Logo slot (neutral mark + `{{BRAND_NAME}}`).', 'SearchInput.', 'Cart (+ chat on phone, notifications + account on desktop) IconButtons with counts.', 'Category nav (desktop only, `--nav-h`).', 'Variant: back arrow + page title (detail pages on phone).'],
+    anatomy: ['Announcement strip (desktop only, `--announce-h`).', 'Logo slot (neutral mark + `{{BRAND_NAME}}`).', 'SearchInput.', 'Cart (+ chat on phone, notifications + account on desktop) IconButtons with counts.', 'Category nav (`--nav-h` on desktop; horizontal scroller with a right-edge fade on mobile). Four states from tokens: default `--text-muted` 500, hover `--brand-50`/`--brand-700` pill, current item `--brand-700` + 2px `--brand-600` bottom bar (`aria-current="page"`), shared focus ring. Weight never changes between states.', 'Variant: back arrow + page title (detail pages on phone).'],
     variants: [['Search (default)', '`header()`', 'Home, listing.'], ['Back + title', '`header({back:true,title})`', 'Cart, order detail on phone.']],
     example: header({ fixed: false }),
     gallery: `<div class="grid gap-4">${header({ fixed: false, id: 'h1' })}${header({ fixed: false, id: 'h2', back: true, title: 'Shopping cart (3)' })}</div>`,
     galleryCls: 'bg-background p-0 overflow-hidden',
-    states: { default: header({ fixed: false, id: 'hs' }), focus: header({ fixed: false, id: 'hs' }).replace('role="combobox"', 'role="combobox" data-force="focus"') },
-    na: { hover: 'Children.', pressed: 'Children.', disabled: 'n/a', loading: 'n/a', error: 'n/a', selected: 'Category nav item uses `aria-current`.', empty: 'n/a', skeleton: 'n/a' },
+    states: { default: header({ fixed: false, id: 'hs' }), selected: header({ fixed: false, id: 'hs', activeCat: 'Dates & Sweets' }), focus: header({ fixed: false, id: 'hs' }).replace('role="combobox"', 'role="combobox" data-force="focus"') },
+    na: { hover: 'Children.', pressed: 'Children.', disabled: 'n/a', loading: 'n/a', error: 'n/a', empty: 'n/a', skeleton: 'n/a' },
     cellCls: 'p-0 overflow-hidden',
-    responsive: ['56px sticky row: logo mark, search, cart, chat.', '64px row, same items.', 'Announcement 34px + 78px row (logo text, search, cart, notifications, account) + 48px category nav.'],
+    responsive: ['56px sticky row: logo mark, search, cart, chat + category scroller (right-edge fade; current item scrolls into view).', '64px row, same items.', 'Announcement 34px + 78px row (logo text, search, cart, notifications, account) + 48px category nav; current item shows the 2px indicator aligned to the row\'s bottom border.'],
     preview: { height: { 360: 360, 768: 360, 1280: 380 }, fixed: true, html: `${header()}<div class="mx-auto max-w-container p-gutter"><p class="text-body text-muted-foreground">Content.</p></div>` },
     props: [['variant', '`search` | `back`', '`search`', ''], ['title', 'string', '—', 'Back variant.'], ['cartCount / chatCount', 'number', '—', ''], ['logo', 'slot', 'neutral mark', 'White-label.']],
     a11y: { role: '`banner` landmark; `search`; `nav` “Categories”.', name: 'Logo link “{{BRAND_NAME}} home”.', keyboard: 'Skip link precedes it on real pages.', touch: 'Icon buttons 44px.' },
@@ -99,7 +100,7 @@ export default [
     na: { pressed: 'n/a', disabled: 'n/a', loading: 'n/a', error: 'n/a', empty: 'n/a', skeleton: 'n/a' },
     responsive: ['Inline or block.', 'Inline.', 'Inline.'],
     props: [['options', 'string[]', '—', ''], ['selected', 'number', '0', ''], ['name', 'string', '—', ''], ['size', '`sm` | `md`', '`md`', '']],
-    a11y: { role: 'Radio group.', name: 'Legend.', keyboard: 'Arrows (native).', focus: 'Focus ring on the label via `has-[:focus-visible]`.' },
+    a11y: { role: 'Radio group.', name: 'Legend.', keyboard: 'Arrows (native).', focus: 'One ring on the group via `.focus-ring`; the checked option reads through its selected pill.' },
     content: ['1–2 words each.'], do: ['Max 4 options.'], dont: ['Don’t use for actions.'],
     tests: ['Arrow keys change selection.'],
   },
@@ -118,5 +119,22 @@ export default [
     a11y: { role: '`nav` “Pagination”; links.', name: '“Page 2”, “Previous page”.', keyboard: 'Links; “Load more” is a button so keyboard users never depend on scrolling.', focus: 'After Load more, focus stays on the button.', aria: '`aria-current="page"`; first/last use `aria-disabled`.', announce: '“4 more items loaded” / end message (polite).' },
     content: ['“Load more”, not “See more”.'], do: ['Keep footer reachable (button fallback).'], dont: ['Don’t infinite-scroll tables.'],
     tests: ['Load more works by keyboard.', 'Announcement after load.'],
+  },
+  {
+    slug: 'footer', name: 'SiteFooter', group: 'Navigation', phase: 3,
+    purpose: 'Storefront footer: trust strip (halal verification promise, accepted payments, couriers), five link groups + brand block with tagline/socials/contact, and a legal bar. All copy comes from config — the brand name is never hard-coded.',
+    use: ['Every public storefront page.'], avoid: ['Seller/admin shells (workspace chrome).'],
+    anatomy: ['Trust strip: “Every halal claim is verified by {{BRAND_NAME}}” + payment chips (COD, GCash, Maya, cards, bank transfer) + courier chips.', 'Brand column: name, one-line tagline, socials, support email + hours.', 'Link groups (flex column, `--space-3` between links): Shop, Support, Halal & trust, Sell, Company.', 'Legal bar: © year + brand, DTI/SEC registration; language/currency only when multi-currency exists.', 'Surface: `bg-surface-subtle` (one tone below the page), `border-t`, container-aligned.'],
+    variants: [['Default', '`foot` (public shell)', '']],
+    example: foot,
+    galleryCls: 'bg-background p-0 overflow-hidden',
+    na: { hover: 'Links only (`hover:text-primary`).', pressed: 'n/a', focus: 'Shared 2px ring.', disabled: 'n/a', loading: 'n/a', error: 'n/a', selected: 'n/a', empty: 'n/a', skeleton: 'n/a' },
+    states: { default: foot },
+    cellCls: 'p-0 overflow-hidden',
+    responsive: ['Groups become disclosures (details/summary; the port uses `button` + `aria-expanded`). Payments/couriers wrap; legal bar stacks; bottom padding clears the tab bar.', 'Two columns of groups.', 'Brand block + five columns in one row.'],
+    props: [['marketplace', 'config(`marketplace`)', '—', 'Tagline, support email/hours, registration, payments, couriers, socials, link groups. `{brand}` resolves to the app name.']],
+    a11y: { role: '`contentinfo` landmark; each group is a labelled `nav`.', name: 'Headings label the navs; payment/courier names are sr-only labels on plain text chips.', aria: '`aria-expanded` on the mobile group buttons.', touch: 'Group toggles 44px; links 36px.' },
+    content: ['One-line tagline from config.', 'Legal bar: © {year} {brand} + business registration.'], do: ['Keep every link reachable by keyboard.'], dont: ['Don’t hardcode the brand name, contact details or registration number.'],
+    tests: ['Accordion toggles below 640px; columns at ≥640px.', 'Trust strip and legal bar render in both themes.'],
   },
 ];

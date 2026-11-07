@@ -68,7 +68,7 @@ Keeps the main actions within thumb reach on phone: product detail (Shop | Chat 
 | Announcements | Totals that change use `aria-live="polite"` on the total. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--container-max`, `--danger`, `--dur`, `--ease-out`, `--elevation-sticky`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--fs-price`, `--gutter`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-button`, `--ring`, `--sale`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-sticky-bar`, `currentColor (icons)`, `safe-area-inset-bottom`
+`--border`, `--border-control`, `--brand-100`, `--container-max`, `--danger`, `--dur`, `--ease-out`, `--elevation-sticky`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--fs-price`, `--gutter`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-button`, `--sale`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-sticky-bar`, `currentColor (icons)`, `safe-area-inset-bottom`
 
 ## 9. Content rules
 - Primary label is the outcome: “Buy now”, “Place order”.

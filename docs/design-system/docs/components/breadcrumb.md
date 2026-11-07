@@ -60,7 +60,7 @@ Shows the category path on listing and product pages (desktop/tablet); scrolls h
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--foreground`, `--fs-body-sm`, `--muted-foreground`, `--primary`, `--ring`, `--subtle-foreground`, `--touch-min`, `currentColor (icons)`
+`--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body-sm`, `--muted-foreground`, `--primary`, `--subtle-foreground`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Use category names exactly.

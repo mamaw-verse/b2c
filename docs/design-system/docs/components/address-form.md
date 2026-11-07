@@ -65,7 +65,7 @@ Philippine address group: name, mobile, Region → Province → City/Municipalit
 | Announcements | Errors are announced when focus lands on the field (described-by), not via live regions while typing. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-panel`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-sheet`, `currentColor (icons)`
+`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-panel`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-sheet`, `currentColor (icons)`
 
 ## 9. Content rules
 - Use official PSGC names.
@@ -92,7 +92,7 @@ Philippine address group: name, mobile, Region → Province → City/Municipalit
     <div class="flex items-baseline justify-between gap-2">
       <label for="af-phone" class="text-label text-foreground">Mobile number<span class="text-danger" aria-hidden="true"> *</span></label>
     </div>
-    <label for="af-phone" class="field flex items-stretch p-0 cursor-text overflow-hidden has-[:focus-visible]:border-primary has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-2"><span class="inline-flex items-center gap-1 border-r border-border-control bg-surface-muted px-3 text-input text-foreground select-none" aria-hidden="true">+63</span><input id="af-phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="9XX XXX XXXX" maxlength="12" class="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground placeholder:text-subtle-foreground outline-none disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground" data-ds-phone value="917 123 4567" aria-describedby="af-phone-help af-phone-error"></label>
+    <label for="af-phone" class="field focus-ring flex items-stretch p-0 cursor-text overflow-hidden"><span class="inline-flex items-center gap-1 border-r border-border-control bg-surface-muted px-3 text-input text-foreground select-none" aria-hidden="true">+63</span><input id="af-phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="9XX XXX XXXX" maxlength="12" class="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground placeholder:text-subtle-foreground disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground" data-ds-phone value="917 123 4567" aria-describedby="af-phone-help af-phone-error"></label>
     <div class="flex gap-2">
       <p id="af-phone-help" class="text-body-sm text-muted-foreground">For delivery updates only.</p>
     </div>
@@ -186,8 +186,8 @@ Philippine address group: name, mobile, Region → Province → City/Municipalit
   <fieldset class="md:col-span-2">
     <legend class="mb-1 text-label">Label as</legend>
     <div class="flex gap-2">
-      <label class="flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control px-4 text-label has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><input type="radio" name="af-label" class="sr-only" checked><svg class="icon size-4" aria-hidden="true"><use href="#i-house"/></svg>Home</label>
-      <label class="flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control px-4 text-label has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><input type="radio" name="af-label" class="sr-only"><svg class="icon size-4" aria-hidden="true"><use href="#i-building-2"/></svg>Work</label>
+      <label class="flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control px-4 text-label has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground focus-ring"><input type="radio" name="af-label" class="sr-only" checked><svg class="icon size-4" aria-hidden="true"><use href="#i-house"/></svg>Home</label>
+      <label class="flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control px-4 text-label has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground focus-ring"><input type="radio" name="af-label" class="sr-only"><svg class="icon size-4" aria-hidden="true"><use href="#i-building-2"/></svg>Work</label>
     </div>
   </fieldset>
   <label for="af-default" class="flex min-h-touch items-start gap-3 py-2.5 md:col-span-2"><input id="af-default" type="checkbox" class="mt-0.5 size-5 shrink-0 accent-primary" checked><span class="grid gap-0.5"><span class="text-body">Set as default address</span></span></label>

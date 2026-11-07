@@ -13,7 +13,7 @@ final readonly class ListHomeFeed
     public function handle(): CursorPaginator
     {
         $paginator = Product::visible()
-            ->with(['halalCertification', 'images'])
+            ->with(['halalCertification', 'images', 'category'])
             ->latest()
             ->cursorPaginate(24);
 

@@ -63,7 +63,7 @@ Seller listing editor as titled panels: Basic info, Media, Sales, Shipping; stic
 | Announcements | Draft saved status polite. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--container-max`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-popover`, `--elevation-sticky`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--halal-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-panel`, `--r-tile`, `--ring`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `--z-sheet`, `currentColor (icons)`, `safe-area-inset-bottom`
+`--border`, `--border-control`, `--brand-100`, `--container-max`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-popover`, `--elevation-sticky`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--halal-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-panel`, `--r-tile`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `--z-sheet`, `currentColor (icons)`, `safe-area-inset-bottom`
 
 ## 9. Content rules
 - Help text gives rules (no ALL CAPS).
@@ -236,7 +236,7 @@ Seller listing editor as titled panels: Basic info, Media, Sales, Shipping; stic
             </div>
           </li>
           <li data-ds-add>
-            <label for="pf-photos" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
+            <label for="pf-photos" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft focus-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
             <input id="pf-photos" type="file" accept="image/*" multiple class="sr-only">
           </li>
         </ul>

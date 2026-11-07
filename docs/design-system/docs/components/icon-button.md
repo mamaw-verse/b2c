@@ -72,7 +72,7 @@ A square button that shows only an icon: cart, chat, close, more. Optional count
 | Announcements | Toggle state change is conveyed by `aria-pressed`. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--dur`, `--ease-out`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-caption`, `--fs-label`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-badge`, `--r-button`, `--ring`, `--sale`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-toast`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-caption`, `--fs-label`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-badge`, `--r-button`, `--sale`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-toast`, `currentColor (icons)`
 
 ## 9. Content rules
 - Label describes the action, not the icon: “Add to likes”, not “Heart”.

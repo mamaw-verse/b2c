@@ -65,7 +65,7 @@ Sortable, selectable table for seller/admin lists that becomes a card list on ph
 | Announcements | Selection count in the BulkActionBar live region. |
 
 ## 8. Tokens used
-`--border`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-th`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-card`, `--r-panel`, `--ring`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--border`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-th`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-card`, `--r-panel`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Header labels ≤ 2 words.

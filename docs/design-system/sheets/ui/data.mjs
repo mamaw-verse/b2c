@@ -17,7 +17,7 @@ export function rating(value, { count, size = 'size-4', showValue = true, label 
 }
 
 export const accordion = (items, { name } = {}) => `<div class="divide-y divide-border rounded-panel border border-border bg-surface">
-  ${items.map(([q, a, open]) => `<details class="group"${open ? ' open' : ''}${name ? ` name="${name}"` : ''}><summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-visible:outline-offset-[-3px] [&::-webkit-details-marker]:hidden list-none">${q}${icon('chevron-down', 'shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180')}</summary><div class="px-4 pb-4 text-body text-muted-foreground">${a}</div></details>`).join('')}
+  ${items.map(([q, a, open]) => `<details class="group"${open ? ' open' : ''}${name ? ` name="${name}"` : ''}><summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-inset [&::-webkit-details-marker]:hidden list-none">${q}${icon('chevron-down', 'shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180')}</summary><div class="px-4 pb-4 text-body text-muted-foreground">${a}</div></details>`).join('')}
 </div>`;
 
 /** Carousel / gallery: scroll-snap, prev/next (pointer), thumbnails, "n of N" counter, zoom. */

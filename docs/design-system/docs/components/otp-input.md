@@ -63,7 +63,7 @@ Six-digit verification code from SMS/email, with autofill support.
 | Announcements | Error linked via fieldset describedby. |
 
 ## 8. Tokens used
-`--border-control`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body-sm`, `--fs-h3`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--r-field`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border-control`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body-sm`, `--fs-h3`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--r-field`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Say where the code was sent: “Sent to +63 917 ••• 4567”.

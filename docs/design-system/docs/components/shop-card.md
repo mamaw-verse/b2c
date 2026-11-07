@@ -61,7 +61,7 @@ Shop summary in search results and “Shops you follow”.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--brand-100`, `--dur`, `--ease-out`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-tile`, `--rating`, `--ring`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
+`--border`, `--brand-100`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-tile`, `--rating`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Followers compact (12.8k).

@@ -70,7 +70,7 @@ What the platform verified about a halal claim: who certified it, which number, 
 | Announcements | Expiry banners are static text, not live regions. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--halal`, `--halal-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--ring`, `--surface`, `--surface-muted`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--halal`, `--halal-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--surface`, `--surface-muted`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Always show the certifier and the expiry date.

@@ -17,7 +17,7 @@ final readonly class SearchProducts
     public function handle(array $filters): CursorPaginator
     {
         $paginator = Product::visible()
-            ->with(['halalCertification', 'images'])
+            ->with(['halalCertification', 'images', 'category'])
             ->when($filters['q'] ?? null, fn (Builder $q, string $term) => $q->where('name', 'ilike', '%'.str_replace(['%', '_'], '', $term).'%'))
             ->when($filters['halal'] ?? false, fn (Builder $q) => $q->where('halal_status', 'certified'))
             ->when($filters['free_shipping'] ?? false, fn (Builder $q) => $q->where('free_shipping', true))

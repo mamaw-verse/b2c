@@ -62,7 +62,7 @@ Progressive disclosure using native ``: FAQs, product specs, filter groups.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--dur`, `--ease-out`, `--fs-body`, `--fs-label`, `--muted-foreground`, `--r-panel`, `--ring`, `--surface`, `--surface-subtle`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--dur`, `--ease-out`, `--fs-body`, `--fs-label`, `--muted-foreground`, `--r-panel`, `--surface`, `--surface-subtle`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Summary is a noun phrase.
@@ -78,15 +78,15 @@ Progressive disclosure using native ``: FAQs, product specs, filter groups.
 ```html
 <div class="divide-y divide-border rounded-panel border border-border bg-surface">
   <details class="group" open>
-    <summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-visible:outline-offset-[-3px] [&::-webkit-details-marker]:hidden list-none">Shipping<svg class="icon shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
+    <summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-inset [&::-webkit-details-marker]:hidden list-none">Shipping<svg class="icon shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
     <div class="px-4 pb-4 text-body text-muted-foreground">Ships from Quezon City within 1–2 days. Standard delivery 2–5 days.</div>
   </details>
   <details class="group">
-    <summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-visible:outline-offset-[-3px] [&::-webkit-details-marker]:hidden list-none">Returns<svg class="icon shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
+    <summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-inset [&::-webkit-details-marker]:hidden list-none">Returns<svg class="icon shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
     <div class="px-4 pb-4 text-body text-muted-foreground">Return within 7 days if the item is damaged or not as described.</div>
   </details>
   <details class="group">
-    <summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-visible:outline-offset-[-3px] [&::-webkit-details-marker]:hidden list-none">Payment options<svg class="icon shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
+    <summary class="flex min-h-touch-primary items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-inset [&::-webkit-details-marker]:hidden list-none">Payment options<svg class="icon shrink-0 text-muted-foreground transition-transform duration-token group-open:rotate-180" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
     <div class="px-4 pb-4 text-body text-muted-foreground">GCash, Maya, credit/debit card, Cash on Delivery.</div>
   </details>
 </div>

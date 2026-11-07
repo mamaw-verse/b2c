@@ -66,7 +66,7 @@ Report a listing, review, chat, user or shop: reason (required), details, eviden
 | Announcements | Toast. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-950`, `--danger`, `--danger-hover`, `--danger-pressed`, `--dur`, `--ease-out`, `--elevation-popover`, `--elevation-sheet`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-h3`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-panel`, `--r-tile`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-950`, `--danger`, `--danger-hover`, `--danger-pressed`, `--dur`, `--ease-out`, `--elevation-popover`, `--elevation-sheet`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-h3`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-panel`, `--r-tile`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
 
 ## 9. Content rules
 - Reasons are concrete.
@@ -119,7 +119,7 @@ Report a listing, review, chat, user or shop: reason (required), details, eviden
           <p class="text-body-sm text-muted-foreground">Screenshots help us act faster.</p>
           <ul class="grid grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-2" data-ds-tiles aria-labelledby="rd1-ev-label">
             <li data-ds-add>
-              <label for="rd1-ev" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
+              <label for="rd1-ev" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft focus-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
               <input id="rd1-ev" type="file" accept="image/*" multiple class="sr-only">
             </li>
           </ul>

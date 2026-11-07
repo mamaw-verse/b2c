@@ -67,7 +67,7 @@ Seller order list row (card on phone, row on md+) and the order-detail action ba
 | Announcements | Selection count in BulkActionBar. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--elevation-sticky`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--fs-price`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-panel`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`, `safe-area-inset-bottom`
+`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--elevation-sticky`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--fs-price`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-panel`, `--r-tile`, `--sale`, `--sale-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `--warning-soft`, `currentColor (icons)`, `safe-area-inset-bottom`
 
 ## 9. Content rules
 - Deadline: “Ship by today, 6 PM”.

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
-import { collect, resolve, read } from './lib/css-tokens.mjs';
+import { blocks, collect, decls, resolve, read } from './lib/css-tokens.mjs';
 import { contrast } from './lib/color.mjs';
-import { PAIRS, REQUIRED, SEED_CLAIMS } from './contrast-pairs.mjs';
+import { PAIRS, DARK_PAIRS, REQUIRED, SEED_CLAIMS } from './contrast-pairs.mjs';
 
 const files = ['src/tokens.css', ...fs.readdirSync('src').filter(f => /^brand-.*\.css$/.test(f)).sort().map(f => 'src/' + f)];
 const texts = files.map(read);
@@ -9,8 +9,12 @@ const brands = ['default', ...files.slice(1).map(f => f.match(/brand-(.*)\.css/)
 
 export function measure(brand) {
   const vars = collect(texts, brand);
-  const hex = (t) => resolve(vars, vars['--' + t] ?? (() => { throw new Error('missing --' + t); })()).toLowerCase();
-  return { vars, hex, rows: PAIRS.map(([fg, bg, kind]) => { const r = contrast(hex(fg), hex(bg)); return { fg, bg, kind, fgHex: hex(fg), bgHex: hex(bg), ratio: r, req: REQUIRED[kind], pass: r >= REQUIRED[kind] }; }) };
+  const hexOf = (v) => (t) => resolve(v, v['--' + t] ?? (() => { throw new Error('missing --' + t); })()).toLowerCase();
+  const darkVars = { ...vars };
+  for (const css of texts) for (const b of blocks(css)) if (b.prelude === '.dark') Object.assign(darkVars, decls(b.body));
+  const row = ([fg, bg, kind], hex, pre = '') => { const r = contrast(hex(fg), hex(bg)); return { fg: pre + fg, bg, kind, fgHex: hex(fg), bgHex: hex(bg), ratio: r, req: REQUIRED[kind], pass: r >= REQUIRED[kind] }; };
+  const hex = hexOf(vars), dhex = hexOf(darkVars);
+  return { vars, hex, rows: [...PAIRS.map(p => row(p, hex)), ...DARK_PAIRS.map(p => row(p, dhex, 'dark:'))] };
 }
 
 if (process.argv[1].endsWith('contrast.mjs')) {

@@ -66,7 +66,7 @@ Ticket-style voucher: issuer stub, value, condition, expiry, Claim/Use/Applied.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-outline`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--ring`, `--sale`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
+`--border`, `--border-outline`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--sale`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Value first: “₱50 off”, “15% off, up to ₱300”.

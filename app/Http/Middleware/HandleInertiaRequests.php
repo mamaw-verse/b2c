@@ -43,6 +43,7 @@ final class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'brand' => config('app.brand'),
+            'marketplace' => config('marketplace'),
             'auth' => [
                 'user' => $request->user(),
             ],

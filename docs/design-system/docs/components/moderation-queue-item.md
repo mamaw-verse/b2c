@@ -66,7 +66,7 @@ Queue row: type icon, title, excerpt, StatusPill, age/SLA, reporter count, prior
 | Announcements | Bulk count via `aria-live` in BulkActionBar. |
 
 ## 8. Tokens used
-`--border`, `--brand-800`, `--brand-950`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--foreground`, `--foreground-inverse`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--gutter`, `--mod-flagged`, `--mod-flagged-bg`, `--mod-hidden`, `--mod-hidden-bg`, `--mod-pending`, `--mod-pending-bg`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-tile`, `--ring`, `--surface`, `--surface-inverse`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `--z-sticky-bar`, `currentColor (icons)`
+`--border`, `--brand-800`, `--brand-950`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--gutter`, `--mod-flagged`, `--mod-flagged-bg`, `--mod-hidden`, `--mod-hidden-bg`, `--mod-pending`, `--mod-pending-bg`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-tile`, `--surface`, `--surface-inverse`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--warning`, `--warning-soft`, `--z-sticky-bar`, `currentColor (icons)`
 
 ## 9. Content rules
 - Age: “3h 52m” · SLA: “SLA 4h” / “SLA breached”.

@@ -46,19 +46,19 @@ export const switchCtl = ({ id, label, desc, checked, disabled, force }) =>
 
 /** Quantity stepper: −/+ buttons around a numeric input. */
 export const stepper = ({ id, value = 1, min = 1, max = 99, label = 'Quantity', size = 'md', disabled }) =>
-  `<div class="inline-flex items-stretch overflow-hidden rounded-field border border-border-control bg-surface" data-ds-stepper role="group" aria-label="${label}">
+  `<div class="focus-ring inline-flex items-stretch overflow-hidden rounded-field border border-border-control bg-surface" data-ds-stepper role="group" aria-label="${label}">
   <button type="button" class="${cx('btn btn-ghost btn-icon rounded-none border-0 text-foreground hover:bg-surface-muted active:bg-border disabled:text-muted-foreground')}" data-ds-step="-1" aria-label="Decrease ${label.toLowerCase()}"${disabled || value <= min ? ' disabled' : ''}>${icon('minus', 'size-4')}</button>
   <label for="${id}" class="sr-only">${label}</label>
-  <input id="${id}" type="text" inputmode="numeric" pattern="[0-9]*" value="${value}" min="${min}" max="${max}" class="w-12 border-x border-border-control bg-transparent text-center text-input font-bold tabular focus-visible:outline-offset-0"${disabled ? ' disabled' : ''}>
+  <input id="${id}" type="text" inputmode="numeric" pattern="[0-9]*" value="${value}" min="${min}" max="${max}" class="w-12 border-x border-border-control bg-transparent text-center text-input font-bold tabular"${disabled ? ' disabled' : ''}>
   <button type="button" class="${cx('btn btn-ghost btn-icon rounded-none border-0 text-foreground hover:bg-surface-muted active:bg-border disabled:text-muted-foreground')}" data-ds-step="1" aria-label="Increase ${label.toLowerCase()}"${disabled || value >= max ? ' disabled' : ''}>${icon('plus', 'size-4')}</button>
   ${visuallyHiddenLive()}
 </div>`;
 
 /** PH mobile number: fixed +63 prefix, 10 digits formatted 9XX XXX XXXX. */
 export const phoneInput = ({ id, ariaLabel, value = '', error, disabled, force }) =>
-  `<label for="${id}" class="${cx('field flex items-stretch p-0 cursor-text overflow-hidden has-[:focus-visible]:border-primary has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-2', error && 'border-danger hover:border-danger')}">
+  `<label for="${id}" class="${cx('field focus-ring flex items-stretch p-0 cursor-text overflow-hidden', error && 'border-danger hover:border-danger')}">
   <span class="inline-flex items-center gap-1 border-r border-border-control bg-surface-muted px-3 text-input text-foreground select-none" aria-hidden="true">+63</span>
-  <input id="${id}" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="9XX XXX XXXX" maxlength="12" class="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground placeholder:text-subtle-foreground outline-none disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground" data-ds-phone${attrs({ value, disabled, 'aria-invalid': error ? 'true' : null, 'aria-describedby': ariaLabel ? null : `${id}-help ${id}-error`, 'aria-label': ariaLabel, 'data-force': force })}>
+  <input id="${id}" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="9XX XXX XXXX" maxlength="12" class="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground placeholder:text-subtle-foreground disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground" data-ds-phone${attrs({ value, disabled, 'aria-invalid': error ? 'true' : null, 'aria-describedby': ariaLabel ? null : `${id}-help ${id}-error`, 'aria-label': ariaLabel, 'data-force': force })}>
 </label>`;
 
 /** OTP: 6 single-digit inputs inside a fieldset; autocomplete=one-time-code on the first box. */
@@ -115,7 +115,7 @@ export function uploader({ id, tiles = [], max = 9, label = 'Product photos', he
   ${help ? `<p class="text-body-sm text-muted-foreground">${help}</p>` : ''}
   <ul class="grid grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-2" data-ds-tiles aria-labelledby="${id}-label">
     ${tiles.map(tile).join('')}
-    <li data-ds-add><label for="${id}" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><span>${icon('image-plus', 'mx-auto size-6')}Add photo</span></label><input id="${id}" type="file" accept="image/*" multiple class="sr-only"></li>
+    <li data-ds-add><label for="${id}" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft focus-ring"><span>${icon('image-plus', 'mx-auto size-6')}Add photo</span></label><input id="${id}" type="file" accept="image/*" multiple class="sr-only"></li>
   </ul>
   <template>${tile({ name: '' }, 1, true)}</template>
   ${visuallyHiddenLive()}
@@ -125,7 +125,7 @@ export function uploader({ id, tiles = [], max = 9, label = 'Product photos', he
 /** RatingInput: 5 native radios; labels are star buttons. */
 export function ratingInput({ id, legend = 'Rate this product', value = 0, error, size = 'size-9' }) {
   return `<fieldset class="grid gap-1"${error ? ` aria-describedby="${id}-error"` : ''}><legend class="text-label">${legend}</legend>
-  <div class="flex" data-ds-rating>${[1, 2, 3, 4, 5].map(n => `<input type="radio" id="${id}-${n}" name="${id}" value="${n}" class="sr-only"${n === value ? ' checked' : ''}><label for="${id}-${n}" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button"${n <= value ? ' data-on' : ''}><svg class="icon ${size} fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">${n} star${n > 1 ? 's' : ''}</span></label>`).join('')}</div>
+  <div class="flex" data-ds-rating>${[1, 2, 3, 4, 5].map(n => `<input type="radio" id="${id}-${n}" name="${id}" value="${n}" class="sr-only"${n === value ? ' checked' : ''}><label for="${id}-${n}" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring"${n <= value ? ' data-on' : ''}><svg class="icon ${size} fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">${n} star${n > 1 ? 's' : ''}</span></label>`).join('')}</div>
   ${error ? `<p id="${id}-error" class="flex items-start gap-1 text-body-sm font-bold text-danger">${icon('circle-alert', 'mt-px size-4')}${error}</p>` : ''}
 </fieldset>`;
 }
@@ -143,7 +143,7 @@ export function addressForm({ id = 'addr', errors = {} } = {}) {
   ${formField({ id: `${id}-postal`, label: 'Postal code', required: true, control: textInput({ id: `${id}-postal`, inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 4, required: true, value: '1101' }) })}
   ${formField({ id: `${id}-landmark`, label: 'Landmark', optional: true, control: textInput({ id: `${id}-landmark`, placeholder: 'e.g. beside the sari-sari store' }) })}
   <fieldset class="md:col-span-2"><legend class="mb-1 text-label">Label as</legend><div class="flex gap-2">
-    ${['Home', 'Work'].map((l, i) => `<label class="flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control px-4 text-label has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><input type="radio" name="${id}-label" class="sr-only"${i === 0 ? ' checked' : ''}>${icon(i ? 'building-2' : 'house', 'size-4')}${l}</label>`).join('')}
+    ${['Home', 'Work'].map((l, i) => `<label class="flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control px-4 text-label has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground focus-ring"><input type="radio" name="${id}-label" class="sr-only"${i === 0 ? ' checked' : ''}>${icon(i ? 'building-2' : 'house', 'size-4')}${l}</label>`).join('')}
   </div></fieldset>
   ${check({ id: `${id}-default`, label: 'Set as default address', checked: true, cls: 'md:col-span-2' })}
   <div class="md:col-span-2">${btn('Save address', { size: 'lg', block: true, type: 'submit', cls: 'md:w-auto' })}</div>

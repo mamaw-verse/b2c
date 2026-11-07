@@ -6,12 +6,27 @@ import {
     ShoppingCart,
     Store,
 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { NameAvatar } from '@/components/name-avatar';
 import { SearchInput } from '@/components/search-input';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { IconButton } from '@/components/ui/icon-button';
+import { cn } from '@/lib/utils';
 import { dashboard, home } from '@/routes';
 import { login } from '@/routes';
 import { show as categoryShow } from '@/routes/categories';
+
+/** One style for every link in the category nav: constant weight (no layout
+   shift), brand hover pill, bottom-bar indicator when current, and the shared
+   focus ring. The ::before expands the hit area into the row's margins. */
+const navLink = (active: boolean) =>
+    cn(
+        'relative my-1 flex items-center rounded-button px-3 text-body-sm font-medium whitespace-nowrap text-muted-foreground',
+        'before:absolute before:-inset-y-0.5 before:content-[""]',
+        'hover:bg-brand-50 hover:text-brand-700',
+        active &&
+            'text-brand-700 after:absolute after:inset-x-3 after:-bottom-1 after:h-0.5 after:bg-brand-600 after:content-[""]',
+    );
 
 type SiteHeaderProps = {
     back?: boolean;
@@ -26,8 +41,21 @@ export function SiteHeader({
 }: SiteHeaderProps) {
     const { name, auth, navCategories, unreadCounts, searchSuggestions } =
         usePage().props;
+    const { url } = usePage();
     const chatUnread = unreadCounts?.chat ?? 0;
     const notifUnread = unreadCounts?.notifications ?? 0;
+
+    const path = url.split('?')[0];
+    const activeSlug = path.startsWith('/categories/')
+        ? decodeURIComponent(path.slice('/categories/'.length))
+        : null;
+    const activeLinkRef = useRef<HTMLAnchorElement>(null);
+    useEffect(() => {
+        activeLinkRef.current?.scrollIntoView({
+            block: 'nearest',
+            inline: 'center',
+        });
+    }, [activeSlug]);
 
     const logo = (
         <Link
@@ -47,12 +75,14 @@ export function SiteHeader({
 
     return (
         <header className="sticky top-0 z-header border-b border-border bg-surface pt-safe">
+            {/* TODO: Announcement bar — wire to backend (e.g. a shared Inertia prop
+                from HandleInertiaRequests) so the text is editable without a deploy.
             <div className="hidden min-h-[var(--announce-h)] items-center bg-surface-inverse text-caption text-foreground-inverse lg:flex">
                 <p className="mx-auto w-full max-w-container px-gutter">
                     Free shipping over ₱499 · Every halal claim is checked by{' '}
                     {name}
                 </p>
-            </div>
+            </div> */}
             <div className="mx-auto flex h-header max-w-container items-center gap-2 px-gutter md:gap-3 lg:gap-6">
                 {back ? (
                     <>
@@ -91,6 +121,9 @@ export function SiteHeader({
                     </div>
                 )}
                 <div className="flex shrink-0 items-center">
+                    <span className="hidden lg:block">
+                        <ThemeToggle />
+                    </span>
                     <Link
                         href="/cart"
                         aria-label="Cart"
@@ -148,30 +181,36 @@ export function SiteHeader({
             {desktopNav && (
                 <nav
                     aria-label="Categories"
-                    className="hidden h-[var(--nav-h)] border-t border-border lg:block"
+                    className="border-t border-border lg:h-[var(--nav-h)]"
                 >
-                    <ul className="mx-auto flex h-full max-w-container items-center gap-1 overflow-x-auto px-gutter">
-                        {navCategories.slice(0, 6).map((c) => (
-                            <li key={c.id}>
-                                <Link
-                                    href={categoryShow.url(c.slug)}
-                                    className="flex min-h-touch items-center rounded-button px-3 text-label whitespace-nowrap text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-                                >
-                                    {c.name}
-                                </Link>
-                            </li>
-                        ))}
+                    <ul className="mx-auto flex h-full max-w-container items-stretch gap-1 overflow-x-auto px-gutter [scrollbar-width:none] max-lg:[-webkit-mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] max-lg:[mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)]">
+                        {navCategories.map((c) => {
+                            const active =
+                                activeSlug === c.slug ||
+                                (activeSlug?.startsWith(`${c.slug}-`) ??
+                                    false);
+                            return (
+                                <li key={c.id} className="flex">
+                                    <Link
+                                        href={categoryShow.url(c.slug)}
+                                        ref={
+                                            active ? activeLinkRef : undefined
+                                        }
+                                        aria-current={
+                                            active ? 'page' : undefined
+                                        }
+                                        className={navLink(active)}
+                                    >
+                                        {c.name}
+                                    </Link>
+                                </li>
+                            );
+                        })}
                         <li className="ml-auto flex">
-                            <a
-                                href="#"
-                                className="flex min-h-touch items-center rounded-button px-3 text-label whitespace-nowrap text-primary hover:bg-primary-soft"
-                            >
+                            <a href="#" className={navLink(false)}>
                                 Sell on {name}
                             </a>
-                            <a
-                                href="#"
-                                className="flex min-h-touch items-center rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted"
-                            >
+                            <a href="#" className={navLink(false)}>
                                 Help
                             </a>
                         </li>

@@ -25,7 +25,7 @@ export function PriceBlock({
         size === 'lg'
             ? 'text-price-lg'
             : size === 'sm'
-              ? 'text-body font-extrabold'
+              ? 'text-body font-bold'
               : 'text-price';
     const now = max
         ? `${formatPeso(price)} – ${formatPeso(max)}`
@@ -39,10 +39,7 @@ export function PriceBlock({
             )}
         >
             {was ? <span className="sr-only">Sale price:</span> : null}
-            <span
-                data-price
-                className={cn(cls, was ? 'text-sale' : 'text-foreground')}
-            >
+            <span data-price className={cn(cls, 'text-foreground')}>
                 {now}
             </span>
             {unit && (
@@ -63,7 +60,7 @@ export function PriceBlock({
                         {formatPeso(was)}
                     </s>
                     {pctBadge && (
-                        <Badge variant="sale">
+                        <Badge variant="promo">
                             -{Math.round((1 - price / was) * 100)}%
                         </Badge>
                     )}

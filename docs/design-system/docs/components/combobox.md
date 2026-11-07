@@ -66,7 +66,7 @@ Type-to-filter single choice for long lists: city/municipality, barangay, catego
 | Announcements | Match count via polite live region. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-soft`, `--r-badge`, `--r-field`, `--r-panel`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--z-sheet`, `currentColor (icons)`
+`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary-soft`, `--r-badge`, `--r-field`, `--r-panel`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--z-sheet`, `currentColor (icons)`
 
 ## 9. Content rules
 - Options in title case as officially spelled (Las Piñas, Parañaque).

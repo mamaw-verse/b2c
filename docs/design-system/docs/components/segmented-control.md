@@ -57,14 +57,14 @@ Exclusive choice among 2–4 short options that changes a view (grid/list, perio
 | Role | Radio group. |
 | Accessible name | Legend. |
 | Keyboard | Arrows (native). |
-| Focus management | Focus ring on the label via `has-[:focus-visible]`. |
+| Focus management | One ring on the group via `.focus-ring`; the checked option reads through its selected pill. |
 | ARIA | — |
 | Touch target | 44px minimum (`min-h-touch`); primary actions 48px. |
 | Reduced motion | Transitions use `--dur*` tokens, which collapse to 1ms under `prefers-reduced-motion`. |
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--elevation-card-hover`, `--foreground`, `--fs-label`, `--muted-foreground`, `--r-button`, `--ring`, `--surface`, `--surface-muted`, `--touch-min`
+`--elevation-card-hover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-label`, `--muted-foreground`, `--r-button`, `--surface`, `--surface-muted`, `--touch-min`
 
 ## 9. Content rules
 - 1–2 words each.
@@ -78,11 +78,11 @@ Exclusive choice among 2–4 short options that changes a view (grid/list, perio
 
 ## 11. HTML usage
 ```html
-<fieldset class="inline-flex rounded-button bg-surface-muted p-1">
+<fieldset class="inline-flex focus-ring rounded-button bg-surface-muted p-1">
   <legend class="sr-only">Period</legend>
-  <label class="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring min-h-touch"><input type="radio" name="period" class="sr-only" checked>7 days</label>
-  <label class="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring min-h-touch"><input type="radio" name="period" class="sr-only">30 days</label>
-  <label class="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring min-h-touch"><input type="radio" name="period" class="sr-only">90 days</label>
+  <label class="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover min-h-touch"><input type="radio" name="period" class="sr-only" checked>7 days</label>
+  <label class="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover min-h-touch"><input type="radio" name="period" class="sr-only">30 days</label>
+  <label class="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:text-foreground has-[:checked]:bg-surface has-[:checked]:text-foreground has-[:checked]:shadow-card-hover min-h-touch"><input type="radio" name="period" class="sr-only">90 days</label>
 </fieldset>
 ```
 

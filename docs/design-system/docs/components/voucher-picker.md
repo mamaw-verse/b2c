@@ -63,7 +63,7 @@ Modal → sheet to apply shop/platform/shipping vouchers and codes at checkout.
 | Announcements | Savings update polite in ports. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--border-outline`, `--brand-100`, `--brand-950`, `--danger`, `--dur`, `--ease-out`, `--elevation-sheet`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-h3`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-card`, `--r-field`, `--r-panel`, `--ring`, `--sale`, `--subtle-foreground`, `--success`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
+`--border`, `--border-control`, `--border-outline`, `--brand-100`, `--brand-950`, `--danger`, `--dur`, `--ease-out`, `--elevation-sheet`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-h3`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-card`, `--r-field`, `--r-panel`, `--sale`, `--subtle-foreground`, `--success`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
 
 ## 9. Content rules
 - Error for codes: say why (expired, min spend).
@@ -94,7 +94,7 @@ Modal → sheet to apply shop/platform/shipping vouchers and codes at checkout.
         </div>
         <fieldset class="grid gap-2">
           <legend class="mb-1 text-label">Shop vouchers</legend>
-          <label for="vpk1-v1" class="flex overflow-hidden rounded-card border bg-surface border-border-outline cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring">
+          <label for="vpk1-v1" class="flex overflow-hidden rounded-card border bg-surface border-border-outline cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft focus-ring">
             <div class="flex w-20 shrink-0 flex-col items-center justify-center gap-1 bg-primary text-primary-foreground p-2 text-center text-caption font-bold"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg><span class="line-clamp-2 break-words">Shop</span></div>
             <div class="relative grid min-w-0 flex-1 content-center gap-0.5 border-l-2 border-dashed border-border py-2 pl-3 pr-2">
               <p class="text-label">₱50 off</p>
@@ -103,7 +103,7 @@ Modal → sheet to apply shop/platform/shipping vouchers and codes at checkout.
             </div>
             <div class="flex shrink-0 items-center pr-3"><input type="radio" name="vpk1-v" id="vpk1-v1" class="size-5 accent-primary" checked></div>
           </label>
-          <label for="vpk1-v2" class="flex overflow-hidden rounded-card border bg-surface border-border-outline cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring">
+          <label for="vpk1-v2" class="flex overflow-hidden rounded-card border bg-surface border-border-outline cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft focus-ring">
             <div class="flex w-20 shrink-0 flex-col items-center justify-center gap-1 bg-primary text-primary-foreground p-2 text-center text-caption font-bold"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg><span class="line-clamp-2 break-words">Shop</span></div>
             <div class="relative grid min-w-0 flex-1 content-center gap-0.5 border-l-2 border-dashed border-border py-2 pl-3 pr-2">
               <p class="text-label">10% off, up to ₱150</p>
@@ -112,7 +112,7 @@ Modal → sheet to apply shop/platform/shipping vouchers and codes at checkout.
             </div>
             <div class="flex shrink-0 items-center pr-3"><input type="radio" name="vpk1-v" id="vpk1-v2" class="size-5 accent-primary"></div>
           </label>
-          <label for="vpk1-v3" class="flex overflow-hidden rounded-card border bg-surface border-border cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring">
+          <label for="vpk1-v3" class="flex overflow-hidden rounded-card border bg-surface border-border cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft focus-ring">
             <div class="flex w-20 shrink-0 flex-col items-center justify-center gap-1 bg-surface-muted text-muted-foreground p-2 text-center text-caption font-bold"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg><span class="line-clamp-2 break-words">Shop</span></div>
             <div class="relative grid min-w-0 flex-1 content-center gap-0.5 border-l-2 border-dashed border-border py-2 pl-3 pr-2">
               <p class="text-label">₱200 off</p>
@@ -124,7 +124,7 @@ Modal → sheet to apply shop/platform/shipping vouchers and codes at checkout.
         </fieldset>
         <fieldset class="grid gap-2">
           <legend class="mb-1 text-label">Free shipping</legend>
-          <label for="vpk1-sv1" class="flex overflow-hidden rounded-card border bg-surface border-border-outline cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring">
+          <label for="vpk1-sv1" class="flex overflow-hidden rounded-card border bg-surface border-border-outline cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft focus-ring">
             <div class="flex w-20 shrink-0 flex-col items-center justify-center gap-1 bg-success text-primary-foreground p-2 text-center text-caption font-bold"><svg class="icon" aria-hidden="true"><use href="#i-truck"/></svg><span class="line-clamp-2 break-words">Shipping</span></div>
             <div class="relative grid min-w-0 flex-1 content-center gap-0.5 border-l-2 border-dashed border-border py-2 pl-3 pr-2">
               <p class="text-label">Free shipping up to ₱80</p>

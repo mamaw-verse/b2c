@@ -63,7 +63,7 @@ Define up to two variation types, then edit price, stock and SKU for every combi
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--fs-th`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-button`, `--r-card`, `--r-field`, `--r-panel`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--fs-th`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-button`, `--r-card`, `--r-field`, `--r-panel`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Option names ≤ 20 chars.

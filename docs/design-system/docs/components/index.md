@@ -48,6 +48,7 @@
 - [Tabs](tabs.md): Switch between views of the same object: order status tabs, shop page tabs, product details/reviews.
 - [SegmentedControl](segmented-control.md): Exclusive choice among 2–4 short options that changes a view (grid/list, period).
 - [Pagination & infinite scroll](pagination.md): Pagination for tables and desktop search; infinite scroll with a “Load more” fallback for phone feeds.
+- [SiteFooter](footer.md): Storefront footer: trust strip (halal verification promise, accepted payments, couriers), five link groups + brand block with tagline/socials/contact, and a legal bar.
 
 ## Data display
 - [Badge / Chip / Tag](badge.md): Badge: non-interactive status or label.

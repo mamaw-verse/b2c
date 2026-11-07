@@ -63,7 +63,7 @@ Native single choice from a short list (region, province, sort order).
 | Announcements | Errors are announced when focus lands on the field (described-by), not via live regions while typing. |
 
 ## 8. Tokens used
-`--border-control`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--r-badge`, `--r-field`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
+`--border-control`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--foreground`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--r-badge`, `--r-field`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Labels are nouns, sentence case, no colon: “Mobile number”.

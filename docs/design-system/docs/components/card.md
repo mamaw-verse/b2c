@@ -65,7 +65,7 @@ Surface containers. Card (`--r-card`, `--border`) groups one item; Panel (`--r-p
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--dur`, `--ease-out`, `--elevation-card-hover`, `--fs-body`, `--fs-h4`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-soft`, `--r-badge`, `--r-card`, `--r-panel`, `--ring`, `--surface`, `--surface-muted`, `--touch-min`
+`--border`, `--dur`, `--ease-out`, `--elevation-card-hover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--fs-body`, `--fs-h4`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-soft`, `--r-badge`, `--r-card`, `--r-panel`, `--surface`, `--surface-muted`, `--touch-min`
 
 ## 9. Content rules
 - Header title ≤ 3 words.

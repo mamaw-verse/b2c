@@ -31,13 +31,33 @@
   .btn-danger { @apply bg-danger text-primary-foreground hover:bg-danger-hover active:bg-danger-pressed; }
   .btn-inverse { @apply border-foreground-inverse bg-transparent text-foreground-inverse hover:bg-brand-800 active:bg-brand-950; }
 
+  /* Filled brand buttons: a white ring drawn inside the fill (2px gap), so
+     the single indicator reads against the green, not the page. */
+  .btn:not(.btn-secondary, .btn-outline, .btn-ghost, .btn-neutral, .btn-danger, .btn-inverse):is(:focus-visible, [data-force~="focus"]) {
+    outline-color: var(--focus-ring-on-brand);
+    outline-offset: calc(-1 * (var(--focus-ring-width) + var(--focus-ring-offset)));
+  }
+
   /* Field: input, select, textarea. 16px text on phone/tablet/touch (no iOS zoom). */
   .field {
     @apply block min-h-touch w-full rounded-field border border-border-control bg-surface px-3 text-input text-foreground;
     @apply transition-colors duration-token placeholder:text-subtle-foreground;
-    @apply hover:border-foreground focus-visible:border-primary;
+    @apply hover:border-foreground;
     @apply disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground;
     @apply aria-[invalid=true]:border-danger;
+  }
+  /* Focused fields: the outline hugs the border (offset 0) and the border
+     joins the ring colour, so there is one indicator and no gap. Field-styled
+     containers (the +63 prefix slot) get the same border via :has(); their
+     ring comes from .focus-ring in the base layer. Errors go to the error
+     colour on both. */
+  :is(.field:focus-visible, .field[data-force~="focus"], .field:has(:focus-visible)) {
+    border-color: var(--focus-ring-color);
+    outline-offset: 0;
+  }
+  :is(.field[aria-invalid="true"]:focus-visible, .field[aria-invalid="true"][data-force~="focus"]) {
+    border-color: var(--danger);
+    outline-color: var(--focus-ring-error);
   }
   textarea.field { @apply min-h-24 py-2.5; }
   select.field { @apply appearance-none pr-10; }
@@ -49,6 +69,10 @@
   .badge-neutral { @apply bg-surface-muted text-muted-foreground; }
   .badge-sale { @apply bg-sale-soft text-sale; }
   .badge-sale-solid { @apply bg-sale text-primary-foreground; }
+  /* Promo badge: the only place a discount may be signalled. Solid variant
+     is the -NN% tag on product-card images (white on --promo, >= 4.5:1). */
+  .badge-promo { @apply bg-promo-soft text-promo; }
+  .badge-promo-solid { @apply bg-promo text-primary-foreground; }
   .badge-success { @apply bg-success-soft text-success; }
   .badge-warning { @apply bg-warning-soft text-warning; }
   .badge-danger { @apply bg-danger-soft text-danger; }

@@ -6,6 +6,8 @@ export type HalalStatus =
     | 'missing'
     | 'na';
 
+export type HandlingTemp = 'frozen' | 'chilled';
+
 export type ProductCardData = {
     id: string;
     slug: string;
@@ -17,6 +19,9 @@ export type ProductCardData = {
     location: string;
     free_shipping: boolean;
     frozen: boolean;
+    temperature?: HandlingTemp | null;
+    category_slug?: string;
+    in_stock?: boolean;
     halal_status: HalalStatus;
     certifier: string | null;
     image_url?: string | null;
@@ -50,6 +55,7 @@ export type CategoryData = {
 };
 
 export type ProductVariation = {
+    id: string;
     option1_value: string;
     option2_value: string | null;
     price: number | null;
@@ -69,6 +75,7 @@ export type HalalCertificationData = {
 export type ProductDetail = ProductCardData & {
     description: string | null;
     stock: number;
+    in_stock: boolean;
     images: { url: string | null; icon: string }[];
     option1_name: string | null;
     option2_name: string | null;

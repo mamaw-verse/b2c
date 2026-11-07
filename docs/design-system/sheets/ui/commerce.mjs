@@ -6,45 +6,56 @@ import { halalBadge } from './halal.mjs';
 
 const pct = (price, was) => Math.round((1 - price / was) * 100);
 
-/** PriceBlock: discounted price uses --sale; original is struck through with sr-only labels. */
-export function priceBlock({ price, was, size = 'md', max, unit, pctBadge = true }) {
-  const cls = size === 'lg' ? 'text-price-lg' : size === 'sm' ? 'text-body font-extrabold' : 'text-price';
+/** PriceBlock: the price is always the strongest text (--text-strong, 700).
+   Discounts are carried by the --promo -NN% tag only, never by the price colour.
+   The original price is struck through, one step smaller, --text-muted. */
+export function priceBlock({ price, was, size = 'md', max, unit, pctBadge = true, cls: extra } = {}) {
+  const cls = size === 'lg' ? 'text-price-lg' : size === 'sm' ? 'text-body font-bold' : 'text-price';
   const now = max ? `${peso(price)} – ${peso(max)}` : peso(price);
-  return `<p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">${was ? '<span class="sr-only">Sale price:</span>' : ''}<span data-price class="${cx(cls, was ? 'text-sale' : 'text-foreground')}">${now}</span>${unit ? `<span class="text-body-sm text-muted-foreground">/ ${unit}</span>` : ''}${was ? `<span class="sr-only">Original price:</span><s data-price class="${size === 'lg' ? 'text-body' : 'text-body-sm'} text-muted-foreground">${peso(was)}</s>${pctBadge ? `<span class="badge badge-sale">-${pct(price, was)}%</span>` : ''}` : ''}</p>`;
+  return `<p class="${cx('flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5', extra)}">${was ? '<span class="sr-only">Sale price:</span>' : ''}<span data-price class="${cx(cls, 'text-foreground')}">${now}</span>${unit ? `<span class="text-body-sm text-muted-foreground">/ ${unit}</span>` : ''}${was ? `<span class="sr-only">Original price:</span><s data-price class="${size === 'lg' ? 'text-body' : 'text-body-sm'} text-muted-foreground">${peso(was)}</s>${pctBadge ? `<span class="badge badge-promo">-${pct(price, was)}%</span>` : ''}` : ''}</p>`;
 }
 export const soldCount = (n) => `<span class="tabular">${compact(n)} sold</span>`;
 /** VerifiedBadge: configurable trust label (Verified / Official / Preferred). Never a hardcoded brand. */
 export const verifiedBadge = ({ label = 'Verified', tone = 'soft', size = 'md' } = {}) =>
   `<span class="${cx('badge', tone === 'solid' ? 'badge-solid' : tone === 'outline' ? 'border border-primary bg-surface text-primary' : '', size === 'sm' && 'px-1.5')}">${icon('badge-check', 'size-3.5')}${label}</span>`;
 
-/** ProductCard: whole card is one link (stretched title link). */
-export function productCard(p, { variant = 'grid', i = 0, href = '#' } = {}) {
+/** ProductCard: whole card is one link (stretched title link).
+   Row order: image, title (2-line clamp, title attr), price row, rating+sold, location (+ handling tag).
+   Gates live here, not in data: halal badge only for platform-verified ('certified')
+   status on categories that need certification; handling tag only when temp is set. */
+const NO_CERT_CATS = new Set(['prayer-essentials', 'modest-fashion', 'books-quran']);
+const showHalal = (p) => p.halal === 'certified' && !NO_CERT_CATS.has(p.cat ?? '');
+const TEMP_LABEL = { frozen: 'Frozen', chilled: 'Chilled' };
+export function productCard(p, { variant = 'grid', i = 0, href = '#', quickAdd = true } = {}) {
   if (variant === 'skeleton') return skeleton(`<div class="card overflow-hidden">${skel('aspect-square w-full rounded-none')}<div class="grid gap-2 p-2">${skel('h-4 w-full')}${skel('h-4 w-2/3')}${skel('h-5 w-1/2')}${skel('h-3 w-1/3')}</div></div>`, 'Loading product');
-  const off = p.was ? `<span class="badge badge-sale-solid absolute right-0 top-0 rounded-none rounded-bl-tile"><span class="sr-only">Discount </span>-${pct(p.price, p.was)}%</span>` : '';
-  const vb = '';
-  const hl = p.halal === 'certified' ? halalBadge({ status: 'certified', short: true, solid: true, body: p.body, cls: 'absolute left-1.5 top-1.5' }) : '';
-  const hlInline = p.halal === 'certified' ? halalBadge({ status: 'certified', short: true, body: p.body }) : '';
-  const cold = p.frozen ? `<span class="inline-flex shrink-0 items-center gap-0.5 text-info">${icon('snowflake', 'size-3.5')}Frozen</span>` : '';
-  const title = `<a href="${href}" class="after:absolute after:inset-0 focus-visible:outline-none">${esc(p.name)}</a>`;
+  const oos = p.oos === true;
+  const off = p.was && !oos ? `<span class="badge badge-promo-solid absolute right-0 top-0 rounded-none rounded-bl-tile"><span class="sr-only">Discount </span>-${pct(p.price, p.was)}%</span>` : '';
+  const mediaBlock = `${media(p.name, { i, ic: p.ic, decorative: true, cls: oos ? 'opacity-60' : '' })}${oos ? '<span class="badge badge-neutral absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">Sold out</span>' : ''}`;
+  const hl = showHalal(p) ? halalBadge({ status: 'certified', short: true, solid: true, body: p.body, aria: `Halal certified, verified by {{BRAND_NAME}}`, cls: 'absolute left-1.5 top-1.5' }) : '';
+  const hlInline = showHalal(p) ? halalBadge({ status: 'certified', short: true, body: p.body, aria: `Halal certified, verified by {{BRAND_NAME}}` }) : '';
+  const cold = p.temp ? `<span class="badge badge-info ml-auto shrink-0">${icon('snowflake', 'size-3.5')}${TEMP_LABEL[p.temp]}</span>` : '';
+  const title = `<a href="${href}" class="after:absolute after:inset-0">${esc(p.name)}</a>`;
   const meta = `<p class="flex items-center gap-1.5 text-caption text-muted-foreground">${icon('star', 'size-3.5 fill-current stroke-0 text-rating')}<span class="sr-only">Rated</span><span class="font-bold text-foreground tabular">${p.rating.toFixed(1)}</span><span aria-hidden="true">·</span>${soldCount(p.sold)}</p>`;
-  const loc = `<p class="flex min-w-0 items-center gap-1 text-caption text-muted-foreground">${icon('map-pin', 'size-3.5 shrink-0')}<span class="truncate">${p.loc}</span>${cold ? `<span class="ml-auto pl-1">${cold}</span>` : ''}</p>`;
-  const ring = 'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring';
+  const loc = `<p class="flex min-w-0 items-center gap-1 text-caption text-muted-foreground">${icon('map-pin', 'size-3.5 shrink-0')}<span class="truncate">${p.loc}</span>${cold}</p>`;
+  const priceMuted = `<p data-price class="text-body text-muted-foreground">${peso(p.price)}</p>`;
+  const priceRow = oos ? priceMuted : `<div class="flex items-center gap-2">${priceBlock({ price: p.price, was: p.was, pctBadge: false, cls: 'min-w-0 flex-1' })}${quickAdd ? iconBtn('shopping-cart', `Add ${esc(p.name)} to cart`, { variant: 'secondary', size: 'sm', cls: 'relative z-10 ml-auto shrink-0' }) : ''}</div>`;
+  const ring = 'focus-ring';
   if (variant === 'list') return `<article class="card card-interactive relative flex gap-3 p-2 ${ring}">
-  <div class="relative w-28 shrink-0 overflow-hidden rounded-tile md:w-36">${media(p.name, { i, ic: p.ic, decorative: true })}${off}</div>
+  <div class="relative w-28 shrink-0 overflow-hidden rounded-tile md:w-36">${mediaBlock}${off}</div>
   <div class="flex min-w-0 flex-1 flex-col gap-1 py-1">
-    <h3 class="line-clamp-2 text-body">${vb}${title}</h3>${hlInline ? `<p>${hlInline}</p>` : ''}
-    ${priceBlock({ price: p.price, was: p.was, pctBadge: false })}${meta}${loc}
+    <h3 class="line-clamp-2 text-body" title="${esc(p.name)}">${title}</h3>${hlInline ? `<p>${hlInline}</p>` : ''}
+    ${oos ? priceMuted : priceBlock({ price: p.price, was: p.was, pctBadge: false })}${meta}${loc}
   </div>
 </article>`;
   if (variant === 'compact') return `<article class="card card-interactive relative flex w-32 shrink-0 flex-col overflow-hidden ${ring}">
-  <div class="relative">${media(p.name, { i, ic: p.ic, decorative: true })}${off}</div>
-  <div class="grid gap-0.5 p-2"><h3 class="truncate text-body-sm">${title}</h3>${priceBlock({ price: p.price, size: 'sm' })}</div>
+  <div class="relative">${mediaBlock}${off}</div>
+  <div class="grid gap-0.5 p-2"><h3 class="truncate text-body-sm" title="${esc(p.name)}">${title}</h3>${oos ? `<p data-price class="text-body-sm text-muted-foreground">${peso(p.price)}</p>` : priceBlock({ price: p.price, size: 'sm' })}</div>
 </article>`;
   return `<article class="card card-interactive relative flex flex-col overflow-hidden ${ring}">
-  <div class="relative">${media(p.name, { i, ic: p.ic, decorative: true })}${off}${hl}${p.free ? `<span class="badge badge-success absolute bottom-1.5 left-1.5">${icon('truck', 'size-3.5')}Free shipping</span>` : ''}</div>
+  <div class="relative">${mediaBlock}${off}${hl}${!oos && p.free ? `<span class="badge badge-success absolute bottom-1.5 left-1.5">${icon('truck', 'size-3.5')}Free shipping</span>` : ''}</div>
   <div class="flex flex-1 flex-col gap-1 p-2">
-    <h3 class="line-clamp-2 min-h-[2lh] text-body">${vb}${title}</h3>
-    <div class="mt-auto grid gap-1">${priceBlock({ price: p.price, was: p.was, pctBadge: false })}${meta}${loc}</div>
+    <h3 class="line-clamp-2 min-h-[2lh] text-body" title="${esc(p.name)}">${title}</h3>
+    <div class="mt-auto grid gap-1">${priceRow}${meta}${loc}</div>
   </div>
 </article>`;
 }
@@ -76,7 +87,7 @@ export const categoryTile = (name, ic, i = 0) => `<a href="#" class="flex flex-c
 export const categoryGrid = (cats) => `<ul class="grid grid-cols-5 gap-x-1 gap-y-3 md:grid-cols-10">${cats.map(([n, ic], i) => `<li>${categoryTile(n, ic, i)}</li>`).join('')}</ul>`;
 
 /* ------------------------------------------------------------ variation picker */
-const optChip = (name, label, { checked, disabled, ic, i = 0 } = {}) => `<label class="relative flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control bg-surface px-3 text-body hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground has-[:disabled]:cursor-not-allowed has-[:disabled]:border-dashed has-[:disabled]:text-muted-foreground has-[:disabled]:hover:border-border-control has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring">
+const optChip = (name, label, { checked, disabled, ic, i = 0 } = {}) => `<label class="relative flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control bg-surface px-3 text-body hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-soft-foreground has-[:disabled]:cursor-not-allowed has-[:disabled]:border-dashed has-[:disabled]:text-muted-foreground has-[:disabled]:hover:border-border-control focus-ring">
   <input type="radio" name="${name}" class="sr-only"${checked ? ' checked' : ''}${disabled ? ' disabled' : ''}>${ic ? `<span class="size-7 overflow-hidden rounded-badge">${media(label, { i, ic, decorative: true })}</span>` : ''}${label}${disabled ? '<span class="text-caption">(sold out)</span>' : ''}</label>`;
 export function variationBody({ id, p = { name: 'Ajwa dates 500g', price: 649, was: 799, ic: 'cookie' } }) {
   return `<div class="grid gap-5">
@@ -97,7 +108,7 @@ export function voucherCard({ title = '₱50 off', min = 'Min. spend ₱500', ex
   const inner = `<div class="flex w-20 shrink-0 flex-col items-center justify-center gap-1 ${tone} p-2 text-center text-caption font-bold">${icon(ic)}<span class="line-clamp-2 break-words">${label}</span></div>
   <div class="relative grid min-w-0 flex-1 content-center gap-0.5 border-l-2 border-dashed border-border py-2 pl-3 pr-2"><p class="text-label">${title}</p><p class="text-body-sm text-muted-foreground">${min}</p><p class="flex items-center gap-1 text-caption ${state === 'unavailable' ? 'text-danger' : 'text-muted-foreground'}">${icon(state === 'unavailable' ? 'circle-alert' : 'clock', 'size-3.5')}${state === 'unavailable' ? 'Spend ₱120 more to use' : expiry}</p></div>
   ${action ? `<div class="flex shrink-0 items-center pr-3">${action}</div>` : ''}`;
-  const cls = cx('flex overflow-hidden rounded-card border bg-surface', state === 'unavailable' ? 'border-border' : 'border-border-outline', select && 'cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring');
+  const cls = cx('flex overflow-hidden rounded-card border bg-surface', state === 'unavailable' ? 'border-border' : 'border-border-outline', select && 'cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary-soft focus-ring');
   return select ? `<label for="${id}" class="${cls}">${inner}</label>` : `<div class="${cls}">${inner}</div>`;
 }
 export const voucherPickerBody = (id) => `<div class="grid gap-4">
@@ -155,7 +166,7 @@ export const addressCard = ({ name = 'Maria Santos', phone = '+63 917 123 4567',
 };
 
 /** Generic radio card list (shipping / payment) */
-const radioCard = ({ name, id, checked, disabled, ic, title, desc, right, extra }) => `<label for="${id}" class="flex min-h-touch-primary cursor-pointer items-center gap-3 rounded-card border border-border bg-surface p-3 has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-surface-subtle has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring">
+const radioCard = ({ name, id, checked, disabled, ic, title, desc, right, extra }) => `<label for="${id}" class="flex min-h-touch-primary cursor-pointer items-center gap-3 rounded-card border border-border bg-surface p-3 has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-surface-subtle focus-ring">
   <input type="radio" id="${id}" name="${name}" class="size-5 shrink-0 accent-primary"${checked ? ' checked' : ''}${disabled ? ' disabled' : ''}>
   ${ic ? `<span class="grid size-10 shrink-0 place-items-center rounded-tile bg-surface-muted text-foreground">${icon(ic)}</span>` : ''}
   <span class="grid min-w-0 flex-1 grid-cols-1 gap-0.5"><span class="text-label ${disabled ? 'text-muted-foreground' : ''}">${title}</span>${desc ? `<span class="text-body-sm text-muted-foreground">${desc}</span>` : ''}${extra || ''}</span>

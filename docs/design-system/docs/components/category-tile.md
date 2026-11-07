@@ -61,7 +61,7 @@ Icon + label shortcut to a category; grid of 10 on home.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--brand-50`, `--foreground`, `--fs-caption`, `--info`, `--info-soft`, `--primary`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface-muted`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--brand-50`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-caption`, `--info`, `--info-soft`, `--primary`, `--r-tile`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface-muted`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - ≤ 2 short words per line.

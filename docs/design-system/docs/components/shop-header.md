@@ -64,7 +64,7 @@ Top of the shop page: cover, avatar, name + badge, location/activity, Follow and
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--brand-100`, `--brand-300`, `--dur`, `--ease-out`, `--fs-body-sm`, `--fs-caption`, `--fs-h2`, `--fs-h3`, `--fs-label`, `--gutter`, `--halal`, `--halal-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface`, `--surface-inverse`, `--touch-min`, `currentColor (icons)`
+`--border`, `--brand-100`, `--brand-300`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--fs-body-sm`, `--fs-caption`, `--fs-h2`, `--fs-h3`, `--fs-label`, `--gutter`, `--halal`, `--halal-soft`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--r-tile`, `--sale`, `--sale-soft`, `--success`, `--success-soft`, `--surface`, `--surface-inverse`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Chat reply rate as %.

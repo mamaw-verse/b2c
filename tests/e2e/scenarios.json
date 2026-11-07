@@ -130,6 +130,45 @@
      "expect": "exactly one [data-shell] element (public)"
     }
    ]
+  },
+  {
+   "id": "storefront",
+   "spec": "specs/storefront.spec.ts",
+   "description": "Storefront chrome: product-card states (regular, discounted, frozen/halal, sold out, long name) snapshotted at 360/768/1280 in light and dark; category-nav states (default/hover/active/focus, no current item on home); WCAG contrast on price, old price, promo tag and nav text in both themes; footer trust strip, link groups, legal bar and sub-640px disclosures.",
+   "steps": [
+    {
+     "action": "goto",
+     "url": "/",
+     "screenshots": [
+      "card-00-grid",
+      "card-01-regular",
+      "card-02-discounted",
+      "card-03-frozen-halal",
+      "card-04-sold-out",
+      "card-05-long-name"
+     ],
+     "expect": "price is the strongest text; promo only on the -NN% tag; halal badge gated by category; sold-out card dimmed with tag"
+    },
+    {
+     "action": "goto",
+     "url": "/categories/dates-sweets",
+     "screenshot": "nav-01-states",
+     "expect": "aria-current on the current category, 2px indicator, hover pill brand-50/700, 2px offset-2 focus ring; none active on /"
+    },
+    {
+     "action": "assert",
+     "expect": "contrast >= 4.5:1 for price, old price, tag, nav text in light and dark"
+    },
+    {
+     "action": "goto",
+     "url": "/",
+     "screenshots": [
+      "footer-01",
+      "footer-02-accordion"
+     ],
+     "expect": "trust strip, 5 link groups + brand block, legal bar; disclosures below 640px with aria-expanded"
+    }
+   ]
   }
  ],
  "candidateNextScenarios": [

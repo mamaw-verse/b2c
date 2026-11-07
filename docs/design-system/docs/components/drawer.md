@@ -62,7 +62,7 @@ Side panel for navigation on phone (seller/admin menu) and secondary panels.
 | Announcements | Title. |
 
 ## 8. Tokens used
-`--border`, `--brand-100`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-sheet`, `--foreground`, `--fs-caption`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--ring`, `--sale`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
+`--border`, `--brand-100`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-sheet`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-caption`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-panel`, `--sale`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
 
 ## 9. Content rules
 - Same labels as the desktop sidebar.

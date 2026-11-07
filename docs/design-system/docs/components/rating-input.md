@@ -63,7 +63,7 @@ Forms · Phase 2 · Live sheet: `styleguide/components/rating-input.html`
 | Announcements | Native radio announcements. |
 
 ## 8. Tokens used
-`--border-control`, `--danger`, `--fs-body-sm`, `--fs-label`, `--r-button`, `--rating`, `--ring`, `--touch-min`, `currentColor (icons)`
+`--border-control`, `--danger`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--fs-body-sm`, `--fs-label`, `--r-button`, `--rating`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Optional hint under the stars: 1 “Very poor” … 5 “Excellent”.
@@ -80,15 +80,15 @@ Forms · Phase 2 · Live sheet: `styleguide/components/rating-input.html`
 <fieldset class="grid gap-1">
   <legend class="text-label">Rate this product</legend>
   <div class="flex" data-ds-rating><input type="radio" id="ri1-1" name="ri1" value="1" class="sr-only">
-    <label for="ri1-1" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">1 star</span></label>
+    <label for="ri1-1" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">1 star</span></label>
     <input type="radio" id="ri1-2" name="ri1" value="2" class="sr-only">
-    <label for="ri1-2" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">2 stars</span></label>
+    <label for="ri1-2" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">2 stars</span></label>
     <input type="radio" id="ri1-3" name="ri1" value="3" class="sr-only">
-    <label for="ri1-3" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">3 stars</span></label>
+    <label for="ri1-3" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">3 stars</span></label>
     <input type="radio" id="ri1-4" name="ri1" value="4" class="sr-only" checked>
-    <label for="ri1-4" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">4 stars</span></label>
+    <label for="ri1-4" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring" data-on><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">4 stars</span></label>
     <input type="radio" id="ri1-5" name="ri1" value="5" class="sr-only">
-    <label for="ri1-5" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring [input:focus-visible+&]:rounded-button"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">5 stars</span></label>
+    <label for="ri1-5" class="grid min-h-touch min-w-touch place-items-center text-border-control data-[on]:text-rating rounded-button focus-ring"><svg class="icon size-9 fill-current" aria-hidden="true"><use href="#i-star"/></svg><span class="sr-only">5 stars</span></label>
   </div>
 </fieldset>
 ```

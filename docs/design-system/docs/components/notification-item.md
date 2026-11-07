@@ -64,7 +64,7 @@ Activity and order updates in the Notifications tab.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--brand-100`, `--brand-700`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary-soft`, `--r-panel`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--surface`, `--surface-subtle`, `currentColor (icons)`
+`--border`, `--brand-100`, `--brand-700`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-label`, `--gutter`, `--info`, `--info-soft`, `--muted-foreground`, `--primary-soft`, `--r-panel`, `--r-tile`, `--sale`, `--sale-soft`, `--surface`, `--surface-subtle`, `currentColor (icons)`
 
 ## 9. Content rules
 - Title ≤ 40 chars; action-oriented.

@@ -61,7 +61,7 @@ Conversation list: avatar with presence, name, last message, time, unread count.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-800`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-soft`, `--r-badge`, `--r-field`, `--r-panel`, `--r-search`, `--ring`, `--sale`, `--sale-soft`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-800`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--muted-foreground`, `--primary-foreground`, `--primary-soft`, `--r-badge`, `--r-field`, `--r-panel`, `--r-search`, `--sale`, `--sale-soft`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-muted`, `--surface-subtle`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Times: “9:41 AM”, “Yesterday”, “Mon”, “Oct 28”.

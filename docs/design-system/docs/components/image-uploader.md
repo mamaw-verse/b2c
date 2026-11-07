@@ -67,7 +67,7 @@ Multi-image upload for listings, reviews and reports: cover, reorder, remove, pr
 | Announcements | “1 photo added”, “Front.jpg moved to position 2”, “Front.jpg removed”. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-tile`, `--ring`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-tile`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - State limits up front (count, size, type).
@@ -120,7 +120,7 @@ Multi-image upload for listings, reviews and reports: cover, reorder, remove, pr
       </div>
     </li>
     <li data-ds-add>
-      <label for="up1" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
+      <label for="up1" class="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft focus-ring"><span><svg class="icon mx-auto size-6" aria-hidden="true"><use href="#i-image-plus"/></svg>Add photo</span></label>
       <input id="up1" type="file" accept="image/*" multiple class="sr-only">
     </li>
   </ul>

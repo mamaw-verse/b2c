@@ -57,7 +57,7 @@ export function tokensUsed(html) {
   const walk = (c) => { if (seen.has(c)) return; seen.add(c); if (recipes[c]) recipes[c].forEach(walk); tokenFor(c, out); };
   for (const m of html.matchAll(/\sclass="([^"]*)"/g)) m[1].split(/\s+/).filter(Boolean).forEach(walk);
   if (/<svg class="icon/.test(html)) out.add('currentColor (icons)');
-  if (/outline|focus-visible|<button|<a |<input/.test(html)) out.add('--ring');
+  if (/outline|focus-visible|<button|<a |<input|focus-ring/.test(html)) { out.add('--focus-ring-width'); out.add('--focus-ring-offset'); out.add('--focus-ring-color'); }
   return [...out].sort();
 }
 
@@ -77,7 +77,7 @@ export function pretty(html) {
 
 /* ------------------------------------------------------------ page shell */
 const sprite = () => fs.readFileSync('icons/sprite.svg', 'utf8').replace('<svg ', '<svg aria-hidden="true" class="absolute size-0 overflow-hidden" ').trim();
-export const TOPNAV = [['index.html', 'Overview'], ['foundations.html', 'Foundations'], ['components/index.html', 'Components'], ['layouts/index.html', 'Layouts'], ['screens/index.html', 'Screens']];
+export const TOPNAV = [['index.html', 'Overview'], ['foundations.html', 'Foundations'], ['focus.html', 'Focus'], ['components/index.html', 'Components'], ['layouts/index.html', 'Layouts'], ['screens/index.html', 'Screens']];
 export function shell({ title, depth = 0, active, body, bare = false, main = true, bodyCls = '' }) {
   const up = '../'.repeat(depth);
   const chrome = bare ? '' : `<a href="#main" class="fixed left-2 top-2 z-toast flex min-h-touch -translate-y-24 items-center rounded-button bg-primary px-4 text-label text-primary-foreground focus:translate-y-0">Skip to content</a>

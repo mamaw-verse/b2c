@@ -6,6 +6,11 @@ const rules = [
   ['px font size', /(font-size\s*:\s*[\d.]+px|text-\[[\d.]+px\])/g],
   ['rgb()/hsl() colour literal', /\b(rgba?|hsla?)\(/g],
   ['hardcoded brand name', /\b(Shopee|Lazada|Acme)\b/g],
+  /* Focus indicators live only in src/base.css + src/components.css (.focus-ring / .focus-inset). */
+  ['component-level focus override (use the foundation classes)', /(?:has-\[:focus[a-z-]*\]|has-focus[a-z-]*|focus-visible|focus-within|focus|\[[^\]"'\s]*focus[^\]"'\s]*\]):(?:ring|outline|border|shadow)\S*/g],
+  ['hardcoded outline width (use --focus-ring-width)', /\boutline-\d+\b/g],
+  ['outline removed without a focus replacement', /\boutline-(?:none|0)\b/g, (m, line, file) => file !== 'src/base.css' && !/focus(-visible|-within)?:|has-\[?:?[^\s"']*focus|\bfocus-ring\b/.test(line)],
+  ['bare :focus pseudo (use :focus-visible)', /:focus(?![-\w])/g, (m, line, file) => file !== 'src/base.css' && !/^\s*\/\//.test(line)],
 ];
 let n = 0;
 for (const f of targets) {
@@ -13,7 +18,7 @@ for (const f of targets) {
   s.split('\n').forEach((line, i) => {
     for (const [label, re, ok] of rules) for (const m of line.matchAll(re)) {
       if (f.endsWith('sg.js') && label.startsWith('hardcoded hex') ) continue;
-      if (ok && !ok(m[0], line)) continue;
+      if (ok && !ok(m[0], line, f)) continue;
       if (f.endsWith('sg.js') && label.startsWith('rgb')) continue;
       n++; console.log(`${f}:${i + 1}: ${label}: ${m[0]}`);
     }

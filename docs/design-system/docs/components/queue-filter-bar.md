@@ -62,7 +62,7 @@ Search + quick-type chips inline on tablet/desktop; phone gets a “Filters” b
 | Announcements | Result count update polite. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--elevation-sheet`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-h3`, `--fs-input`, `--fs-label`, `--gutter`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-panel`, `--r-search`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `--z-sheet`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--elevation-sheet`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-h3`, `--fs-input`, `--fs-label`, `--gutter`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-panel`, `--r-search`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `--z-sheet`, `currentColor (icons)`
 
 ## 9. Content rules
 - Counts next to types.

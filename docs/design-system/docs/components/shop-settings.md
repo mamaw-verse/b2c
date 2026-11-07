@@ -60,7 +60,7 @@ Shop profile, status switches (vacation mode, auto-reply) and shipping channels 
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-h4`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-hover`, `--r-field`, `--r-panel`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
+`--border`, `--border-control`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-h4`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-hover`, `--r-field`, `--r-panel`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Explain consequences (vacation mode).

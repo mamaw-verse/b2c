@@ -18,12 +18,12 @@ export const HALAL = {
  * variant: soft (on white) | solid (over photos). short: one-word label for dense cards.
  * body (certifier acronym) is read out for screen readers, never shown on the compact card.
  */
-export function halalBadge({ status = 'certified', short, solid, body, cls, showBody } = {}) {
+export function halalBadge({ status = 'certified', short, solid, body, cls, showBody, aria } = {}) {
   const s = HALAL[status];
   const tone = solid && s.solid ? s.solid : s.cls;
   const text = short ? s.short : s.label;
   const sr = short && status === 'certified' ? `<span class="sr-only"> certified${body ? ` by ${esc(body)}` : ''}</span>` : '';
-  return `<span class="${cx('badge', tone, cls)}">${icon(s.ic, 'size-3.5')}${text}${sr}${showBody && body ? `<span class="font-normal opacity-90">· ${esc(body)}</span>` : ''}</span>`;
+  return `<span class="${cx('badge', tone, cls)}"${aria ? ` aria-label="${esc(aria)}"` : ''}>${icon(s.ic, 'size-3.5')}${text}${sr}${showBody && body ? `<span class="font-normal opacity-90">· ${esc(body)}</span>` : ''}</span>`;
 }
 
 /** Cold-chain note for frozen halal meat. Persistent, inline (not a toast). */

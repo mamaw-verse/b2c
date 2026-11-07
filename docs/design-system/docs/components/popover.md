@@ -64,7 +64,7 @@ Small menu anchored to a trigger (more actions, sort). Native `popover` attribut
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--fs-body`, `--fs-label`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-panel`, `--ring`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-label`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-panel`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Items are verbs.
@@ -81,10 +81,10 @@ Small menu anchored to a trigger (more actions, sort). Native `popover` attribut
 ```html
 <button type="button" class="btn btn-icon btn-ghost text-foreground" aria-label="More actions" popovertarget="pm1" aria-haspopup="menu"><svg class="icon" aria-hidden="true"><use href="#i-ellipsis-vertical"/></svg></button>
 <div id="pm1" popover role="menu" aria-label="More actions" class="fixed m-0 min-w-48 rounded-panel border border-border bg-surface p-1 shadow-popover" data-ds-align-end>
-  <button type="button" role="menuitem" class="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted focus-visible:outline-offset-0"><svg class="icon size-4" aria-hidden="true"><use href="#i-share-2"/></svg>Share</button>
-  <button type="button" role="menuitem" class="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted focus-visible:outline-offset-0"><svg class="icon size-4" aria-hidden="true"><use href="#i-copy"/></svg>Copy link</button>
+  <button type="button" role="menuitem" class="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"><svg class="icon size-4" aria-hidden="true"><use href="#i-share-2"/></svg>Share</button>
+  <button type="button" role="menuitem" class="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"><svg class="icon size-4" aria-hidden="true"><use href="#i-copy"/></svg>Copy link</button>
   <div role="separator" class="my-1 border-t border-border"></div>
-  <button type="button" role="menuitem" class="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-danger hover:bg-danger-soft focus-visible:outline-offset-0"><svg class="icon size-4" aria-hidden="true"><use href="#i-flag"/></svg>Report listing</button>
+  <button type="button" role="menuitem" class="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-danger hover:bg-danger-soft"><svg class="icon size-4" aria-hidden="true"><use href="#i-flag"/></svg>Report listing</button>
 </div>
 ```
 

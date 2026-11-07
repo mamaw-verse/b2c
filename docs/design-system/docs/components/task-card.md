@@ -66,7 +66,7 @@ Seller dashboard to-do: a count and a label that deep-links to the filtered list
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-outline`, `--dur`, `--ease-out`, `--elevation-card-hover`, `--fs-body-sm`, `--fs-h3`, `--muted-foreground`, `--primary`, `--primary-soft`, `--r-badge`, `--r-card`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--surface`, `--surface-muted`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-outline`, `--dur`, `--ease-out`, `--elevation-card-hover`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--fs-body-sm`, `--fs-h3`, `--muted-foreground`, `--primary`, `--primary-soft`, `--r-badge`, `--r-card`, `--r-tile`, `--sale`, `--sale-soft`, `--surface`, `--surface-muted`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Label = list name.

@@ -60,7 +60,7 @@ Numeric stock field with unit and low-stock hint.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border-control`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--primary`, `--r-field`, `--ring`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--warning`, `currentColor (icons)`
+`--border-control`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-input`, `--fs-label`, `--muted-foreground`, `--r-field`, `--subtle-foreground`, `--surface`, `--surface-muted`, `--touch-min`, `--warning`, `currentColor (icons)`
 
 ## 9. Content rules
 - “Low stock” wording.

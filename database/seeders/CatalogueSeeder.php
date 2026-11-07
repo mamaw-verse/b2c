@@ -133,7 +133,8 @@ final class CatalogueSeeder extends Seeder
                 'free_shipping' => $free,
                 'frozen' => $frozen,
                 'halal_status' => $halal,
-                'stock' => 42,
+                // One out-of-stock listing so the catalog shows the sold-out card state.
+                'stock' => $cat === 'Meat & Seafood' && str_contains($name, 'tapa') ? 0 : 42,
             ]);
 
             $galleryImages = match ($name) {

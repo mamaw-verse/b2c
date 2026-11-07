@@ -16,7 +16,7 @@ Storefront header: compact search row on phone/tablet; announcement bar + logo +
 2. Logo slot (neutral mark + `{{BRAND_NAME}}`).
 3. SearchInput.
 4. Cart (+ chat on phone, notifications + account on desktop) IconButtons with counts.
-5. Category nav (desktop only, `--nav-h`).
+5. Category nav (`--nav-h` on desktop; horizontal scroller with a right-edge fade on mobile). Four states from tokens: default `--text-muted` 500, hover `--brand-50`/`--brand-700` pill, current item `--brand-700` + 2px `--brand-600` bottom bar (`aria-current="page"`), shared focus ring. Weight never changes between states.
 6. Variant: back arrow + page title (detail pages on phone).
 
 ## 3. Variants and sizes
@@ -35,16 +35,16 @@ Storefront header: compact search row on phone/tablet; announcement bar + logo +
 | Disabled | n/a: n/a |
 | Loading | n/a: n/a |
 | Error | n/a: n/a |
-| Selected | n/a: Category nav item uses `aria-current`. |
+| Selected | rendered |
 | Empty | n/a: n/a |
 | Skeleton | n/a: n/a |
 
 ## 5. Responsive behaviour
 | Tier | Behaviour |
 |---|---|
-| Phone (base, 360px+) | 56px sticky row: logo mark, search, cart, chat. |
+| Phone (base, 360px+) | 56px sticky row: logo mark, search, cart, chat + category scroller (right-edge fade; current item scrolls into view). |
 | Tablet (md, 768px+) | 64px row, same items. |
-| Desktop (lg, 1024px+) | Announcement 34px + 78px row (logo text, search, cart, notifications, account) + 48px category nav. |
+| Desktop (lg, 1024px+) | Announcement 34px + 78px row (logo text, search, cart, notifications, account) + 48px category nav; current item shows the 2px indicator aligned to the row's bottom border. |
 
 ## 6. API / props
 | Prop | Type | Default | Notes |
@@ -67,7 +67,7 @@ Storefront header: compact search row on phone/tablet; announcement bar + logo +
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--container-max`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-caption`, `--fs-eyebrow`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--header-h`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-panel`, `--r-search`, `--r-tile`, `--ring`, `--sale`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-header`, `--z-sheet`, `currentColor (icons)`, `safe-area-inset-top`
+`--border`, `--border-control`, `--brand-100`, `--container-max`, `--danger`, `--dur`, `--ease-out`, `--elevation-popover`, `--focus-ring-color`, `--focus-ring-error`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-eyebrow`, `--fs-h4`, `--fs-input`, `--fs-label`, `--gutter`, `--header-h`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-field`, `--r-panel`, `--r-search`, `--r-tile`, `--sale`, `--subtle-foreground`, `--success`, `--success-soft`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-header`, `--z-sheet`, `currentColor (icons)`, `safe-area-inset-top`
 
 ## 9. Content rules
 - Announcement ≤ 60 chars.
@@ -103,15 +103,15 @@ Storefront header: compact search row on phone/tablet; announcement bar + logo +
     </div>
     <div class="flex shrink-0 items-center"><a href="#" class="btn btn-icon btn-ghost text-foreground" aria-label="Cart, 2"><svg class="icon" aria-hidden="true"><use href="#i-shopping-cart"/></svg><span class="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-sale px-1 text-caption leading-5 text-primary-foreground" aria-hidden="true">2</span></a><span class="lg:hidden"><a href="#" class="btn btn-icon btn-ghost text-foreground" aria-label="Chat, 3"><svg class="icon" aria-hidden="true"><use href="#i-message-circle"/></svg><span class="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-sale px-1 text-caption leading-5 text-primary-foreground" aria-hidden="true">3</span></a></span><span class="hidden items-center gap-1 lg:flex"><a href="#" class="btn btn-icon btn-ghost text-foreground" aria-label="Notifications, 12"><svg class="icon" aria-hidden="true"><use href="#i-bell"/></svg><span class="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-sale px-1 text-caption leading-5 text-primary-foreground" aria-hidden="true">12</span></a><a href="#" class="flex min-h-touch items-center gap-2 rounded-button px-2 text-label hover:bg-surface-muted"><span class="relative inline-grid shrink-0 place-items-center font-bold rounded-full size-8 text-caption bg-success-soft text-success" aria-hidden="true"><span aria-hidden="true">MS</span></span><span>Maria</span></a></span></div>
   </div>
-  <nav aria-label="Categories" class="hidden h-[var(--nav-h)] border-t border-border lg:block">
-    <ul class="mx-auto flex h-full max-w-container items-center gap-1 overflow-x-auto px-gutter">
-      <li><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground">Halal Food</a></li>
-      <li><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground">Meat & Seafood</a></li>
-      <li><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground">Dates & Sweets</a></li>
-      <li><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground">Modest Fashion</a></li>
-      <li><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground">Prayer Essentials</a></li>
-      <li><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground">Books & Quran</a></li>
-      <li class="ml-auto flex"><a href="#" class="flex min-h-touch items-center whitespace-nowrap rounded-button px-3 text-label text-primary hover:bg-primary-soft">Sell on {{BRAND_NAME}}</a><a href="#" class="flex min-h-touch items-center rounded-button px-3 text-label text-muted-foreground hover:bg-surface-muted">Help</a></li>
+  <nav aria-label="Categories" class="border-t border-border lg:h-[var(--nav-h)]">
+    <ul class="mx-auto flex h-full max-w-container items-stretch gap-1 overflow-x-auto px-gutter [scrollbar-width:none] max-lg:[-webkit-mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] max-lg:[mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)]">
+      <li class="flex"><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Halal Food</a></li>
+      <li class="flex"><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Meat & Seafood</a></li>
+      <li class="flex"><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Dates & Sweets</a></li>
+      <li class="flex"><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Modest Fashion</a></li>
+      <li class="flex"><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Prayer Essentials</a></li>
+      <li class="flex"><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Books & Quran</a></li>
+      <li class="ml-auto flex"><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Sell on {{BRAND_NAME}}</a><a href="#" class="relative my-1 flex items-center whitespace-nowrap rounded-button px-3 text-body-sm font-medium text-muted-foreground before:absolute before:-inset-y-0.5 before:content-[""] hover:bg-brand-50 hover:text-brand-700">Help</a></li>
     </ul>
   </nav>
 </header>

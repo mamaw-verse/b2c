@@ -76,14 +76,14 @@ Triggers an action in place: submit, add to cart, confirm, delete. One recipe (`
 | Role | Native `` (or `` when it navigates). |
 | Accessible name | Visible label. If the label changes while loading, the new label is the name. |
 | Keyboard | Enter and Space activate (native). |
-| Focus management | 3px `--ring` outline with 2px offset; `--ring-inverse` inside `.on-inverse`. |
+| Focus management | 2px `--focus-ring-color` outline with 2px offset; white inset ring on filled `.btn`; `--ring-inverse` inside `.on-inverse`. |
 | ARIA | `aria-busy="true"` + `aria-disabled="true"` while loading (stays focusable so focus is not lost). |
 | Touch target | md 44px, lg 48px, sm 36px visual with a 44px `::after` hit area. |
 | Reduced motion | Spinner rotation and colour transitions collapse under reduced motion. |
 | Announcements | Result of the action is announced by a Toast (polite) or inline error, not by the button. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-50`, `--brand-800`, `--brand-950`, `--danger`, `--danger-hover`, `--danger-pressed`, `--dur`, `--ease-out`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-eyebrow`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-button`, `--r-panel`, `--ring`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-50`, `--brand-800`, `--brand-950`, `--danger`, `--danger-hover`, `--danger-pressed`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--foreground-inverse`, `--fs-body`, `--fs-eyebrow`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-button`, `--r-panel`, `--surface`, `--surface-inverse`, `--surface-muted`, `--touch-min`, `--touch-primary`, `currentColor (icons)`
 
 ## 9. Content rules
 - Verb first, sentence case: “Add to cart”, “Place order”, “Request changes”.

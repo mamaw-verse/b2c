@@ -68,7 +68,7 @@ One cart line: select, thumbnail, title, variation (opens VariationPicker), pric
 | Announcements | Stepper announces quantity. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--danger`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-input`, `--fs-label`, `--halal`, `--halal-soft`, `--info`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-700`, `--danger`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-input`, `--fs-label`, `--halal`, `--halal-soft`, `--info`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-field`, `--r-tile`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--warning`, `currentColor (icons)`
 
 ## 9. Content rules
 - Stock warnings in `--warning` with text.
@@ -93,11 +93,11 @@ One cart line: select, thumbnail, title, variation (opens VariationPicker), pric
       <button type="button" class="relative inline-flex min-h-9 w-fit max-w-full items-center gap-1 rounded-badge bg-surface-muted px-2 text-body-sm text-muted-foreground hover:bg-border after:absolute after:inset-x-0 after:-inset-y-1" aria-label="Variation: Premium, 500g. Change">Premium, 500g<svg class="icon size-4 shrink-0" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
       <p class="flex flex-wrap items-center gap-x-2 gap-y-1"><span class="badge badge-halal"><svg class="icon size-3.5" aria-hidden="true"><use href="#i-moon-star"/></svg>Halal<span class="sr-only"> certified by IDCP</span></span></p>
       <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 [&>:last-child]:ml-auto">
-        <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-body font-extrabold text-sale">₱649</span><span class="sr-only">Original price:</span><s data-price class="text-body-sm text-muted-foreground">₱799</s><span class="badge badge-sale">-19%</span></p>
-        <div class="inline-flex items-stretch overflow-hidden rounded-field border border-border-control bg-surface" data-ds-stepper role="group" aria-label="Quantity">
+        <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-body font-bold text-foreground">₱649</span><span class="sr-only">Original price:</span><s data-price class="text-body-sm text-muted-foreground">₱799</s><span class="badge badge-promo">-19%</span></p>
+        <div class="focus-ring inline-flex items-stretch overflow-hidden rounded-field border border-border-control bg-surface" data-ds-stepper role="group" aria-label="Quantity">
           <button type="button" class="btn btn-ghost btn-icon rounded-none border-0 text-foreground hover:bg-surface-muted active:bg-border disabled:text-muted-foreground" data-ds-step="-1" aria-label="Decrease quantity"><svg class="icon size-4" aria-hidden="true"><use href="#i-minus"/></svg></button>
           <label for="ci1-q" class="sr-only">Quantity</label>
-          <input id="ci1-q" type="text" inputmode="numeric" pattern="[0-9]*" value="2" min="1" max="10" class="w-12 border-x border-border-control bg-transparent text-center text-input font-bold tabular focus-visible:outline-offset-0">
+          <input id="ci1-q" type="text" inputmode="numeric" pattern="[0-9]*" value="2" min="1" max="10" class="w-12 border-x border-border-control bg-transparent text-center text-input font-bold tabular">
           <button type="button" class="btn btn-ghost btn-icon rounded-none border-0 text-foreground hover:bg-surface-muted active:bg-border disabled:text-muted-foreground" data-ds-step="1" aria-label="Increase quantity"><svg class="icon size-4" aria-hidden="true"><use href="#i-plus"/></svg></button>
           <p class="sr-only" aria-live="polite" data-ds-live></p>
         </div>

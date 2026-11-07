@@ -69,7 +69,7 @@ One dialog component that is a bottom sheet on phone and a centered modal from `
 | Announcements | Title announced on open. |
 
 ## 8. Tokens used
-`--border`, `--border-control`, `--brand-100`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-sheet`, `--foreground`, `--fs-body`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-card`, `--r-panel`, `--ring`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
+`--border`, `--border-control`, `--brand-100`, `--brand-950`, `--dur`, `--ease-out`, `--elevation-sheet`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--r-card`, `--r-panel`, `--surface`, `--surface-muted`, `--touch-min`, `--touch-primary`, `--z-modal`, `currentColor (icons)`
 
 ## 9. Content rules
 - Title = task (“Filters”, “Add address”).

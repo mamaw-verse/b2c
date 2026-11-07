@@ -63,7 +63,7 @@ A single text message: incoming (surface) or outgoing (primary), with time and d
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--danger`, `--foreground`, `--fs-body`, `--fs-caption`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--r-badge`, `--r-panel`, `--ring`, `--surface`, `--touch-min`, `currentColor (icons)`
+`--border`, `--danger`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-caption`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--r-badge`, `--r-panel`, `--surface`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Preserve line breaks; Taglish is common.

@@ -65,7 +65,7 @@ Replaces content that failed to load, with a retry.
 | Announcements | Announced assertively once. |
 
 ## 8. Tokens used
-`--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--ring`, `--surface`, `--touch-min`, `currentColor (icons)`
+`--brand-100`, `--danger`, `--danger-soft`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-h3`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--r-button`, `--surface`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Plain language; no stack traces.

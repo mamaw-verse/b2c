@@ -66,7 +66,7 @@ Independent on/off choices and multi-select (cart items, filters, bulk select).
 | Announcements | Errors are announced when focus lands on the field (described-by), not via live regions while typing. |
 
 ## 8. Tokens used
-`--danger`, `--fs-body`, `--fs-body-sm`, `--fs-label`, `--muted-foreground`, `--primary`, `--ring`, `--touch-min`, `currentColor (icons)`
+`--danger`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-width`, `--fs-body`, `--fs-body-sm`, `--fs-label`, `--muted-foreground`, `--primary`, `--touch-min`, `currentColor (icons)`
 
 ## 9. Content rules
 - Positive phrasing: “Send me order updates”, not “Don’t send…”.

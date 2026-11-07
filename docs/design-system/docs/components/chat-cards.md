@@ -61,7 +61,7 @@ Rich message cards for a product being asked about and an order reference.
 | Announcements | None (static content). |
 
 ## 8. Tokens used
-`--border`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-tile`, `--ring`, `--sale`, `--sale-soft`, `--surface`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
+`--border`, `--brand-100`, `--brand-700`, `--dur`, `--ease-out`, `--focus-ring-color`, `--focus-ring-offset`, `--focus-ring-on-brand`, `--focus-ring-width`, `--foreground`, `--fs-body`, `--fs-body-sm`, `--fs-caption`, `--fs-label`, `--muted-foreground`, `--primary`, `--primary-foreground`, `--primary-hover`, `--primary-pressed`, `--primary-soft`, `--primary-soft-foreground`, `--r-badge`, `--r-button`, `--r-card`, `--r-tile`, `--surface`, `--touch-min`, `--warning`, `--warning-soft`, `currentColor (icons)`
 
 ## 9. Content rules
 - Order IDs tabular.
@@ -82,7 +82,7 @@ Rich message cards for a product being asked about and an order reference.
     </div>
     <div class="grid min-w-0 flex-1 content-center gap-1">
       <p class="line-clamp-2 text-body-sm"><a href="#" class="hover:underline">Ajwa dates 500g, premium grade</a></p>
-      <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-body font-extrabold text-sale">₱649</span><span class="sr-only">Original price:</span><s data-price class="text-body-sm text-muted-foreground">₱799</s><span class="badge badge-sale">-19%</span></p>
+      <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5"><span class="sr-only">Sale price:</span><span data-price class="text-body font-bold text-foreground">₱649</span><span class="sr-only">Original price:</span><s data-price class="text-body-sm text-muted-foreground">₱799</s><span class="badge badge-promo">-19%</span></p>
       <p>
         <button type="button" class="btn btn-sm"><span>Buy now</span></button>
       </p>
