@@ -1,0 +1,141 @@
+{
+ "$comment": "Machine-readable e2e scenario manifest for AI agents. Each scenario maps to a spec file; agents may also execute steps manually with a browser tool and must capture the listed screenshots into output/screenshots/<project>/. Viewport projects: desktop-1280, tablet-768, mobile-360.",
+ "baseUrl": "${E2E_BASE_URL:-http://localhost}",
+ "screenshotDir": "tests/e2e/output/screenshots",
+ "scenarios": [
+  {
+   "id": "smoke",
+   "spec": "specs/smoke.spec.ts",
+   "description": "Public pages and the registration/login boundary.",
+   "steps": [
+    {
+     "action": "goto",
+     "url": "/",
+     "screenshot": "01-home",
+     "expect": "page renders with a title"
+    },
+    {
+     "action": "goto",
+     "url": "/login",
+     "screenshot": "02-login-form",
+     "expect": "email and password inputs visible"
+    },
+    {
+     "action": "goto",
+     "url": "/register",
+     "screenshot": "03-register-form",
+     "expect": "name and email inputs visible"
+    },
+    {
+     "action": "register",
+     "email": "unique",
+     "screenshots": [
+      "10-register-filled",
+      "11-after-register"
+     ],
+     "expect": "lands on /dashboard or /email/verify"
+    },
+    {
+     "action": "login",
+     "email": "nonexistent",
+     "screenshot": "20-login-failed",
+     "expect": "stays on /login with validation feedback"
+    }
+   ]
+  },
+  {
+   "id": "order-lifecycle",
+   "spec": "specs/order-lifecycle.spec.ts",
+   "description": "Full order lifecycle across the three roles: buyer checkout, seller fulfilment, admin moderation. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
+   "steps": [
+    {
+     "action": "login",
+     "email": "test@example.com",
+     "note": "seeded buyer; must be email-verified (seeders set email_verified_at)"
+    },
+    {
+     "action": "seed",
+     "via": "POST /account/addresses + POST /cart + POST /reports",
+     "expect": "buyer has a default address, a selected cart item, and a pending report"
+    },
+    {
+     "action": "checkout",
+     "screenshots": [
+      "buyer-01-product",
+      "buyer-02-cart",
+      "buyer-03-checkout",
+      "buyer-04-order-placed",
+      "buyer-05-orders",
+      "buyer-06-order-detail"
+     ],
+     "expect": "order is placed (COD, default shipping) and listed under /account/orders"
+    },
+    {
+     "action": "login",
+     "email": "seller@example.com",
+     "screenshots": [
+      "seller-01-dashboard",
+      "seller-02-orders",
+      "seller-03-order",
+      "seller-04-ship-modal",
+      "seller-05-shipped"
+     ],
+     "expect": "order shows under To Ship; Arrange shipment moves it to To Receive"
+    },
+    {
+     "action": "login",
+     "email": "admin@example.com",
+     "screenshots": [
+      "admin-01-dashboard",
+      "admin-02-queue",
+      "admin-03-item",
+      "admin-04-decided"
+     ],
+     "expect": "buyer's report appears in the moderation queue and can be approved"
+    }
+   ]
+  },
+  {
+   "id": "admin-shell",
+   "spec": "specs/admin-shell.spec.ts",
+   "description": "Regression: admin routes render only the admin shell (no storefront chrome); pages that render their own shell are not double-wrapped.",
+   "steps": [
+    {
+     "action": "login",
+     "email": "admin@example.com"
+    },
+    {
+     "action": "goto",
+     "url": "/admin/dashboard",
+     "expect": "main[data-shell=admin] visible, zero [data-shell=public]",
+     "screenshot": "admin-shell-dashboard"
+    },
+    {
+     "action": "goto",
+     "url": "/admin/moderation",
+     "expect": "main[data-shell=admin] visible, zero [data-shell=public]"
+    },
+    {
+     "action": "login",
+     "email": "test@example.com"
+    },
+    {
+     "action": "goto",
+     "url": "/chat",
+     "expect": "exactly one [data-shell] element (public)"
+    },
+    {
+     "action": "goto",
+     "url": "/notifications",
+     "expect": "exactly one [data-shell] element (public)"
+    }
+   ]
+  }
+ ],
+ "candidateNextScenarios": [
+  "catalogue browse: / -> category -> product -> screenshot each",
+  "search: /search?q=... -> results screenshot",
+  "buyer marks order received + leaves a review",
+  "seller product create/edit with halal declaration"
+ ]
+}

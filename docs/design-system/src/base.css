@@ -1,0 +1,67 @@
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--foreground);
+    background-color: var(--background);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+  body { font-size: var(--fs-body); line-height: 1.55; min-width: 0; }
+  input, select, textarea { font-size: var(--fs-input); }
+  button, [role="button"], label, summary { cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  .tabular, [data-price] { font-variant-numeric: tabular-nums; }
+  /* A plain `grid` is a one-column stack: its column may shrink below content width so long
+     words, truncation and scrollers never widen the page. Any grid-cols-* utility overrides this. */
+  .grid { grid-template-columns: minmax(0, 1fr); }
+
+  /* Focus: 3px ring in --ring, 2px offset. Inverse surfaces opt in with .on-inverse. */
+  .on-inverse {
+    background-color: var(--surface-inverse);
+    color: var(--foreground-inverse);
+  }
+  :where(a, button, input, select, textarea, summary, dialog, [tabindex]):focus-visible,
+  :where(a, button, input, select, textarea, summary, [tabindex])[data-force~="focus"] {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .on-inverse :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+  .on-inverse :where(a, button, input, select, textarea, summary, [tabindex])[data-force~="focus"] {
+    outline-color: var(--ring-inverse);
+  }
+
+  .icon {
+    width: 1.25rem; height: 1.25rem; flex: none;
+    fill: none; stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  /* Overlays: native <dialog>. Scroll lock while any modal dialog is open. */
+  :root:has(dialog:modal) { overflow: hidden; }
+  dialog { color: inherit; max-width: none; max-height: none; }
+  dialog::backdrop {
+    background: color-mix(in srgb, var(--brand-950) 55%, transparent);
+    transition: opacity var(--dur) var(--ease-out),
+                overlay var(--dur) var(--ease-out) allow-discrete,
+                display var(--dur) var(--ease-out) allow-discrete;
+    opacity: 0;
+  }
+  dialog[open]::backdrop {
+    opacity: 1;
+  }
+  @starting-style {
+    dialog[open]::backdrop { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root { --dur-fast: 1ms; --dur: 1ms; --dur-slow: 1ms; }
+    *, ::before, ::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

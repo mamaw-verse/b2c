@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Seed tokens (see docs/foundations.md for the deviation log).
+   Three scopes, so a brand can be swapped on <html> OR on any nested element:
+     1. Brand-specific raw values   :root, [data-brand="default"]   (overridden by src/brand-*.css)
+     2. Aliases (re-resolved per [data-brand] element, so nested previews work)
+     3. Brand-independent values    :root
+   ========================================================================== */
+
+/* 1. Brand-specific raw values ------------------------------------------- */
+:root, [data-brand="default"] {
+  /* Brand scale (anchors from the template: 50, 600, 700, 900) */
+  --brand-50:#eaf4ed; --brand-100:#c4dacd; --brand-200:#9ec0ad; --brand-300:#78a68d; --brand-400:#528c6e;
+  --brand-500:#307551; --brand-600:#17643c; --brand-700:#10452d; --brand-800:#103a27; --brand-900:#102f21; --brand-950:#091a12;
+
+  /* Surfaces */
+  --background:#f7f8f6;  --surface:#ffffff;  --surface-subtle:#fafbfa;  --surface-muted:#f0f2f0;
+  --surface-hero:#edf4ee;  --surface-cta:#e8f1e9;
+
+  /* Text (all pairs measured by scripts/contrast.mjs -> docs/contrast.md) */
+  --foreground:#202923;
+  --muted-foreground:#566159;
+  --subtle-foreground:#66706a;
+  --foreground-inverse:#e8f2eb;
+  --inverse-link:#c6d5ca;
+  --inverse-muted:#b9c9be;
+
+  /* Borders */
+  --border:#e6ebe7;  --border-strong:#dce4de;  --border-outline:#cbd9cf;
+  --border-control:#818b84;   /* DEVIATION: was #869089 (3.30 white / 2.93 surface-muted) -> 3.52 / 3.13 so fields pass on muted panels */
+
+  /* Radius (template values) */
+  --r-badge:5px; --r-field:7px; --r-button:8px; --r-search:9px; --r-tile:10px; --r-card:11px; --r-panel:12px; --r-hero:16px;
+
+  /* Elevation (brand-tinted). Runtime names are --elevation-*; the Tailwind
+     --shadow-* tokens map to them below (a --shadow-x: var(--shadow-x) mapping would be a cycle). */
+  --elevation-card-hover:0 8px 24px rgb(22 59 37 / .07);
+  --elevation-popover:0 8px 24px rgb(16 47 33 / .12);
+  --elevation-sticky:0 -2px 12px rgb(16 47 33 / .08);
+  --elevation-sheet:0 -8px 32px rgb(16 47 33 / .18);
+}
+
+/* 2. Aliases: declared on every [data-brand] element so nesting works ----- */
+:root, [data-brand] {
+  --surface-brand-soft:var(--brand-50);
+  --surface-inverse:var(--brand-900);
+
+  --primary:var(--brand-600);  --primary-hover:var(--brand-700);  --primary-pressed:var(--brand-800);
+  --primary-foreground:#ffffff;  --primary-soft:var(--brand-50);  --primary-soft-foreground:var(--brand-600);
+  --ring:var(--brand-600);
+  --ring-inverse:var(--brand-200);   /* focus ring on inverse surfaces; checked in docs/contrast.md */
+}
+
+/* 3. Brand-independent values --------------------------------------------- */
+:root {
+  /* Feedback (fg on soft bg, all >= 5:1) */
+  --success:#067647;  --success-soft:#ecfdf3;
+  --warning:#b54708;  --warning-soft:#fffaeb;
+  --danger:#b42318;   --danger-soft:#fef3f2;  --danger-hover:#912018;  --danger-pressed:#7a271a;  /* ADDED: danger button states */
+  --info:#175cd3;     --info-soft:#eff8ff;
+  --sale:#c2310f;     --sale-soft:#fff1ed;
+  --rating:#d99b25;   --rating-foreground:#8a5a00;  /* amber is decorative only; the rating number uses -foreground */
+
+  /* Halal certification (brand-independent: a trust mark must look the same in every white-label brand).
+     --halal on --halal-soft and white on --halal are measured in docs/contrast.md. */
+  --halal:#0b6657;  --halal-soft:#e2f4ef;  --halal-hover:#084c41;
+
+  /* Moderation states */
+  --mod-pending:#b54708;  --mod-pending-bg:#fffaeb;
+  --mod-flagged:#c2310f;  --mod-flagged-bg:#fff1ed;
+  --mod-hidden:#475467;   --mod-hidden-bg:#f2f4f7;
+  --mod-suspended:#912018; --mod-suspended-bg:#fee4e2;
+  --mod-resolved:#067647; --mod-resolved-bg:#ecfdf3;
+
+  /* Layout (phone base). DECIDED: one sidebar width (220px) for account, seller and admin. */
+  --container-max:1240px; --gutter:1rem;
+  --header-h:3.5rem; --tabbar-h:3.5rem; --sticky-bar-h:4.25rem; --announce-h:0px; --nav-h:0px;
+  --sidebar-w:13.75rem;
+  --chat-list-w:18.75rem;
+
+  /* Touch targets: 44px minimum, 48px for primary actions */
+  --touch-min:2.75rem; --touch-primary:3rem;
+
+  /* Motion */
+  --dur-fast:120ms; --dur:200ms; --dur-slow:320ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+
+  /* z-index scale */
+  --z-header:40; --z-sticky-bar:45; --z-drawer:60; --z-sheet:70; --z-modal:80; --z-toast:90;
+
+  /* Type scale: phone base */
+  --fs-display:2rem;   --fs-h1:1.625rem; --fs-h2:1.25rem;  --fs-h3:1.0625rem; --fs-h4:1rem;
+  --fs-body-lg:1rem;   --fs-body:.875rem; --fs-body-sm:.8125rem; --fs-caption:.75rem; --fs-label:.8125rem;
+  --fs-price:1.0625rem; --fs-price-lg:1.5rem; --fs-eyebrow:.75rem; --fs-th:.75rem; --fs-input:1rem;
+}
+@media (min-width:48rem){   /* tablet */
+  :root{ --gutter:1.25rem; --header-h:4rem; --fs-display:2.375rem; --fs-h1:1.875rem; --fs-h2:1.375rem; --fs-h3:1.125rem; --fs-price-lg:1.625rem; }
+}
+@media (min-width:64rem){   /* desktop */
+  :root{ --gutter:1.5rem; --header-h:4.875rem; --nav-h:3rem; --announce-h:2.125rem; --tabbar-h:0px;
+         --fs-display:2.6875rem; --fs-h1:2.125rem; --fs-h2:1.4375rem; --fs-price-lg:1.75rem; }
+}
+/* Input size follows the input device, not the width: a landscape iPad (>=1024px, coarse pointer)
+   must stay at 16px or iOS zooms on focus. */
+@media (min-width:64rem) and (pointer:fine){
+  :root{ --fs-input:.875rem; }
+}
+
+@theme inline {
+  --font-sans:"Manrope Variable","Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+
+  --breakpoint-sm:40rem; --breakpoint-md:48rem; --breakpoint-lg:64rem; --breakpoint-xl:80rem;
+
+  --color-background:var(--background); --color-surface:var(--surface); --color-surface-subtle:var(--surface-subtle);
+  --color-surface-muted:var(--surface-muted); --color-surface-brand-soft:var(--surface-brand-soft);
+  --color-surface-hero:var(--surface-hero); --color-surface-cta:var(--surface-cta); --color-surface-inverse:var(--surface-inverse);
+  --color-foreground:var(--foreground); --color-muted-foreground:var(--muted-foreground); --color-subtle-foreground:var(--subtle-foreground);
+  --color-foreground-inverse:var(--foreground-inverse); --color-inverse-link:var(--inverse-link); --color-inverse-muted:var(--inverse-muted);
+  --color-primary:var(--primary); --color-primary-hover:var(--primary-hover); --color-primary-pressed:var(--primary-pressed);
+  --color-primary-foreground:var(--primary-foreground); --color-primary-soft:var(--primary-soft); --color-primary-soft-foreground:var(--primary-soft-foreground);
+  --color-ring:var(--ring); --color-ring-inverse:var(--ring-inverse); --color-border:var(--border); --color-border-strong:var(--border-strong);
+  --color-border-outline:var(--border-outline); --color-border-control:var(--border-control);
+  --color-success:var(--success); --color-success-soft:var(--success-soft); --color-warning:var(--warning); --color-warning-soft:var(--warning-soft);
+  --color-danger:var(--danger); --color-danger-soft:var(--danger-soft); --color-danger-hover:var(--danger-hover); --color-danger-pressed:var(--danger-pressed); --color-info:var(--info); --color-info-soft:var(--info-soft);
+  --color-halal:var(--halal); --color-halal-soft:var(--halal-soft); --color-halal-hover:var(--halal-hover);
+  --color-sale:var(--sale); --color-sale-soft:var(--sale-soft); --color-rating:var(--rating); --color-rating-foreground:var(--rating-foreground);
+  --color-brand-50:var(--brand-50); --color-brand-100:var(--brand-100); --color-brand-200:var(--brand-200); --color-brand-300:var(--brand-300);
+  --color-brand-400:var(--brand-400); --color-brand-500:var(--brand-500); --color-brand-600:var(--brand-600); --color-brand-700:var(--brand-700);
+  --color-brand-800:var(--brand-800); --color-brand-900:var(--brand-900); --color-brand-950:var(--brand-950);
+  --color-mod-pending:var(--mod-pending); --color-mod-pending-bg:var(--mod-pending-bg); --color-mod-flagged:var(--mod-flagged); --color-mod-flagged-bg:var(--mod-flagged-bg);
+  --color-mod-hidden:var(--mod-hidden); --color-mod-hidden-bg:var(--mod-hidden-bg); --color-mod-suspended:var(--mod-suspended); --color-mod-suspended-bg:var(--mod-suspended-bg);
+  --color-mod-resolved:var(--mod-resolved); --color-mod-resolved-bg:var(--mod-resolved-bg);
+
+  --radius-badge:var(--r-badge); --radius-field:var(--r-field); --radius-button:var(--r-button); --radius-search:var(--r-search);
+  --radius-tile:var(--r-tile); --radius-card:var(--r-card); --radius-panel:var(--r-panel); --radius-hero:var(--r-hero);
+
+  --shadow-card-hover:var(--elevation-card-hover); --shadow-popover:var(--elevation-popover); --shadow-sticky:var(--elevation-sticky); --shadow-sheet:var(--elevation-sheet);
+
+  --text-display:var(--fs-display); --text-display--line-height:1.15; --text-display--letter-spacing:-.03em; --text-display--font-weight:800;
+  --text-h1:var(--fs-h1); --text-h1--line-height:1.2;  --text-h1--letter-spacing:-.03em;  --text-h1--font-weight:800;
+  --text-h2:var(--fs-h2); --text-h2--line-height:1.25; --text-h2--letter-spacing:-.025em; --text-h2--font-weight:800;
+  --text-h3:var(--fs-h3); --text-h3--line-height:1.3;  --text-h3--font-weight:700;
+  --text-h4:var(--fs-h4); --text-h4--line-height:1.35; --text-h4--font-weight:700;
+  --text-body-lg:var(--fs-body-lg); --text-body-lg--line-height:1.6;
+  --text-body:var(--fs-body); --text-body--line-height:1.55;
+  --text-body-sm:var(--fs-body-sm); --text-body-sm--line-height:1.5;
+  --text-caption:var(--fs-caption); --text-caption--line-height:1.4;
+  --text-label:var(--fs-label); --text-label--line-height:1.3; --text-label--font-weight:700;
+  --text-price:var(--fs-price); --text-price--line-height:1.2; --text-price--font-weight:800;
+  --text-price-lg:var(--fs-price-lg); --text-price-lg--line-height:1.15; --text-price-lg--font-weight:800;
+  --text-eyebrow:var(--fs-eyebrow); --text-eyebrow--line-height:1.3; --text-eyebrow--letter-spacing:.1em; --text-eyebrow--font-weight:800;
+  --text-th:var(--fs-th); --text-th--line-height:1.3; --text-th--letter-spacing:.04em; --text-th--font-weight:700;
+  --text-input:var(--fs-input); --text-input--line-height:1.4;
+}
+
+/* Layout, z-index, touch and safe-area utilities (token-backed) */
+@utility z-header { z-index: var(--z-header); }
+@utility z-sticky-bar { z-index: var(--z-sticky-bar); }
+@utility z-drawer { z-index: var(--z-drawer); }
+@utility z-sheet { z-index: var(--z-sheet); }
+@utility z-modal { z-index: var(--z-modal); }
+@utility z-toast { z-index: var(--z-toast); }
+@utility px-gutter { padding-inline: var(--gutter); }
+@utility p-gutter { padding: var(--gutter); }
+@utility h-header { height: var(--header-h); }
+@utility max-w-container { max-width: var(--container-max); }
+@utility pb-tabbar { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px)); }
+@utility pb-sticky-bar { padding-bottom: calc(var(--sticky-bar-h) + env(safe-area-inset-bottom, 0px)); }
+@utility min-h-touch { min-height: var(--touch-min); }
+@utility min-w-touch { min-width: var(--touch-min); }
+@utility min-h-touch-primary { min-height: var(--touch-primary); }
+@utility min-w-touch-primary { min-width: var(--touch-primary); }
+@utility pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+@utility pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+@utility duration-token { transition-duration: var(--dur); transition-timing-function: var(--ease-out); }

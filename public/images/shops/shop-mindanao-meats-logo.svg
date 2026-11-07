@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="meatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b42318" />
+      <stop offset="100%" stop-color="#7a271a" />
+    </linearGradient>
+  </defs>
+  <!-- Outer Circular Trust Ring -->
+  <circle cx="100" cy="100" r="92" fill="#202923" stroke="#0b6657" stroke-width="4" />
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-dasharray="3 3" />
+  
+  <!-- Crossed Cleaver & Wheat / Halal Seal Silhouette -->
+  <g transform="translate(100, 100)">
+    <!-- Shield / Seal -->
+    <path d="M 0,-50 L 40,-30 L 40,10 C 40,42 0,60 0,60 C 0,60 -40,42 -40,10 L -40,-30 Z" fill="url(#meatGrad)" stroke="#d4af37" stroke-width="2" />
+    
+    <!-- Cleaver outline inside shield -->
+    <path d="M -16,-22 L 18,-22 C 22,-22 24,-18 24,-14 L 24,6 C 24,8 20,10 16,10 L -16,10 Z" fill="#ffffff" opacity="0.9" />
+    <!-- Handle -->
+    <path d="M -16,-4 L -28,-4 C -30,-4 -32,-2 -32,0 L -32,4 C -32,6 -30,8 -28,8 L -16,8 Z" fill="#d4af37" />
+    
+    <!-- Star below -->
+    <polygon points="0,22 4,32 15,32 6,39 9,50 0,44 -9,50 -6,39 -15,32 -4,32" fill="#d4af37" />
+  </g>
+</svg>

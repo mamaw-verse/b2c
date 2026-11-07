@@ -19,6 +19,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Design System Brand
+    |--------------------------------------------------------------------------
+    |
+    | The design-system brand palette rendered as <html data-brand="...">.
+    | Additional brands live in resources/css/brand-<name>.css.
+    |
+    */
+
+    'brand' => env('APP_BRAND', 'default'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

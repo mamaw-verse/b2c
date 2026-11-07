@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -25,7 +27,7 @@ final class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
-        return parent::version($request);
+        return app()->environment('testing') ? null : parent::version($request);
     }
 
     /**
@@ -40,10 +42,27 @@ final class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'brand' => config('app.brand'),
             'auth' => [
                 'user' => $request->user(),
             ],
+            'unreadCounts' => fn () => $request->user() ? [
+                'chat' => \App\Models\Message::whereHas('conversation', function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id)
+                        ->orWhereHas('shop', fn ($sq) => $sq->where('user_id', $request->user()->id));
+                })->where(function ($q) use ($request) {
+                    $q->where('sender_id', '!=', $request->user()->id)->orWhereNull('sender_id');
+                })->whereNull('read_at')->count(),
+                'notifications' => $request->user()->unreadNotifications()->count(),
+            ] : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'navCategories' => Category::whereNull('parent_id')->orderBy('sort_order')->limit(8)->get(['id', 'name', 'slug']),
+            'searchSuggestions' => fn () => cache()->remember('search_suggestions', 3600, function () {
+                $categories = Category::whereNull('parent_id')->orderBy('sort_order')->limit(5)->pluck('name');
+                $products = Product::visible()->orderByDesc('sold_count')->limit(5)->pluck('name');
+
+                return $categories->merge($products)->unique()->take(8)->values()->all();
+            }),
         ];
     }
 }

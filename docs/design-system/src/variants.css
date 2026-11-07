@@ -1,0 +1,10 @@
+/* Interaction variants.
+   hover: pointer devices only (Tailwind default), plus [data-force] hooks so the
+   styleguide states matrix can render hover / pressed / focus-visible live.
+   [data-force] is styleguide-only; ported components never set it. */
+@custom-variant hover {
+  @media (hover: hover) { &:hover { @slot; } }
+  &[data-force~="hover"] { @slot; }
+}
+@custom-variant active (&:active, &[data-force~="pressed"]);
+@custom-variant focus-visible (&:focus-visible, &[data-force~="focus"]);

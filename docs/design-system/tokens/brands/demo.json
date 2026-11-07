@@ -1,0 +1,187 @@
+{
+  "$description": "Overrides for [data-brand=\"demo\"]",
+  "color": {
+    "brand": {
+      "50": {
+        "$type": "color",
+        "$value": "#f5f0f5"
+      },
+      "100": {
+        "$type": "color",
+        "$value": "#ddd2db"
+      },
+      "200": {
+        "$type": "color",
+        "$value": "#c5b3c2"
+      },
+      "300": {
+        "$type": "color",
+        "$value": "#ad95a9"
+      },
+      "400": {
+        "$type": "color",
+        "$value": "#9b7495"
+      },
+      "500": {
+        "$type": "color",
+        "$value": "#915386"
+      },
+      "600": {
+        "$type": "color",
+        "$value": "#873a7b"
+      },
+      "700": {
+        "$type": "color",
+        "$value": "#5e2855"
+      },
+      "800": {
+        "$type": "color",
+        "$value": "#4d2446"
+      },
+      "900": {
+        "$type": "color",
+        "$value": "#3c2038"
+      },
+      "950": {
+        "$type": "color",
+        "$value": "#21111f"
+      }
+    },
+    "background": {
+      "$type": "color",
+      "$value": "#f9f7f9"
+    },
+    "surface-subtle": {
+      "$type": "color",
+      "$value": "#fbfafb"
+    },
+    "surface-muted": {
+      "$type": "color",
+      "$value": "#f3f1f2"
+    },
+    "surface-hero": {
+      "$type": "color",
+      "$value": "#f6f1f5"
+    },
+    "surface-cta": {
+      "$type": "color",
+      "$value": "#f4edf3"
+    },
+    "foreground": {
+      "$type": "color",
+      "$value": "#2d242c"
+    },
+    "muted-foreground": {
+      "$type": "color",
+      "$value": "#675b65"
+    },
+    "subtle-foreground": {
+      "$type": "color",
+      "$value": "#756b73"
+    },
+    "foreground-inverse": {
+      "$type": "color",
+      "$value": "#f5edf4"
+    },
+    "inverse-link": {
+      "$type": "color",
+      "$value": "#dbcdd8"
+    },
+    "inverse-muted": {
+      "$type": "color",
+      "$value": "#cfc1cc"
+    },
+    "border": {
+      "$type": "color",
+      "$value": "#ede8ec"
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "#e7e0e6"
+    },
+    "border-outline": {
+      "$type": "color",
+      "$value": "#ded2dd"
+    },
+    "border-control": {
+      "$type": "color",
+      "$value": "#8f868e"
+    }
+  },
+  "shadow": {
+    "card-hover": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#4d244612",
+        "offsetX": "0px",
+        "offsetY": "8px",
+        "blur": "24px",
+        "spread": "0px"
+      }
+    },
+    "popover": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#3c20381f",
+        "offsetX": "0px",
+        "offsetY": "8px",
+        "blur": "24px",
+        "spread": "0px"
+      }
+    },
+    "sticky": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#3c203814",
+        "offsetX": "0px",
+        "offsetY": "-2px",
+        "blur": "12px",
+        "spread": "0px"
+      }
+    },
+    "sheet": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#3c20382e",
+        "offsetX": "0px",
+        "offsetY": "-8px",
+        "blur": "32px",
+        "spread": "0px"
+      }
+    }
+  },
+  "radius": {
+    "badge": {
+      "$type": "dimension",
+      "$value": "8px"
+    },
+    "field": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "button": {
+      "$type": "dimension",
+      "$value": "14px"
+    },
+    "search": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "tile": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "card": {
+      "$type": "dimension",
+      "$value": "18px"
+    },
+    "panel": {
+      "$type": "dimension",
+      "$value": "20px"
+    },
+    "hero": {
+      "$type": "dimension",
+      "$value": "28px"
+    }
+  }
+}

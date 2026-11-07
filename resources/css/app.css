@@ -1,151 +1,226 @@
 @import 'tailwindcss';
-
 @import 'tw-animate-css';
+
+@import './brand-demo.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @custom-variant dark (&:is(.dark *));
 
-@theme inline {
-    --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+/* ==========================================================================
+   Design-system tokens (ported from docs/design-system/src/tokens.css).
+   Three scopes, so a brand can be swapped on <html> OR on any nested element:
+     1. Brand-specific raw values   :root, [data-brand="default"]   (overridden by brand-*.css)
+     2. Aliases (re-resolved per [data-brand] element, so nested previews work)
+     3. Brand-independent values    :root
+   ========================================================================== */
 
-    --radius-lg: var(--radius);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-sm: calc(var(--radius) - 4px);
+/* 1. Brand-specific raw values ------------------------------------------- */
+:root,
+[data-brand='default'] {
+    /* Brand scale (anchors from the template: 50, 600, 700, 900) */
+    --brand-50: #eaf4ed;
+    --brand-100: #c4dacd;
+    --brand-200: #9ec0ad;
+    --brand-300: #78a68d;
+    --brand-400: #528c6e;
+    --brand-500: #307551;
+    --brand-600: #17643c;
+    --brand-700: #10452d;
+    --brand-800: #103a27;
+    --brand-900: #102f21;
+    --brand-950: #091a12;
 
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
+    /* Surfaces */
+    --background: #f7f8f6;
+    --surface: #ffffff;
+    --surface-subtle: #fafbfa;
+    --surface-muted: #f0f2f0;
+    --surface-hero: #edf4ee;
+    --surface-cta: #e8f1e9;
 
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
+    /* Text (all pairs measured by scripts/contrast.mjs -> docs/contrast.md) */
+    --foreground: #202923;
+    --muted-foreground: #566159;
+    --subtle-foreground: #66706a;
+    --foreground-inverse: #e8f2eb;
+    --inverse-link: #c6d5ca;
+    --inverse-muted: #b9c9be;
 
-    --color-popover: var(--popover);
-    --color-popover-foreground: var(--popover-foreground);
+    /* Borders */
+    --border: #e6ebe7;
+    --border-strong: #dce4de;
+    --border-outline: #cbd9cf;
+    --border-control: #818b84;
 
-    --color-primary: var(--primary);
-    --color-primary-foreground: var(--primary-foreground);
+    /* Radius (template values) */
+    --r-badge: 5px;
+    --r-field: 7px;
+    --r-button: 8px;
+    --r-search: 9px;
+    --r-tile: 10px;
+    --r-card: 11px;
+    --r-panel: 12px;
+    --r-hero: 16px;
 
-    --color-secondary: var(--secondary);
-    --color-secondary-foreground: var(--secondary-foreground);
-
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
-
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
-
-    --color-destructive: var(--destructive);
-    --color-destructive-foreground: var(--destructive-foreground);
-
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
-
-    --color-sidebar: var(--sidebar-background);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+    /* Elevation (brand-tinted). Runtime names are --elevation-*; the Tailwind
+     --shadow-* tokens map to them below (a --shadow-x: var(--shadow-x) mapping would be a cycle). */
+    --elevation-card-hover: 0 8px 24px rgb(22 59 37 / 0.07);
+    --elevation-popover: 0 8px 24px rgb(16 47 33 / 0.12);
+    --elevation-sticky: 0 -2px 12px rgb(16 47 33 / 0.08);
+    --elevation-sheet: 0 -8px 32px rgb(16 47 33 / 0.18);
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+/* 2. Aliases: declared on every [data-brand] element so nesting works ----- */
+:root,
+[data-brand] {
+    --surface-brand-soft: var(--brand-50);
+    --surface-inverse: var(--brand-900);
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-    *,
-    ::after,
-    ::before,
-    ::backdrop,
-    ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
-    }
+    --primary: var(--brand-600);
+    --primary-hover: var(--brand-700);
+    --primary-pressed: var(--brand-800);
+    --primary-foreground: #ffffff;
+    --primary-soft: var(--brand-50);
+    --primary-soft-foreground: var(--brand-600);
+    --ring: var(--brand-600);
+    --ring-inverse: var(
+        --brand-200
+    ); /* focus ring on inverse surfaces; checked in docs/contrast.md */
 }
 
-@layer utilities {
-    body,
-    html {
-        --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
-    }
-}
-
+/* 3. Brand-independent values --------------------------------------------- */
 :root {
-    --background: hsl(0 0% 100%);
-    --foreground: hsl(0 0% 3.9%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(0 0% 3.9%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(0 0% 3.9%);
-    --primary: hsl(0 0% 9%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 92.1%);
-    --secondary-foreground: hsl(0 0% 9%);
-    --muted: hsl(0 0% 96.1%);
-    --muted-foreground: hsl(0 0% 45.1%);
-    --accent: hsl(0 0% 96.1%);
-    --accent-foreground: hsl(0 0% 9%);
-    --destructive: hsl(0 84.2% 60.2%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 92.8%);
-    --input: hsl(0 0% 89.8%);
-    --ring: hsl(0 0% 3.9%);
-    --chart-1: hsl(12 76% 61%);
-    --chart-2: hsl(173 58% 39%);
-    --chart-3: hsl(197 37% 24%);
-    --chart-4: hsl(43 74% 66%);
-    --chart-5: hsl(27 87% 67%);
-    --radius: 0.5rem;
-    --sidebar-background: hsl(0 0% 98%);
-    --sidebar-foreground: hsl(240 5.3% 26.1%);
-    --sidebar-primary: hsl(0 0% 10%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(0 0% 94%);
-    --sidebar-accent-foreground: hsl(0 0% 30%);
-    --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
-    --sidebar: hsl(0 0% 98%);
+    /* Feedback (fg on soft bg, all >= 5:1) */
+    --success: #067647;
+    --success-soft: #ecfdf3;
+    --warning: #b54708;
+    --warning-soft: #fffaeb;
+    --danger: #b42318;
+    --danger-soft: #fef3f2;
+    --danger-hover: #912018;
+    --danger-pressed: #7a271a;
+    --info: #175cd3;
+    --info-soft: #eff8ff;
+    --sale: #c2310f;
+    --sale-soft: #fff1ed;
+    --rating: #d99b25;
+    --rating-foreground: #8a5a00; /* amber is decorative only; the rating number uses -foreground */
+
+    /* Halal certification (brand-independent: a trust mark must look the same in every white-label brand).
+     --halal on --halal-soft and white on --halal are measured in docs/contrast.md. */
+    --halal: #0b6657;
+    --halal-soft: #e2f4ef;
+    --halal-hover: #084c41;
+
+    /* Moderation states */
+    --mod-pending: #b54708;
+    --mod-pending-bg: #fffaeb;
+    --mod-flagged: #c2310f;
+    --mod-flagged-bg: #fff1ed;
+    --mod-hidden: #475467;
+    --mod-hidden-bg: #f2f4f7;
+    --mod-suspended: #912018;
+    --mod-suspended-bg: #fee4e2;
+    --mod-resolved: #067647;
+    --mod-resolved-bg: #ecfdf3;
+
+    /* Layout (phone base). DECIDED: one sidebar width (220px) for account, seller and admin. */
+    --container-max: 1240px;
+    --gutter: 1rem;
+    --header-h: 3.5rem;
+    --tabbar-h: 3.5rem;
+    --sticky-bar-h: 4.25rem;
+    --announce-h: 0px;
+    --nav-h: 0px;
+    --sidebar-w: 13.75rem;
+    --chat-list-w: 18.75rem;
+
+    /* Touch targets: 44px minimum, 48px for primary actions */
+    --touch-min: 2.75rem;
+    --touch-primary: 3rem;
+
+    /* Motion */
+    --dur-fast: 120ms;
+    --dur: 200ms;
+    --dur-slow: 320ms;
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    /* z-index scale */
+    --z-header: 40;
+    --z-sticky-bar: 45;
+    --z-drawer: 60;
+    --z-sheet: 70;
+    --z-modal: 80;
+    --z-toast: 90;
+
+    /* Type scale: phone base */
+    --fs-display: 2rem;
+    --fs-h1: 1.625rem;
+    --fs-h2: 1.25rem;
+    --fs-h3: 1.0625rem;
+    --fs-h4: 1rem;
+    --fs-body-lg: 1rem;
+    --fs-body: 0.875rem;
+    --fs-body-sm: 0.8125rem;
+    --fs-caption: 0.75rem;
+    --fs-label: 0.8125rem;
+    --fs-price: 1.0625rem;
+    --fs-price-lg: 1.5rem;
+    --fs-eyebrow: 0.75rem;
+    --fs-th: 0.75rem;
+    --fs-input: 1rem;
+}
+@media (min-width: 48rem) {
+    /* tablet */
+    :root {
+        --gutter: 1.25rem;
+        --header-h: 4rem;
+        --fs-display: 2.375rem;
+        --fs-h1: 1.875rem;
+        --fs-h2: 1.375rem;
+        --fs-h3: 1.125rem;
+        --fs-price-lg: 1.625rem;
+    }
+}
+@media (min-width: 64rem) {
+    /* desktop */
+    :root {
+        --gutter: 1.5rem;
+        --header-h: 4.875rem;
+        --nav-h: 3rem;
+        --announce-h: 2.125rem;
+        --tabbar-h: 0px;
+        --fs-display: 2.6875rem;
+        --fs-h1: 2.125rem;
+        --fs-h2: 1.4375rem;
+        --fs-price-lg: 1.75rem;
+    }
+}
+/* Input size follows the input device, not the width: a landscape iPad (>=1024px, coarse pointer)
+   must stay at 16px or iOS zooms on focus. */
+@media (min-width: 64rem) and (pointer: fine) {
+    :root {
+        --fs-input: 0.875rem;
+    }
 }
 
+/* Dark mode: retained per decision D1, but scoped to removed starter-kit
+   variables only so DS components stay light until a dark brand ships. */
 .dark {
-    --background: hsl(0 0% 3.9%);
-    --foreground: hsl(0 0% 98%);
     --card: hsl(0 0% 3.9%);
     --card-foreground: hsl(0 0% 98%);
     --popover: hsl(0 0% 3.9%);
     --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(0 0% 98%);
-    --primary-foreground: hsl(0 0% 9%);
     --secondary: hsl(0 0% 14.9%);
     --secondary-foreground: hsl(0 0% 98%);
     --muted: hsl(0 0% 16.08%);
-    --muted-foreground: hsl(0 0% 63.9%);
     --accent: hsl(0 0% 14.9%);
     --accent-foreground: hsl(0 0% 98%);
     --destructive: hsl(0 84% 60%);
     --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 14.9%);
     --input: hsl(0 0% 14.9%);
-    --ring: hsl(0 0% 83.1%);
     --chart-1: hsl(220 70% 50%);
     --chart-2: hsl(160 60% 45%);
     --chart-3: hsl(30 80% 55%);
@@ -162,11 +237,568 @@
     --sidebar: hsl(240 5.9% 10%);
 }
 
+@theme inline {
+    --font-sans:
+        'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, -apple-system,
+        'Segoe UI', Roboto, sans-serif;
+
+    --breakpoint-sm: 40rem;
+    --breakpoint-md: 48rem;
+    --breakpoint-lg: 64rem;
+    --breakpoint-xl: 80rem;
+
+    --color-background: var(--background);
+    --color-surface: var(--surface);
+    --color-surface-subtle: var(--surface-subtle);
+    --color-surface-muted: var(--surface-muted);
+    --color-surface-brand-soft: var(--surface-brand-soft);
+    --color-surface-hero: var(--surface-hero);
+    --color-surface-cta: var(--surface-cta);
+    --color-surface-inverse: var(--surface-inverse);
+    --color-foreground: var(--foreground);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-subtle-foreground: var(--subtle-foreground);
+    --color-foreground-inverse: var(--foreground-inverse);
+    --color-inverse-link: var(--inverse-link);
+    --color-inverse-muted: var(--inverse-muted);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-pressed: var(--primary-pressed);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary-soft: var(--primary-soft);
+    --color-primary-soft-foreground: var(--primary-soft-foreground);
+    --color-ring: var(--ring);
+    --color-ring-inverse: var(--ring-inverse);
+    --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
+    --color-border-outline: var(--border-outline);
+    --color-border-control: var(--border-control);
+    --color-success: var(--success);
+    --color-success-soft: var(--success-soft);
+    --color-warning: var(--warning);
+    --color-warning-soft: var(--warning-soft);
+    --color-danger: var(--danger);
+    --color-danger-soft: var(--danger-soft);
+    --color-danger-hover: var(--danger-hover);
+    --color-danger-pressed: var(--danger-pressed);
+    --color-info: var(--info);
+    --color-info-soft: var(--info-soft);
+    --color-halal: var(--halal);
+    --color-halal-soft: var(--halal-soft);
+    --color-halal-hover: var(--halal-hover);
+    --color-sale: var(--sale);
+    --color-sale-soft: var(--sale-soft);
+    --color-rating: var(--rating);
+    --color-rating-foreground: var(--rating-foreground);
+    --color-brand-50: var(--brand-50);
+    --color-brand-100: var(--brand-100);
+    --color-brand-200: var(--brand-200);
+    --color-brand-300: var(--brand-300);
+    --color-brand-400: var(--brand-400);
+    --color-brand-500: var(--brand-500);
+    --color-brand-600: var(--brand-600);
+    --color-brand-700: var(--brand-700);
+    --color-brand-800: var(--brand-800);
+    --color-brand-900: var(--brand-900);
+    --color-brand-950: var(--brand-950);
+    --color-mod-pending: var(--mod-pending);
+    --color-mod-pending-bg: var(--mod-pending-bg);
+    --color-mod-flagged: var(--mod-flagged);
+    --color-mod-flagged-bg: var(--mod-flagged-bg);
+    --color-mod-hidden: var(--mod-hidden);
+    --color-mod-hidden-bg: var(--mod-hidden-bg);
+    --color-mod-suspended: var(--mod-suspended);
+    --color-mod-suspended-bg: var(--mod-suspended-bg);
+    --color-mod-resolved: var(--mod-resolved);
+    --color-mod-resolved-bg: var(--mod-resolved-bg);
+
+    --radius-badge: var(--r-badge);
+    --radius-field: var(--r-field);
+    --radius-button: var(--r-button);
+    --radius-search: var(--r-search);
+    --radius-tile: var(--r-tile);
+    --radius-card: var(--r-card);
+    --radius-panel: var(--r-panel);
+    --radius-hero: var(--r-hero);
+
+    --shadow-card-hover: var(--elevation-card-hover);
+    --shadow-popover: var(--elevation-popover);
+    --shadow-sticky: var(--elevation-sticky);
+    --shadow-sheet: var(--elevation-sheet);
+
+    --text-display: var(--fs-display);
+    --text-display--line-height: 1.15;
+    --text-display--letter-spacing: -0.03em;
+    --text-display--font-weight: 800;
+    --text-h1: var(--fs-h1);
+    --text-h1--line-height: 1.2;
+    --text-h1--letter-spacing: -0.03em;
+    --text-h1--font-weight: 800;
+    --text-h2: var(--fs-h2);
+    --text-h2--line-height: 1.25;
+    --text-h2--letter-spacing: -0.025em;
+    --text-h2--font-weight: 800;
+    --text-h3: var(--fs-h3);
+    --text-h3--line-height: 1.3;
+    --text-h3--font-weight: 700;
+    --text-h4: var(--fs-h4);
+    --text-h4--line-height: 1.35;
+    --text-h4--font-weight: 700;
+    --text-body-lg: var(--fs-body-lg);
+    --text-body-lg--line-height: 1.6;
+    --text-body: var(--fs-body);
+    --text-body--line-height: 1.55;
+    --text-body-sm: var(--fs-body-sm);
+    --text-body-sm--line-height: 1.5;
+    --text-caption: var(--fs-caption);
+    --text-caption--line-height: 1.4;
+    --text-label: var(--fs-label);
+    --text-label--line-height: 1.3;
+    --text-label--font-weight: 700;
+    --text-price: var(--fs-price);
+    --text-price--line-height: 1.2;
+    --text-price--font-weight: 800;
+    --text-price-lg: var(--fs-price-lg);
+    --text-price-lg--line-height: 1.15;
+    --text-price-lg--font-weight: 800;
+    --text-eyebrow: var(--fs-eyebrow);
+    --text-eyebrow--line-height: 1.3;
+    --text-eyebrow--letter-spacing: 0.1em;
+    --text-eyebrow--font-weight: 800;
+    --text-th: var(--fs-th);
+    --text-th--line-height: 1.3;
+    --text-th--letter-spacing: 0.04em;
+    --text-th--font-weight: 700;
+    --text-input: var(--fs-input);
+    --text-input--line-height: 1.4;
+}
+
+/* Layout, z-index, touch and safe-area utilities (token-backed) */
+@utility z-header {
+    z-index: var(--z-header);
+}
+@utility z-sticky-bar {
+    z-index: var(--z-sticky-bar);
+}
+@utility z-drawer {
+    z-index: var(--z-drawer);
+}
+@utility z-sheet {
+    z-index: var(--z-sheet);
+}
+@utility z-modal {
+    z-index: var(--z-modal);
+}
+@utility z-toast {
+    z-index: var(--z-toast);
+}
+@utility px-gutter {
+    padding-inline: var(--gutter);
+}
+@utility p-gutter {
+    padding: var(--gutter);
+}
+@utility h-header {
+    height: var(--header-h);
+}
+@utility max-w-container {
+    max-width: var(--container-max);
+}
+@utility pb-tabbar {
+    padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+}
+@utility pb-sticky-bar {
+    padding-bottom: calc(
+        var(--sticky-bar-h) + env(safe-area-inset-bottom, 0px)
+    );
+}
+@utility min-h-touch {
+    min-height: var(--touch-min);
+}
+@utility min-w-touch {
+    min-width: var(--touch-min);
+}
+@utility min-h-touch-primary {
+    min-height: var(--touch-primary);
+}
+@utility min-w-touch-primary {
+    min-width: var(--touch-primary);
+}
+@utility pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+}
+@utility pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@utility duration-token {
+    transition-duration: var(--dur);
+    transition-timing-function: var(--ease-out);
+}
+
+/* Self-hosted Manrope (variable). Replaceable: change --font-sans and the files. */
+@font-face {
+    font-family: 'Manrope Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 800;
+    src: url('../fonts/manrope-latin-wght-normal.woff2')
+        format('woff2-variations');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+        U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+        U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: 'Manrope Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 800;
+    src: url('../fonts/manrope-latin-ext-wght-normal.woff2')
+        format('woff2-variations');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+        U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+        U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Interaction variants.
+   hover: pointer devices only (Tailwind default), plus [data-force] hooks so the
+   styleguide states matrix can render hover / pressed / focus-visible live.
+   [data-force] is styleguide/test-only; ported components never set it. */
+@custom-variant hover {
+    @media (hover: hover) {
+        &:hover {
+            @slot;
+        }
+    }
+    &[data-force~='hover'] {
+        @slot;
+    }
+}
+@custom-variant active (&:active, &[data-force~="pressed"]);
+@custom-variant focus-visible (&:focus-visible, &[data-force~="focus"]);
+
 @layer base {
+    html {
+        font-family: var(--font-sans);
+        color: var(--foreground);
+        background-color: var(--background);
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
+        scroll-padding-top: calc(var(--header-h) + 1rem);
+    }
+    body {
+        font-size: var(--fs-body);
+        line-height: 1.55;
+        min-width: 0;
+    }
+    input,
+    select,
+    textarea {
+        font-size: var(--fs-input);
+    }
+    button,
+    [role='button'],
+    label,
+    summary {
+        cursor: pointer;
+    }
+    summary::-webkit-details-marker {
+        display: none;
+    }
+    .tabular,
+    [data-price] {
+        font-variant-numeric: tabular-nums;
+    }
+    /* A plain `grid` is a one-column stack: its column may shrink below content width so long
+     words, truncation and scrollers never widen the page. Any grid-cols-* utility overrides this. */
+    .grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     * {
         @apply border-border outline-ring/50;
     }
-    body {
-        @apply bg-background text-foreground;
+
+    /* Focus: 3px ring in --ring, 2px offset. Inverse surfaces opt in with .on-inverse. */
+    .on-inverse {
+        background-color: var(--surface-inverse);
+        color: var(--foreground-inverse);
+    }
+    :where(
+        a,
+        button,
+        input,
+        select,
+        textarea,
+        summary,
+        dialog,
+        [tabindex]
+    ):focus-visible,
+    :where(
+        a,
+        button,
+        input,
+        select,
+        textarea,
+        summary,
+        [tabindex]
+    )[data-force~='focus'] {
+        outline: 3px solid var(--ring);
+        outline-offset: 2px;
+    }
+    /* F-03: wrappers that must clip (overflow-hidden) put .focus-inset on the
+     interactive child so the ring is drawn inside the clip box. */
+    .focus-inset:focus-visible {
+        outline-offset: -3px;
+    }
+    .on-inverse
+        :where(
+            a,
+            button,
+            input,
+            select,
+            textarea,
+            summary,
+            [tabindex]
+        ):focus-visible,
+    .on-inverse
+        :where(
+            a,
+            button,
+            input,
+            select,
+            textarea,
+            summary,
+            [tabindex]
+        )[data-force~='focus'] {
+        outline-color: var(--ring-inverse);
+    }
+
+    .icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex: none;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    /* Overlays: native <dialog>. Scroll lock while any modal dialog is open. */
+    :root:has(dialog:modal) {
+        overflow: hidden;
+    }
+    dialog {
+        color: inherit;
+        max-width: none;
+        max-height: none;
+    }
+    dialog::backdrop {
+        background: color-mix(in srgb, var(--brand-950) 55%, transparent);
+        transition:
+            opacity var(--dur) var(--ease-out),
+            overlay var(--dur) var(--ease-out) allow-discrete,
+            display var(--dur) var(--ease-out) allow-discrete;
+        opacity: 0;
+    }
+    dialog[open]::backdrop {
+        opacity: 1;
+    }
+    @starting-style {
+        dialog[open]::backdrop {
+            opacity: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :root {
+            --dur-fast: 1ms;
+            --dur: 1ms;
+            --dur-slow: 1ms;
+        }
+        *,
+        ::before,
+        ::after {
+            animation-duration: 1ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 1ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+/* Repeated recipes only: button, field, badge, card. Everything else = utilities in markup. */
+@layer components {
+    /* Button. Sizes: sm (36px visual, 44px hit area), md (44px), lg (48px, primary actions). */
+    .btn {
+        @apply relative inline-flex min-h-touch cursor-pointer items-center justify-center gap-2 rounded-button border border-transparent px-4 text-label whitespace-nowrap select-none;
+        @apply bg-primary text-primary-foreground transition-colors duration-token;
+        @apply hover:bg-primary-hover active:bg-primary-pressed;
+    }
+    .btn:disabled,
+    .btn[aria-disabled='true'] {
+        @apply pointer-events-none cursor-not-allowed opacity-60;
+    }
+    .btn[aria-busy='true'] {
+        @apply cursor-progress opacity-100;
+    }
+    .btn[aria-busy='true'] > * {
+        pointer-events: none;
+    }
+    .btn-sm {
+        @apply min-h-9 px-3;
+    }
+    .btn-sm::after {
+        content: '';
+        position: absolute;
+        top: calc((2.25rem - var(--touch-min)) / 2 - 1px);
+        bottom: calc((2.25rem - var(--touch-min)) / 2 - 1px);
+        left: min(-1px, calc((100% - var(--touch-min)) / 2));
+        right: min(-1px, calc((100% - var(--touch-min)) / 2));
+    }
+    .btn-lg {
+        @apply min-h-touch-primary px-6 text-body;
+    }
+    .btn-icon {
+        @apply min-w-touch px-0;
+    }
+    .btn-icon.btn-sm {
+        @apply min-w-9;
+    }
+    .btn-icon.btn-sm::after {
+        inset: calc((2.25rem - var(--touch-min)) / 2 - 1px);
+    }
+    .btn-icon.btn-lg {
+        @apply min-w-touch-primary;
+    }
+    .btn-block {
+        @apply w-full;
+    }
+
+    .btn-secondary {
+        @apply bg-primary-soft text-primary-soft-foreground hover:bg-brand-100 active:bg-brand-100 active:text-primary-pressed;
+    }
+    .btn-outline {
+        @apply border-primary bg-surface text-primary hover:bg-primary-soft active:bg-brand-100 active:text-primary-pressed;
+    }
+    .btn-ghost {
+        @apply bg-transparent text-primary hover:bg-primary-soft active:bg-brand-100 active:text-primary-pressed;
+    }
+    .btn-neutral {
+        @apply border-border-control bg-surface text-foreground hover:bg-surface-muted active:bg-border;
+    }
+    .btn-danger {
+        @apply bg-danger text-primary-foreground hover:bg-danger-hover active:bg-danger-pressed;
+    }
+    .btn-inverse {
+        @apply border-foreground-inverse bg-transparent text-foreground-inverse hover:bg-brand-800 active:bg-brand-950;
+    }
+
+    /* Field: input, select, textarea. 16px text on phone/tablet/touch (no iOS zoom). */
+    .field {
+        @apply block min-h-touch w-full rounded-field border border-border-control bg-surface px-3 text-input text-foreground;
+        @apply transition-colors duration-token placeholder:text-subtle-foreground;
+        @apply hover:border-foreground focus-visible:border-primary;
+        @apply disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground;
+        @apply aria-[invalid=true]:border-danger;
+    }
+    textarea.field {
+        @apply min-h-24 py-2.5;
+    }
+    /* F-06: CSS fallback chevron for native selects (mask keeps it token-tinted).
+     Markup may still render an explicit .icon chevron — give it
+     [data-select-chevron] and it wins by covering this background. */
+    select.field {
+        @apply appearance-none bg-no-repeat pr-10;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-position: right 0.75rem center;
+        background-size: 1.25rem;
+        -webkit-mask-image: none;
+    }
+    @supports (background: color-mix(in srgb, red, blue)) {
+        select.field {
+            background-image: linear-gradient(
+                var(--subtle-foreground),
+                var(--subtle-foreground)
+            );
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            -webkit-mask-position: right 0.75rem center;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-size: 1.25rem;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            mask-position: right 0.75rem center;
+            mask-repeat: no-repeat;
+            mask-size: 1.25rem;
+        }
+    }
+
+    /* Badge: non-interactive status/label. */
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-badge bg-primary-soft px-2 py-0.5 text-caption font-bold whitespace-nowrap text-primary-soft-foreground;
+    }
+    .badge-neutral {
+        @apply bg-surface-muted text-muted-foreground;
+    }
+    .badge-sale {
+        @apply bg-sale-soft text-sale;
+    }
+    .badge-sale-solid {
+        @apply bg-sale text-primary-foreground;
+    }
+    .badge-success {
+        @apply bg-success-soft text-success;
+    }
+    .badge-warning {
+        @apply bg-warning-soft text-warning;
+    }
+    .badge-danger {
+        @apply bg-danger-soft text-danger;
+    }
+    .badge-info {
+        @apply bg-info-soft text-info;
+    }
+    .badge-solid {
+        @apply bg-primary text-primary-foreground;
+    }
+    /* Halal: soft = on white cards, solid = on photos. Never recoloured by brand. */
+    .badge-halal {
+        @apply bg-halal-soft text-halal;
+    }
+    .badge-halal-solid {
+        @apply bg-halal text-primary-foreground;
+    }
+
+    /* Decorative eight-point lattice for banners and heroes. Tinted by --brand-300, masked from an inline SVG, aria-hidden in markup. */
+    .pattern-geo {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+    }
+    .pattern-geo::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-color: var(--brand-300);
+        opacity: 0.22;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.25'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate(45 28 28)'/%3E%3Ccircle cx='28' cy='28' r='3.5'/%3E%3C/g%3E%3C/svg%3E")
+            0 0 / 56px 56px;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.25'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate(45 28 28)'/%3E%3Ccircle cx='28' cy='28' r='3.5'/%3E%3C/g%3E%3C/svg%3E")
+            0 0 / 56px 56px;
+    }
+
+    /* Card / panel */
+    .card {
+        @apply rounded-card border border-border bg-surface;
+    }
+    .card-interactive {
+        @apply transition-shadow duration-token hover:shadow-card-hover;
+    }
+    .panel {
+        @apply rounded-panel border border-border bg-surface;
     }
 }

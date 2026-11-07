@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f6d365" />
+      <stop offset="100%" stop-color="#d4af37" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#17643c" />
+      <stop offset="100%" stop-color="#0b6657" />
+    </linearGradient>
+  </defs>
+  <!-- Khatam (8-Pointed Star) Background Ring -->
+  <circle cx="100" cy="100" r="92" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-dasharray="2 4" opacity="0.6"/>
+  <!-- Outer 8-pointed star polygon -->
+  <g transform="translate(100, 100) rotate(0)">
+    <rect x="-65" y="-65" width="130" height="130" rx="14" fill="#10452d" />
+    <rect x="-65" y="-65" width="130" height="130" rx="14" fill="#10452d" transform="rotate(45)" />
+    <!-- Inner star filigree -->
+    <rect x="-56" y="-56" width="112" height="112" rx="10" fill="none" stroke="url(#goldGrad)" stroke-width="2" />
+    <rect x="-56" y="-56" width="112" height="112" rx="10" fill="none" stroke="url(#goldGrad)" stroke-width="2" transform="rotate(45)" />
+  </g>
+  <!-- Central Botanical Leaf & Crescent Motif -->
+  <path d="M 100,48 C 122,70 128,105 106,132 C 92,148 76,140 76,140 C 76,140 84,124 84,106 C 84,80 100,48 100,48 Z" fill="url(#goldGrad)" />
+  <path d="M 100,48 C 82,72 78,104 96,128 C 90,126 84,118 84,106 C 84,80 100,48 100,48 Z" fill="#e2f4ef" opacity="0.85" />
+  <!-- Crescent sweep -->
+  <path d="M 68,110 C 70,132 88,148 110,148 C 125,148 138,138 144,126 C 138,134 128,140 116,140 C 96,140 80,126 78,106 C 78,102 79,98 80,94 C 73,98 68,103 68,110 Z" fill="url(#goldGrad)" />
+</svg>

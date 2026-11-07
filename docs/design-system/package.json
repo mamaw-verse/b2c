@@ -1,0 +1,34 @@
+{
+  "name": "marketplace-design-system",
+  "version": "0.1.0",
+  "description": "White-label, mobile-first marketplace design system (static HTML + Tailwind v4)",
+  "scripts": {
+    "build:fonts": "node scripts/build-fonts.mjs",
+    "build:icons": "node scripts/build-icons.mjs",
+    "build:styleguide": "node scripts/build-styleguide.mjs",
+    "build:css": "tailwindcss -i src/main.css -o dist/styles.css --minify",
+    "tokens": "node scripts/export-tokens.mjs",
+    "contrast": "node scripts/contrast.mjs",
+    "scan": "node scripts/scan-violations.mjs",
+    "brand:demo": "node scripts/seed-to-scale.mjs --seed \"#8a3b7d\" --name demo --radius round --out src/brand-demo.css",
+    "build": "npm run build:fonts && npm run build:icons && npm run build:styleguide && npm run build:css && npm run tokens && npm run contrast && npm run scan",
+    "watch": "tailwindcss -i src/main.css -o dist/styles.css --watch",
+    "serve": "python3 -m http.server 4173",
+    "verify": "node scripts/verify.mjs",
+    "verify:shots": "node scripts/verify.mjs --shots"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@tailwindcss/cli": "^4.3.3",
+    "axe-core": "^4.14.0",
+    "jsdom": "^30.1.3",
+    "lucide-static": "^1.66.0",
+    "playwright": "^1.64.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "private": true,
+  "type": "module"
+}

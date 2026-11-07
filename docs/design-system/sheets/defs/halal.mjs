@@ -1,0 +1,68 @@
+// Halal trust components (Phase 6). Sample certifier names and numbers are placeholders: see docs/halal.md.
+import { halalBadge, halalCertCard, halalFacts, halalChecklist, coldChainNote, HALAL } from '../ui/halal.mjs';
+import { productCard } from '../ui/commerce.mjs';
+import { products } from '../data.mjs';
+
+const all = Object.keys(HALAL);
+export default [
+  {
+    slug: 'halal-badge', name: 'HalalBadge', group: 'Halal', phase: 6,
+    purpose: 'One vocabulary for halal status across storefront, seller centre and moderation: certified, under review, expiring, expired, missing and Muslim-friendly (non-food, no certificate needed). Brand-independent colours (`--halal`).',
+    use: ['Product cards and lists (`short`, solid over photos).', 'Product detail, cart and order lines (soft, with certifier in the facts strip).', 'Seller listing status and moderation queue.'],
+    avoid: ['Marketing claims. It only renders a status the platform has verified.', 'Shop trust (use VerifiedBadge); the two never share an icon.', 'Recolouring per brand. A certification mark must look the same everywhere.'],
+    anatomy: ['Status icon (`moon-star` for certified).', 'Label: full (“Halal certified”) or `short` (“Halal”).', 'Screen-reader suffix names the certifier when `short`.'],
+    variants: [['Certified', '`status: certified`', 'Verified certificate, valid today.'], ['Solid', '`solid`', 'Over product photos (white on `--halal`).'], ['Under review', '`status: review`', 'Seller lists only; hidden from buyers.'], ['Expiring / expired', '`status: expiring | expired`', 'Seller and admin; expired hides listings.'], ['Muslim-friendly', '`status: na`', 'Non-food: hijab, prayer mats, books.'], ['Missing', '`status: missing`', 'Moderation only.']],
+    example: `<div class="flex flex-wrap gap-2">${all.map(s => halalBadge({ status: s })).join('')}</div>`,
+    gallery: `<div class="grid gap-4"><div class="flex flex-wrap gap-2">${all.map(s => halalBadge({ status: s })).join('')}</div><div class="flex flex-wrap gap-2">${all.map(s => halalBadge({ status: s, short: true })).join('')}</div><div class="max-w-[10rem]">${productCard(products[0])}</div></div>`,
+    states: { default: halalBadge({ status: 'certified' }), focus: 'If it explains itself, wrap in a button that opens a Popover with the certificate summary.' },
+    na: { hover: 'Non-interactive.', pressed: 'n/a', disabled: 'n/a', loading: 'n/a', error: 'Use `status: expired` or `missing`.', selected: 'n/a', empty: 'Not rendered when a product is non-food and not Muslim-friendly tagged.', skeleton: 'n/a' },
+    responsive: ['`short` label on cards; full label on detail pages.', 'Same.', 'Same; certifier shown beside it in HalalFacts.'],
+    props: [['status', '`certified|review|expiring|expired|missing|na`', '`certified`', 'Drives icon, label and tone.'], ['short', 'boolean', 'false', 'One-word label for dense cards.'], ['solid', 'boolean', 'false', 'Over photos.'], ['body', 'string', '—', 'Certifier acronym. Read by screen readers when `short`.']],
+    a11y: { role: 'Text with a decorative icon.', name: 'Label text; `short` adds a visually hidden “certified by X”.', keyboard: 'Not focusable.' },
+    content: ['“Halal certified” only after the platform has verified the certificate. Never “halal” from a seller claim alone.', 'Say “Muslim-friendly”, not “halal”, for non-food items.'],
+    do: ['Show the same status everywhere the product appears.', 'Hide halal listings the day after the certificate expires.'],
+    dont: ['Don’t show a halal badge on seller-declared products awaiting review.', 'Don’t use green alone: the icon and label carry the meaning.'],
+    tests: ['Contrast of `--halal` on `--halal-soft` and white on `--halal` in docs/contrast.md.', 'Same colours in the default and demo brands.', '`short` badge still readable at 2 columns on 360px.'],
+  },
+  {
+    slug: 'halal-certificate-card', name: 'HalalCertificateCard', group: 'Halal', phase: 6,
+    purpose: 'What the platform verified about a halal claim: who certified it, which number, until when, and what it covers. Buyer view on product detail; seller view in shop settings with a renewal action.',
+    use: ['Product detail, under the buy box or in its own section.', 'Seller centre: shop and listing certificates.'], avoid: ['Listing text. This is verified data, not seller copy.'],
+    anatomy: ['Header: icon tile, title, “checked by {brand} on {date}”, status badge.', 'Facts: certifying body, certificate no., valid until, coverage.', 'Inline banner when expiring or expired.', 'Actions: View certificate + Report a concern (buyer) or Upload renewal (seller).'],
+    variants: [['Certified', '`status: certified`', ''], ['Expiring', '`status: expiring`', 'Seller sees a warning banner.'], ['Expired', '`status: expired`', 'Listings hidden.'], ['Seller', '`seller`', 'Renewal action replaces Report.']],
+    example: halalCertCard({ id: 'hc1' }),
+    gallery: `<div class="grid gap-4 md:grid-cols-2">${halalCertCard({ id: 'hc2' })}${halalCertCard({ id: 'hc3', status: 'expiring', valid: 'Nov 11, 2026', seller: true })}${halalCertCard({ id: 'hc4', status: 'expired', valid: 'Oct 28, 2026', seller: true })}</div>`,
+    states: { default: halalCertCard({ id: 'hc5' }), error: halalCertCard({ id: 'hc6', status: 'expired', valid: 'Oct 28, 2026' }) },
+    na: { hover: 'Buttons carry hover.', pressed: 'Buttons carry pressed.', focus: 'Buttons carry focus.', disabled: 'n/a', loading: 'Skeleton of the four rows.', selected: 'n/a', empty: 'Non-food products render no card.', skeleton: 'Four label/value skeleton rows.' },
+    responsive: ['Full width, buttons share a row.', 'Side by side with the seller declaration.', 'Same; 2 columns beside the declaration.'],
+    props: [['status', '`certified|expiring|expired`', '`certified`', ''], ['body', 'string', '—', 'Full certifier name.'], ['no', 'string', '—', 'Certificate number.'], ['valid', 'date', '—', 'Expiry.'], ['scope', 'string', '—', 'What the certificate covers.'], ['seller', 'boolean', 'false', 'Seller-facing actions.']],
+    a11y: { role: '`section` named by its heading; facts in a `dl`.', name: '“Halal certificate”.', keyboard: 'Buttons only.', announce: 'Expiry banners are static text, not live regions.' },
+    content: ['Always show the certifier and the expiry date.', 'Explain what a failed state means for the buyer or seller in one sentence.'],
+    do: ['Link “View certificate” to the stored file, not the seller’s website.'], dont: ['Don’t show certificate numbers to guests if your certifier’s terms forbid it.'],
+    tests: ['Expired state shows the danger banner and the date in bold.', 'Dates use `<time>`.', 'No horizontal scroll at 360px.'],
+  },
+  {
+    slug: 'halal-facts', name: 'HalalFacts', group: 'Halal', phase: 6,
+    purpose: 'Three scannable facts above the fold on product detail: status, certifier, valid-to. Plus “Ships frozen” for cold-chain items. Links down to the full certificate card.',
+    use: ['Directly under title and rating on product detail.'], avoid: ['Lists, cards or the cart (use HalalBadge).'],
+    anatomy: ['Status badge.', 'Certifier name.', 'Valid-to month and year.', 'Optional cold-chain note.'],
+    variants: [['Default', '`halalFacts()`', ''], ['Frozen', '`frozen`', 'Adds “Ships frozen”.']],
+    example: halalFacts({}), gallery: `<div class="grid gap-3">${halalFacts({})}${halalFacts({ frozen: true, body: 'HDIP', valid: 'Jun 2027' })}${coldChainNote()}</div>`,
+    states: { default: halalFacts({}) }, na: { hover: 'n/a', pressed: 'n/a', focus: 'n/a', disabled: 'n/a', loading: 'n/a', error: 'n/a', selected: 'n/a', empty: 'Non-food: not rendered.', skeleton: 'n/a' },
+    responsive: ['Wraps to two lines.', 'One line.', 'One line.'], props: [['body', 'string', '—', 'Certifier acronym.'], ['valid', 'string', '—', 'Month and year.'], ['frozen', 'boolean', 'false', '']],
+    a11y: { role: '`ul` labelled “Halal summary”.', name: 'Label on the list.' }, content: ['Keep the certifier acronym; spell it out in the certificate card.'], do: ['Place above the price block on phone so the claim is read before the CTA.'], dont: ['Don’t repeat it in the description.'],
+    tests: ['Wraps without clipping at 360px.'],
+  },
+  {
+    slug: 'halal-verification-checklist', name: 'HalalVerificationChecklist', group: 'Halal', phase: 6,
+    purpose: 'Reviewer checklist for halal checks in the moderation console. Each line is pass, fail or “needs a manual check”, with a one-line reason that goes into the audit log.',
+    use: ['Moderation detail pane for listings, seller applications and certificate renewals.'], avoid: ['Buyer-facing UI.'],
+    anatomy: ['Status icon (colour + shape).', 'Question the reviewer can defend.', 'Evidence line.'],
+    variants: [['Pass', '`pass`', ''], ['Fail', '`fail`', ''], ['Unknown', '`unknown`', 'Registry unavailable: check manually.']],
+    example: halalChecklist({}), states: { default: halalChecklist({}) },
+    na: { hover: 'n/a', pressed: 'n/a', focus: 'n/a', disabled: 'n/a', loading: 'Skeleton rows.', error: 'Fail lines.', selected: 'n/a', empty: 'n/a', skeleton: 'n/a' },
+    responsive: ['Stacked.', 'Stacked.', 'Stacked in the detail pane.'], props: [['items', '`[question, pass|fail|unknown, note][]`', 'default set', '']],
+    a11y: { role: '`ul` labelled “Halal verification checklist”.', name: 'Each line starts with a visually hidden result.' }, content: ['Questions are yes/no. Notes cite evidence, not opinion.'], do: ['Require a reason when rejecting on a failed line.'], dont: ['Don’t auto-approve when a line is “needs a manual check”.'],
+    tests: ['Result is announced before the question.', 'Icons differ by shape, not only colour.'],
+  },
+];

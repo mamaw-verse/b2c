@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="roseGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f4c2c2" />
+      <stop offset="50%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#c2310f" />
+    </linearGradient>
+  </defs>
+  <!-- Background delicate circle -->
+  <circle cx="100" cy="100" r="90" fill="#fff1ed" stroke="#d4af37" stroke-width="1.5" />
+  
+  <!-- Continuous Single-Line Lotus & Calligraphic Monogram -->
+  <g transform="translate(100, 100)" stroke="url(#roseGold)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Center petal -->
+    <path d="M 0,38 C -18,10 -16,-35 0,-52 C 16,-35 18,10 0,38 Z" fill="#fffafb" fill-opacity="0.6"/>
+    <!-- Left petal / 'Noor' flourish -->
+    <path d="M 0,38 C -35,30 -58,0 -50,-24 C -42,-42 -22,-20 -8,-10" />
+    <!-- Right petal / symmetrical sweep -->
+    <path d="M 0,38 C 35,30 58,0 50,-24 C 42,-42 22,-20 8,-10" />
+    <!-- Base arch -->
+    <path d="M -40,30 C -20,44 20,44 40,30" />
+    <!-- Dot of Noor / Sparkle -->
+    <circle cx="0" cy="-60" r="3" fill="#d4af37" stroke="none" />
+  </g>
+</svg>

@@ -1,0 +1,74 @@
+/* Repeated recipes only: button, field, badge, card. Everything else = utilities in markup. */
+@layer components {
+  /* Button. Sizes: sm (36px visual, 44px hit area), md (44px), lg (48px, primary actions). */
+  .btn {
+    @apply relative inline-flex min-h-touch cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-button border border-transparent px-4 text-label;
+    @apply bg-primary text-primary-foreground transition-colors duration-token;
+    @apply hover:bg-primary-hover active:bg-primary-pressed;
+  }
+  .btn:disabled, .btn[aria-disabled="true"] { @apply pointer-events-none cursor-not-allowed opacity-60; }
+  .btn[aria-busy="true"] { @apply cursor-progress opacity-100; }
+  .btn[aria-busy="true"] > * { pointer-events: none; }
+  .btn-sm { @apply min-h-9 px-3; }
+  .btn-sm::after {
+    content: ""; position: absolute;
+    top: calc((2.25rem - var(--touch-min)) / 2 - 1px);
+    bottom: calc((2.25rem - var(--touch-min)) / 2 - 1px);
+    left: min(-1px, calc((100% - var(--touch-min)) / 2));
+    right: min(-1px, calc((100% - var(--touch-min)) / 2));
+  }
+  .btn-lg { @apply min-h-touch-primary px-6 text-body; }
+  .btn-icon { @apply min-w-touch px-0; }
+  .btn-icon.btn-sm { @apply min-w-9; }
+  .btn-icon.btn-sm::after { inset: calc((2.25rem - var(--touch-min)) / 2 - 1px); }
+  .btn-icon.btn-lg { @apply min-w-touch-primary; }
+  .btn-block { @apply w-full; }
+
+  .btn-secondary { @apply bg-primary-soft text-primary-soft-foreground hover:bg-brand-100 active:bg-brand-100 active:text-primary-pressed; }
+  .btn-outline { @apply border-primary bg-surface text-primary hover:bg-primary-soft active:bg-brand-100 active:text-primary-pressed; }
+  .btn-ghost { @apply bg-transparent text-primary hover:bg-primary-soft active:bg-brand-100 active:text-primary-pressed; }
+  .btn-neutral { @apply border-border-control bg-surface text-foreground hover:bg-surface-muted active:bg-border; }
+  .btn-danger { @apply bg-danger text-primary-foreground hover:bg-danger-hover active:bg-danger-pressed; }
+  .btn-inverse { @apply border-foreground-inverse bg-transparent text-foreground-inverse hover:bg-brand-800 active:bg-brand-950; }
+
+  /* Field: input, select, textarea. 16px text on phone/tablet/touch (no iOS zoom). */
+  .field {
+    @apply block min-h-touch w-full rounded-field border border-border-control bg-surface px-3 text-input text-foreground;
+    @apply transition-colors duration-token placeholder:text-subtle-foreground;
+    @apply hover:border-foreground focus-visible:border-primary;
+    @apply disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground;
+    @apply aria-[invalid=true]:border-danger;
+  }
+  textarea.field { @apply min-h-24 py-2.5; }
+  select.field { @apply appearance-none pr-10; }
+
+  /* Badge: non-interactive status/label. */
+  .badge {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-badge bg-primary-soft px-2 py-0.5 text-caption font-bold text-primary-soft-foreground;
+  }
+  .badge-neutral { @apply bg-surface-muted text-muted-foreground; }
+  .badge-sale { @apply bg-sale-soft text-sale; }
+  .badge-sale-solid { @apply bg-sale text-primary-foreground; }
+  .badge-success { @apply bg-success-soft text-success; }
+  .badge-warning { @apply bg-warning-soft text-warning; }
+  .badge-danger { @apply bg-danger-soft text-danger; }
+  .badge-info { @apply bg-info-soft text-info; }
+  .badge-solid { @apply bg-primary text-primary-foreground; }
+  /* Halal: soft = on white cards, solid = on photos. Never recoloured by brand. */
+  .badge-halal { @apply bg-halal-soft text-halal; }
+  .badge-halal-solid { @apply bg-halal text-primary-foreground; }
+
+  /* Decorative eight-point lattice for banners and heroes. Tinted by --brand-300, masked from an inline SVG, aria-hidden in markup. */
+  .pattern-geo { position: relative; isolation: isolate; overflow: hidden; }
+  .pattern-geo::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background-color: var(--brand-300); opacity: .22;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.25'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate(45 28 28)'/%3E%3Ccircle cx='28' cy='28' r='3.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 56px 56px;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.25'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate(45 28 28)'/%3E%3Ccircle cx='28' cy='28' r='3.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 56px 56px;
+  }
+
+  /* Card / panel */
+  .card { @apply rounded-card border border-border bg-surface; }
+  .card-interactive { @apply transition-shadow duration-token hover:shadow-card-hover; }
+  .panel { @apply rounded-panel border border-border bg-surface; }
+}

@@ -1,0 +1,93 @@
+import { btn, icon, iconBtn } from '../ui/core.mjs';
+import { dialog, dialogStatic, menu, menuStatic, tooltip } from '../ui/feedback.mjs';
+import { check, fieldset } from '../ui/forms.mjs';
+import { sidebar } from '../ui/nav.mjs';
+
+const filterBody = fieldset({ legend: 'Shipped from', children: ['Metro Manila', 'Cebu', 'Davao', 'Overseas'].map((l, i) => check({ id: `fl${i}`, label: l, checked: i === 0 })).join('') });
+const filterFooter = `${btn('Reset', { variant: 'neutral', cls: 'sm:w-auto' })}${btn('Show 248 results', { attrs: { 'data-ds-close': true } })}`;
+const menuItems = [{ label: 'Share', icon: 'share-2' }, { label: 'Copy link', icon: 'copy' }, '-', { label: 'Report listing', icon: 'flag', danger: true }];
+const drawerNav = sidebar({ label: 'Seller', mode: 'full', active: 'Orders', items: [['house', 'Dashboard'], ['package', 'Orders', 4], ['tag', 'Products'], ['message-circle', 'Chat', 2], ['chart-column', 'Insights'], ['settings', 'Shop settings']] });
+
+export default [
+  {
+    slug: 'modal', name: 'Modal → BottomSheet', group: 'Overlays', phase: 2,
+    purpose: 'One dialog component that is a bottom sheet on phone and a centered modal from `md:` up. Native `<dialog>` + `showModal()`.',
+    use: ['Short focused tasks: filters, add address, voucher picker, report.'], avoid: ['Long multi-step flows (use a page).', 'Confirmations (ConfirmDialog stays centered).'],
+    anatomy: ['`<dialog>` (top layer, backdrop `--brand-950` @55%).', 'Handle (phone only, drag to dismiss).', 'Header: title (`aria-labelledby`) + Close.', 'Scrollable body (`overscroll-contain`).', 'Footer with safe-area padding; primary last.'],
+    variants: [['Responsive (default)', '`dialog({kind:"responsive"})`', 'Sheet < 768px, modal ≥ 768px.'], ['Modal only', '`kind: "modal"`', 'Desktop-first admin tools.']],
+    example: `${btn('Filters', { variant: 'neutral', icon: 'sliders-horizontal', attrs: { 'data-ds-open': 'md1' } })}${dialog({ id: 'md1', title: 'Filters', body: filterBody, footer: filterFooter })}`,
+    gallery: `<div class="grid gap-4">${dialogStatic({ id: 'mds', title: 'Filters', body: filterBody, footer: filterFooter })}<p>${btn('Open live (resize to compare)', { variant: 'neutral', icon: 'sliders-horizontal', attrs: { 'data-ds-open': 'md2' } })}</p>${dialog({ id: 'md2', title: 'Filters', body: filterBody, footer: filterFooter })}</div>`,
+    states: { default: dialogStatic({ id: 'm', title: 'Add address', body: '<p class="text-body text-muted-foreground">Form goes here.</p>', footer: btn('Save', { block: true }) }), focus: dialogStatic({ id: 'm', title: 'Add address', body: '<p class="text-body text-muted-foreground">Initial focus goes to the first field, or the Close button.</p>' }).replace('data-ds-close="true"', 'data-ds-close="true" data-force="focus"'), loading: dialogStatic({ id: 'm', title: 'Vouchers', body: '<div class="grid gap-2"><span class="block h-16 animate-pulse rounded-card bg-surface-muted"></span><span class="block h-16 animate-pulse rounded-card bg-surface-muted"></span></div>' }) },
+    na: { hover: 'Children.', pressed: 'Children.', disabled: 'n/a', error: 'Banner inside the body; dialog stays open.', selected: 'n/a', empty: 'EmptyState inside the body.', skeleton: 'See Loading.' },
+    cellCls: 'p-0 overflow-hidden',
+    responsive: ['Bottom sheet: full width, rounded top, max 90dvh, handle; swipe down or tap backdrop to close.', 'Centered modal 32rem wide, max 85dvh.', 'Same as tablet.'],
+    preview: { height: { 360: 640, 768: 640, 1280: 560 }, fixed: true, html: `<div class="p-gutter">${btn('Filters', { variant: 'neutral', icon: 'sliders-horizontal', attrs: { 'data-ds-open': 'pv' } })}</div>${dialog({ id: 'pv', title: 'Filters', body: filterBody, footer: filterFooter })}<script>addEventListener('load',function(){document.getElementById('pv').showModal()})</script>` },
+    props: [['open', 'boolean', 'false', ''], ['title', 'string', '—', 'Required.'], ['kind', '`responsive` | `modal` | `sheet`', '`responsive`', ''], ['footer', 'slot', '—', ''], ['initialFocus', 'selector', 'first field or Close', ''], ['onClose(reason)', 'fn', '—', '`backdrop` | `swipe` | `escape` | button value']],
+    a11y: { role: 'Native modal `<dialog>` (implicit `dialog` role).', name: '`aria-labelledby` the title.', keyboard: 'Escape closes; Tab is trapped (page inert).', focus: 'Moves into the dialog on open (autofocus or first control); returns to the opener on close.', aria: 'Handle is decorative; Close button is the accessible dismiss.', touch: 'Close 44px; footer buttons 44px.', motion: 'Slide/fade removed under reduced motion (durations 1ms).', announce: 'Title announced on open.' },
+    content: ['Title = task (“Filters”, “Add address”).', 'Primary button states the result (“Show 248 results”).'], do: ['Keep body scrollable, header/footer fixed.', 'Lock page scroll while open (base.css `:has(dialog:modal)`).'], dont: ['Don’t nest dialogs.', 'Don’t open on page load.'],
+    tests: ['Focus moves in and returns (verify.mjs checks).', 'Page does not scroll behind.', 'Sheet respects bottom safe area.'],
+  },
+  {
+    slug: 'bottom-sheet', name: 'BottomSheet', group: 'Overlays', phase: 2,
+    purpose: 'Phone-first sheet that stays a sheet on every tier (variation picker, share, action sheet). Max 36rem wide on tablet/desktop.',
+    use: ['Pickers tied to the bottom action bar (variation, quantity).', 'Action sheets.'], avoid: ['Desktop-heavy forms (Modal).'],
+    anatomy: ['`<dialog>` anchored bottom.', 'Handle (drag to dismiss; also Close button).', 'Header, scrollable body, sticky footer + safe area.'],
+    variants: [['Default', '`kind: "sheet"`', ''], ['Action sheet', 'list of buttons in body', 'Share / report menu on phone.']],
+    example: `${btn('Select variation', { variant: 'secondary', attrs: { 'data-ds-open': 'bs1' } })}${dialog({ id: 'bs1', kind: 'sheet', title: 'Share', body: `<ul class="grid">${[['copy', 'Copy link'], ['message-circle', 'Send in chat'], ['share-2', 'More options']].map(([i, l]) => `<li><button type="button" class="flex min-h-touch-primary w-full items-center gap-3 rounded-button px-2 text-body hover:bg-surface-muted" data-ds-close>${icon(i)}${l}</button></li>`).join('')}</ul>` })}`,
+    states: { default: dialogStatic({ id: 'b', kind: 'sheet', title: 'Share', body: '<p class="text-body text-muted-foreground">Sheet content</p>' }), focus: dialogStatic({ id: 'b', kind: 'sheet', title: 'Share', body: '<p class="text-body text-muted-foreground">Close is focused.</p>' }).replace('data-ds-close="true"', 'data-ds-close="true" data-force="focus"') },
+    na: { hover: 'Children.', pressed: 'n/a', disabled: 'n/a', loading: 'Skeleton in body.', error: 'Banner in body.', selected: 'n/a', empty: 'n/a', skeleton: 'n/a' },
+    cellCls: 'p-0 overflow-hidden',
+    responsive: ['Full width from the bottom.', 'Centered horizontally, 36rem max, still from the bottom.', 'Same.'],
+    props: [['open', 'boolean', 'false', ''], ['title', 'string', '—', ''], ['dismissible', 'boolean', 'true', 'Swipe/backdrop/Escape.']],
+    a11y: { role: 'Native modal dialog.', name: 'Title.', keyboard: 'Escape closes; swipe is never the only way (Close button).', focus: 'Into sheet on open; back to trigger on close.', motion: 'Slide removed under reduced motion.', announce: 'Title on open.' },
+    content: ['Short title; actions as verbs.'], do: ['Keep primary action in the sticky footer.'], dont: ['Don’t exceed 90dvh.'],
+    tests: ['Drag handle closes after 80px.', 'Scroll lock active.'],
+  },
+  {
+    slug: 'drawer', name: 'Drawer', group: 'Overlays', phase: 2,
+    purpose: 'Side panel for navigation on phone (seller/admin menu) and secondary panels.',
+    use: ['Seller/admin navigation below `lg`.'], avoid: ['Storefront navigation (BottomTabBar).'],
+    anatomy: ['`<dialog>` pinned left, full height, 20rem / 85vw.', 'Header with title + Close.', 'Nav content.'],
+    variants: [['Left', 'default', 'Navigation.']],
+    example: `${iconBtn('menu', 'Open menu', { attrs: { 'data-ds-open': 'dr1' } })}${dialog({ id: 'dr1', kind: 'drawer', title: 'Seller Centre', body: drawerNav })}`,
+    states: { default: dialogStatic({ id: 'd', kind: 'drawer', title: 'Seller Centre', body: drawerNav }) },
+    na: { hover: 'Items.', pressed: 'Items.', focus: 'Items.', disabled: 'n/a', loading: 'n/a', error: 'n/a', selected: 'Current item uses `aria-current`.', empty: 'n/a', skeleton: 'n/a' },
+    cellCls: 'p-0 overflow-hidden',
+    responsive: ['Opened from the header menu button.', 'Replaced by a collapsed rail (Sidebar) in seller/admin shells.', 'Replaced by the fixed Sidebar.'],
+    props: [['open', 'boolean', 'false', ''], ['side', '`left`', '`left`', ''], ['title', 'string', '—', '']],
+    a11y: { role: 'Native modal dialog.', name: 'Title.', keyboard: 'Escape closes.', focus: 'Into drawer; back to the menu button.', announce: 'Title.' },
+    content: ['Same labels as the desktop sidebar.'], do: ['Close on navigation.'], dont: ['Don’t use for forms.'],
+    tests: ['Focus return to menu button.'],
+  },
+  {
+    slug: 'popover', name: 'Popover / Dropdown', group: 'Overlays', phase: 2,
+    purpose: 'Small menu anchored to a trigger (more actions, sort). Native `popover` attribute: light dismiss and Escape for free.',
+    use: ['≤ 6 actions on desktop and phone.'], avoid: ['Long lists on phone (BottomSheet action sheet).', 'Forms.'],
+    anatomy: ['Trigger with `popovertarget` + `aria-haspopup="menu"`.', 'Panel `role=menu`, `--shadow-popover`, `--r-panel`.', 'Items `role=menuitem` 44px; separator; danger item.'],
+    variants: [['Menu', '`menu()`', ''], ['Align end', '`align: end`', 'Kebab menus at the right edge.']],
+    example: menu({ id: 'pm1', label: 'More actions', items: menuItems, trigger: iconBtn('ellipsis-vertical', 'More actions', { attrs: { popovertarget: 'pm1', 'aria-haspopup': 'menu' } }) }),
+    gallery: `<div class="flex flex-wrap items-start gap-6">${menu({ id: 'pm2', label: 'Sort', items: [{ label: 'Most relevant' }, { label: 'Newest' }, { label: 'Top sales' }, { label: 'Price: low to high' }], align: 'start' })}${menuStatic(menuItems)}</div>`,
+    states: { default: menuStatic(menuItems), hover: menuStatic([{ ...menuItems[0], force: 'hover' }, menuItems[1]]), focus: menuStatic([{ ...menuItems[0], force: 'focus' }, menuItems[1]]) },
+    na: { pressed: 'Item activates.', disabled: 'Use `aria-disabled` on an item and explain why.', loading: 'n/a', error: 'n/a', selected: 'Use `menuitemradio` + `aria-checked` for sort.', empty: 'n/a', skeleton: 'n/a' },
+    responsive: ['Anchored under the trigger, clamped to 8px from the viewport edge.', 'Same.', 'Same.'],
+    props: [['items', '{label, icon, danger, onSelect}[]', '—', ''], ['align', '`start` | `end`', '`end`', ''], ['trigger', 'slot', '—', '']],
+    a11y: { role: '`menu` / `menuitem`.', name: 'Trigger label; menu `aria-label`.', keyboard: 'Enter/Space opens; Down/Up/Home/End move; Escape closes (native light dismiss).', focus: 'First item focused on open; focus returns to the trigger on close (native popover).', aria: '`aria-haspopup="menu"`; expanded state exposed by `popovertarget`.' },
+    content: ['Items are verbs.', 'Danger item last, separated.'], do: ['Keep ≤ 6 items.'], dont: ['Don’t put links and actions in one menu without separators.'],
+    tests: ['Opens within viewport at 360px.', 'Escape closes and returns focus.'],
+  },
+  {
+    slug: 'tooltip', name: 'Tooltip', group: 'Overlays', phase: 2,
+    purpose: 'Supplementary label on hover (pointer) or keyboard focus. Never on touch, never the only source of information.',
+    use: ['Icon buttons on desktop toolbars (seller/admin).'], avoid: ['Essential info, rich content, touch-only screens.'],
+    anatomy: ['Wrapper `[data-ds-tooltip]`.', 'Trigger with `aria-describedby` (it already has its own name).', 'Bubble `role=tooltip` on inverse surface, `text-caption`.'],
+    variants: [['Top', 'default', '']],
+    example: tooltip({ id: 'tt1', tip: 'Copy order ID', trigger: iconBtn('copy', 'Copy order ID') }),
+    states: { default: tooltip({ id: 'tt', tip: 'Copy', trigger: iconBtn('copy', 'Copy') }), hover: `<div class="pt-8">${tooltip({ id: 'tt', tip: 'Copy order ID', open: true, trigger: iconBtn('copy', 'Copy order ID', { attrs: { 'data-force': 'hover' } }) })}</div>`, focus: `<div class="pt-8">${tooltip({ id: 'tt', tip: 'Copy order ID', open: true, trigger: iconBtn('copy', 'Copy order ID', { attrs: { 'data-force': 'focus' } }) })}</div>` },
+    na: { pressed: 'Hidden on press.', disabled: 'Disabled triggers do not show tooltips; explain inline instead.', loading: 'n/a', error: 'n/a', selected: 'n/a', empty: 'n/a', skeleton: 'n/a' },
+    responsive: ['Not shown on touch (hover media query); the trigger’s `aria-label` carries meaning.', 'Same (most tablets are touch).', 'Shown on hover and keyboard focus.'],
+    props: [['content', 'string', '—', '≤ 40 chars.'], ['placement', '`top`', '`top`', '']],
+    a11y: { role: '`tooltip`.', name: 'Trigger has its own `aria-label`; tooltip is a description.', keyboard: 'Shows on focus; Escape dismisses (WCAG 1.4.13).', touch: 'n/a (pointer only).', motion: 'Fade removed under reduced motion.', announce: 'Read as description.' },
+    content: ['Short noun/verb phrase.'], do: ['Use on icon-only toolbar buttons.'], dont: ['Don’t put links inside.'],
+    tests: ['Escape hides it.', 'No tooltip on touch emulation.'],
+  },
+];

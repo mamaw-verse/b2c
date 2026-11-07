@@ -12,6 +12,8 @@
 /resources/js/wayfinder
 /vendor
 .DS_Store
+/design-system.zip
+/docs/design-system.zip
 .env
 .env.backup
 .env.production
@@ -42,3 +44,8 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+# e2e
+tests/e2e/node_modules/
+tests/e2e/output/
+tests/e2e/package-lock.json

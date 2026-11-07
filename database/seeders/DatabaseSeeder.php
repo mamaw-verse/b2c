@@ -19,9 +19,21 @@ final class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $this->call([
+            AdminUserSeeder::class,
+            CatalogueSeeder::class,
+            PsgcSeeder::class,
+            CartCheckoutSeeder::class,
+            ChatNotificationSeeder::class,
         ]);
     }
 }
