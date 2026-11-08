@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { CheckCheck } from 'lucide-react';
+import type { MouseEvent } from 'react';
 import { NotificationItem } from '@/components/notification-item';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -26,24 +27,37 @@ export default function NotificationsPage({
         );
     };
 
-    const handleItemClick = (n: AppNotification) => {
-        if (n.read_at === null) {
-            router.post(
-                '/notifications/read',
-                { id: n.id },
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                },
-            );
+    const handleItemClick = (
+        n: AppNotification,
+        event: MouseEvent<Element>,
+    ) => {
+        if (n.read_at !== null) {
+            return;
         }
+
+        // The link's own visit would cancel this POST, so mark read first and
+        // navigate to the notification target on success.
+        event.preventDefault();
+        router.post(
+            '/notifications/read',
+            { id: n.id },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    const href = n.data.url ?? '#';
+                    if (href !== '#') {
+                        router.visit(href);
+                    }
+                },
+            },
+        );
     };
 
     return (
         <PublicLayout activeTab="Notifications">
             <Head title="Notifications" />
 
-            <div className="mx-auto max-w-2xl px-gutter py-6 pb-24 md:pb-12">
+            <div className="mx-auto max-w-2xl py-6 pb-24 md:pb-12">
                 <div className="mb-4 flex items-center justify-between">
                     <div>
                         <h1 className="text-h2">Notifications</h1>
@@ -76,7 +90,7 @@ export default function NotificationsPage({
                             <NotificationItem
                                 key={n.id}
                                 notification={n}
-                                onClick={() => handleItemClick(n)}
+                                onClick={(e) => handleItemClick(n, e)}
                             />
                         ))}
                     </ul>

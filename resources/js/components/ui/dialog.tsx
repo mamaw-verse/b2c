@@ -205,9 +205,9 @@ function DialogContent({
     const kindClasses = {
         modal: 'm-auto w-[min(32rem,calc(100vw-2rem))] max-h-[85dvh] rounded-panel starting:open:scale-95 starting:open:opacity-0',
         responsive:
-            'mt-auto mb-0 max-h-[90dvh] w-full rounded-t-panel starting:open:translate-y-full md:m-auto md:max-h-[85dvh] md:w-[min(32rem,calc(100vw-2rem))] md:rounded-panel md:starting:open:translate-y-4 md:starting:open:opacity-0',
+            'mt-auto mb-0 max-h-[90dvh] w-full rounded-t-panel starting:open:translate-y-full md:m-auto md:max-h-[85dvh] md:w-[min(42rem,calc(100vw-2rem))] md:rounded-panel md:starting:open:translate-y-4 md:starting:open:opacity-0',
         sheet: 'mt-auto mb-0 max-h-[90dvh] w-full rounded-t-panel starting:open:translate-y-full',
-        drawer: 'my-0 mr-auto ml-0 h-dvh max-h-dvh w-[min(20rem,85vw)] rounded-r-panel starting:open:-translate-x-full',
+        drawer: 'my-0 mr-0 ml-auto h-dvh max-h-dvh w-[min(20rem,85vw)] rounded-l-panel translate-x-full open:translate-x-0 starting:open:translate-x-full',
     };
 
     return (

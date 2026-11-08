@@ -12,6 +12,12 @@ export interface OrderRowProps {
     items: number;
     total: number;
     status: string;
+    statusVariant?:
+        | 'neutral'
+        | 'info'
+        | 'warning'
+        | 'success'
+        | 'danger';
     due?: string | null;
     urgent?: boolean;
     pay: string;
@@ -30,6 +36,7 @@ export function OrderRow({
     items,
     total,
     status,
+    statusVariant,
     due,
     urgent = false,
     pay,
@@ -43,12 +50,13 @@ export function OrderRow({
 }: OrderRowProps) {
     const normalizedStatus = status.toLowerCase();
     const badgeVariant =
-        normalizedStatus === 'to ship'
+        statusVariant ??
+        (normalizedStatus === 'to ship'
             ? 'warning'
             : normalizedStatus === 'shipped' ||
                 normalizedStatus === 'to receive'
               ? 'info'
-              : 'success';
+              : 'success');
     const resolvedActionLabel =
         actionLabel ??
         (normalizedStatus === 'to ship' ? 'Arrange shipment' : 'View order');
@@ -80,7 +88,7 @@ export function OrderRow({
                     <p className="text-label">
                         <Link
                             href={detailUrl}
-                            className="text-primary underline"
+                            className="text-primary-text underline"
                         >
                             {id}
                         </Link>
@@ -97,7 +105,7 @@ export function OrderRow({
                         className={cn(
                             'flex items-center gap-1 text-body-sm',
                             urgent
-                                ? 'font-bold text-sale'
+                                ? 'font-bold text-danger-text'
                                 : 'text-muted-foreground',
                         )}
                     >

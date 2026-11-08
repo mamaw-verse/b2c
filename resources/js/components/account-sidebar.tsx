@@ -9,41 +9,47 @@ import {
     UserRound,
 } from 'lucide-react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { cn, toUrl } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 
 export type AccountNavItem = {
-    title: string;
+    label: string;
     href: string;
     icon: LucideIcon;
 };
 
 export const accountNavItems: AccountNavItem[] = [
-    { title: 'Home', href: dashboard().url, icon: Home },
-    { title: 'Orders', href: '/account/orders', icon: Package },
-    { title: 'Addresses', href: '/account/addresses', icon: MapPin },
-    { title: 'Profile', href: editProfile().url, icon: UserRound },
-    { title: 'Security', href: editSecurity().url, icon: LockKeyhole },
-    { title: 'Appearance', href: editAppearance().url, icon: Palette },
+    { label: 'Home', href: dashboard().url, icon: Home },
+    { label: 'Orders', href: '/account/orders', icon: Package },
+    { label: 'Addresses', href: '/account/addresses', icon: MapPin },
+    { label: 'Profile', href: editProfile().url, icon: UserRound },
+    { label: 'Security', href: editSecurity().url, icon: LockKeyhole },
+    { label: 'Appearance', href: editAppearance().url, icon: Palette },
 ];
 
-export function AccountNavLinks({ full = false }: { full?: boolean }) {
+export function AccountNavLinks({
+    full = false,
+    items = accountNavItems,
+}: {
+    full?: boolean;
+    items?: AccountNavItem[];
+}) {
     const { isCurrentUrl } = useCurrentUrl();
 
     return (
         <ul className="grid gap-0.5">
-            {accountNavItems.map((item) => {
+            {items.map((item) => {
                 const active = isCurrentUrl(item.href);
                 const Icon = item.icon;
 
                 return (
-                    <li key={toUrl(item.href)}>
+                    <li key={item.label}>
                         <Link
                             href={item.href}
-                            title={item.title}
+                            title={item.label}
                             aria-current={active ? 'page' : undefined}
                             className={cn(
                                 'relative flex min-h-touch items-center gap-3 rounded-button px-3 text-label',
@@ -62,7 +68,7 @@ export function AccountNavLinks({ full = false }: { full?: boolean }) {
                                     !full && 'md:sr-only lg:not-sr-only',
                                 )}
                             >
-                                {item.title}
+                                {item.label}
                             </span>
                         </Link>
                     </li>

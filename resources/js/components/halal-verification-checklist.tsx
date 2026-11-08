@@ -12,11 +12,11 @@ const RESULT_CONFIG: Record<
     CheckResult,
     { icon: React.ElementType; className: string; label: string }
 > = {
-    pass: { icon: CircleCheck, className: 'text-success', label: 'Passed' },
-    fail: { icon: CircleAlert, className: 'text-danger', label: 'Failed' },
+    pass: { icon: CircleCheck, className: 'text-success-text', label: 'Passed' },
+    fail: { icon: CircleAlert, className: 'text-danger-text', label: 'Failed' },
     unknown: {
         icon: CircleHelp,
-        className: 'text-warning',
+        className: 'text-warning-text',
         label: 'Needs a manual check',
     },
 };

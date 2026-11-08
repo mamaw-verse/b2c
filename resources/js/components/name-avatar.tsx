@@ -2,10 +2,10 @@ import { cn } from '@/lib/utils';
 
 const tones = [
     'bg-brand-100 text-brand-800',
-    'bg-info-soft text-info',
-    'bg-sale-soft text-sale',
-    'bg-warning-soft text-warning',
-    'bg-success-soft text-success',
+    'bg-info-soft text-info-text',
+    'bg-promo-soft text-promo',
+    'bg-warning-soft text-warning-text',
+    'bg-success-soft text-success-text',
 ];
 
 const sizes = {

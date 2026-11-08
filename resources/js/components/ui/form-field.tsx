@@ -65,7 +65,7 @@ function FormField({
                 <Label htmlFor={fieldId} className={hideLabel ? 'sr-only' : ''}>
                     {label}
                     {required && (
-                        <span className="text-danger" aria-hidden="true">
+                        <span className="text-danger-text" aria-hidden="true">
                             {' '}
                             *
                         </span>
@@ -104,7 +104,7 @@ function FormField({
             {error && (
                 <p
                     id={errorId}
-                    className="flex items-start gap-1 text-body-sm font-bold text-danger"
+                    className="flex items-start gap-1 text-body-sm font-bold text-danger-text"
                 >
                     <CircleAlert className="mt-px size-4" aria-hidden="true" />
                     <span>{error}</span>

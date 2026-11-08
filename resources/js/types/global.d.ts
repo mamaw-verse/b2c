@@ -17,6 +17,7 @@ declare module '@inertiajs/core' {
             navCategories: { id: string; name: string; slug: string }[];
             searchSuggestions?: string[];
             unreadCounts?: { chat: number; notifications: number } | null;
+            cartCount?: number;
             marketplace: Marketplace;
             [key: string]: unknown;
         };

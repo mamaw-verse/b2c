@@ -24,12 +24,24 @@ export function QuantityStepper({
 }: QuantityStepperProps) {
     const id = useId();
     const [internal, setInternal] = useState(value ?? min);
+    const [text, setText] = useState<string | null>(null);
     const current = value ?? internal;
 
     const setValue = (next: number) => {
         const clamped = Math.min(max, Math.max(min, next));
         setInternal(clamped);
         onChange?.(clamped);
+    };
+
+    const commitText = () => {
+        if (text === null) {
+            return;
+        }
+        const n = parseInt(text, 10);
+        setText(null);
+        if (!Number.isNaN(n)) {
+            setValue(n);
+        }
     };
 
     const btnCls =
@@ -40,16 +52,19 @@ export function QuantityStepper({
             role="group"
             aria-label={label}
             className={cn(
-                'inline-flex items-stretch overflow-hidden rounded-field border border-border-control bg-surface',
+                'focus-ring inline-flex items-stretch rounded-field border border-border-control bg-surface',
                 className,
             )}
         >
             <button
                 type="button"
-                className={btnCls}
+                className={cn(btnCls, 'rounded-s-field')}
                 aria-label={`Decrease ${label.toLowerCase()}`}
                 disabled={disabled || current <= min}
-                onClick={() => setValue(current - 1)}
+                onClick={() => {
+                    setText(null);
+                    setValue(current - 1);
+                }}
             >
                 <Minus aria-hidden="true" className="size-4" />
             </button>
@@ -61,24 +76,28 @@ export function QuantityStepper({
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                value={current}
+                value={text ?? current}
                 min={min}
                 max={max}
                 disabled={disabled}
-                onChange={(e) => {
-                    const n = parseInt(e.target.value, 10);
-                    if (!Number.isNaN(n)) {
-                        setValue(n);
+                onChange={(e) => setText(e.target.value)}
+                onBlur={commitText}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        commitText();
                     }
                 }}
-                className="tabular w-12 border-x border-border-control bg-transparent text-center text-input font-bold focus-visible:outline-offset-0"
+                className="tabular w-12 border-x border-border-control bg-transparent text-center text-input font-bold"
             />
             <button
                 type="button"
-                className={btnCls}
+                className={cn(btnCls, 'rounded-e-field')}
                 aria-label={`Increase ${label.toLowerCase()}`}
                 disabled={disabled || current >= max}
-                onClick={() => setValue(current + 1)}
+                onClick={() => {
+                    setText(null);
+                    setValue(current + 1);
+                }}
             >
                 <Plus aria-hidden="true" className="size-4" />
             </button>

@@ -55,6 +55,7 @@ export function Combobox({
     const [activeIndex, setActiveIndex] = useState(-1);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
     useEffect(() => {
         if (selectedOption) {
@@ -63,6 +64,30 @@ export function Combobox({
             setQuery('');
         }
     }, [value, selectedOption]);
+
+    // Calculate fixed dropdown position when open
+    useEffect(() => {
+        if (!open || !inputRef.current) return;
+
+        const updatePosition = () => {
+            const rect = inputRef.current!.getBoundingClientRect();
+            setDropdownStyle({
+                position: 'fixed',
+                top: rect.bottom + 4,
+                left: rect.left,
+                width: rect.width,
+                zIndex: 'var(--z-modal)',
+            });
+        };
+
+        updatePosition();
+        window.addEventListener('scroll', updatePosition, true);
+        window.addEventListener('resize', updatePosition);
+        return () => {
+            window.removeEventListener('scroll', updatePosition, true);
+            window.removeEventListener('resize', updatePosition);
+        };
+    }, [open]);
 
     const filteredOptions = useMemo(() => {
         if (!query.trim()) {
@@ -77,18 +102,17 @@ export function Combobox({
     // Handle clicks outside to close
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
-            if (
-                wrapperRef.current &&
-                !wrapperRef.current.contains(e.target as Node)
-            ) {
-                setOpen(false);
-                setActiveIndex(-1);
-                // Reset query back to selected label if closed without selecting
-                if (selectedOption) {
-                    setQuery(selectedOption.label);
-                } else if (!value) {
-                    setQuery('');
-                }
+            const target = e.target as Node;
+            if (wrapperRef.current?.contains(target)) {
+                return;
+            }
+            setOpen(false);
+            setActiveIndex(-1);
+            // Reset query back to selected label if closed without selecting
+            if (selectedOption) {
+                setQuery(selectedOption.label);
+            } else if (!value) {
+                setQuery('');
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
@@ -135,6 +159,45 @@ export function Combobox({
         }
     };
 
+    const dropdown = open ? (
+        <ul
+            id={listId}
+            role="listbox"
+            aria-label={label ?? 'Options'}
+            style={dropdownStyle}
+            className="max-h-64 overflow-auto rounded-panel border border-border bg-surface py-1 shadow-popover"
+        >
+            {filteredOptions.length === 0 ? (
+                <li className="px-3 py-3 text-body text-muted-foreground select-none">
+                    No matches
+                </li>
+            ) : (
+                filteredOptions.map((opt, idx) => {
+                    const isSelected = opt.value === value;
+                    const isActive = idx === activeIndex;
+                    return (
+                        <li
+                            key={opt.value}
+                            id={`${id}-opt-${idx}`}
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => handleSelect(opt)}
+                            onMouseEnter={() => setActiveIndex(idx)}
+                            className={cn(
+                                'flex min-h-touch cursor-pointer items-center justify-between gap-3 px-3 text-body select-none',
+                                isSelected &&
+                                    'bg-primary-soft font-bold text-foreground',
+                                isActive && !isSelected && 'bg-surface-muted',
+                            )}
+                        >
+                            <span>{opt.label}</span>
+                        </li>
+                    );
+                })
+            )}
+        </ul>
+    ) : null;
+
     return (
         <div className={cn('grid gap-1.5', className)} ref={wrapperRef}>
             {label && (
@@ -142,7 +205,7 @@ export function Combobox({
                     <label htmlFor={id} className="text-label text-foreground">
                         {label}
                         {required && (
-                            <span className="text-danger" aria-hidden="true">
+                            <span className="text-danger-text" aria-hidden="true">
                                 {' '}
                                 *
                             </span>
@@ -188,52 +251,13 @@ export function Combobox({
                     aria-hidden="true"
                     className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
                 />
-
-                {open && (
-                    <ul
-                        id={listId}
-                        role="listbox"
-                        aria-label={label ?? 'Options'}
-                        className="absolute inset-x-0 top-full z-sheet mt-1 max-h-64 overflow-auto rounded-panel border border-border bg-surface py-1 shadow-popover"
-                    >
-                        {filteredOptions.length === 0 ? (
-                            <li className="px-3 py-3 text-body text-muted-foreground select-none">
-                                No matches
-                            </li>
-                        ) : (
-                            filteredOptions.map((opt, idx) => {
-                                const isSelected = opt.value === value;
-                                const isActive = idx === activeIndex;
-                                return (
-                                    <li
-                                        key={opt.value}
-                                        id={`${id}-opt-${idx}`}
-                                        role="option"
-                                        aria-selected={isSelected}
-                                        onClick={() => handleSelect(opt)}
-                                        onMouseEnter={() => setActiveIndex(idx)}
-                                        className={cn(
-                                            'flex min-h-touch cursor-pointer items-center justify-between gap-3 px-3 text-body select-none',
-                                            isSelected &&
-                                                'bg-primary-soft font-bold text-foreground',
-                                            isActive &&
-                                                !isSelected &&
-                                                'bg-surface-muted',
-                                        )}
-                                    >
-                                        <span>{opt.label}</span>
-                                    </li>
-                                );
-                            })
-                        )}
-                    </ul>
-                )}
+                {dropdown}
             </div>
 
             {error && (
                 <p
                     id={errorId}
-                    className="flex items-start gap-1 text-body-sm font-bold text-danger"
+                    className="flex items-start gap-1 text-body-sm font-bold text-danger-text"
                 >
                     <CircleAlert
                         aria-hidden="true"

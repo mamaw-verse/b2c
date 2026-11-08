@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 const tones = {
     shop: ['bg-primary text-primary-foreground', Store, 'Shop'],
-    platform: ['bg-sale text-primary-foreground', Tag, 'Platform'],
+    platform: ['bg-promo-solid-bg text-primary-foreground', Tag, 'Platform'],
     shipping: ['bg-success text-primary-foreground', Truck, 'Shipping'],
 } as const;
 
@@ -62,7 +62,7 @@ export function VoucherCard({
                     className={cn(
                         'flex items-center gap-1 text-caption',
                         state === 'unavailable'
-                            ? 'text-danger'
+                            ? 'text-danger-text'
                             : 'text-muted-foreground',
                     )}
                 >

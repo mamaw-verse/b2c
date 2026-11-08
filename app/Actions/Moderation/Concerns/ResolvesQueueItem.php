@@ -7,6 +7,7 @@ namespace App\Actions\Moderation\Concerns;
 use App\Enums\HalalStatus;
 use App\Enums\ModerationState;
 use App\Enums\ReportStatus;
+use App\Enums\ShopStatus;
 use App\Models\ModerationEvent;
 use App\Models\ModerationQueueItem;
 use App\Models\Product;
@@ -41,13 +42,13 @@ trait ResolvesQueueItem
                 'reason' => $reason,
             ]);
 
-            $this->applySideEffect($item->target, $action);
+            $this->applySideEffect($item->target, $action, $reason, $admin);
 
             return $item;
         });
     }
 
-    private function applySideEffect(?Model $target, string $action): void
+    private function applySideEffect(?Model $target, string $action, string $reason, User $admin): void
     {
         if ($target === null) {
             return;
@@ -58,6 +59,17 @@ trait ResolvesQueueItem
             $action === 'hidden' && $target instanceof Review => $target->update(['hidden' => true]),
             $action === 'suspended' && $target instanceof Shop => $target->update(['suspended' => true]),
             $action === 'suspended' && $target instanceof Product => $target->update(['hidden' => true, 'published' => false]),
+            $action === 'approved' && $target instanceof Shop && $target->status === ShopStatus::Pending => $target->update([
+                'status' => ShopStatus::Approved,
+                'reviewed_at' => now(),
+                'reviewed_by' => $admin->id,
+            ]),
+            $action === 'rejected' && $target instanceof Shop && $target->status === ShopStatus::Pending => $target->update([
+                'status' => ShopStatus::Rejected,
+                'rejection_reason' => $reason,
+                'reviewed_at' => now(),
+                'reviewed_by' => $admin->id,
+            ]),
             $action === 'approved' && $target instanceof Product => $this->approveCertifiedProduct($target),
             $action === 'rejected' && $target instanceof Product && $target->halal_status === HalalStatus::Review => $target->update(['halal_status' => HalalStatus::Missing]),
             $target instanceof Report => $this->resolveReport($target, $action),

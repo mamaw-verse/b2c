@@ -17,7 +17,7 @@ export default function TextLink({
     return (
         <Link
             className={cn(
-                'font-bold text-primary underline decoration-1 underline-offset-2 transition-colors duration-token hover:text-primary-hover hover:decoration-2',
+                'font-bold text-primary-text underline decoration-1 underline-offset-2 transition-colors duration-token hover:text-primary-hover hover:decoration-2',
                 className,
             )}
             target={external ? '_blank' : undefined}

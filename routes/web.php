@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('order-confirmed/{order}', App\Http\Controllers\Account\OrderConfirmationController::class)->name('order-confirmed');
 
     Route::resource('account/addresses', AddressController::class)->only(['index', 'store', 'update', 'destroy'])->names('addresses');
     Route::put('account/addresses/{address}/default', [AddressDefaultController::class, 'update'])->name('addresses.default.update');
@@ -64,6 +65,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('notifications/read', [App\Http\Controllers\Notification\NotificationReadController::class, 'store'])->name('notifications.read.store');
 
     Route::post('reports', [App\Http\Controllers\Report\ReportController::class, 'store'])->name('reports.store');
+
+    Route::get('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'create'])->name('seller.register');
+    Route::post('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'store'])->name('seller.register.store');
 
     Route::prefix('seller')->name('seller.')->group(function () {
         Route::get('dashboard', App\Http\Controllers\Seller\DashboardController::class)->name('dashboard');

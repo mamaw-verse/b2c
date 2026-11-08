@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
+use App\Values\OrderTotals;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -42,6 +43,9 @@ final class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
     use HasFactory, HasUlids;
+
+    /** @var list<string> */
+    protected $appends = ['reference', 'status_label', 'status_badge_variant'];
 
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
@@ -95,6 +99,31 @@ final class Order extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function referenceNumber(): string
+    {
+        return '#'.mb_strtoupper(mb_substr($this->id, -8));
+    }
+
+    public function totals(): OrderTotals
+    {
+        return OrderTotals::forOrder($this);
+    }
+
+    public function getReferenceAttribute(): string
+    {
+        return $this->referenceNumber();
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->status->label();
+    }
+
+    public function getStatusBadgeVariantAttribute(): string
+    {
+        return $this->status->badgeVariant();
     }
 
     protected function casts(): array

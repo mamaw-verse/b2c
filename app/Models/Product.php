@@ -115,7 +115,7 @@ final class Product extends Model
             'free_shipping' => $this->free_shipping,
             'frozen' => $this->frozen,
             'temperature' => $this->frozen ? 'frozen' : null,
-            'category_slug' => $this->category->slug,
+            'requires_certification' => $this->category->requires_certification,
             'in_stock' => $this->stock > 0,
             'halal_status' => $this->halal_status->value,
             'certifier' => $this->halalCertification?->certifying_body,
@@ -132,6 +132,8 @@ final class Product extends Model
             'description' => $this->description,
             'stock' => $this->stock,
             'in_stock' => $this->stock > 0,
+            'review_count' => $this->reviews()->count(),
+            'ships_from' => $this->location ?? $this->shop->location,
             'images' => $this->images->map(fn (ProductImage $image) => [
                 'url' => $image->url,
                 'icon' => $image->icon,

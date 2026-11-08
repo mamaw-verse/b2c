@@ -27,13 +27,15 @@ export default function DeleteUser() {
                 title="Delete account"
                 description="Delete your account and all of its resources"
             />
-            <Banner tone="danger" title="Warning">
-                Please proceed with caution. This cannot be undone.
-                <div className="mt-3">
+            <Banner
+                tone="danger"
+                title="Delete account"
+                action={
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
                             <Button
-                                variant="danger"
+                                variant="outline"
+                                className="border-danger-text text-danger-text hover:bg-danger-soft"
                                 data-test="delete-user-button"
                             >
                                 Delete account
@@ -103,7 +105,10 @@ export default function DeleteUser() {
                             </Form>
                         </DialogContent>
                     </Dialog>
-                </div>
+                }
+            >
+                This permanently removes your orders, addresses and saved items.
+                It cannot be undone.
             </Banner>
         </section>
     );

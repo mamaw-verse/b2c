@@ -82,7 +82,7 @@ function DropdownMenuItem({
                 itemClass,
                 inset && 'pl-8',
                 variant === 'destructive' &&
-                    'text-danger hover:bg-danger-soft focus:bg-danger-soft',
+                    'text-danger-text hover:bg-danger-soft focus:bg-danger-soft',
                 className,
             )}
             {...props}

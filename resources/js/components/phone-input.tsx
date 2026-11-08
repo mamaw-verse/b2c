@@ -49,7 +49,7 @@ export function PhoneInput({
     onChange,
     error,
     required = false,
-    help = '10 digits after +63, e.g. 917 123 4567.',
+    help,
     disabled = false,
     className,
 }: PhoneInputProps) {
@@ -75,7 +75,7 @@ export function PhoneInput({
                     <label htmlFor={id} className="text-label text-foreground">
                         {label}
                         {required && (
-                            <span className="text-danger" aria-hidden="true">
+                            <span className="text-danger-text" aria-hidden="true">
                                 {' '}
                                 *
                             </span>
@@ -86,8 +86,7 @@ export function PhoneInput({
             <label
                 htmlFor={id}
                 className={cn(
-                    'field flex cursor-text items-stretch overflow-hidden p-0',
-                    'has-[:focus-visible]:border-primary has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring',
+                    'field focus-ring flex cursor-text items-stretch overflow-hidden p-0',
                     error && 'border-danger',
                     disabled && 'cursor-not-allowed bg-surface-muted',
                 )}
@@ -112,7 +111,7 @@ export function PhoneInput({
                     onChange={handleChange}
                     aria-describedby={cn(help && helpId, error && errorId)}
                     aria-invalid={Boolean(error)}
-                    className="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground outline-none placeholder:text-subtle-foreground disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground"
+                    className="min-w-0 flex-1 bg-transparent px-3 text-input text-foreground placeholder:text-subtle-foreground disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground"
                 />
             </label>
 
@@ -130,7 +129,7 @@ export function PhoneInput({
             {error && (
                 <p
                     id={errorId}
-                    className="flex items-start gap-1 text-body-sm font-bold text-danger"
+                    className="flex items-start gap-1 text-body-sm font-bold text-danger-text"
                 >
                     <CircleAlert
                         aria-hidden="true"

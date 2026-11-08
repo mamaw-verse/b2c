@@ -1,8 +1,15 @@
 import { Head, InfiniteScroll, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { Chip } from '@/components/chip';
-import { ProductGrid } from '@/components/product-card';
+import { ProductGrid, ProductGridSkeleton } from '@/components/product-card';
+import { SortControl } from '@/components/sort-control';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
 import { search } from '@/routes';
 import type { CursorPage, ProductCardData } from '@/types/catalogue';
+
+const SCROLL_MASK =
+    'max-lg:[-webkit-mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] max-lg:[mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)]';
 
 type Filters = {
     q?: string;
@@ -11,13 +18,6 @@ type Filters = {
     frozen?: boolean;
     sort?: string;
 };
-
-const sorts: { key: string; label: string; icon?: string }[] = [
-    { key: 'relevant', label: 'Relevant' },
-    { key: 'newest', label: 'Newest' },
-    { key: 'top_sales', label: 'Top sales' },
-    { key: 'price_asc', label: 'Price', icon: 'arrow-down' },
-];
 
 export default function Search({
     query,
@@ -28,7 +28,12 @@ export default function Search({
     filters: Filters;
     products: CursorPage<ProductCardData>;
 }) {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
+
     const visit = (patch: Partial<Filters>) => {
+        setLoading(true);
+        setError(false);
         router.get(
             search({
                 query: {
@@ -37,14 +42,24 @@ export default function Search({
                     ...patch,
                 },
             }).url,
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onFinish: () => setLoading(false),
+                onError: () => {
+                    setLoading(false);
+                    setError(true);
+                },
+            },
         );
     };
 
     return (
         <>
             <Head title={query ? `“${query}”` : 'Search'} />
-            <div className="mx-auto max-w-container">
-                <div className="px-gutter pt-4 md:pt-6">
+            <div>
+                <div className="pt-4 md:pt-6">
                     <h1 className="text-h2">
                         {query ? `“${query}”` : 'Browse products'}
                     </h1>
@@ -56,53 +71,79 @@ export default function Search({
                         results
                     </p>
                 </div>
-                <div
-                    role="group"
-                    aria-label="Sort and filter"
-                    className="mt-3 flex [scrollbar-width:none] gap-2 overflow-x-auto px-gutter pb-1 md:px-0"
-                >
-                    {sorts.map((s) => (
+                <div className="mt-3 flex items-center gap-2">
+                    <div
+                        role="group"
+                        aria-label="Filters"
+                        className={`bleed-x flex min-w-0 flex-1 [scrollbar-width:none] gap-2 overflow-x-auto pb-1 ${SCROLL_MASK}`}
+                    >
                         <Chip
-                            key={s.key}
-                            icon={s.icon}
-                            pressed={(filters.sort ?? 'relevant') === s.key}
-                            onClick={() => visit({ sort: s.key })}
+                            pressed={filters.halal ?? false}
+                            onClick={() =>
+                                visit({ halal: !(filters.halal ?? false) })
+                            }
                         >
-                            {s.label}
+                            Halal certified
                         </Chip>
-                    ))}
-                    <Chip
-                        pressed={filters.halal ?? true}
-                        onClick={() =>
-                            visit({ halal: !(filters.halal ?? true) })
-                        }
-                    >
-                        Halal certified
-                    </Chip>
-                    <Chip
-                        pressed={filters.free_shipping ?? false}
-                        onClick={() =>
-                            visit({ free_shipping: !filters.free_shipping })
-                        }
-                    >
-                        Free shipping
-                    </Chip>
-                    <Chip
-                        icon="snowflake"
-                        pressed={filters.frozen ?? false}
-                        onClick={() => visit({ frozen: !filters.frozen })}
-                    >
-                        Ships frozen
-                    </Chip>
+                        <Chip
+                            pressed={filters.free_shipping ?? false}
+                            onClick={() =>
+                                visit({ free_shipping: !filters.free_shipping })
+                            }
+                        >
+                            Free shipping
+                        </Chip>
+                        <Chip
+                            icon="snowflake"
+                            pressed={filters.frozen ?? false}
+                            onClick={() => visit({ frozen: !filters.frozen })}
+                        >
+                            Ships frozen
+                        </Chip>
+                    </div>
+                    <SortControl
+                        value={filters.sort ?? 'top_sales'}
+                        onChange={(sort) => visit({ sort })}
+                        className="w-auto shrink-0"
+                    />
                 </div>
                 <h2 className="sr-only">Results</h2>
-                <InfiniteScroll data="products" itemsElement="#sr-grid">
-                    <ProductGrid
-                        id="sr-grid"
-                        products={products.data}
-                        className="px-gutter pt-3 md:px-0"
+                {error ? (
+                    <ErrorState
+                        title="Couldn't load results"
+                        onRetry={() => visit({})}
                     />
-                </InfiniteScroll>
+                ) : loading ? (
+                    <ProductGridSkeleton />
+                ) : products.data.length === 0 ? (
+                    <EmptyState
+                        title="No products match"
+                        text="Try removing a filter or a different search."
+                        action={
+                            <a href={search.url()} className="btn btn-outline">
+                                Clear filters
+                            </a>
+                        }
+                    />
+                ) : (
+                    <>
+                        <InfiniteScroll data="products" itemsElement="#sr-grid">
+                            <ProductGrid
+                                id="sr-grid"
+                                products={products.data}
+                                className="pt-3"
+                            />
+                        </InfiniteScroll>
+                        {products.next_cursor === null && (
+                            <p className="py-4 text-center text-body-sm text-muted-foreground">
+                                You've seen all {products.data.length}{' '}
+                                {products.data.length === 1
+                                    ? 'product'
+                                    : 'products'}
+                            </p>
+                        )}
+                    </>
+                )}
             </div>
         </>
     );

@@ -33,7 +33,7 @@ export function StockInput({
             error={error}
             help={
                 isLow ? (
-                    <span className="font-bold text-warning">
+                    <span className="font-bold text-warning-text">
                         Low stock: you’ll be reminded below {low}.
                     </span>
                 ) : (

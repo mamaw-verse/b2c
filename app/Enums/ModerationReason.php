@@ -19,6 +19,11 @@ enum ModerationReason: string
     case Spam = 'spam';
     case CounterfeitGoods = 'counterfeit_goods';
     case Other = 'other';
+    // Shop application reasons
+    case InvalidIdDocument = 'invalid_id_document';
+    case IncompleteShopInfo = 'incomplete_shop_info';
+    case BusinessPermitRequired = 'business_permit_required';
+    case ProhibitedBusinessType = 'prohibited_business_type';
 
     /** @return array<string, string> */
     public static function options(): array
@@ -42,6 +47,10 @@ enum ModerationReason: string
             self::Spam => 'Spam',
             self::CounterfeitGoods => 'Counterfeit goods',
             self::Other => 'Other',
+            self::InvalidIdDocument => 'Invalid or unreadable ID document',
+            self::IncompleteShopInfo => 'Incomplete shop information',
+            self::BusinessPermitRequired => 'Business permit required for this shop type',
+            self::ProhibitedBusinessType => 'Prohibited business type',
         };
     }
 

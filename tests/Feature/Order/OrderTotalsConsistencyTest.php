@@ -45,17 +45,26 @@ test('cart, checkout, buyer order and seller order totals agree for the same ord
         ->and($checkoutProps['summary']['shippingFee'])->toBe(8000);
 
     // Place the order with COD; stored totals stay integer centavos.
-    $this->actingAs($buyer)->post(route('checkout.store'), [
+    $placed = $this->actingAs($buyer)->post(route('checkout.store'), [
         'address_id' => $address->id,
         'shipping_option_id' => $shipping->id,
         'payment_method' => 'cod',
     ]);
 
     $order = Order::sole();
+    $placed->assertRedirect(route('order-confirmed', $order));
+
     expect($order->subtotal)->toBe(156000)
         ->and($order->shipping_fee)->toBe(8000)
         ->and($order->cod_fee)->toBe(2000)
         ->and($order->total)->toBe(166000);
+
+    // The confirmation page shows the new order.
+    $confirmed = $this->actingAs($buyer)->get(route('order-confirmed', $order));
+    $confirmed->assertOk();
+    $confirmedProps = $confirmed->viewData('page')['props'];
+    expect($confirmedProps['order']['reference'])->toBe($order->referenceNumber())
+        ->and($confirmedProps['order']['total'])->toBe(166000);
 
     // Buyer order detail exposes the same totals.
     $buyerOrder = $this->actingAs($buyer)->get(route('orders.show', $order));
@@ -64,11 +73,17 @@ test('cart, checkout, buyer order and seller order totals agree for the same ord
     expect($buyerProps['order']['subtotal'])->toBe(156000)
         ->and($buyerProps['order']['total'])->toBe(166000);
 
-    // Seller order view exposes the same totals.
+    // Seller order view exposes the same totals including the COD fee.
     $sellerOrder = $this->actingAs($sellerUser)->get(route('seller.orders.show', $order));
     $sellerOrder->assertOk();
     $sellerProps = $sellerOrder->viewData('page')['props'];
     expect($sellerProps['order']['payment']['subtotal'])->toBe(156000)
-        ->and($sellerProps['order']['payment']['shipping_fee'])->toBe(8000)
+        ->and($sellerProps['order']['payment']['shipping'])->toBe(8000)
+        ->and($sellerProps['order']['payment']['cod_fee'])->toBe(2000)
+        ->and($sellerProps['order']['payment']['cod_collect_amount'])->toBe(166000)
         ->and($sellerProps['order']['payment']['total'])->toBe(166000);
+
+    // Buyer and seller show the same reference and the same instant.
+    expect($sellerProps['order']['reference'])->toBe($buyerProps['order']['reference'])
+        ->and($sellerProps['order']['created_at'])->toBe($buyerProps['order']['created_at']);
 });

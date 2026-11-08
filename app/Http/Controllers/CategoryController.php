@@ -19,12 +19,17 @@ final class CategoryController
     {
         $category->load(['parent:id,name,slug', 'children:id,parent_id,name,slug']);
 
+        $sort = $request->sort();
+        $halalOnly = $request->halalOnly();
+
         return Inertia::render('category', [
             'category' => $category->only('id', 'name', 'slug') + [
                 'parent' => $category->parent?->only('name', 'slug'),
                 'children' => $category->children->map->only('id', 'name', 'slug'),
             ],
-            'products' => Inertia::scroll(fn () => $products->handle($category, $request->sort())),
+            'filters' => ['sort' => $sort, 'halal' => $halalOnly],
+            'total' => $products->total($category, $halalOnly),
+            'products' => Inertia::scroll(fn () => $products->handle($category, $sort, $halalOnly)),
         ]);
     }
 }

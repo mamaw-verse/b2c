@@ -62,18 +62,22 @@ export function VariationPicker({
     const stock = selected?.stock ?? product.stock;
 
     const chipCls =
-        'relative flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control bg-surface px-3 text-body hover:border-primary has-checked:border-primary has-checked:bg-primary-soft has-checked:text-primary-soft-foreground has-disabled:cursor-not-allowed has-disabled:border-dashed has-disabled:text-muted-foreground has-disabled:hover:border-border-control has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring';
+        'relative flex min-h-touch cursor-pointer items-center gap-2 rounded-button border border-border-control bg-surface px-3 text-body hover:border-primary has-checked:border-primary has-checked:bg-primary-soft has-checked:text-primary-soft-foreground has-disabled:cursor-not-allowed has-disabled:border-dashed has-disabled:text-muted-foreground has-disabled:hover:border-border-control focus-ring';
 
     const hasOptions = product.option1_name != null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent kind="sheet">
-                <DialogTitle>Select variation</DialogTitle>
+                <div className="flex items-center border-b border-border px-4 py-3">
+                    <DialogTitle className="text-h4">
+                        Select variation
+                    </DialogTitle>
+                </div>
                 <DialogDescription className="sr-only">
                     Choose options and quantity for {product.name}
                 </DialogDescription>
-                <div className="grid gap-5 p-4">
+                <div className="grid gap-5 overflow-y-auto p-4">
                     <div className="flex gap-3">
                         <div className="w-20 shrink-0 overflow-hidden rounded-tile">
                             <Media
@@ -82,7 +86,7 @@ export function VariationPicker({
                                 decorative
                             />
                         </div>
-                        <div className="grid content-end gap-1">
+                        <div className="grid content-center gap-1">
                             <PriceBlock
                                 price={price}
                                 was={product.was_price}
@@ -173,7 +177,7 @@ export function VariationPicker({
                             </div>
                         </fieldset>
                     )}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                         <p className="text-label" id={`${baseId}-qty-l`}>
                             Quantity
                         </p>

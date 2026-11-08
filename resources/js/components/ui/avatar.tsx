@@ -22,7 +22,7 @@ function Avatar({
         <AvatarPrimitive.Root
             data-slot="avatar"
             className={cn(
-                'relative inline-grid shrink-0 place-items-center overflow-hidden bg-success-soft font-bold text-success',
+                'relative inline-grid shrink-0 place-items-center overflow-hidden bg-success-soft font-bold text-success-text',
                 shape === 'tile' ? 'rounded-tile' : 'rounded-full',
                 sizes[size],
                 className,

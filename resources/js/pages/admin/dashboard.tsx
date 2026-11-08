@@ -69,7 +69,7 @@ export default function AdminDashboard({
                 {expiringCertificatesCount > 0 && (
                     <div className="mb-6 flex items-start gap-3 rounded-panel border border-warning bg-warning-soft p-4 text-foreground">
                         <TriangleAlert
-                            className="mt-0.5 size-5 shrink-0 text-warning"
+                            className="mt-0.5 size-5 shrink-0 text-warning-text"
                             aria-hidden="true"
                         />
                         <div className="flex-1">
@@ -108,9 +108,21 @@ export default function AdminDashboard({
                         ic="flag"
                         hint="Automated & user flags"
                     />
-                    <div className="card grid gap-1 border-warning/40 bg-warning-soft/30 p-4">
-                        <p className="flex items-center gap-2 text-body-sm text-foreground">
-                            <FileBadge className="size-4 text-warning" />
+                    <div
+                        className={
+                            expiringCertificatesCount > 0
+                                ? 'card grid gap-1 border-warning/40 bg-warning-soft/30 p-4'
+                                : 'card grid gap-1 p-4'
+                        }
+                    >
+                        <p className="flex items-center gap-2 text-body-sm text-muted-foreground">
+                            <FileBadge
+                                className={
+                                    expiringCertificatesCount > 0
+                                        ? 'size-4 text-warning-text'
+                                        : 'size-4'
+                                }
+                            />
                             Expiring Certificates
                         </p>
                         <p className="tabular text-h2 text-foreground">
@@ -138,13 +150,13 @@ export default function AdminDashboard({
                                 <span className="flex items-center gap-2">
                                     <FileBadge
                                         aria-hidden="true"
-                                        className="size-4 text-primary"
+                                        className="size-4 text-primary-text"
                                     />
                                     Halal Verifications
                                 </span>
                                 <Link
                                     href="/admin/moderation?type=halal"
-                                    className="font-bold text-primary hover:underline"
+                                    className="font-bold text-primary-text hover:underline"
                                 >
                                     {halalPending} pending
                                 </Link>
@@ -153,13 +165,13 @@ export default function AdminDashboard({
                                 <span className="flex items-center gap-2">
                                     <Flag
                                         aria-hidden="true"
-                                        className="size-4 text-warning"
+                                        className="size-4 text-warning-text"
                                     />
                                     User & Shop Reports
                                 </span>
                                 <Link
                                     href="/admin/moderation?type=report"
-                                    className="font-bold text-primary hover:underline"
+                                    className="font-bold text-primary-text hover:underline"
                                 >
                                     {reportsPending} pending
                                 </Link>
@@ -168,13 +180,13 @@ export default function AdminDashboard({
                                 <span className="flex items-center gap-2">
                                     <ShieldAlert
                                         aria-hidden="true"
-                                        className="size-4 text-danger"
+                                        className="size-4 text-danger-text"
                                     />
                                     Keyword Auto-Flags
                                 </span>
                                 <Link
                                     href="/admin/moderation?type=keyword"
-                                    className="font-bold text-primary hover:underline"
+                                    className="font-bold text-primary-text hover:underline"
                                 >
                                     {keywordsPending} pending
                                 </Link>
@@ -189,7 +201,7 @@ export default function AdminDashboard({
                                 </span>
                                 <Link
                                     href="/admin/moderation?type=general"
-                                    className="font-bold text-primary hover:underline"
+                                    className="font-bold text-primary-text hover:underline"
                                 >
                                     {(counts.pending?.general ?? 0) +
                                         (counts.flagged?.general ?? 0)}{' '}

@@ -52,7 +52,7 @@ export function ChatBubble({
                 <div
                     className={cn(
                         'flex items-center gap-1 text-caption',
-                        isFailed ? 'text-danger' : 'text-muted-foreground',
+                        isFailed ? 'text-danger-text' : 'text-muted-foreground',
                     )}
                 >
                     <span className="sr-only">{prefix}</span>
@@ -64,7 +64,7 @@ export function ChatBubble({
                                 <>
                                     <CheckCheck
                                         aria-hidden="true"
-                                        className="size-3.5 text-primary"
+                                        className="size-3.5 text-primary-text"
                                     />
                                     <span>Read</span>
                                 </>

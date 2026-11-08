@@ -307,7 +307,7 @@ export function VariantMatrix({
             </div>
 
             {error && (
-                <p className="flex items-center gap-1 text-body-sm font-bold text-danger">
+                <p className="flex items-center gap-1 text-body-sm font-bold text-danger-text">
                     <DsIcon name="circle-alert" className="size-4" />
                     <span>{error}</span>
                 </p>

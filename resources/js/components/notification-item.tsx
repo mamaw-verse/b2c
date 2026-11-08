@@ -1,11 +1,12 @@
 import { Link } from '@inertiajs/react';
 import { Package, Ticket, Truck } from 'lucide-react';
+import type { MouseEventHandler } from 'react';
 import { cn } from '@/lib/utils';
 import type { AppNotification } from '@/types/chat';
 
 export interface NotificationItemProps {
     notification: AppNotification;
-    onClick?: () => void;
+    onClick?: MouseEventHandler<Element>;
     className?: string;
 }
 
@@ -28,7 +29,7 @@ export function NotificationItem({
     const renderIcon = () => {
         if (type === 'promo') {
             return (
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-sale-soft text-sale">
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-promo-soft text-promo">
                     <Ticket aria-hidden="true" className="size-5" />
                 </span>
             );
@@ -46,7 +47,7 @@ export function NotificationItem({
         }
 
         return (
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-info-soft text-info">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-info-soft text-info-text">
                 <Truck aria-hidden="true" className="size-5" />
             </span>
         );
@@ -80,7 +81,7 @@ export function NotificationItem({
                 {isUnread && (
                     <span
                         aria-hidden="true"
-                        className="mt-1.5 size-2.5 shrink-0 rounded-full bg-sale"
+                        className="mt-1.5 size-2.5 shrink-0 rounded-full bg-primary"
                     />
                 )}
             </Link>

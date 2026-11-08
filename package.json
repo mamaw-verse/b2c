@@ -6,8 +6,8 @@
         "build": "vp build",
         "build:ssr": "vp build && vp build --ssr",
         "dev": "vp dev",
-        "check": "vp check && node scripts/scan-violations.mjs",
-        "scan": "node scripts/scan-violations.mjs",
+        "check": "vp check && node scripts/scan-violations.mjs && node tests/Unit/contrast.test.mjs",
+        "scan": "node scripts/scan-violations.mjs && node tests/Unit/contrast.test.mjs",
         "check:fix": "vp check --fix",
         "types:check": "tsc --noEmit"
     },

@@ -33,7 +33,7 @@ export function Carousel({
     zoom = true,
     label = 'Product photos',
     ratio = 'aspect-square',
-    rounded = 'md:rounded-panel',
+    rounded = 'rounded-panel',
 }: CarouselProps) {
     const trackRef = useRef<HTMLUListElement>(null);
     const [current, setCurrent] = useState(0);
@@ -100,12 +100,14 @@ export function Carousel({
                         </li>
                     ))}
                 </ul>
-                <p
-                    aria-hidden="true"
-                    className="tabular absolute right-2 bottom-2 rounded-full bg-surface-inverse px-2 py-0.5 text-caption text-foreground-inverse"
-                >
-                    {current + 1} of {slides.length}
-                </p>
+                {slides.length > 1 && (
+                    <p
+                        aria-hidden="true"
+                        className="tabular absolute right-2 bottom-2 rounded-full bg-surface-inverse px-2 py-0.5 text-caption text-foreground-inverse"
+                    >
+                        {current + 1} of {slides.length}
+                    </p>
+                )}
                 {zoom && (
                     <Dialog>
                         <DialogTrigger
@@ -165,10 +167,10 @@ export function Carousel({
                     <ChevronRight aria-hidden="true" />
                 </button>
             </div>
-            {thumbs && (
+            {thumbs && slides.length > 1 && (
                 <ul
                     aria-label="Thumbnails"
-                    className="flex gap-2 overflow-x-auto px-gutter md:px-0"
+                    className="bleed-x flex gap-2 overflow-x-auto"
                 >
                     {slides.map((slide, i) => (
                         <li key={i} className="shrink-0">

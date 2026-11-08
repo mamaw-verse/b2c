@@ -16,7 +16,7 @@ const buttonVariants = cva('btn', {
             danger: 'btn-danger',
             destructive: 'btn-danger',
             inverse: 'btn-inverse',
-            link: 'min-h-0 border-0 bg-transparent p-0 font-bold text-primary underline decoration-1 underline-offset-2 hover:bg-transparent hover:text-primary-hover hover:decoration-2',
+            link: 'min-h-0 border-0 bg-transparent p-0 font-bold text-primary-text underline decoration-1 underline-offset-2 hover:bg-transparent hover:text-primary-hover hover:decoration-2',
         },
         size: {
             default: '',

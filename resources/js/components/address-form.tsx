@@ -1,8 +1,10 @@
 import { CircleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import { Combobox } from '@/components/combobox';
 import { PhoneInput } from '@/components/phone-input';
 import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
 export type AddressFormData = {
     name: string;
@@ -19,28 +21,35 @@ export type AddressFormData = {
 };
 
 type AddressFormProps = {
+    id?: string;
     initialValues?: Partial<AddressFormData>;
     errors?: Record<string, string>;
     onSubmit: (data: AddressFormData) => void;
     onCancel?: () => void;
     loading?: boolean;
     className?: string;
+    /** When true, hides the inline Cancel/Save buttons (use when footer is rendered outside). */
+    hideActions?: boolean;
 };
 
 type PsgcItem = {
     code: string;
     name: string;
+    postal_code?: string;
 };
 
 export function AddressForm({
+    id: formId = 'address-form',
     initialValues,
     errors = {},
     onSubmit,
     onCancel,
     loading = false,
     className,
+    hideActions = false,
 }: AddressFormProps) {
-    const [name, setName] = useState(initialValues?.name ?? '');
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const [name, setName] = useState(initialValues?.name ?? auth.user?.name ?? '');
     const [phone, setPhone] = useState(initialValues?.phone ?? '');
     const [regionCode, setRegionCode] = useState(
         initialValues?.region_code ?? '',
@@ -133,19 +142,20 @@ export function AddressForm({
 
     return (
         <form
+            id={formId}
             onSubmit={handleSubmit}
-            className={cn('grid gap-4 md:grid-cols-2', className)}
+            className={cn('grid items-start gap-4 md:grid-cols-2', className)}
             noValidate
         >
-            {/* Full Name */}
+            {/* Recipient Name */}
             <div className="grid gap-1.5">
                 <div className="flex items-baseline justify-between gap-2">
                     <label
                         htmlFor="af-name"
                         className="text-label text-foreground"
                     >
-                        Full name
-                        <span className="text-danger" aria-hidden="true">
+                        Recipient name
+                        <span className="text-danger-text" aria-hidden="true">
                             {' '}
                             *
                         </span>
@@ -154,14 +164,14 @@ export function AddressForm({
                 <input
                     id="af-name"
                     type="text"
-                    className={cn('field', errors.name && 'border-danger')}
+                    className={cn('field py-2.5', errors.name && 'border-danger')}
                     value={name}
                     required
                     autoComplete="name"
                     onChange={(e) => setName(e.target.value)}
                 />
                 {errors.name && (
-                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
+                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger-text">
                         <CircleAlert className="mt-px size-4 shrink-0" />
                         <span>{errors.name}</span>
                     </p>
@@ -178,97 +188,39 @@ export function AddressForm({
                 error={errors.phone}
             />
 
-            {/* Region Select */}
-            <div className="grid gap-1.5">
-                <div className="flex items-baseline justify-between gap-2">
-                    <label
-                        htmlFor="af-region"
-                        className="text-label text-foreground"
-                    >
-                        Region
-                        <span className="text-danger" aria-hidden="true">
-                            {' '}
-                            *
-                        </span>
-                    </label>
-                </div>
-                <select
-                    id="af-region"
-                    className={cn(
-                        'field',
-                        errors.region_code && 'border-danger',
-                    )}
-                    value={regionCode}
-                    required
-                    onChange={(e) => {
-                        setRegionCode(e.target.value);
-                        setProvinceCode('');
-                        setCityCode('');
-                        setBarangayCode('');
-                    }}
-                >
-                    <option value="">Select region</option>
-                    {regions.map((r) => (
-                        <option key={r.code} value={r.code}>
-                            {r.name}
-                        </option>
-                    ))}
-                </select>
-                {errors.region_code && (
-                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
-                        <CircleAlert className="mt-px size-4 shrink-0" />
-                        <span>{errors.region_code}</span>
-                    </p>
-                )}
-            </div>
+            {/* Region Combobox */}
+            <Combobox
+                id="af-region"
+                label="Region"
+                required
+                options={regions.map((r) => ({ value: r.code, label: r.name }))}
+                value={regionCode}
+                placeholder="Select region"
+                onChange={(code) => {
+                    setRegionCode(code);
+                    setProvinceCode('');
+                    setCityCode('');
+                    setBarangayCode('');
+                }}
+                error={errors.region_code}
+            />
 
-            {/* Province Select */}
-            <div className="grid gap-1.5">
-                <div className="flex items-baseline justify-between gap-2">
-                    <label
-                        htmlFor="af-province"
-                        className="text-label text-foreground"
-                    >
-                        Province
-                        <span className="text-danger" aria-hidden="true">
-                            {' '}
-                            *
-                        </span>
-                    </label>
-                </div>
-                <select
-                    id="af-province"
-                    className={cn(
-                        'field',
-                        errors.province_code && 'border-danger',
-                    )}
-                    value={provinceCode}
-                    disabled={!regionCode || provinces.length === 0}
-                    required
-                    onChange={(e) => {
-                        setProvinceCode(e.target.value);
-                        setCityCode('');
-                        setBarangayCode('');
-                    }}
-                >
-                    <option value="">
-                        {!regionCode
-                            ? 'Select region first'
-                            : 'Select province'}
-                    </option>
-                    {provinces.map((p) => (
-                        <option key={p.code} value={p.code}>
-                            {p.name}
-                        </option>
-                    ))}
-                </select>
-                {errors.province_code && (
-                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
-                        <CircleAlert className="mt-px size-4 shrink-0" />
-                        <span>{errors.province_code}</span>
-                    </p>
-                )}
-            </div>
+            {/* Province Combobox */}
+            <Combobox
+                id="af-province"
+                label="Province"
+                required
+                options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+                value={provinceCode}
+                disabled={!regionCode}
+                placeholder={!regionCode ? 'Select region first' : 'Select province'}
+                onChange={(code) => {
+                    setProvinceCode(code);
+                    setCityCode('');
+                    setBarangayCode('');
+                }}
+                error={errors.province_code}
+            />
 
             {/* City Combobox */}
             <Combobox
@@ -286,6 +238,10 @@ export function AddressForm({
                 onChange={(code) => {
                     setCityCode(code);
                     setBarangayCode('');
+                    const selectedCity = cities.find((c) => c.code === code);
+                    if (selectedCity?.postal_code) {
+                        setPostalCode(selectedCity.postal_code);
+                    }
                 }}
                 error={errors.city_code}
             />
@@ -316,7 +272,7 @@ export function AddressForm({
                         className="text-label text-foreground"
                     >
                         Street address / Unit / Building
-                        <span className="text-danger" aria-hidden="true">
+                        <span className="text-danger-text" aria-hidden="true">
                             {' '}
                             *
                         </span>
@@ -332,7 +288,7 @@ export function AddressForm({
                     onChange={(e) => setStreet(e.target.value)}
                 />
                 {errors.street && (
-                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
+                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger-text">
                         <CircleAlert className="mt-px size-4 shrink-0" />
                         <span>{errors.street}</span>
                     </p>
@@ -347,7 +303,7 @@ export function AddressForm({
                         className="text-label text-foreground"
                     >
                         Postal code
-                        <span className="text-danger" aria-hidden="true">
+                        <span className="text-danger-text" aria-hidden="true">
                             {' '}
                             *
                         </span>
@@ -373,7 +329,7 @@ export function AddressForm({
                     }
                 />
                 {errors.postal_code && (
-                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
+                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger-text">
                         <CircleAlert className="mt-px size-4 shrink-0" />
                         <span>{errors.postal_code}</span>
                     </p>
@@ -450,27 +406,29 @@ export function AddressForm({
                 </label>
             </div>
 
-            {/* Actions */}
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:justify-end md:col-span-2">
-                {onCancel && (
+            {/* Actions — hidden when footer is rendered outside (e.g. inside Modal) */}
+            {!hideActions && (
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:justify-end md:col-span-2">
+                    {onCancel && (
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="btn btn-outline min-h-touch-primary"
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
+                    )}
                     <button
-                        type="button"
-                        onClick={onCancel}
-                        className="btn btn-outline min-h-touch-primary"
+                        type="submit"
                         disabled={loading}
+                        aria-busy={loading}
+                        className="btn btn-primary min-h-touch-primary"
                     >
-                        Cancel
+                        {loading ? 'Saving...' : 'Save address'}
                     </button>
-                )}
-                <button
-                    type="submit"
-                    disabled={loading}
-                    aria-busy={loading}
-                    className="btn btn-primary min-h-touch-primary"
-                >
-                    {loading ? 'Saving...' : 'Save address'}
-                </button>
-            </div>
+                </div>
+            )}
         </form>
     );
 }

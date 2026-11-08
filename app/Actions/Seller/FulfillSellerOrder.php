@@ -17,8 +17,8 @@ final readonly class FulfillSellerOrder
     public function handle(Order $order, array $data = []): Order
     {
         return DB::transaction(function () use ($order, $data) {
-            $trackingNumber = $data['tracking_number'] ?? 'PH-'.mb_strtoupper(bin2hex(random_bytes(5)));
-            $carrier = $data['carrier'] ?? $order->shippingOption->name;
+            $trackingNumber = $data['tracking_number'];
+            $courierName = $data['courier_name'];
 
             $order->update([
                 'status' => OrderStatus::ToReceive,
@@ -27,7 +27,11 @@ final readonly class FulfillSellerOrder
             OrderEvent::create([
                 'order_id' => $order->id,
                 'title' => 'Parcel shipped',
-                'detail' => "Shipment arranged with {$carrier}. Tracking number: {$trackingNumber}.",
+                'detail' => "Shipment arranged with {$courierName}. Tracking number: {$trackingNumber}.",
+                'metadata' => [
+                    'courier_name' => $courierName,
+                    'tracking_number' => $trackingNumber,
+                ],
             ]);
 
             return $order;

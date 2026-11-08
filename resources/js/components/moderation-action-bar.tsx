@@ -157,7 +157,7 @@ export function ModerationActionBar({
                                     reason: 'Target suspended by moderator',
                                 })
                             }
-                            className="btn btn-neutral text-danger"
+                            className="btn btn-neutral text-danger-text"
                         >
                             <Ban aria-hidden="true" className="icon" />
                             <span>Suspend</span>
@@ -192,7 +192,7 @@ export function ModerationActionBar({
                                             reason: 'Requested changes',
                                         });
                                     }}
-                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted focus-visible:outline-offset-0"
+                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
                                 >
                                     <SquarePen
                                         aria-hidden="true"
@@ -210,7 +210,7 @@ export function ModerationActionBar({
                                             reason: 'Certificate requested',
                                         });
                                     }}
-                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted focus-visible:outline-offset-0"
+                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
                                 >
                                     <FileBadge
                                         aria-hidden="true"
@@ -228,7 +228,7 @@ export function ModerationActionBar({
                                             reason: 'Hidden by moderator',
                                         });
                                     }}
-                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted focus-visible:outline-offset-0"
+                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
                                 >
                                     <EyeOff
                                         aria-hidden="true"
@@ -246,7 +246,7 @@ export function ModerationActionBar({
                                             reason: 'Warned seller',
                                         });
                                     }}
-                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted focus-visible:outline-offset-0"
+                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
                                 >
                                     <TriangleAlert
                                         aria-hidden="true"
@@ -268,7 +268,7 @@ export function ModerationActionBar({
                                             reason: 'Shop suspended',
                                         });
                                     }}
-                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-danger hover:bg-danger-soft focus-visible:outline-offset-0"
+                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-danger-text hover:bg-danger-soft"
                                 >
                                     <Ban
                                         aria-hidden="true"

@@ -17,7 +17,7 @@ export function TaskCard({
     label,
     ic = 'package',
     href = '#',
-    tone = 'text-primary',
+    tone = 'text-primary-text',
     urgent = false,
     className,
 }: TaskCardProps) {
@@ -33,7 +33,7 @@ export function TaskCard({
                 className={cn(
                     'grid size-10 shrink-0 place-items-center rounded-tile',
                     urgent
-                        ? 'bg-sale-soft text-sale'
+                        ? 'bg-promo-soft text-promo'
                         : cn('bg-primary-soft', tone),
                 )}
             >

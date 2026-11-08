@@ -54,7 +54,7 @@ export function PaymentMethodPicker({
             <legend className="mb-1 text-label text-foreground">
                 Payment method
                 {required && (
-                    <span className="text-danger" aria-hidden="true">
+                    <span className="text-danger-text" aria-hidden="true">
                         {' '}
                         *
                     </span>
@@ -74,7 +74,7 @@ export function PaymentMethodPicker({
                                 isChecked
                                     ? 'border-primary bg-primary-soft'
                                     : 'border-border hover:bg-surface-subtle',
-                                'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring',
+                                'focus-ring',
                             )}
                         >
                             <input
@@ -104,7 +104,7 @@ export function PaymentMethodPicker({
             </div>
 
             {error && (
-                <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
+                <p className="flex items-start gap-1 text-body-sm font-bold text-danger-text">
                     <CircleAlert className="mt-px size-4 shrink-0" />
                     <span>{error}</span>
                 </p>

@@ -42,7 +42,7 @@ export function HalalFacts({
                 </li>
             )}
             {frozen && (
-                <li className="inline-flex items-center gap-1 text-info">
+                <li className="inline-flex items-center gap-1 text-info-text">
                     <Snowflake aria-hidden="true" className="size-4" />
                     Ships frozen
                 </li>

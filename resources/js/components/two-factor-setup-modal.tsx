@@ -109,7 +109,7 @@ function TwoFactorSetupStep({
                     </div>
 
                     <div className="flex w-full space-x-2">
-                        <div className="flex w-full items-stretch overflow-hidden rounded-panel border border-border">
+                        <div className="focus-ring-inset flex w-full items-stretch overflow-hidden rounded-panel border border-border">
                             {!manualSetupKey ? (
                                 <div className="flex h-full w-full items-center justify-center bg-surface-muted p-3">
                                     <Spinner />
@@ -120,7 +120,7 @@ function TwoFactorSetupStep({
                                         type="text"
                                         readOnly
                                         value={manualSetupKey}
-                                        className="h-full w-full bg-surface p-3 text-foreground outline-none"
+                                        className="h-full w-full bg-surface p-3 text-foreground"
                                     />
                                     <button
                                         onClick={() => copy(manualSetupKey)}

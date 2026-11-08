@@ -27,6 +27,18 @@ enum OrderStatus: string
         };
     }
 
+    public function badgeVariant(): string
+    {
+        return match ($this) {
+            self::Pending => 'neutral',
+            self::ToPay, self::ToShip => 'warning',
+            self::ToReceive => 'info',
+            self::Completed => 'success',
+            self::Cancelled => 'neutral',
+            self::ReturnRefund => 'danger',
+        };
+    }
+
     public function isCancellable(): bool
     {
         return in_array($this, [self::Pending, self::ToPay, self::ToShip], true);

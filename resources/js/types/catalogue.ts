@@ -20,7 +20,7 @@ export type ProductCardData = {
     free_shipping: boolean;
     frozen: boolean;
     temperature?: HandlingTemp | null;
-    category_slug?: string;
+    requires_certification: boolean;
     in_stock?: boolean;
     halal_status: HalalStatus;
     certifier: string | null;
@@ -76,6 +76,8 @@ export type ProductDetail = ProductCardData & {
     description: string | null;
     stock: number;
     in_stock: boolean;
+    review_count: number;
+    ships_from: string;
     images: { url: string | null; icon: string }[];
     option1_name: string | null;
     option2_name: string | null;

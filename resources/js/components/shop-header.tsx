@@ -42,7 +42,7 @@ export function ShopHeader({
                     className="pattern-geo h-20 bg-surface-inverse md:h-28"
                 />
             )}
-            <div className="-mt-8 grid gap-3 px-gutter pb-4 md:-mt-10 md:flex md:items-end md:gap-5 md:px-6">
+            <div className="grid gap-3 p-4 md:flex md:items-end md:gap-5">
                 <span className="grid size-16 place-items-center overflow-hidden rounded-tile border-4 border-surface bg-surface shadow-xs md:size-20">
                     {s.logo_url ? (
                         <img
@@ -78,7 +78,9 @@ export function ShopHeader({
                     <p className="mt-1 flex items-center gap-1 text-body-sm text-muted-foreground">
                         <DsIcon name="map-pin" className="size-4" />
                         {s.location} ·{' '}
-                        <span className="text-success">Active recently</span>
+                        <span className="text-success-text">
+                            Active recently
+                        </span>
                     </p>
                 </div>
                 <div className="flex gap-2 md:pb-1">

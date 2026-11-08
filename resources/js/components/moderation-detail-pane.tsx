@@ -109,9 +109,9 @@ export function ModerationDetailPane({
                             <span
                                 className={`inline-flex items-center gap-1 font-bold ${
                                     item.sla_breach
-                                        ? 'text-danger'
+                                        ? 'text-danger-text'
                                         : item.sla_warn
-                                          ? 'text-warning'
+                                          ? 'text-warning-text'
                                           : 'text-muted-foreground'
                                 }`}
                             >

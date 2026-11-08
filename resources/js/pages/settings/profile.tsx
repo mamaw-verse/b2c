@@ -81,13 +81,13 @@ export default function Profile({
                                         <Link
                                             href={send()}
                                             as="button"
-                                            className="font-bold text-primary underline underline-offset-2"
+                                            className="font-bold text-primary-text underline underline-offset-2"
                                         >
                                             Re-send the verification email
                                         </Link>
                                         {status ===
                                             'verification-link-sent' && (
-                                            <p className="mt-2 text-body-sm font-bold text-success">
+                                            <p className="mt-2 text-body-sm font-bold text-success-text">
                                                 A new verification link has been
                                                 sent.
                                             </p>

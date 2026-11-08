@@ -156,7 +156,7 @@ export function ChatList({
                                                 {isUnread && (
                                                     <span
                                                         aria-hidden="true"
-                                                        className="grid min-w-5 shrink-0 place-items-center rounded-full bg-sale px-1.5 text-caption leading-5 text-primary-foreground"
+                                                        className="grid min-w-5 shrink-0 place-items-center rounded-full bg-primary px-1.5 text-caption leading-5 text-primary-foreground"
                                                     >
                                                         {unreadCount}
                                                         <span className="sr-only">

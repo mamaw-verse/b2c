@@ -62,7 +62,7 @@ type RawItem = {
 };
 
 type Preview = {
-    kind: 'product' | 'review' | 'chat' | 'unknown';
+    kind: 'product' | 'review' | 'chat' | 'shop_application' | 'unknown';
     snapshot: Record<string, unknown>;
 };
 
@@ -112,11 +112,15 @@ export default function ModerationShow({
                     ? 'Report'
                     : item.type === 'keyword'
                       ? 'Keyword'
-                      : 'General',
+                      : item.type === 'shop_application'
+                        ? 'Shop application'
+                        : 'General',
         priority:
             item.type === 'halal' || item.type === 'expiry'
                 ? 'P1'
-                : item.type === 'keyword' || item.type === 'report'
+                : item.type === 'keyword' ||
+                    item.type === 'report' ||
+                    item.type === 'shop_application'
                   ? 'P2'
                   : 'P3',
         title: targetTitle,

@@ -111,7 +111,7 @@ export default function Cart({
         <>
             <Head title="Shopping Cart" />
 
-            <div className="mx-auto max-w-7xl px-gutter py-4 pb-28 md:px-6 md:py-6 lg:pb-8">
+            <div className="py-4 pb-28 md:py-6 lg:pb-8">
                 <h1 className="mb-4 text-h2">
                     Shopping Cart{' '}
                     {allItems.length > 0 && (
@@ -165,7 +165,7 @@ export default function Cart({
                                         onClick={() =>
                                             setVoucherPickerOpen(true)
                                         }
-                                        className="ml-auto inline-flex items-center gap-1.5 text-body-sm text-primary hover:underline"
+                                        className="ml-auto inline-flex items-center gap-1.5 text-body-sm text-primary-text hover:underline"
                                     >
                                         <Ticket
                                             aria-hidden="true"
@@ -224,8 +224,8 @@ export default function Cart({
 
             {/* Sticky bar for mobile / phone */}
             {!isCartEmpty && (
-                <div className="z-sticky shadow-panel fixed inset-x-0 bottom-[var(--tabbar-h,4rem)] border-t border-border bg-surface p-gutter md:px-6">
-                    <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+                <div className="z-sticky shadow-panel fixed inset-x-0 bottom-[var(--tabbar-h,4rem)] border-t border-border bg-surface p-gutter lg:hidden">
+                    <div className="mx-auto flex max-w-container items-center justify-between gap-3">
                         <label className="flex cursor-pointer items-center gap-2">
                             <input
                                 type="checkbox"
@@ -246,7 +246,7 @@ export default function Cart({
                                 Total ({selectedCount} items)
                             </p>
                             <p
-                                className="tabular text-price font-extrabold text-sale"
+                                className="tabular text-price font-extrabold text-foreground"
                                 aria-live="polite"
                             >
                                 {formatPeso(selectedTotal)}

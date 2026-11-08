@@ -37,7 +37,7 @@ export default function SellerSettings({ settings }: PageProps) {
                         {wasSuccessful && (
                             <div
                                 role="status"
-                                className="mb-4 rounded-panel bg-success-soft p-3 text-body text-success"
+                                className="mb-4 rounded-panel bg-success-soft p-3 text-body text-success-text"
                             >
                                 Settings saved!
                             </div>

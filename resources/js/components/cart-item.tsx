@@ -12,6 +12,7 @@ export type CartItemData = {
     slug: string;
     name: string;
     icon?: string;
+    image_url?: string | null;
     halal_status?: string;
     certifier?: string | null;
     frozen?: boolean;
@@ -71,6 +72,7 @@ export function CartItem({
                 <Media
                     label={item.name}
                     icon={item.icon ?? 'package'}
+                    src={item.image_url}
                     decorative
                 />
             </a>
@@ -90,7 +92,7 @@ export function CartItem({
                             type="button"
                             onClick={onRemove}
                             aria-label={`Remove ${item.name} from cart`}
-                            className="-mr-1 p-1 text-muted-foreground hover:text-danger"
+                            className="-mr-1 p-1 text-muted-foreground hover:text-danger-text"
                         >
                             <Trash2 aria-hidden="true" className="size-4" />
                         </button>
@@ -139,13 +141,13 @@ export function CartItem({
                 </div>
 
                 {lowStock && (
-                    <p className="text-body-sm font-medium text-warning">
+                    <p className="text-body-sm font-medium text-warning-text">
                         Only {item.stock} left
                     </p>
                 )}
 
                 {isUnavailable && (
-                    <p className="text-body-sm font-medium text-danger">
+                    <p className="text-body-sm font-medium text-danger-text">
                         {item.unavailable}
                     </p>
                 )}

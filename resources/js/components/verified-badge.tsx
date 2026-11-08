@@ -19,7 +19,7 @@ export function VerifiedBadge({
                 tone === 'solid'
                     ? 'badge-solid'
                     : tone === 'outline'
-                      ? 'border border-primary bg-surface text-primary'
+                      ? 'border border-primary bg-surface text-primary-text'
                       : '',
                 size === 'sm' && 'px-1.5',
             )}

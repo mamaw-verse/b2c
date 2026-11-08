@@ -9,7 +9,7 @@ type ChipProps = ComponentProps<'button'> & {
 };
 
 export function Chip({
-    pressed = false,
+    pressed,
     icon,
     count,
     className,
@@ -21,7 +21,7 @@ export function Chip({
             type="button"
             aria-pressed={pressed}
             className={cn(
-                'relative inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-border-control bg-surface px-3 text-label whitespace-nowrap text-foreground transition-colors duration-token after:absolute after:-inset-x-px after:-inset-y-[5px] hover:bg-surface-muted active:bg-border disabled:cursor-not-allowed disabled:opacity-60 aria-pressed:border-primary aria-pressed:bg-primary-soft aria-pressed:text-primary-soft-foreground',
+                'relative inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-border-control bg-surface px-3 text-label font-medium whitespace-nowrap text-foreground transition-colors duration-token after:absolute after:-inset-x-px after:-inset-y-[5px] hover:bg-surface-muted active:bg-border disabled:cursor-not-allowed disabled:opacity-60 aria-pressed:border-primary aria-pressed:bg-primary-soft aria-pressed:text-primary-soft-foreground',
                 className,
             )}
             {...props}

@@ -70,3 +70,25 @@ test('out of stock throws validation exception', function () {
     $this->expectException(ValidationException::class);
     $action->handle($user, $address, $shippingOption, 'cod');
 });
+
+test('checkout request rejects an out of stock selected item', function () {
+    $user = User::factory()->create();
+    $product = Product::factory()->certified()->create(['price' => 50000, 'stock' => 0]);
+    $address = Address::factory()->create(['user_id' => $user->id]);
+    $shippingOption = ShippingOption::factory()->create(['fee' => 8000]);
+
+    CartItem::factory()->create([
+        'user_id' => $user->id,
+        'product_id' => $product->id,
+        'qty' => 1,
+        'selected' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('checkout.store'), [
+            'address_id' => $address->id,
+            'shipping_option_id' => $shippingOption->id,
+            'payment_method' => 'cod',
+        ])
+        ->assertSessionHasErrors('cart');
+});

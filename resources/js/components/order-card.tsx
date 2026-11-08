@@ -29,6 +29,12 @@ export type OrderData = {
         | 'cancelled'
         | 'return_refund';
     status_label?: string;
+    status_badge_variant?:
+        | 'neutral'
+        | 'info'
+        | 'warning'
+        | 'success'
+        | 'danger';
     shop?: {
         name: string;
         slug?: string;
@@ -51,25 +57,11 @@ export function OrderCard({
     onReceive,
     className = '',
 }: OrderCardProps) {
-    const statusBadge = () => {
-        switch (order.status) {
-            case 'pending':
-            case 'to_pay':
-                return <Badge variant="warning">To Pay</Badge>;
-            case 'to_ship':
-                return <Badge variant="neutral">To Ship</Badge>;
-            case 'to_receive':
-                return <Badge variant="info">To Receive</Badge>;
-            case 'completed':
-                return <Badge variant="success">Completed</Badge>;
-            case 'cancelled':
-                return <Badge variant="danger">Cancelled</Badge>;
-            case 'return_refund':
-                return <Badge variant="warning">Return/Refund</Badge>;
-            default:
-                return <Badge variant="neutral">{order.status}</Badge>;
-        }
-    };
+    const statusBadge = () => (
+        <Badge variant={order.status_badge_variant ?? 'neutral'}>
+            {order.status_label ?? order.status}
+        </Badge>
+    );
 
     return (
         <article
@@ -93,7 +85,7 @@ export function OrderCard({
             {(order.status === 'to_receive' || order.tracking_note) && (
                 <Link
                     href={`/account/orders/${order.id}`}
-                    className="flex min-h-touch items-center gap-2 border-b border-border px-gutter text-body-sm text-success transition-colors hover:bg-surface-subtle md:px-4"
+                    className="flex min-h-touch items-center gap-2 border-b border-border px-gutter text-body-sm text-success-text transition-colors hover:bg-surface-subtle md:px-4"
                 >
                     <Truck className="size-4 shrink-0" aria-hidden="true" />
                     <span className="flex-1 truncate">
@@ -151,7 +143,7 @@ export function OrderCard({
             {/* Total */}
             <div className="flex items-baseline justify-end gap-2 border-t border-border px-gutter py-2 text-body md:px-4">
                 <span className="text-muted-foreground">Order total:</span>
-                <span className="tabular text-price font-bold text-sale">
+                <span className="tabular text-price font-bold text-foreground">
                     {formatPeso(order.total)}
                 </span>
             </div>

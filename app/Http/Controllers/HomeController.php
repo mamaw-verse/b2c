@@ -24,6 +24,7 @@ final class HomeController
                 ->get(['id', 'name', 'slug', 'icon']),
             'products' => Inertia::scroll(fn () => $feed->handle()),
             'vouchers' => $vouchers->handle(3),
+            'canBecomeSeller' => $request->user()?->isSeller() === false,
         ]);
     }
 }

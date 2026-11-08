@@ -43,7 +43,7 @@ export function AuditLogList({ entries }: { entries: AuditEntry[] }) {
                             </span>
                         ) : (
                             <span
-                                className="relative inline-grid size-8 shrink-0 place-items-center rounded-full bg-success-soft text-caption font-bold text-success"
+                                className="relative inline-grid size-8 shrink-0 place-items-center rounded-full bg-success-soft text-caption font-bold text-success-text"
                                 aria-hidden="true"
                             >
                                 <span>{getInitials(entry.actor)}</span>

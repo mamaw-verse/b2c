@@ -22,7 +22,7 @@ export default function PublicLayout({
     children,
 }: PropsWithChildren<PublicLayoutProps>) {
     return (
-        <>
+        <div className="flex min-h-dvh flex-col">
             <a
                 href="#main"
                 className="fixed top-2 left-2 z-toast flex min-h-touch -translate-y-24 items-center rounded-button bg-primary px-4 text-label text-primary-foreground focus:translate-y-0"
@@ -34,16 +34,17 @@ export default function PublicLayout({
                 id="main"
                 data-shell="public"
                 className={cn(
+                    'flex-1',
                     tabBar
                         ? 'pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))]'
                         : 'pb-sticky-bar',
-                    'lg:pb-0',
+                    'lg:pb-8',
                 )}
             >
-                {children}
+                <div className="page">{children}</div>
             </main>
             <SiteFooter />
             {tabBar && <SiteBottomTabs active={activeTab} />}
-        </>
+        </div>
     );
 }

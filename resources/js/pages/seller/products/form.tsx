@@ -545,7 +545,7 @@ export default function SellerProductForm({
                         </div>
 
                         {/* Sticky bottom bar */}
-                        <div className="fixed inset-x-0 bottom-0 z-sticky-bar border-t border-border bg-surface px-gutter pt-3 pb-safe lg:left-[var(--sidebar-w)]">
+                        <div className="fixed inset-x-0 bottom-0 z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe lg:left-[var(--sidebar-w)]">
                             <div className="mx-auto flex max-w-4xl items-center gap-3">
                                 <span className="hidden flex-1 text-body-sm text-muted-foreground lg:block">
                                     {isEditing

@@ -1,9 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { TriangleAlert, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { OrderRow } from '@/components/order-row';
 import { SalesChart } from '@/components/sales-chart';
 import { StatCard } from '@/components/stat-card';
 import { TaskGrid } from '@/components/task-card';
+import { Banner } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { index as ordersIndex } from '@/routes/seller/orders';
 import { dashboard as sellerDashboard } from '@/routes/seller';
 import type { TaskCardProps } from '@/components/task-card';
@@ -88,56 +90,31 @@ export default function SellerDashboard({
 
                     {/* Halal expiry warning */}
                     {expiry_warning && (
-                        <div
-                            role="alert"
-                            className="flex items-start gap-3 rounded-panel border border-l-4 border-warning bg-warning-soft p-4"
+                        <Banner
+                            tone="warning"
+                            live
+                            title={
+                                expiry_warning.is_expired
+                                    ? `Halal certificate expired — ${expiry_warning.product}`
+                                    : `Halal certificate expires in ${expiry_warning.days_left} day${expiry_warning.days_left !== 1 ? 's' : ''} — ${expiry_warning.product}`
+                            }
+                            action={
+                                <Button variant="outline" asChild>
+                                    <Link href={expiry_warning.edit_url}>
+                                        <Upload
+                                            className="icon"
+                                            aria-hidden="true"
+                                        />
+                                        Renew certificate
+                                    </Link>
+                                </Button>
+                            }
                         >
-                            <TriangleAlert
-                                className="mt-0.5 size-5 shrink-0 text-warning"
-                                aria-hidden="true"
-                            />
-                            <div className="flex-1">
-                                <p className="text-label text-foreground">
-                                    {expiry_warning.is_expired ? (
-                                        <>
-                                            Halal certificate expired —{' '}
-                                            <strong>
-                                                {expiry_warning.product}
-                                            </strong>
-                                        </>
-                                    ) : (
-                                        <>
-                                            Halal certificate expires in{' '}
-                                            <strong>
-                                                {expiry_warning.days_left} day
-                                                {expiry_warning.days_left !== 1
-                                                    ? 's'
-                                                    : ''}
-                                            </strong>{' '}
-                                            — {expiry_warning.product}
-                                        </>
-                                    )}
-                                </p>
-                                <p className="mt-0.5 text-body-sm text-muted-foreground">
-                                    {expiry_warning.certifying_body} · valid
-                                    until {expiry_warning.valid_until} ·{' '}
-                                    {expiry_warning.listings_count} listing
-                                    {expiry_warning.listings_count !== 1
-                                        ? 's'
-                                        : ''}
-                                </p>
-                                <Link
-                                    href={expiry_warning.edit_url}
-                                    className="mt-1 inline-flex items-center gap-1 text-body-sm text-warning underline hover:no-underline"
-                                >
-                                    <Upload
-                                        className="size-3.5"
-                                        aria-hidden="true"
-                                    />
-                                    Renew certificate
-                                </Link>
-                            </div>
-                        </div>
+                            {expiry_warning.certifying_body} · valid until{' '}
+                            {expiry_warning.valid_until} ·{' '}
+                            {expiry_warning.listings_count} listing
+                            {expiry_warning.listings_count !== 1 ? 's' : ''}
+                        </Banner>
                     )}
 
                     {/* To-do tasks */}
@@ -188,7 +165,7 @@ export default function SellerDashboard({
                                 </h2>
                                 <Link
                                     href={ordersIndex()}
-                                    className="text-body-sm text-primary hover:underline"
+                                    className="text-body-sm text-primary-text hover:underline"
                                 >
                                     View all
                                 </Link>

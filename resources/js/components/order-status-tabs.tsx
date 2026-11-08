@@ -70,7 +70,7 @@ export function OrderStatusTabs({
                             aria-selected={isSelected}
                             tabIndex={isSelected ? 0 : -1}
                             onClick={() => onSelect(tab.key)}
-                            className="relative flex min-h-touch shrink-0 cursor-pointer items-center gap-1.5 px-4 text-label whitespace-nowrap text-muted-foreground transition-colors after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full hover:text-foreground focus-visible:outline-offset-[-3px] aria-selected:text-primary aria-selected:after:bg-primary"
+                            className="relative flex min-h-touch shrink-0 cursor-pointer items-center gap-1.5 px-4 text-label whitespace-nowrap text-muted-foreground transition-colors after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full hover:text-foreground focus-inset aria-selected:text-primary-text aria-selected:after:bg-primary"
                         >
                             <span>{tab.label}</span>
                             {hasCount && (

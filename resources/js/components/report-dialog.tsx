@@ -188,7 +188,7 @@ export function ReportDialog({
                     ))}
                 </fieldset>
 
-                {error && <p className="text-body-sm text-danger">{error}</p>}
+                {error && <p className="text-body-sm text-danger-text">{error}</p>}
 
                 <div className="grid gap-1.5">
                     <div className="flex items-baseline justify-between gap-2">
@@ -239,7 +239,7 @@ export function ReportDialog({
                                 <button
                                     type="button"
                                     onClick={() => handleRemoveFile(i)}
-                                    className="btn btn-icon btn-neutral btn-sm absolute top-0.5 right-0.5 rounded-full text-danger shadow-popover"
+                                    className="btn btn-icon btn-neutral btn-sm absolute top-0.5 right-0.5 rounded-full text-danger-text shadow-popover"
                                     aria-label="Remove photo"
                                 >
                                     <X
@@ -253,7 +253,7 @@ export function ReportDialog({
                             <li>
                                 <label
                                     htmlFor="report-file-input"
-                                    className="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary hover:bg-primary-soft"
+                                    className="grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed border-border-control bg-surface text-center text-body-sm font-bold text-primary-text hover:bg-primary-soft"
                                 >
                                     <span>
                                         <ImagePlus

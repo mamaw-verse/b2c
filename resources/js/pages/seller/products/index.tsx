@@ -84,7 +84,7 @@ export default function SellerProductsIndex({
             render: (p) => (
                 <span
                     className={
-                        p.stock <= 5 ? 'text-label text-danger' : 'text-label'
+                        p.stock <= 5 ? 'text-label text-danger-text' : 'text-label'
                     }
                 >
                     {p.stock}
@@ -122,7 +122,7 @@ export default function SellerProductsIndex({
                         href={edit({ product: p.id })}
                         method="delete"
                         as="button"
-                        className="btn btn-ghost btn-sm text-label text-danger"
+                        className="btn btn-ghost btn-sm text-label text-danger-text"
                         onClick={(e) => {
                             if (
                                 !confirm(

@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { DsIcon } from '@/components/ds-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
-import { formatPeso } from '@/lib/format';
+import { formatDateTime, formatPeso } from '@/lib/format';
 import { index as ordersIndex } from '@/routes/seller/orders';
 import { store as storeShipment } from '@/routes/seller/orders/shipment';
 
@@ -22,19 +24,18 @@ type OrderItem = {
 
 type OrderDetail = {
     id: string;
+    reference: string;
     raw_id: string;
     status: string;
     status_raw: string;
+    status_variant: 'neutral' | 'info' | 'warning' | 'success' | 'danger';
     created_at: string;
     buyer: { id: string; name: string; email: string };
     shipping_address: {
         recipient_name?: string | null;
         phone?: string | null;
         street?: string | null;
-        barangay?: string | null;
-        city?: string | null;
-        province?: string | null;
-        postal_code?: string | null;
+        formatted?: string | null;
         landmark?: string | null;
     };
     shipping_option: {
@@ -45,9 +46,14 @@ type OrderDetail = {
     };
     payment: {
         method: string;
+        method_raw: string;
+        cod_collect_amount: number | null;
         subtotal: number;
-        shipping_fee: number;
+        shipping: number;
+        shipping_discount: number;
         voucher_discount: number;
+        platform_voucher_discount: number;
+        cod_fee: number;
         total: number;
     };
     items: OrderItem[];
@@ -55,6 +61,8 @@ type OrderDetail = {
         title?: string | null;
         detail?: string | null;
         time?: string | null;
+        courier_name?: string | null;
+        tracking_number?: string | null;
         state?: string | null;
     }[];
     can_ship: boolean;
@@ -63,23 +71,6 @@ type OrderDetail = {
 type PageProps = {
     order: OrderDetail;
 };
-
-function statusVariant(status: string) {
-    const map: Record<
-        string,
-        'neutral' | 'info' | 'warning' | 'success' | 'danger'
-    > = {
-        Pending: 'neutral',
-        'To Pay': 'warning',
-        'To Ship': 'info',
-        Shipped: 'info',
-        'To Receive': 'neutral',
-        Completed: 'success',
-        Cancelled: 'danger',
-        Refunded: 'neutral',
-    };
-    return map[status] ?? 'neutral';
-}
 
 export default function SellerOrderShow({ order }: PageProps) {
     const [shipModalOpen, setShipModalOpen] = useState(false);
@@ -104,12 +95,14 @@ export default function SellerOrderShow({ order }: PageProps) {
                     {/* Header */}
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-h1">Order {order.id}</h1>
+                            <h1 className="text-h1">
+                                Order {order.reference}
+                            </h1>
                             <p className="mt-1 text-body text-muted-foreground">
-                                Placed on {order.created_at}
+                                Placed on {formatDateTime(order.created_at)}
                             </p>
                         </div>
-                        <Badge variant={statusVariant(order.status)}>
+                        <Badge variant={order.status_variant}>
                             {order.status}
                         </Badge>
                     </div>
@@ -161,14 +154,78 @@ export default function SellerOrderShow({ order }: PageProps) {
                             <div className="flex justify-between text-body text-muted-foreground">
                                 <span>Shipping</span>
                                 <span>
-                                    {formatPeso(order.payment.shipping_fee)}
+                                    {formatPeso(order.payment.shipping)}
                                 </span>
                             </div>
+                            {order.payment.shipping_discount > 0 && (
+                                <div className="flex justify-between text-body text-muted-foreground">
+                                    <span>Shipping discount</span>
+                                    <span>
+                                        −
+                                        {formatPeso(
+                                            order.payment.shipping_discount,
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                            {order.payment.voucher_discount > 0 && (
+                                <div className="flex justify-between text-body text-muted-foreground">
+                                    <span>Shop voucher</span>
+                                    <span>
+                                        −
+                                        {formatPeso(
+                                            order.payment.voucher_discount,
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                            {order.payment.platform_voucher_discount > 0 && (
+                                <div className="flex justify-between text-body text-muted-foreground">
+                                    <span>Platform voucher</span>
+                                    <span>
+                                        −
+                                        {formatPeso(
+                                            order.payment
+                                                .platform_voucher_discount,
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                            {order.payment.cod_fee > 0 && (
+                                <div className="flex justify-between text-body text-muted-foreground">
+                                    <span>COD fee (collect from buyer)</span>
+                                    <span>
+                                        {formatPeso(order.payment.cod_fee)}
+                                    </span>
+                                </div>
+                            )}
                             <div className="mt-2 flex justify-between text-h3">
                                 <span>Total</span>
                                 <span>{formatPeso(order.payment.total)}</span>
                             </div>
                         </div>
+                    </section>
+
+                    {/* Payment */}
+                    <section className="panel p-4 md:p-6">
+                        <h2 className="mb-3 text-h3">Payment</h2>
+                        <div className="flex justify-between text-body">
+                            <span className="text-muted-foreground">
+                                Method
+                            </span>
+                            <span>{order.payment.method}</span>
+                        </div>
+                        {order.payment.cod_collect_amount !== null && (
+                            <p className="mt-2 rounded-tile bg-surface-subtle p-2 text-body-sm">
+                                COD — collect{' '}
+                                <span className="font-bold">
+                                    {formatPeso(
+                                        order.payment.cod_collect_amount,
+                                    )}
+                                </span>{' '}
+                                from buyer
+                            </p>
+                        )}
                     </section>
 
                     {/* Shipping address */}
@@ -179,13 +236,7 @@ export default function SellerOrderShow({ order }: PageProps) {
                                 {order.shipping_address.recipient_name}
                             </p>
                             <p>{order.shipping_address.phone}</p>
-                            <p>{order.shipping_address.street}</p>
-                            <p>
-                                {order.shipping_address.barangay},{' '}
-                                {order.shipping_address.city},{' '}
-                                {order.shipping_address.province}{' '}
-                                {order.shipping_address.postal_code}
-                            </p>
+                            <p>{order.shipping_address.formatted}</p>
                             {order.shipping_address.landmark && (
                                 <p className="text-muted-foreground">
                                     Landmark: {order.shipping_address.landmark}
@@ -214,7 +265,8 @@ export default function SellerOrderShow({ order }: PageProps) {
                                             </p>
                                         )}
                                         <time className="text-caption text-muted-foreground">
-                                            {event.time}
+                                            {event.time &&
+                                                formatDateTime(event.time)}
                                         </time>
                                     </li>
                                 ))}
@@ -225,7 +277,7 @@ export default function SellerOrderShow({ order }: PageProps) {
             </div>
 
             {/* Action bar (sticky on mobile, fixed on desktop) */}
-            <div className="fixed inset-x-0 bottom-0 z-sticky-bar border-t border-border bg-surface px-gutter pt-3 pb-safe lg:left-[var(--sidebar-w)]">
+            <div className="fixed inset-x-0 bottom-0 z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe lg:left-[var(--sidebar-w)]">
                 <div className="mx-auto flex max-w-container items-center gap-2">
                     <Link
                         href={`/chat?buyer=${order.buyer.id}`}
@@ -259,12 +311,37 @@ export default function SellerOrderShow({ order }: PageProps) {
                 open={shipModalOpen}
                 onOpenChange={setShipModalOpen}
                 title="Arrange shipment"
-                footer={
-                    <Form
-                        action={storeShipment({ order: order.raw_id }).url}
-                        method="post"
-                    >
-                        {({ processing }) => (
+            >
+                <Form
+                    action={storeShipment({ order: order.raw_id }).url}
+                    method="post"
+                >
+                    {({ processing, errors }) => (
+                        <div className="grid gap-4">
+                            <p className="text-body text-muted-foreground">
+                                Mark order {order.reference} as shipped and
+                                notify the buyer?
+                            </p>
+                            <FormField
+                                label="Courier"
+                                required
+                                error={errors.courier_name}
+                            >
+                                <Input
+                                    name="courier_name"
+                                    placeholder="e.g. J&T Express"
+                                />
+                            </FormField>
+                            <FormField
+                                label="Tracking number"
+                                required
+                                error={errors.tracking_number}
+                            >
+                                <Input
+                                    name="tracking_number"
+                                    placeholder="e.g. PH-123456789"
+                                />
+                            </FormField>
                             <div className="flex justify-end gap-3">
                                 <Button
                                     type="button"
@@ -281,13 +358,9 @@ export default function SellerOrderShow({ order }: PageProps) {
                                     Confirm shipment
                                 </Button>
                             </div>
-                        )}
-                    </Form>
-                }
-            >
-                <p className="text-body text-muted-foreground">
-                    Mark order {order.id} as shipped and notify the buyer?
-                </p>
+                        </div>
+                    )}
+                </Form>
             </Modal>
         </>
     );

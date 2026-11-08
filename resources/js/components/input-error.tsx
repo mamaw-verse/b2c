@@ -15,7 +15,7 @@ export default function InputError({
         <p
             {...props}
             className={cn(
-                'flex items-start gap-1 text-body-sm font-bold text-danger',
+                'flex items-start gap-1 text-body-sm font-bold text-danger-text',
                 className,
             )}
         >

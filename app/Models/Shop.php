@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ShopStatus;
 use Database\Factories\ShopFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -32,10 +33,25 @@ use Illuminate\Support\Carbon;
  * @property bool $auto_reply
  * @property array<string, bool>|null $shipping_channels
  * @property bool $suspended
+ * @property ShopStatus $status
+ * @property string|null $rejection_reason
+ * @property Carbon|null $submitted_at
+ * @property Carbon|null $reviewed_at
+ * @property string|null $reviewed_by
+ * @property string|null $contact_number
+ * @property string|null $id_type
+ * @property string|null $id_number
+ * @property string|null $id_document_url
+ * @property string|null $selfie_url
+ * @property string|null $business_permit_url
+ * @property string|null $bank_account_name
+ * @property string|null $bank_account_number
+ * @property string|null $bank_name
+ * @property bool $agreed_to_terms
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended'])]
+#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by', 'contact_number', 'id_type', 'id_number', 'id_document_url', 'selfie_url', 'business_permit_url', 'bank_account_name', 'bank_account_number', 'bank_name', 'agreed_to_terms'])]
 final class Shop extends Model
 {
     /** @use HasFactory<ShopFactory> */
@@ -45,6 +61,22 @@ final class Shop extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === ShopStatus::Approved;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === ShopStatus::Pending;
     }
 
     /** @return HasMany<Product, $this> */
@@ -85,6 +117,10 @@ final class Shop extends Model
             'vacation_mode' => 'boolean',
             'auto_reply' => 'boolean',
             'shipping_channels' => 'array',
+            'status' => ShopStatus::class,
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+            'agreed_to_terms' => 'boolean',
         ];
     }
 }

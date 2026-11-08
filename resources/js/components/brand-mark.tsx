@@ -13,7 +13,7 @@ export function BrandMark({
     className,
 }: BrandMarkProps) {
     return (
-        <span className={cn('flex items-center gap-2 text-primary', className)}>
+        <span className={cn('flex items-center gap-2 text-primary-text', className)}>
             <span
                 className="grid size-8 place-items-center rounded-tile bg-primary text-primary-foreground"
                 aria-hidden="true"

@@ -23,7 +23,7 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
     return (
         <div className="flex items-center justify-between gap-4 border-b border-border p-4 last:border-b-0">
             <div className="flex min-w-0 items-center gap-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-tile bg-primary-soft text-primary">
+                <span className="grid size-10 shrink-0 place-items-center rounded-tile bg-primary-soft text-primary-text">
                     <KeyRound className="size-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 space-y-1">
@@ -46,7 +46,7 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
             <Button
                 variant="ghost"
                 size="icon"
-                className="text-danger hover:bg-danger-soft"
+                className="text-danger-text hover:bg-danger-soft"
                 aria-label={`Remove ${passkey.name}`}
                 onClick={() => setConfirmOpen(true)}
             >

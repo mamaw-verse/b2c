@@ -10,6 +10,7 @@ use App\Models\CartItem;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 final class CreateCheckoutRequest extends FormRequest
 {
@@ -49,5 +50,25 @@ final class CreateCheckoutRequest extends FormRequest
             'platform_voucher_id' => ['nullable', 'string', 'exists:vouchers,id'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $outOfStock = CartItem::with(['product', 'variation'])
+                ->where('user_id', $this->user()->id)
+                ->where('selected', true)
+                ->get()
+                ->first(fn (CartItem $item) => ! $item->product->published
+                    || ! $item->product->halal_status->visibleToBuyers()
+                    || ($item->variation?->stock ?? $item->product->stock) < $item->qty);
+
+            if ($outOfStock !== null) {
+                $validator->errors()->add(
+                    'cart',
+                    "Product \"{$outOfStock->product->name}\" is out of stock.",
+                );
+            }
+        });
     }
 }

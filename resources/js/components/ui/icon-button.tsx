@@ -34,7 +34,7 @@ function IconButton({
             {typeof count === 'number' && count > 0 && (
                 <span
                     aria-hidden="true"
-                    className="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-sale px-1 text-caption leading-5 text-primary-foreground"
+                    className="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-caption leading-5 text-primary-foreground"
                 >
                     {count > 99 ? '99+' : count}
                 </span>

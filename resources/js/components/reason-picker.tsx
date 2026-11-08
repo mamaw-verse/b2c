@@ -60,7 +60,7 @@ export function ReasonPicker({
                 ))}
                 {error && (
                     <p
-                        className="flex items-start gap-1 text-body-sm font-bold text-danger"
+                        className="flex items-start gap-1 text-body-sm font-bold text-danger-text"
                         role="alert"
                     >
                         <CircleAlert

@@ -90,7 +90,7 @@ export function OrderSummary({
                             <dd
                                 className={cn(
                                     'tabular',
-                                    isDiscount && 'font-medium text-sale',
+                                    isDiscount && 'font-medium text-promo',
                                 )}
                             >
                                 {isDiscount && (
@@ -105,7 +105,7 @@ export function OrderSummary({
                 <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-border pt-3">
                     <dt className="text-label">Total payment</dt>
                     <dd
-                        className="tabular text-price-lg text-sale"
+                        className="tabular text-price-lg text-foreground"
                         aria-live="polite"
                     >
                         {formattedTotal}

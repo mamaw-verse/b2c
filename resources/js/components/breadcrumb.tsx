@@ -21,7 +21,7 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
                         <li key={i} className="flex items-center gap-1">
                             <Link
                                 href={item.href ?? '#'}
-                                className="inline-flex min-h-touch min-w-touch items-center justify-center text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
+                                className="inline-flex min-h-touch min-w-touch items-center justify-center text-muted-foreground underline-offset-2 hover:text-primary-text hover:underline"
                             >
                                 {item.label}
                             </Link>

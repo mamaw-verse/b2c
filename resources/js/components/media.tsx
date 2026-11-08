@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils';
 
 const tones = [
     'bg-brand-100 text-brand-700',
-    'bg-info-soft text-info',
-    'bg-sale-soft text-sale',
-    'bg-warning-soft text-warning',
+    'bg-info-soft text-info-text',
+    'bg-promo-soft text-promo',
+    'bg-warning-soft text-warning-text',
     'bg-surface-muted text-muted-foreground',
-    'bg-success-soft text-success',
+    'bg-success-soft text-success-text',
 ];
 
 type MediaProps = {

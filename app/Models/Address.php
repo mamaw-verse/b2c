@@ -36,6 +36,9 @@ final class Address extends Model
     /** @use HasFactory<AddressFactory> */
     use HasFactory, HasUlids;
 
+    /** @var list<string> */
+    protected $appends = ['formatted_address'];
+
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
@@ -64,6 +67,23 @@ final class Address extends Model
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class, 'barangay_code', 'code');
+    }
+
+    public function formattedAddress(): string
+    {
+        $parts = array_filter([
+            $this->street,
+            $this->barangay?->name,
+            $this->city?->name,
+            mb_trim("{$this->province?->name} {$this->postal_code}"),
+        ], fn (?string $part) => $part !== null && $part !== '');
+
+        return implode(', ', $parts);
+    }
+
+    public function getFormattedAddressAttribute(): string
+    {
+        return $this->formattedAddress();
     }
 
     protected function casts(): array

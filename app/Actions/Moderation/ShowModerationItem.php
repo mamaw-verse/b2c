@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Moderation;
 
+use App\Enums\ModerationItemType;
 use App\Enums\ModerationReason;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -60,6 +61,7 @@ final readonly class ShowModerationItem
         $target = $this->resolveTarget($item);
 
         return match (true) {
+            $target instanceof Shop && $item->type === ModerationItemType::ShopApplication => $this->shopApplicationPreview($item, $target),
             $target instanceof Product => $this->productPreview($item, $target),
             $target instanceof Shop => $this->shopPreview($item, $target),
             $target instanceof Review => $this->reviewPreview($item, $target),
@@ -110,6 +112,32 @@ final readonly class ShowModerationItem
                 'photos' => array_values(array_filter([$shop->banner_url, $shop->logo_url])),
                 'flag_notice' => $this->reasonLabel($item),
                 'halal_status' => $shop->halal_only ? 'halal-only shop' : 'general shop',
+            ],
+        ];
+    }
+
+    /** @return array{kind: string, snapshot: array<string, mixed>} */
+    private function shopApplicationPreview(ModerationQueueItem $item, Shop $shop): array
+    {
+        return [
+            'kind' => 'shop_application',
+            'snapshot' => [
+                'shop_name' => $shop->name,
+                'description' => $shop->description,
+                'location' => $shop->location,
+                'contact_number' => $shop->contact_number,
+                'halal_only' => $shop->halal_only,
+                'id_type' => $shop->id_type,
+                'id_number' => $shop->id_number,
+                'id_document_url' => $shop->id_document_url,
+                'selfie_url' => $shop->selfie_url,
+                'business_permit_url' => $shop->business_permit_url,
+                'bank_name' => $shop->bank_name,
+                'bank_account_name' => $shop->bank_account_name,
+                'applicant_name' => $shop->owner?->name,
+                'applicant_email' => $shop->owner?->email,
+                'submitted_at' => $shop->submitted_at?->toISOString(),
+                'flag_notice' => $this->reasonLabel($item),
             ],
         ];
     }

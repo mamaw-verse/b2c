@@ -112,7 +112,7 @@ export default function TwoFactorChallenge() {
                             or you can{' '}
                             <button
                                 type="button"
-                                className="font-bold text-primary underline decoration-1 underline-offset-2"
+                                className="font-bold text-primary-text underline decoration-1 underline-offset-2"
                                 onClick={() => {
                                     setShowRecoveryInput(!showRecoveryInput);
                                     clearErrors();

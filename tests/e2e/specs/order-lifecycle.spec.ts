@@ -64,12 +64,14 @@ test.describe.serial('full order lifecycle', () => {
         const props = await pageProps<{ product: { id: string } }>(page);
         const productId = props.product.id;
 
-        // Add to cart through the real endpoint (UI button is still stubbed).
-        const cart = await api(page, 'POST', '/cart', {
-            product_id: productId,
-            qty: 2,
-        });
-        expect(cart.status).toBeLessThan(400);
+        // Add to cart through the real UI button.
+        await page
+            .getByRole('button', { name: 'Add to cart' })
+            .first()
+            .click();
+        await expect(
+            page.getByText(/added to cart/i).first(),
+        ).toBeVisible();
 
         // File a report so the admin moderation queue has an item to review.
         await api(page, 'POST', '/reports', {
@@ -93,9 +95,11 @@ test.describe.serial('full order lifecycle', () => {
             .getByRole('button', { name: 'Place order' })
             .first()
             .click();
-        await expect(page).toHaveURL(/\/cart/, { timeout: 15_000 });
+        await expect(page).toHaveURL(/order-confirmed/, {
+            timeout: 15_000,
+        });
         await expect(
-            page.getByText(/order has been placed/i).first(),
+            page.getByText(/order has been placed|order placed/i).first(),
         ).toBeVisible();
         await shot(page, 'buyer-04-order-placed');
 
@@ -116,7 +120,7 @@ test.describe.serial('full order lifecycle', () => {
         await page.goto('/seller/dashboard');
         await shot(page, 'seller-01-dashboard');
 
-        await page.goto('/seller/orders?status=ToShip');
+        await page.goto('/seller/orders?status=to_ship');
         await expect(
             page.getByRole('link', { name: /\d{2}[a-z0-9]+/i }).first(),
         ).toBeVisible();
@@ -130,6 +134,12 @@ test.describe.serial('full order lifecycle', () => {
             .getByRole('button', { name: /Arrange shipment/ })
             .click();
         await shot(page, 'seller-04-ship-modal');
+        await page
+            .getByLabel(/Courier/i)
+            .fill('J&T Express');
+        await page
+            .getByLabel(/Tracking number/i)
+            .fill('PH-E2E1234567');
         await page
             .getByRole('button', { name: 'Confirm shipment' })
             .click();

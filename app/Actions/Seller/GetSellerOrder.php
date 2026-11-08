@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Seller;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Models\Order;
 use App\Models\Shop;
 
@@ -18,11 +19,13 @@ final readonly class GetSellerOrder
         $order->load(['items.product.images', 'items.variation', 'user', 'address', 'shippingOption', 'events']);
 
         return [
-            'id' => '#'.mb_strtoupper(mb_substr($order->id, -11)),
+            'id' => $order->referenceNumber(),
+            'reference' => $order->referenceNumber(),
             'raw_id' => $order->id,
             'status' => $order->status->label(),
             'status_raw' => $order->status->value,
-            'created_at' => $order->created_at?->format('M d, Y h:i A'),
+            'status_variant' => $order->status->badgeVariant(),
+            'created_at' => $order->created_at?->toISOString(),
             'buyer' => [
                 'id' => $order->user->id,
                 'name' => $order->user->name,
@@ -32,10 +35,7 @@ final readonly class GetSellerOrder
                 'recipient_name' => $order->address?->name,
                 'phone' => $order->address?->phone,
                 'street' => $order->address?->street,
-                'barangay' => $order->address?->barangay?->name ?? $order->address?->barangay_code,
-                'city' => $order->address?->city?->name ?? $order->address?->city_code,
-                'province' => $order->address?->province?->name ?? $order->address?->province_code,
-                'postal_code' => $order->address?->postal_code,
+                'formatted' => $order->address?->formattedAddress(),
                 'landmark' => $order->address?->landmark,
             ],
             'shipping_option' => [
@@ -46,10 +46,9 @@ final readonly class GetSellerOrder
             ],
             'payment' => [
                 'method' => mb_strtoupper($order->payment_method->value),
-                'subtotal' => $order->subtotal,
-                'shipping_fee' => $order->shipping_fee,
-                'voucher_discount' => $order->voucher_discount,
-                'total' => $order->total,
+                'method_raw' => $order->payment_method->value,
+                'cod_collect_amount' => $order->payment_method === PaymentMethod::Cod ? $order->total : null,
+                ...$order->totals()->toArray(),
             ],
             'items' => $order->items->map(fn ($item) => [
                 'id' => $item->id,
@@ -66,7 +65,9 @@ final readonly class GetSellerOrder
             'timeline' => $order->events->map(fn ($e) => [
                 'title' => $e->title,
                 'detail' => $e->detail,
-                'time' => $e->created_at?->format('M d, Y h:i A'),
+                'time' => $e->created_at?->toISOString(),
+                'courier_name' => $e->metadata['courier_name'] ?? null,
+                'tracking_number' => $e->metadata['tracking_number'] ?? null,
                 'state' => 'done',
             ]),
             'can_ship' => $order->status === OrderStatus::ToShip,

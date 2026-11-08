@@ -26,7 +26,7 @@ export function SegmentedControl({
         <fieldset
             className={cn(
                 block ? 'flex' : 'inline-flex',
-                'rounded-button bg-surface-muted p-1',
+                'focus-ring rounded-button bg-surface-muted p-1',
                 className,
             )}
         >
@@ -35,7 +35,7 @@ export function SegmentedControl({
                 <label
                     key={i}
                     className={cn(
-                        'relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-button px-3 text-label whitespace-nowrap text-muted-foreground hover:text-foreground has-checked:bg-surface has-checked:text-foreground has-checked:shadow-card-hover has-focus-visible:outline-3 has-focus-visible:outline-ring',
+                        'relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-button px-3 text-label whitespace-nowrap text-muted-foreground hover:text-foreground has-checked:bg-surface has-checked:text-foreground has-checked:shadow-card-hover',
                         size === 'sm'
                             ? 'min-h-9 min-w-11 after:absolute after:-inset-y-1'
                             : 'min-h-touch',

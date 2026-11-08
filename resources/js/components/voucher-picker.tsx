@@ -38,7 +38,7 @@ const KIND_META = {
         title: 'Platform vouchers',
         tag: 'Platform',
         icon: Tag,
-        bg: 'bg-sale text-primary-foreground',
+        bg: 'bg-promo-solid-bg text-primary-foreground',
     },
     shipping: {
         title: 'Free shipping',
@@ -93,7 +93,7 @@ export function VoucherPicker({
                 aria-live="polite"
             >
                 Saving{' '}
-                <span className="font-bold text-sale">
+                <span className="font-bold text-promo">
                     {totalSavings > 0 ? formatPeso(totalSavings) : '₱0'}
                 </span>
             </p>
@@ -149,7 +149,7 @@ export function VoucherPicker({
                         </button>
                     </div>
                     {codeError && (
-                        <p className="mt-1 flex items-center gap-1 text-body-sm font-medium text-danger">
+                        <p className="mt-1 flex items-center gap-1 text-body-sm font-medium text-danger-text">
                             <CircleAlert className="size-3.5 shrink-0" />
                             {codeError}
                         </p>
@@ -190,7 +190,7 @@ export function VoucherPicker({
                                                 ? 'cursor-not-allowed border-border opacity-75'
                                                 : 'border-border-outline',
                                             'has-[:checked]:border-primary has-[:checked]:bg-primary-soft',
-                                            'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring',
+                                            'focus-ring',
                                         )}
                                     >
                                         <div
@@ -221,7 +221,7 @@ export function VoucherPicker({
                                                 className={cn(
                                                     'flex items-center gap-1 text-caption',
                                                     isDisabled
-                                                        ? 'text-danger'
+                                                        ? 'text-danger-text'
                                                         : 'text-muted-foreground',
                                                 )}
                                             >

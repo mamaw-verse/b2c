@@ -40,9 +40,11 @@ type CursorPaginator<T> = {
 
 export default function ModerationIndex({
     queue,
+    counts = {},
     filters = {},
 }: {
     queue: CursorPaginator<RawModerationItem>;
+    counts?: Record<string, number>;
     filters?: QueueFilters & {
         state?: string;
         type?: string;
@@ -53,11 +55,20 @@ export default function ModerationIndex({
     const [processing, setProcessing] = useState(false);
 
     const typeCounts = [
-        { value: 'halal', label: 'Halal checks', count: 0 },
-        { value: 'report', label: 'Reports', count: 0 },
-        { value: 'keyword', label: 'Keyword flags', count: 0 },
-        { value: 'expiry', label: 'Cert expiries', count: 0 },
-        { value: 'general', label: 'General', count: 0 },
+        { value: 'halal', label: 'Halal checks', count: counts.halal ?? 0 },
+        { value: 'report', label: 'Reports', count: counts.report ?? 0 },
+        {
+            value: 'keyword',
+            label: 'Keyword flags',
+            count: counts.keyword ?? 0,
+        },
+        { value: 'expiry', label: 'Cert expiries', count: counts.expiry ?? 0 },
+        {
+            value: 'shop_application',
+            label: 'Shop applications',
+            count: counts.shop_application ?? 0,
+        },
+        { value: 'general', label: 'General', count: counts.general ?? 0 },
     ];
 
     // Map Raw items to QueueItem format
@@ -83,7 +94,9 @@ export default function ModerationIndex({
         const priority: 'P1' | 'P2' | 'P3' =
             raw.type === 'halal' || raw.type === 'expiry'
                 ? 'P1'
-                : raw.type === 'keyword' || raw.type === 'report'
+                : raw.type === 'keyword' ||
+                    raw.type === 'report' ||
+                    raw.type === 'shop_application'
                   ? 'P2'
                   : 'P3';
 
@@ -100,7 +113,9 @@ export default function ModerationIndex({
                         ? 'Report'
                         : raw.type === 'keyword'
                           ? 'Keyword'
-                          : 'General',
+                          : raw.type === 'shop_application'
+                            ? 'Shop application'
+                            : 'General',
             title: targetTitle,
             excerpt,
             state: raw.state,

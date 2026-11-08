@@ -47,7 +47,8 @@ export default function Orders({ status, counts, orders }: OrdersPageProps) {
         return {
             id: order.id,
             status: order.status,
-            status_label: order.status,
+            status_label: order.status_label,
+            status_badge_variant: order.status_badge_variant,
             shop: order.shop
                 ? {
                       name: order.shop.name,

@@ -46,7 +46,7 @@ export function SiteBottomTabs({ active = 'Home' }: { active?: TabName }) {
     return (
         <nav
             aria-label="Main"
-            className="fixed inset-x-0 bottom-0 z-header border-t border-border bg-surface pb-safe lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-header border-t border-border bg-surface pb-safe md:hidden"
         >
             <ul className="mx-auto flex max-w-xl">
                 {tabs.map(({ name, icon: Icon, countKey }) => {
@@ -64,7 +64,7 @@ export function SiteBottomTabs({ active = 'Home' }: { active?: TabName }) {
                                 className={cn(
                                     'relative flex h-14 min-w-touch flex-col items-center justify-center gap-0.5 px-1 text-caption whitespace-nowrap',
                                     isActive
-                                        ? 'font-bold text-primary'
+                                        ? 'font-bold text-primary-text'
                                         : 'text-muted-foreground hover:text-foreground',
                                 )}
                             >
@@ -79,7 +79,7 @@ export function SiteBottomTabs({ active = 'Home' }: { active?: TabName }) {
                                     {hasCount && (
                                         <span
                                             aria-hidden="true"
-                                            className="absolute -top-1.5 -right-2.5 grid min-w-4.5 place-items-center rounded-full bg-sale px-1 text-caption leading-[1.125rem] text-primary-foreground"
+                                            className="absolute -top-1.5 -right-2.5 grid min-w-4.5 place-items-center rounded-full bg-primary px-1 text-caption leading-[1.125rem] text-primary-foreground"
                                         >
                                             {count > 99 ? '99+' : count}
                                         </span>

@@ -21,7 +21,7 @@ export default function AuthLayout({
             <main
                 id="main"
                 data-shell="auth"
-                className="grid min-h-dvh place-items-center bg-background px-gutter py-10 text-foreground"
+                className="grid min-h-dvh items-start justify-items-center bg-background px-gutter py-10 text-foreground"
             >
                 <div className="w-full max-w-sm">
                     <Link

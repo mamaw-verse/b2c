@@ -20,10 +20,13 @@ export type FooterLink = {
 
 export type Marketplace = {
     tagline: string;
-    support: { email: string; hours: string };
-    registration: string;
+    support: { email: string | null; hours: string | null };
+    registration: string | null;
     payments: string[];
     couriers: string[];
+    nav: { sell: string | null; help: string | null };
+    claims: { halal_verification: boolean };
+    trust: { certificates: boolean; cold_chain: boolean; cod: boolean };
     socials: { label: string; icon: string; href: string }[];
     footer: Record<
         'shop' | 'support' | 'trust' | 'sell' | 'company',

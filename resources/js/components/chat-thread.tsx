@@ -68,7 +68,7 @@ export function ChatThread({
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-label">{shop.name}</p>
-                    <p className="text-caption text-success">
+                    <p className="text-caption text-success-text">
                         {shop.online !== false ? 'Online' : 'Offline'}
                     </p>
                 </div>

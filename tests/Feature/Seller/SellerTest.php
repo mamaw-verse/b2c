@@ -362,7 +362,7 @@ test('seller can fulfill order and transition status to to_receive', function ()
     $this->actingAs($this->sellerUser)
         ->post(route('seller.orders.shipment.store', $order), [
             'tracking_number' => 'TRACK-998877',
-            'carrier' => 'J&T Express',
+            'courier_name' => 'J&T Express',
         ])
         ->assertRedirect(route('seller.orders.show', $order));
 

@@ -109,3 +109,40 @@ test('shop page renders shop stats and products', function () {
             ->where('shop.products_count', 2)
             ->has('products.data', 2));
 });
+
+test('category halal filter returns only certified products and a real total', function () {
+    $category = Category::factory()->create();
+    Product::factory()->certified()->count(2)->create(['category_id' => $category->id]);
+    Product::factory()->create(['category_id' => $category->id]);
+
+    $this->get(route('categories.show', ['category' => $category, 'halal' => 1]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('category')
+            ->where('filters.halal', true)
+            ->where('total', 2)
+            ->has('products.data', 2)
+            ->where('products.data.0.halal_status', 'certified'));
+});
+
+test('category sort falls back to default and page reports total', function () {
+    $category = Category::factory()->create();
+    Product::factory()->count(3)->create(['category_id' => $category->id]);
+
+    $this->get(route('categories.show', ['category' => $category, 'sort' => 'bogus']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.sort', 'top_sales')
+            ->where('total', 3));
+});
+
+test('category filters products by price sort', function () {
+    $category = Category::factory()->create();
+    Product::factory()->create(['category_id' => $category->id, 'name' => 'Cheap item', 'price' => 100]);
+    Product::factory()->create(['category_id' => $category->id, 'name' => 'Pricey item', 'price' => 90000]);
+
+    $this->get(route('categories.show', ['category' => $category, 'sort' => 'price_asc']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('products.data.0.name', 'Cheap item'));
+});

@@ -1,8 +1,10 @@
+import { router, usePage } from '@inertiajs/react';
 import { ChevronRight, MessageCircle, Ticket } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { CartItem, type CartItemData } from '@/components/cart-item';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { cn } from '@/lib/utils';
+import { login } from '@/routes';
 
 export type CartShopGroupData = {
     shop: {
@@ -37,7 +39,16 @@ export function CartShopGroup({
     onVoucherClick,
     className,
 }: CartShopGroupProps) {
+    const { auth } = usePage().props;
     const checkboxRef = useRef<HTMLInputElement>(null);
+
+    const handleChatClick = () => {
+        if (!auth.user) {
+            router.visit(login().url);
+            return;
+        }
+        router.post('/chat', { shop_id: group.shop.id });
+    };
     const headingId = `shop-group-${group.shop.id}-h`;
 
     const availableItems = group.items.filter((i) => !i.unavailable);
@@ -94,16 +105,17 @@ export function CartShopGroup({
                     )}
                 </a>
 
-                <a
-                    href="#"
+                <button
+                    type="button"
+                    onClick={handleChatClick}
                     className="btn btn-ghost btn-icon -mr-2 ml-auto text-muted-foreground"
                     aria-label={`Chat with ${group.shop.name}`}
                 >
                     <MessageCircle aria-hidden="true" className="size-4" />
-                </a>
+                </button>
             </div>
 
-            <ul className="divide-y divide-border px-gutter md:px-4">
+            <ul className="divide-y divide-border px-4">
                 {group.items.map((item) => (
                     <CartItem
                         key={item.id}
@@ -121,11 +133,11 @@ export function CartShopGroup({
                     onClick={onVoucherClick}
                     className="flex min-h-touch w-full items-center gap-2 border-t border-border px-gutter text-body-sm hover:bg-surface-subtle md:px-4"
                 >
-                    <Ticket aria-hidden="true" className="size-4 text-sale" />
+                    <Ticket aria-hidden="true" className="size-4 text-promo" />
                     <span className="flex-1 text-left">
                         {group.voucherLabel}
                     </span>
-                    <span className="font-medium text-primary">
+                    <span className="font-medium text-primary-text">
                         More vouchers
                     </span>
                     <ChevronRight

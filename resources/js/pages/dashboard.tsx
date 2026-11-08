@@ -67,7 +67,7 @@ export default function Dashboard() {
                             <Link key={item.title} href={item.href} prefetch>
                                 <Card interactive className="h-full gap-3 p-4">
                                     <CardHeader className="p-0">
-                                        <span className="grid size-10 place-items-center rounded-tile bg-primary-soft text-primary">
+                                        <span className="grid size-10 place-items-center rounded-tile bg-primary-soft text-primary-text">
                                             <Icon
                                                 className="size-5"
                                                 aria-hidden="true"

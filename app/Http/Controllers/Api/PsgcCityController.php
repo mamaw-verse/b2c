@@ -14,7 +14,7 @@ final class PsgcCityController
     {
         $cities = City::where('province_code', $province->code)
             ->orderBy('name')
-            ->get(['code', 'name', 'province_code', 'is_municipality']);
+            ->get(['code', 'name', 'province_code', 'is_municipality', 'postal_code']);
 
         return response()->json($cities);
     }

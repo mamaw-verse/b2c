@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\ShopStatus;
 use App\Models\Shop;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -31,6 +32,32 @@ final class ShopFactory extends Factory
             'halal_only' => false,
             'logo_url' => null,
             'banner_url' => null,
+            'status' => ShopStatus::Approved->value,
+            'contact_number' => fake()->numerify('09#########'),
+            'id_type' => fake()->randomElement(['philsys', 'drivers_license', 'passport', 'national_id']),
+            'id_number' => fake()->bothify('??#######'),
+            'bank_name' => fake()->randomElement(['BDO', 'BPI', 'Metrobank', 'GCash', 'Maya']),
+            'bank_account_name' => fake()->name(),
+            'bank_account_number' => fake()->numerify('####-####-####'),
+            'agreed_to_terms' => true,
         ];
+    }
+
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ShopStatus::Pending->value,
+            'submitted_at' => now(),
+        ]);
+    }
+
+    public function rejected(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ShopStatus::Rejected->value,
+            'submitted_at' => now(),
+            'reviewed_at' => now(),
+            'rejection_reason' => fake()->sentence(),
+        ]);
     }
 }

@@ -3,18 +3,19 @@ import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const tones = {
-    info: ['bg-info-soft border-info text-info', Info],
-    success: ['bg-success-soft border-success text-success', CircleCheck],
-    warning: ['bg-warning-soft border-warning text-warning', TriangleAlert],
-    danger: ['bg-danger-soft border-danger text-danger', CircleAlert],
-    destructive: ['bg-danger-soft border-danger text-danger', CircleAlert],
-    default: ['bg-surface-muted border-border text-foreground', Info],
+    info: ['bg-info-soft text-info-text', Info],
+    success: ['bg-success-soft text-success-text', CircleCheck],
+    warning: ['bg-warning-soft text-warning-text', TriangleAlert],
+    danger: ['bg-danger-soft text-danger-text', CircleAlert],
+    destructive: ['bg-danger-soft text-danger-text', TriangleAlert],
+    default: ['bg-surface-muted text-muted-foreground', Info],
 } as const;
 
 type BannerProps = ComponentProps<'div'> & {
     tone?: keyof typeof tones;
     title?: string;
     action?: ReactNode;
+    icon?: ReactNode;
     live?: boolean;
     children?: ReactNode;
 };
@@ -23,29 +24,42 @@ function Banner({
     tone = 'info',
     title,
     action,
+    icon,
     live = false,
     className,
     children,
     ...props
 }: BannerProps) {
-    const [classes, Icon] = tones[tone];
+    const [tileClasses, DefaultIcon] = tones[tone];
+    const assertive = tone === 'danger' || tone === 'destructive';
 
     return (
         <div
-            role={live ? (tone === 'danger' ? 'alert' : 'status') : undefined}
+            role={live ? (assertive ? 'alert' : 'status') : undefined}
             className={cn(
-                'flex items-start gap-3 rounded-panel border-l-4 p-3 md:p-4',
-                classes,
+                'flex flex-col gap-3 rounded-panel border border-border bg-surface p-3 md:flex-row md:items-center md:gap-4 md:p-4',
+                children && 'md:items-start',
                 className,
             )}
             {...props}
         >
-            <Icon className="mt-0.5 size-5" aria-hidden="true" />
-            <div className="grid flex-1 gap-1">
-                {title && <p className="text-label">{title}</p>}
-                <div className="text-body text-foreground">{children}</div>
-                {action && <div>{action}</div>}
+            <div
+                className={cn(
+                    'grid size-9 shrink-0 place-items-center rounded-tile',
+                    tileClasses,
+                )}
+            >
+                {icon ?? <DefaultIcon className="size-5" aria-hidden="true" />}
             </div>
+            <div className="grid min-w-0 flex-1 gap-0.5">
+                {title && <p className="text-label text-foreground">{title}</p>}
+                {children && (
+                    <div className="text-body-sm text-muted-foreground">
+                        {children}
+                    </div>
+                )}
+            </div>
+            {action && <div className="shrink-0">{action}</div>}
         </div>
     );
 }

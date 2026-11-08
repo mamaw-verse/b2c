@@ -9,33 +9,51 @@ return [
     | Storefront chrome content
     |--------------------------------------------------------------------------
     |
-    | Customer-facing copy and link lists rendered by the site footer and
-    | trust strip. {brand} in labels/hrefs is replaced with config('app.name').
+    | Customer-facing copy and link lists rendered by the site header, footer
+    | and trust strip. {brand} in labels/hrefs is replaced with
+    | config('app.name'). Empty values hide the matching UI block — nothing
+    | renders a placeholder or an unbacked claim.
     |
     */
 
     'tagline' => env('MARKETPLACE_TAGLINE', 'Every halal claim verified, delivered across the Philippines.'),
 
     'support' => [
-        'email' => env('MARKETPLACE_SUPPORT_EMAIL', 'support@example.com'),
-        'hours' => env('MARKETPLACE_SUPPORT_HOURS', 'Mon–Sat, 9:00–18:00 (PHT)'),
+        'email' => env('MARKETPLACE_SUPPORT_EMAIL'),
+        'hours' => env('MARKETPLACE_SUPPORT_HOURS'),
     ],
 
-    'registration' => env('MARKETPLACE_REGISTRATION', 'DTI Business Name Reg. No. 0000-0000'),
+    'registration' => env('MARKETPLACE_REGISTRATION'),
 
-    'payments' => ['COD', 'GCash', 'Maya', 'Cards', 'Bank transfer'],
+    'payments' => array_values(array_filter(explode(',', (string) env('MARKETPLACE_PAYMENTS')))),
 
-    'couriers' => ['J&T Express', 'Lalamove', 'Ninja Van'],
+    'couriers' => array_values(array_filter(explode(',', (string) env('MARKETPLACE_COURIERS')))),
 
-    'socials' => [
-        ['label' => 'Facebook', 'icon' => 'facebook', 'href' => '#'],
-        ['label' => 'Instagram', 'icon' => 'instagram', 'href' => '#'],
-        ['label' => 'YouTube', 'icon' => 'youtube', 'href' => '#'],
+    'nav' => [
+        'sell' => env('MARKETPLACE_NAV_SELL_URL', '/seller/dashboard'),
+        'help' => env('MARKETPLACE_NAV_HELP_URL'),
     ],
+
+    'claims' => [
+        'halal_verification' => (bool) env('MARKETPLACE_CLAIM_HALAL_VERIFICATION', false),
+    ],
+
+    /* Home page trust strip. Each item renders only when enabled; the COD
+       item additionally requires COD in `payments`. */
+    'trust' => [
+        'certificates' => (bool) env('MARKETPLACE_TRUST_CERTIFICATES', false),
+        'cold_chain' => (bool) env('MARKETPLACE_TRUST_COLD_CHAIN', true),
+        'cod' => (bool) env('MARKETPLACE_TRUST_COD', true),
+    ],
+
+    'socials' => array_values(array_filter([
+        env('MARKETPLACE_SOCIAL_FACEBOOK') ? ['label' => 'Facebook', 'icon' => 'facebook', 'href' => env('MARKETPLACE_SOCIAL_FACEBOOK')] : null,
+        env('MARKETPLACE_SOCIAL_INSTAGRAM') ? ['label' => 'Instagram', 'icon' => 'instagram', 'href' => env('MARKETPLACE_SOCIAL_INSTAGRAM')] : null,
+        env('MARKETPLACE_SOCIAL_YOUTUBE') ? ['label' => 'YouTube', 'icon' => 'youtube', 'href' => env('MARKETPLACE_SOCIAL_YOUTUBE')] : null,
+    ])),
 
     'footer' => [
         'shop' => [
-            ['label' => 'Categories', 'href' => '/categories/halal-food'],
             ['label' => 'Halal Food', 'href' => '/categories/halal-food'],
             ['label' => 'Meat & Seafood', 'href' => '/categories/meat-seafood'],
             ['label' => 'Dates & Sweets', 'href' => '/categories/dates-sweets'],
@@ -44,31 +62,17 @@ return [
             ['label' => 'Books & Quran', 'href' => '/categories/books-quran'],
             ['label' => 'Vouchers', 'href' => '/categories/vouchers'],
         ],
-        'support' => [
-            ['label' => 'Help centre', 'href' => '#'],
+        'support' => array_values(array_filter([
+            env('MARKETPLACE_NAV_HELP_URL') ? ['label' => 'Help centre', 'href' => env('MARKETPLACE_NAV_HELP_URL')] : null,
             ['label' => 'Track order', 'href' => '/account/orders'],
-            ['label' => 'Returns & refunds', 'href' => '#'],
-            ['label' => 'Contact us', 'href' => 'mailto:'.env('MARKETPLACE_SUPPORT_EMAIL', 'support@example.com')],
-            ['label' => 'Report a listing', 'href' => '#'],
-        ],
-        'trust' => [
-            ['label' => 'Halal verification policy', 'href' => '#'],
-            ['label' => 'How we verify sellers', 'href' => '#'],
-            ['label' => 'Certifier list', 'href' => '#'],
-            ['label' => 'Community review of religious items', 'href' => '#'],
-        ],
+            env('MARKETPLACE_SUPPORT_EMAIL') ? ['label' => 'Contact us', 'href' => 'mailto:'.env('MARKETPLACE_SUPPORT_EMAIL')] : null,
+        ])),
+        'trust' => [],
         'sell' => [
-            ['label' => 'Sell on {brand}', 'href' => '#'],
+            ['label' => 'Sell on {brand}', 'href' => '/seller/dashboard'],
             ['label' => 'Seller centre', 'href' => '/seller/dashboard'],
-            ['label' => 'Onboarding guide', 'href' => '#'],
-            ['label' => 'Halal certification guide', 'href' => '#'],
         ],
-        'company' => [
-            ['label' => 'About', 'href' => '#'],
-            ['label' => 'Terms', 'href' => '#'],
-            ['label' => 'Privacy (Data Privacy Act notice)', 'href' => '#'],
-            ['label' => 'Cookies', 'href' => '#'],
-        ],
+        'company' => [],
     ],
 
 ];

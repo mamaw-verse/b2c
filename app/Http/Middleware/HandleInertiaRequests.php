@@ -56,6 +56,7 @@ final class HandleInertiaRequests extends Middleware
                 })->whereNull('read_at')->count(),
                 'notifications' => $request->user()->unreadNotifications()->count(),
             ] : null,
+            'cartCount' => fn () => $request->user()?->cartItems()->count() ?? 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'navCategories' => Category::whereNull('parent_id')->orderBy('sort_order')->limit(8)->get(['id', 'name', 'slug']),
             'searchSuggestions' => fn () => cache()->remember('search_suggestions', 3600, function () {

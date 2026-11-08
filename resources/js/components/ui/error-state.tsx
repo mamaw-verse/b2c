@@ -32,7 +32,7 @@ function ErrorState({
             )}
             {...props}
         >
-            <span className="grid size-16 place-items-center rounded-full bg-danger-soft text-danger">
+            <span className="grid size-16 place-items-center rounded-full bg-danger-soft text-danger-text">
                 <Icon className="size-8" aria-hidden="true" />
             </span>
             <h3 className="text-h3">{title}</h3>

@@ -66,6 +66,18 @@ test('adding more than available stock fails validation', function () {
         ->assertSessionHasErrors('qty');
 });
 
+test('adding a zero-stock product returns an out of stock error', function () {
+    $user = User::factory()->create();
+    $product = Product::factory()->certified()->create(['stock' => 0]);
+
+    $this->actingAs($user)
+        ->post(route('cart.store'), [
+            'product_id' => $product->id,
+            'qty' => 1,
+        ])
+        ->assertSessionHasErrors(['qty' => 'This product is out of stock.']);
+});
+
 test('unauthenticated user cannot add item to cart', function () {
     $product = Product::factory()->certified()->create(['stock' => 10]);
 

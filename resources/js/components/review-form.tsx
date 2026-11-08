@@ -131,7 +131,7 @@ export function ReviewForm({
                     </p>
                 </div>
                 {errors.body && (
-                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
+                    <p className="flex items-start gap-1 text-body-sm font-bold text-danger-text">
                         <AlertCircle
                             className="mt-px size-4 shrink-0"
                             aria-hidden="true"

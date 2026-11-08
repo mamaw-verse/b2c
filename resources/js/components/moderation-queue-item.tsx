@@ -152,8 +152,8 @@ export function ModerationQueueItem({
                         className={cn(
                             'inline-flex items-center gap-1 font-bold',
                             {
-                                'text-warning': slaState === 'warn',
-                                'text-danger': slaState === 'breach',
+                                'text-warning-text': slaState === 'warn',
+                                'text-danger-text': slaState === 'breach',
                                 'text-muted-foreground': slaState === 'ok',
                             },
                         )}

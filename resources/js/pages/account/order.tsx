@@ -17,12 +17,20 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { TextArea } from '@/components/ui/textarea';
-import { formatPeso } from '@/lib/format';
+import { formatDate, formatDateTime, formatPeso } from '@/lib/format';
 
 type OrderDetailPageProps = {
     order: {
         id: string;
+        reference: string;
         status: string;
+        status_label: string;
+        status_badge_variant:
+            | 'neutral'
+            | 'info'
+            | 'warning'
+            | 'success'
+            | 'danger';
         subtotal: number;
         shipping_fee: number;
         shipping_discount: number;
@@ -42,9 +50,7 @@ type OrderDetailPageProps = {
             name: string;
             phone: string;
             street: string;
-            city?: { name: string };
-            province?: { name: string };
-            postal_code: string;
+            formatted_address: string;
             label: string;
             is_default: boolean;
         };
@@ -135,26 +141,6 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
         );
     };
 
-    const statusBadge = () => {
-        switch (order.status) {
-            case 'pending':
-            case 'to_pay':
-                return <Badge variant="warning">To Pay</Badge>;
-            case 'to_ship':
-                return <Badge variant="neutral">To Ship</Badge>;
-            case 'to_receive':
-                return <Badge variant="info">To Receive</Badge>;
-            case 'completed':
-                return <Badge variant="success">Completed</Badge>;
-            case 'cancelled':
-                return <Badge variant="danger">Cancelled</Badge>;
-            case 'return_refund':
-                return <Badge variant="warning">Return/Refund</Badge>;
-            default:
-                return <Badge variant="neutral">{order.status}</Badge>;
-        }
-    };
-
     // Prepare timeline events
     const timelineEvents: TimelineEvent[] =
         order.events && order.events.length > 0
@@ -163,24 +149,14 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                   detail:
                       evt.detail ||
                       (evt.location ? `Location: ${evt.location}` : null),
-                  time: new Date(evt.created_at).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                  }),
+                  time: formatDateTime(evt.created_at),
                   state: idx === 0 ? 'current' : 'done',
               }))
             : [
                   {
                       title: 'Order placed',
                       detail: `Payment method: ${order.payment_method.toUpperCase()}`,
-                      time: new Date(order.created_at).toLocaleString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                      }),
+                      time: formatDateTime(order.created_at),
                       state: order.status === 'completed' ? 'done' : 'current',
                   },
               ];
@@ -189,7 +165,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
 
     return (
         <>
-            <Head title={`Order #${order.id.slice(-8).toUpperCase()}`} />
+            <Head title={`Order ${order.reference}`} />
 
             <div className="grid gap-6">
                 {/* Back button & Header */}
@@ -205,18 +181,16 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                             <h1 className="tabular text-h2">
-                                Order #{order.id.slice(-8).toUpperCase()}
+                                Order {order.reference}
                             </h1>
-                            {statusBadge()}
+                            <Badge variant={order.status_badge_variant}>
+                                {order.status_label}
+                            </Badge>
                         </div>
                     </div>
 
                     <p className="mt-1 text-body-sm text-muted-foreground">
-                        Placed{' '}
-                        {new Date(order.created_at).toLocaleDateString(
-                            'en-US',
-                            { month: 'short', day: 'numeric', year: 'numeric' },
-                        )}
+                        Placed {formatDate(order.created_at)}
                         {order.shop && (
                             <>
                                 {' · '}
@@ -233,7 +207,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
 
                 {/* Current status Banner */}
                 {order.status === 'cancelled' ? (
-                    <div className="rounded-panel border border-danger bg-danger-soft p-3 text-body-sm text-danger">
+                    <div className="rounded-panel border border-danger bg-danger-soft p-3 text-body-sm text-danger-text">
                         <AlertTriangle
                             className="mr-1.5 inline size-4 align-[-0.15em]"
                             aria-hidden="true"
@@ -241,7 +215,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                         This order was cancelled.
                     </div>
                 ) : order.status === 'return_refund' ? (
-                    <div className="rounded-panel border border-warning bg-warning-soft p-3 text-body-sm text-warning">
+                    <div className="rounded-panel border border-warning bg-warning-soft p-3 text-body-sm text-warning-text">
                         <AlertTriangle
                             className="mr-1.5 inline size-4 align-[-0.15em]"
                             aria-hidden="true"
@@ -250,7 +224,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                         request.
                     </div>
                 ) : (
-                    <div className="rounded-panel border border-info bg-info-soft p-3 text-body-sm text-info">
+                    <div className="rounded-panel border border-info bg-info-soft p-3 text-body-sm text-info-text">
                         <Truck
                             className="mr-1.5 inline size-4 align-[-0.15em]"
                             aria-hidden="true"
@@ -289,7 +263,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                 </h2>
                                 <div className="mt-3 flex gap-3 rounded-panel border border-border bg-surface p-3 md:p-4">
                                     <MapPin
-                                        className="mt-0.5 size-5 shrink-0 text-sale"
+                                        className="mt-0.5 size-5 shrink-0 text-muted-foreground"
                                         aria-hidden="true"
                                     />
                                     <div className="grid min-w-0 flex-1 grid-cols-1 gap-0.5">
@@ -302,10 +276,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                             </span>
                                         </p>
                                         <p className="text-body text-muted-foreground">
-                                            {order.address.street},{' '}
-                                            {order.address.city?.name ?? ''},{' '}
-                                            {order.address.province?.name ?? ''}{' '}
-                                            {order.address.postal_code}
+                                            {order.address.formatted_address}
                                         </p>
                                     </div>
                                 </div>
@@ -325,7 +296,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                     <div className="flex items-center gap-3">
                                         <Link
                                             href={`/shops/${order.shop.slug}`}
-                                            className="flex items-center gap-1 text-body-sm font-bold text-primary hover:underline"
+                                            className="flex items-center gap-1 text-body-sm font-bold text-primary-text hover:underline"
                                         >
                                             <Store className="size-3.5" />
                                             <span>{order.shop.name}</span>
@@ -337,7 +308,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                                     shop_id: order.shop!.id,
                                                 })
                                             }
-                                            className="inline-flex items-center gap-1 text-body-sm font-bold text-muted-foreground hover:text-primary"
+                                            className="inline-flex items-center gap-1 text-body-sm font-bold text-muted-foreground hover:text-primary-text"
                                         >
                                             <MessageCircle className="size-3.5" />
                                             <span>Chat</span>
@@ -389,7 +360,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                             {order.status === 'completed' && (
                                                 <div className="mt-1">
                                                     {item.review ? (
-                                                        <span className="inline-flex items-center gap-1 text-body-sm text-success">
+                                                        <span className="inline-flex items-center gap-1 text-body-sm text-success-text">
                                                             <CheckCircle2 className="size-3.5" />
                                                             <span>
                                                                 Rated (
@@ -461,7 +432,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                         <dt className="text-muted-foreground">
                                             Shipping discount
                                         </dt>
-                                        <dd className="tabular text-sale">
+                                        <dd className="tabular text-promo">
                                             −
                                             {formatPeso(
                                                 order.shipping_discount,
@@ -474,7 +445,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                         <dt className="text-muted-foreground">
                                             Shop voucher
                                         </dt>
-                                        <dd className="tabular text-sale">
+                                        <dd className="tabular text-promo">
                                             −
                                             {formatPeso(
                                                 order.voucher_discount,
@@ -487,7 +458,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                         <dt className="text-muted-foreground">
                                             Platform voucher
                                         </dt>
-                                        <dd className="tabular text-sale">
+                                        <dd className="tabular text-promo">
                                             −
                                             {formatPeso(
                                                 order.platform_voucher_discount,
@@ -509,7 +480,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                     <dt className="text-label font-bold text-foreground">
                                         Total payment
                                     </dt>
-                                    <dd className="tabular text-price-lg font-bold text-sale">
+                                    <dd className="tabular text-price-lg font-bold text-foreground">
                                         {formatPeso(order.total)}
                                     </dd>
                                 </div>
@@ -548,10 +519,10 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
 
                             {isCancellable && (
                                 <Button
-                                    variant="danger"
+                                    variant="outline"
                                     size="lg"
                                     onClick={() => setCancelModalOpen(true)}
-                                    className="flex-1"
+                                    className="border-danger text-danger-text"
                                 >
                                     Cancel order
                                 </Button>

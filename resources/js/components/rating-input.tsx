@@ -68,7 +68,7 @@ export function RatingInput({
                                 htmlFor={id}
                                 data-on={isOn ? true : undefined}
                                 onPointerOver={() => setHoverValue(star)}
-                                className={`grid min-h-touch min-w-touch cursor-pointer place-items-center text-border-control transition-colors duration-150 data-[on]:text-rating [input:focus-visible+&]:rounded-button [input:focus-visible+&]:outline-3 [input:focus-visible+&]:outline-ring ${
+                                className={`grid min-h-touch min-w-touch cursor-pointer place-items-center text-border-control transition-colors duration-150 data-[on]:text-rating rounded-button focus-ring ${
                                     disabled
                                         ? 'cursor-not-allowed opacity-50'
                                         : ''
@@ -89,7 +89,7 @@ export function RatingInput({
             {error && (
                 <p
                     id={`${prefix}-error`}
-                    className="flex items-start gap-1 text-body-sm font-bold text-danger"
+                    className="flex items-start gap-1 text-body-sm font-bold text-danger-text"
                 >
                     <AlertCircle
                         className="mt-px size-4 shrink-0"

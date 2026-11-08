@@ -44,6 +44,34 @@
    ]
   },
   {
+   "id": "focus",
+   "spec": "specs/focus.spec.ts",
+   "description": "Focus indicator pattern: one 2px ring on the header search field and the quantity stepper in the app, plus every control on the styleguide foundation page, in light and dark.",
+   "steps": [
+    {
+     "action": "goto",
+     "url": "/",
+     "expect": "search input shows a single 2px outline, offset 0 (hugs the border)",
+     "screenshot": "focus-01-header-search"
+    },
+    {
+     "action": "goto",
+     "url": "product page -> Add to cart -> stepper",
+     "expect": "ring on the stepper container, none on the inner input",
+     "screenshot": "focus-02-quantity-stepper"
+    },
+    {
+     "action": "tab",
+     "url": "file:// docs/design-system/styleguide/focus.html",
+     "expect": "each control shows exactly one 2px indicator in light and dark",
+     "screenshots": [
+      "focus-10-light",
+      "focus-11-dark"
+     ]
+    }
+   ]
+  },
+  {
    "id": "order-lifecycle",
    "spec": "specs/order-lifecycle.spec.ts",
    "description": "Full order lifecycle across the three roles: buyer checkout, seller fulfilment, admin moderation. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",

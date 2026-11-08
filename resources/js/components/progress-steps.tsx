@@ -62,7 +62,7 @@ export function ProgressSteps({
                                     <span className="sr-only">Completed:</span>
                                 </span>
                             ) : isCurrent ? (
-                                <span className="grid size-8 shrink-0 place-items-center rounded-full border-2 border-primary bg-surface text-label font-bold text-primary">
+                                <span className="grid size-8 shrink-0 place-items-center rounded-full border-2 border-primary bg-surface text-label font-bold text-primary-text">
                                     {index + 1}
                                 </span>
                             ) : (

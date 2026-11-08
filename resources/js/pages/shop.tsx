@@ -70,15 +70,15 @@ export default function Shop({
     return (
         <>
             <Head title={shop.name} />
-            <div className="mx-auto max-w-container">
-                <div className="px-gutter pt-4 md:pt-6">
+            <div>
+                <div className="pt-4 md:pt-6">
                     <ShopHeader
                         shop={shop}
                         onChat={handleChat}
                         onReport={() => setReportOpen(true)}
                     />
                 </div>
-                <div className="mt-4 bg-surface px-gutter py-4 md:mt-6 md:rounded-panel md:border md:border-border md:px-4">
+                <div className="bleed-x mt-4 bg-surface py-4 md:mx-0 md:mt-6 md:rounded-panel md:border md:border-border md:px-4">
                     <h2 className="sr-only">Products</h2>
                     {grid}
                 </div>

@@ -71,7 +71,7 @@ export function ChatProductCard({
                         <span className="sr-only">Sale price:</span>
                         <span
                             data-price
-                            className="text-body font-extrabold text-sale"
+                            className="text-body font-extrabold text-foreground"
                         >
                             {formatPeso(product.price)}
                         </span>
@@ -84,7 +84,7 @@ export function ChatProductCard({
                                 >
                                     {formatPeso(product.was_price!)}
                                 </s>
-                                <span className="badge badge-sale">
+                                <span className="badge badge-promo">
                                     -{discountPct}%
                                 </span>
                             </>

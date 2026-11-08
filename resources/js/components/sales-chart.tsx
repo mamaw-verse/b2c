@@ -137,7 +137,7 @@ export function SalesChart({
             </figure>
 
             <details className="mt-3">
-                <summary className="inline-flex min-h-touch cursor-pointer items-center gap-1 text-label text-primary">
+                <summary className="inline-flex min-h-touch cursor-pointer items-center gap-1 text-label text-primary-text">
                     <DsIcon name="list" className="size-4" />
                     <span>View as table</span>
                 </summary>

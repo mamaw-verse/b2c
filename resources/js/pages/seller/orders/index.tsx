@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { OrderRow } from '@/components/order-row';
+import { OrderStatusTabs } from '@/components/order-status-tabs';
 import {
     index as ordersIndex,
     show as orderShow,
@@ -12,6 +13,7 @@ type Order = {
     items: number;
     total: number;
     status: string;
+    status_variant: 'neutral' | 'info' | 'warning' | 'success' | 'danger';
     due?: string | null;
     urgent?: boolean;
     pay: string;
@@ -20,19 +22,15 @@ type Order = {
 
 type PageProps = {
     orders: { data: Order[]; total: number };
+    counts: Record<string, number>;
     filters: { status?: string; search?: string };
 };
 
-const STATUS_TABS = [
-    { value: '', label: 'All' },
-    { value: 'ToShip', label: 'To Ship' },
-    { value: 'Shipped', label: 'Shipped' },
-    { value: 'ToReceive', label: 'To Receive' },
-    { value: 'Completed', label: 'Completed' },
-    { value: 'Cancelled', label: 'Cancelled' },
-];
-
-export default function SellerOrdersIndex({ orders, filters }: PageProps) {
+export default function SellerOrdersIndex({
+    orders,
+    counts,
+    filters,
+}: PageProps) {
     function applyFilter(params: Record<string, string | undefined>) {
         router.get(
             ordersIndex().url,
@@ -47,33 +45,14 @@ export default function SellerOrdersIndex({ orders, filters }: PageProps) {
             <div className="mx-auto max-w-container p-gutter py-8">
                 <h1 className="mb-6 text-h1">Orders</h1>
 
-                {/* Status tabs */}
-                <div
-                    role="tablist"
-                    aria-label="Filter by order status"
-                    className="mb-4 flex flex-wrap gap-1 overflow-x-auto"
-                >
-                    {STATUS_TABS.map((tab) => (
-                        <button
-                            key={tab.value}
-                            role="tab"
-                            type="button"
-                            aria-selected={(filters.status ?? '') === tab.value}
-                            onClick={() =>
-                                applyFilter({
-                                    status: tab.value || undefined,
-                                })
-                            }
-                            className={`chip whitespace-nowrap ${
-                                (filters.status ?? '') === tab.value
-                                    ? 'chip-active'
-                                    : ''
-                            }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+                <OrderStatusTabs
+                    selected={filters.status ?? null}
+                    onSelect={(key) =>
+                        applyFilter({ status: key ?? undefined })
+                    }
+                    counts={counts}
+                    className="mb-4"
+                />
 
                 {orders.data.length === 0 ? (
                     <div className="card grid place-items-center p-10 text-center text-muted-foreground">
@@ -92,6 +71,7 @@ export default function SellerOrdersIndex({ orders, filters }: PageProps) {
                                 items={order.items}
                                 total={order.total}
                                 status={order.status}
+                                statusVariant={order.status_variant}
                                 due={order.due}
                                 urgent={order.urgent}
                                 pay={order.pay}

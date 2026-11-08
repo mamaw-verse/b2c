@@ -17,7 +17,7 @@ function Spinner({
             <span
                 role="status"
                 className={cn(
-                    'flex flex-col items-center gap-2 text-primary',
+                    'flex flex-col items-center gap-2 text-primary-text',
                     className,
                 )}
                 {...props}

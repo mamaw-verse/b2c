@@ -1,8 +1,9 @@
 import { Head, router } from '@inertiajs/react';
 import { CircleAlert, Plus, Ticket } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddressCard, type AddressData } from '@/components/address-card';
 import { AddressForm, type AddressFormData } from '@/components/address-form';
+import { Media } from '@/components/media';
 import {
     OrderSummary,
     type OrderSummaryLine,
@@ -33,6 +34,7 @@ type CheckoutGroup = {
         slug: string;
         name: string;
         icon?: string;
+        image_url?: string | null;
         halal_status?: string;
         certifier?: string | null;
         frozen?: boolean;
@@ -81,6 +83,15 @@ export default function Checkout({
     const [addressFormErrors, setAddressFormErrors] = useState<
         Record<string, string>
     >({});
+
+    // Auto-select the newest address when the list grows (e.g. after creating one from the modal)
+    const [prevAddressCount, setPrevAddressCount] = useState(addresses.length);
+    useEffect(() => {
+        if (addresses.length > prevAddressCount) {
+            setSelectedAddressId(addresses[0].id);
+        }
+        setPrevAddressCount(addresses.length);
+    }, [addresses, prevAddressCount]);
 
     const [selectedShippingId, setSelectedShippingId] = useState<string>(
         shippingOptions[0]?.id ?? '',
@@ -182,6 +193,8 @@ export default function Checkout({
             onSuccess: () => {
                 setAddAddressOpen(false);
                 setAddressPickerOpen(false);
+                setAddressFormErrors({});
+                setFormErrors({});
             },
             onError: (errors) => setAddressFormErrors(errors),
         });
@@ -224,7 +237,7 @@ export default function Checkout({
         <>
             <Head title="Checkout" />
 
-            <div className="mx-auto max-w-7xl px-gutter py-4 pb-28 md:px-6 md:py-6 lg:pb-8">
+            <div className="py-4 pb-28 md:py-6 lg:pb-8">
                 <h1 className="mb-4 text-h2">Checkout</h1>
 
                 <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
@@ -255,7 +268,7 @@ export default function Checkout({
                                 </div>
                             )}
                             {formErrors.address && (
-                                <p className="mt-1 flex items-center gap-1 text-body-sm font-bold text-danger">
+                                <p className="mt-1 flex items-center gap-1 text-body-sm font-bold text-danger-text">
                                     <CircleAlert className="size-4 shrink-0" />
                                     <span>{formErrors.address}</span>
                                 </p>
@@ -284,6 +297,17 @@ export default function Checkout({
                                                 key={item.id}
                                                 className="flex items-center justify-between gap-3 py-3"
                                             >
+                                                <div className="w-16 shrink-0 overflow-hidden rounded-tile">
+                                                    <Media
+                                                        label={item.name}
+                                                        icon={
+                                                            item.icon ??
+                                                            'package'
+                                                        }
+                                                        src={item.image_url}
+                                                        decorative
+                                                    />
+                                                </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="line-clamp-1 text-body font-medium">
                                                         {item.name}
@@ -339,7 +363,7 @@ export default function Checkout({
                                 </h2>
                                 <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-2">
-                                        <Ticket className="size-5 text-sale" />
+                                        <Ticket className="size-5 text-promo" />
                                         <div>
                                             <p className="text-label">
                                                 Shop & Platform Vouchers
@@ -430,14 +454,14 @@ export default function Checkout({
             </div>
 
             {/* Sticky bar for mobile */}
-            <div className="z-sticky shadow-panel fixed inset-x-0 bottom-[var(--tabbar-h,4rem)] border-t border-border bg-surface p-gutter pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] md:px-6 lg:hidden">
-                <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+            <div className="z-sticky shadow-panel fixed inset-x-0 bottom-[var(--tabbar-h,4rem)] border-t border-border bg-surface p-gutter pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] lg:hidden">
+                <div className="mx-auto flex max-w-container items-center justify-between gap-3">
                     <div>
                         <p className="text-caption text-muted-foreground">
                             Total payment
                         </p>
                         <p
-                            className="tabular text-price font-extrabold text-sale"
+                            className="tabular text-price font-extrabold text-foreground"
                             aria-live="polite"
                         >
                             {formatPeso(calculatedTotal)}
@@ -499,11 +523,30 @@ export default function Checkout({
                 onOpenChange={setAddAddressOpen}
                 title="Add new address"
                 kind="responsive"
+                footer={
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setAddAddressOpen(false)}
+                            className="btn btn-outline min-h-touch-primary"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            form="address-form"
+                            className="btn btn-primary min-h-touch-primary"
+                        >
+                            Save address
+                        </button>
+                    </>
+                }
             >
                 <AddressForm
+                    id="address-form"
                     onSubmit={handleCreateAddress}
-                    onCancel={() => setAddAddressOpen(false)}
                     errors={addressFormErrors}
+                    hideActions
                 />
             </Modal>
 

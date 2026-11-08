@@ -17,10 +17,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $title
  * @property string|null $detail
  * @property string|null $location
+ * @property array<string, mixed>|null $metadata
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
-#[Fillable(['order_id', 'title', 'detail', 'location'])]
+#[Fillable(['order_id', 'title', 'detail', 'location', 'metadata'])]
 final class OrderEvent extends Model
 {
     /** @use HasFactory<OrderEventFactory> */
@@ -30,5 +31,12 @@ final class OrderEvent extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
     }
 }

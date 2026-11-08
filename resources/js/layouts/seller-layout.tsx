@@ -3,7 +3,6 @@ import {
     Bell,
     Boxes,
     Gauge,
-    Menu,
     MessageCircle,
     Percent,
     Settings,
@@ -12,6 +11,10 @@ import {
     Wallet,
 } from 'lucide-react';
 import { useState, type PropsWithChildren } from 'react';
+import {
+    PortalBottomTabs,
+    type PortalTabItem,
+} from '@/components/portal-bottom-tabs';
 import { Drawer } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
 import { dashboard as sellerDashboard } from '@/routes/seller';
@@ -28,13 +31,7 @@ type SellerLayoutProps = {
     shop?: { name: string; slug: string; logo_url?: string | null };
 };
 
-type NavItem = {
-    label: string;
-    href: string;
-    icon: React.ElementType;
-    badge?: number;
-    matchPrefix?: string;
-};
+type NavItem = PortalTabItem;
 
 function getNavItems(unreadOrders: number, unreadChats: number): NavItem[] {
     return [
@@ -109,7 +106,9 @@ function NavLink({
             className={cn(
                 'relative flex min-h-touch items-center gap-3 rounded-button px-3 text-label transition-colors',
                 'hover:bg-surface-raised',
-                isActive ? 'bg-primary-soft text-primary' : 'text-foreground',
+                isActive
+                    ? 'bg-primary-soft text-primary-text'
+                    : 'text-foreground',
                 !full && 'md:justify-center lg:justify-start',
             )}
         >
@@ -132,10 +131,11 @@ export default function SellerLayout({
     children,
     unreadOrders = 0,
     unreadChats = 0,
-    unreadNotifications = 0,
+    unreadNotifications,
     shop,
 }: PropsWithChildren<SellerLayoutProps>) {
-    const { name } = usePage<AppLayoutProps>().props;
+    const { name, unreadCounts } = usePage<AppLayoutProps>().props;
+    const notifUnread = unreadCounts?.notifications ?? unreadNotifications ?? 0;
     const [navOpen, setNavOpen] = useState(false);
     const currentPath =
         typeof window !== 'undefined' ? window.location.pathname : '';
@@ -155,21 +155,10 @@ export default function SellerLayout({
             {/* Header */}
             <header className="sticky top-0 z-header border-b border-border bg-surface pt-safe">
                 <div className="flex h-header items-center gap-2 px-gutter">
-                    {/* Mobile hamburger */}
-                    <button
-                        type="button"
-                        className="btn btn-icon btn-ghost text-foreground md:hidden"
-                        aria-label="Open menu"
-                        aria-expanded={navOpen}
-                        onClick={() => setNavOpen(true)}
-                    >
-                        <Menu aria-hidden="true" className="size-5" />
-                    </button>
-
                     {/* Logo */}
                     <Link
                         href={sellerDashboard()}
-                        className="flex min-h-touch items-center gap-2 text-primary"
+                        className="flex min-h-touch items-center gap-2 text-primary-text"
                         aria-label={`${name} Seller Centre home`}
                     >
                         <span className="grid size-8 place-items-center rounded-tile bg-primary text-primary-foreground">
@@ -200,20 +189,20 @@ export default function SellerLayout({
                             href="/notifications"
                             className="btn btn-icon btn-ghost relative text-foreground"
                             aria-label={
-                                unreadNotifications > 0
-                                    ? `${unreadNotifications} unread notifications`
+                                notifUnread > 0
+                                    ? `${notifUnread} unread notifications`
                                     : 'Notifications'
                             }
                         >
                             <Bell aria-hidden="true" className="size-5" />
-                            {unreadNotifications > 0 && (
+                            {notifUnread > 0 && (
                                 <span className="absolute top-1 right-1 size-2 rounded-full bg-danger" />
                             )}
                         </Link>
 
                         {/* Shop avatar */}
                         {shop && (
-                            <span className="flex size-8 items-center justify-center rounded-full bg-primary-soft text-label font-semibold text-primary">
+                            <span className="flex size-8 items-center justify-center rounded-full bg-primary-soft text-label font-semibold text-primary-text">
                                 {shop.name.charAt(0).toUpperCase()}
                             </span>
                         )}
@@ -223,10 +212,10 @@ export default function SellerLayout({
 
             {/* Sidebar (md+) */}
             <aside className="fixed top-[calc(var(--header-h)+env(safe-area-inset-top,0px))] bottom-0 left-0 hidden w-18 border-r border-border bg-surface md:block lg:w-[var(--sidebar-w)]">
-                <div className="h-full overflow-y-auto p-2 lg:p-3">
+                <div className="flex h-full flex-col p-2 lg:p-3">
                     <nav
                         aria-label="Seller Centre navigation"
-                        className="flex flex-col gap-1"
+                        className="flex flex-1 flex-col gap-1"
                     >
                         {navItems.map((item) => (
                             <NavLink
@@ -236,10 +225,18 @@ export default function SellerLayout({
                             />
                         ))}
                     </nav>
+                    <p className="hidden pt-4 text-caption text-muted-foreground lg:block">
+                        © {new Date().getFullYear()} {name}
+                    </p>
                 </div>
             </aside>
 
-            {/* Mobile drawer nav */}
+            {/* Phone bottom tabs + overflow drawer */}
+            <PortalBottomTabs
+                items={navItems.slice(0, 3)}
+                menuItems={navItems.slice(3)}
+                onMenu={() => setNavOpen(true)}
+            />
             <Drawer
                 open={navOpen}
                 onOpenChange={setNavOpen}
@@ -250,7 +247,7 @@ export default function SellerLayout({
                     className="flex flex-col gap-1"
                     onClick={() => setNavOpen(false)}
                 >
-                    {navItems.map((item) => (
+                    {navItems.slice(3).map((item) => (
                         <NavLink
                             key={item.label}
                             item={item}
@@ -266,7 +263,7 @@ export default function SellerLayout({
             <main
                 id="main"
                 data-shell="seller"
-                className="min-w-0 md:ps-18 lg:ps-[var(--sidebar-w)]"
+                className="min-w-0 pb-tabbar md:ps-18 lg:ps-[var(--sidebar-w)]"
             >
                 {children}
             </main>

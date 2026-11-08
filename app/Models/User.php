@@ -48,7 +48,7 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     public function isSeller(): bool
     {
-        return $this->role === 'seller' || $this->shop()->exists();
+        return $this->role === 'seller' || ($this->shop?->isApproved() ?? false);
     }
 
     public function isAdmin(): bool

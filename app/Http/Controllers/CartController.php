@@ -55,6 +55,7 @@ final class CartController
                     'slug' => $product->slug,
                     'name' => $product->name,
                     'icon' => $product->images->isEmpty() ? 'package' : $product->images->first()->icon,
+                    'image_url' => $product->images->first()?->url,
                     'halal_status' => $product->halal_status->value,
                     'certifier' => $product->halalCertification?->certifying_body,
                     'frozen' => $product->frozen,

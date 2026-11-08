@@ -31,7 +31,7 @@ export function StatCard({
                 <p
                     className={cn(
                         'flex items-center gap-1 text-body-sm font-bold',
-                        up ? 'text-success' : 'text-danger',
+                        up ? 'text-success-text' : 'text-danger-text',
                     )}
                 >
                     <DsIcon

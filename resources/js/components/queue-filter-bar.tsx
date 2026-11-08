@@ -151,7 +151,7 @@ export function QueueFilterBar({
             <div
                 role="group"
                 aria-label="Quick filters"
-                className="-mx-gutter flex gap-2 overflow-x-auto px-gutter pb-1 md:mx-0 md:flex-wrap md:px-0"
+                className="-mx-[var(--gutter)] flex gap-2 overflow-x-auto px-gutter pb-1 md:-mx-3 md:flex-wrap md:px-3"
             >
                 <FilterChip
                     label="All types"

@@ -31,8 +31,8 @@ final class CreateSellerShipmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tracking_number' => ['nullable', 'string', 'max:100'],
-            'carrier' => ['nullable', 'string', 'max:100'],
+            'courier_name' => ['required', 'string', 'max:100'],
+            'tracking_number' => ['required', 'string', 'max:100'],
         ];
     }
 }

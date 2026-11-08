@@ -35,10 +35,10 @@ export default function OrderConfirmed({ order }: OrderConfirmedPageProps) {
         <>
             <Head title="Order confirmed" />
 
-            <div className="mx-auto grid max-w-container place-items-center px-gutter py-10 md:py-16">
+            <div className="mx-auto grid max-w-container place-items-center px-[var(--gutter)] py-10 md:py-16">
                 <div className="card grid w-full max-w-lg gap-5 p-6 text-center md:p-8">
                     <CheckCircle2
-                        className="mx-auto size-14 text-success"
+                        className="mx-auto size-14 text-success-text"
                         aria-hidden="true"
                     />
 
@@ -80,7 +80,7 @@ export default function OrderConfirmed({ order }: OrderConfirmedPageProps) {
                             <span className="text-body-sm text-muted-foreground">
                                 Total
                             </span>
-                            <span className="tabular text-price-lg font-bold text-sale">
+                            <span className="tabular text-price-lg font-bold text-foreground">
                                 {formatPeso(order.total)}
                             </span>
                         </div>
@@ -89,7 +89,7 @@ export default function OrderConfirmed({ order }: OrderConfirmedPageProps) {
                     {isCod && (
                         <p className="flex items-start gap-2 rounded-panel border border-border bg-surface-subtle p-3 text-left text-body-sm">
                             <Banknote
-                                className="mt-0.5 size-5 shrink-0 text-primary"
+                                className="mt-0.5 size-5 shrink-0 text-primary-text"
                                 aria-hidden="true"
                             />
                             <span>

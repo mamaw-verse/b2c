@@ -16,8 +16,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $province_code
  * @property bool $is_municipality
+ * @property string|null $postal_code
  */
-#[Fillable(['code', 'name', 'province_code', 'is_municipality'])]
+#[Fillable(['code', 'name', 'province_code', 'is_municipality', 'postal_code'])]
 final class City extends Model
 {
     /** @use HasFactory<CityFactory> */

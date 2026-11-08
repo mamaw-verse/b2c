@@ -24,7 +24,7 @@ export function StickyActionBar({
                 className,
             )}
         >
-            <div className="mx-auto flex max-w-container items-stretch gap-2 px-gutter py-2 lg:px-0 lg:py-0">
+            <div className="mx-auto flex max-w-container items-stretch gap-2 py-2 max-lg:px-gutter lg:py-0">
                 {children}
             </div>
         </div>

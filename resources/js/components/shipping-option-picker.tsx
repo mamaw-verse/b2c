@@ -53,7 +53,7 @@ export function ShippingOptionPicker({
                                     : 'border-border hover:bg-surface-subtle',
                                 isDisabled &&
                                     'cursor-not-allowed bg-surface-subtle opacity-70',
-                                'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring',
+                                'focus-ring',
                             )}
                         >
                             <input
@@ -70,7 +70,7 @@ export function ShippingOptionPicker({
                                 {opt.is_cold_chain ? (
                                     <Snowflake
                                         aria-hidden="true"
-                                        className="size-5 text-info"
+                                        className="size-5 text-info-text"
                                     />
                                 ) : opt.name
                                       .toLowerCase()
@@ -114,7 +114,7 @@ export function ShippingOptionPicker({
             </div>
 
             {error && (
-                <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
+                <p className="flex items-start gap-1 text-body-sm font-bold text-danger-text">
                     <CircleAlert className="mt-px size-4 shrink-0" />
                     <span>{error}</span>
                 </p>

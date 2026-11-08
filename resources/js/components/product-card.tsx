@@ -15,27 +15,19 @@ import { show as productShow } from '@/routes/products';
 
 const ring = 'focus-ring';
 
-/** Categories that never need certification: no halal badge is shown for them. */
-const UNCERTIFIED_CATEGORIES = new Set([
-    'prayer-essentials',
-    'modest-fashion',
-    'books-quran',
-]);
-
 const TEMP_LABEL: Record<HandlingTemp, string> = {
     frozen: 'Frozen',
     chilled: 'Chilled',
 };
 
 function discountPct(p: ProductCardData) {
-    return p.was_price ? Math.round((1 - p.price / p.was_price) * 100) : 0;
+    return p.was_price && p.was_price > p.price
+        ? Math.round((1 - p.price / p.was_price) * 100)
+        : 0;
 }
 
 function showHalalBadge(p: ProductCardData) {
-    return (
-        p.halal_status === 'certified' &&
-        !UNCERTIFIED_CATEGORIES.has(p.category_slug ?? '')
-    );
+    return p.halal_status === 'certified' && p.requires_certification;
 }
 
 function Meta({ p }: { p: ProductCardData }) {
@@ -72,7 +64,7 @@ function Loc({ p }: { p: ProductCardData }) {
 
 /** -NN% promo tag: the only carrier of the discount on the card. */
 function OffBadge({ p }: { p: ProductCardData }) {
-    if (!p.was_price || p.in_stock === false) {
+    if (discountPct(p) === 0 || p.in_stock === false) {
         return null;
     }
 
@@ -87,13 +79,7 @@ function OffBadge({ p }: { p: ProductCardData }) {
 }
 
 /** Dimmed media + Sold out tag when the product is unavailable. */
-function CardMedia({
-    p,
-    index,
-}: {
-    p: ProductCardData;
-    index: number;
-}) {
+function CardMedia({ p, index }: { p: ProductCardData; index: number }) {
     return (
         <>
             <Media
@@ -236,7 +222,10 @@ export function ProductCard({
                     <OffBadge p={p} />
                 </div>
                 <div className="grid gap-0.5 p-2">
-                    <h3 className="truncate text-body-sm" title={p.name}>
+                    <h3
+                        className="line-clamp-2 min-h-[2lh] text-body-sm"
+                        title={p.name}
+                    >
                         <Link
                             href={href}
                             className="after:absolute after:inset-0"
@@ -252,7 +241,12 @@ export function ProductCard({
                             {formatPeso(p.price)}
                         </p>
                     ) : (
-                        <PriceBlock price={p.price} size="sm" />
+                        <PriceBlock
+                            price={p.price}
+                            was={p.was_price}
+                            pctBadge={false}
+                            size="sm"
+                        />
                     )}
                 </div>
             </article>
@@ -294,10 +288,7 @@ export function ProductCard({
                     className="line-clamp-2 min-h-[2lh] text-body"
                     title={p.name}
                 >
-                    <Link
-                        href={href}
-                        className="after:absolute after:inset-0"
-                    >
+                    <Link href={href} className="after:absolute after:inset-0">
                         {p.name}
                     </Link>
                 </h3>
@@ -328,6 +319,9 @@ export function ProductCard({
     );
 }
 
+const GRID_CLASSES =
+    'grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5';
+
 export function ProductGrid({
     products,
     id,
@@ -338,16 +332,32 @@ export function ProductGrid({
     className?: string;
 }) {
     return (
-        <ul
-            id={id}
-            className={cn(
-                'grid grid-cols-2 gap-2 sm:grid-cols-3 md:gap-3 lg:grid-cols-5',
-                className,
-            )}
-        >
+        <ul id={id} className={cn(GRID_CLASSES, className)}>
             {products.map((p, i) => (
-                <li key={p.id} className="flex">
+                <li
+                    key={p.id}
+                    className="flex"
+                    data-edge={i === 0 ? 'start' : undefined}
+                >
                     <ProductCard product={p} index={i} />
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+/** Placeholder cards shown while a filter or sort change loads. */
+export function ProductGridSkeleton({ count = 10 }: { count?: number }) {
+    return (
+        <ul aria-hidden="true" className={GRID_CLASSES}>
+            {Array.from({ length: count }, (_, i) => (
+                <li key={i} className="card flex flex-col overflow-hidden">
+                    <span className="block aspect-square animate-pulse bg-surface-muted motion-reduce:animate-none" />
+                    <span className="grid flex-1 gap-1.5 p-2">
+                        <span className="h-4 animate-pulse rounded bg-surface-muted motion-reduce:animate-none" />
+                        <span className="h-4 w-2/3 animate-pulse rounded bg-surface-muted motion-reduce:animate-none" />
+                        <span className="mt-auto h-5 w-1/2 animate-pulse rounded bg-surface-muted motion-reduce:animate-none" />
+                    </span>
                 </li>
             ))}
         </ul>

@@ -58,7 +58,7 @@ export function AddressCard({
                     selected
                         ? 'border-primary bg-primary-soft'
                         : 'border-border hover:bg-surface-subtle',
-                    'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring',
+                    'focus-ring',
                     className,
                 )}
             >
@@ -97,7 +97,7 @@ export function AddressCard({
                             e.stopPropagation();
                             onEdit();
                         }}
-                        className="self-start text-body-sm text-primary hover:underline"
+                        className="self-start text-body-sm text-primary-text hover:underline"
                     >
                         Edit
                     </button>
@@ -115,7 +115,7 @@ export function AddressCard({
         >
             <MapPin
                 aria-hidden="true"
-                className="mt-0.5 size-5 shrink-0 text-sale"
+                className="mt-0.5 size-5 shrink-0 text-muted-foreground"
             />
             <div className="grid min-w-0 flex-1 grid-cols-1 gap-0.5">
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -148,7 +148,7 @@ export function AddressCard({
                         <button
                             type="button"
                             onClick={onEdit}
-                            className="ml-2 text-body-sm text-primary hover:underline"
+                            className="ml-2 text-body-sm text-primary-text hover:underline"
                         >
                             Edit
                         </button>
@@ -157,7 +157,7 @@ export function AddressCard({
                         <button
                             type="button"
                             onClick={onDelete}
-                            className="ml-2 text-body-sm text-danger hover:underline"
+                            className="ml-2 text-body-sm text-danger-text hover:underline"
                         >
                             Delete
                         </button>
@@ -168,7 +168,7 @@ export function AddressCard({
                 <button
                     type="button"
                     onClick={onChange}
-                    className="inline-flex min-h-touch items-center self-center text-label text-primary hover:underline"
+                    className="inline-flex min-h-touch items-center self-center text-label text-primary-text hover:underline"
                 >
                     Change
                     <ChevronRight aria-hidden="true" className="size-4" />

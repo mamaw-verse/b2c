@@ -5,11 +5,11 @@ import type { CategoryData } from '@/types/catalogue';
 import { show as categoryShow } from '@/routes/categories';
 
 const tileTones = [
-    'bg-brand-50 text-primary',
-    'bg-info-soft text-info',
-    'bg-sale-soft text-sale',
-    'bg-warning-soft text-warning',
-    'bg-success-soft text-success',
+    'bg-primary-soft text-primary-soft-foreground',
+    'bg-info-soft text-info-text',
+    'bg-promo-soft text-promo',
+    'bg-warning-soft text-warning-text',
+    'bg-success-soft text-success-text',
 ];
 
 export function CategoryTile({

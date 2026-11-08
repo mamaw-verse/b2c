@@ -8,6 +8,24 @@ export function formatPeso(centavos: number): string {
     }).format(pesos);
 }
 
+export function formatDateTime(value: string | Date): string {
+    return new Date(value).toLocaleString('en-PH', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+}
+
+export function formatDate(value: string | Date): string {
+    return new Date(value).toLocaleDateString('en-PH', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+}
+
 export function compactCount(n: number): string {
     return new Intl.NumberFormat('en', {
         notation: 'compact',

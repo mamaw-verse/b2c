@@ -124,7 +124,7 @@ export default function ChatPage({
             <Head title="Chat" />
             <h1 className="sr-only">Chats</h1>
 
-            <div className="mx-auto flex h-[calc(100dvh-var(--header-h)-var(--tabbar-h)-env(safe-area-inset-top,0px))] max-w-container overflow-hidden pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] md:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top,0px))] md:border-x md:border-border md:pb-0 lg:h-[calc(100dvh-var(--header-h)-var(--nav-h)-var(--announce-h)-env(safe-area-inset-top,0px))]">
+            <div className="-mx-[var(--gutter)] flex h-[calc(100dvh-var(--header-h)-var(--tabbar-h)-env(safe-area-inset-top,0px))] overflow-hidden pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] md:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top,0px))] md:border-x md:border-border md:pb-0 lg:h-[calc(100dvh-var(--header-h)-var(--nav-h)-var(--announce-h)-env(safe-area-inset-top,0px))]">
                 {/* Conversations list column: full screen on phone when no active convo, 320px sidebar on md+ */}
                 <div
                     className={`h-full w-full md:block md:w-80 md:shrink-0 lg:w-[var(--chat-list-w,320px)] ${

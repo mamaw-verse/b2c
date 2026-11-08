@@ -11,6 +11,7 @@ enum ModerationItemType: string
     case Report = 'report';
     case Keyword = 'keyword';
     case Expiry = 'expiry';
+    case ShopApplication = 'shop_application';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum ModerationItemType: string
             self::Report => 'Report',
             self::Keyword => 'Keyword',
             self::Expiry => 'Expiry',
+            self::ShopApplication => 'Shop application',
         };
     }
 }

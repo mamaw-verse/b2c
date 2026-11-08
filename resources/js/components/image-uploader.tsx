@@ -151,7 +151,7 @@ export function ImageUploader({
                     >
                         {item.isTooLarge ? (
                             <div className="relative aspect-square overflow-hidden rounded-tile border border-danger bg-danger-soft">
-                                <div className="grid h-full place-items-center p-2 text-center text-caption font-bold text-danger">
+                                <div className="grid h-full place-items-center p-2 text-center text-caption font-bold text-danger-text">
                                     <AlertTriangle
                                         className="mx-auto size-5"
                                         aria-hidden="true"
@@ -172,7 +172,7 @@ export function ImageUploader({
                         <button
                             type="button"
                             onClick={() => handleRemove(index)}
-                            className="btn btn-icon btn-neutral btn-sm absolute top-0 right-0 rounded-full border-transparent text-danger shadow-popover"
+                            className="btn btn-icon btn-neutral btn-sm absolute top-0 right-0 rounded-full border-transparent text-danger-text shadow-popover"
                             data-ds-remove
                             aria-label={`Remove ${item.file.name}`}
                         >
@@ -214,10 +214,10 @@ export function ImageUploader({
                     <li data-ds-add>
                         <label
                             htmlFor={`${prefix}-input`}
-                            className={`grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed bg-surface p-2 text-center text-body-sm font-bold transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring ${
+                            className={`grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed bg-surface p-2 text-center text-body-sm font-bold transition-colors focus-ring ${
                                 isDraggingOver
-                                    ? 'border-primary bg-primary-soft text-primary'
-                                    : 'border-border-control text-primary hover:bg-primary-soft'
+                                    ? 'border-primary bg-primary-soft text-primary-text'
+                                    : 'border-border-control text-primary-text hover:bg-primary-soft'
                             }`}
                         >
                             <span>
@@ -243,7 +243,7 @@ export function ImageUploader({
             </ul>
 
             {error && (
-                <p className="flex items-start gap-1 text-body-sm font-bold text-danger">
+                <p className="flex items-start gap-1 text-body-sm font-bold text-danger-text">
                     <AlertTriangle
                         className="mt-px size-4 shrink-0"
                         aria-hidden="true"

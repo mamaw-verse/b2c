@@ -127,8 +127,28 @@ export default function Addresses({ addresses }: AddressesPageProps) {
                 onOpenChange={setModalOpen}
                 title={editingAddress ? 'Edit address' : 'Add new address'}
                 kind="responsive"
+                footer={
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setModalOpen(false)}
+                            className="btn btn-outline min-h-touch-primary"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            form="address-form"
+                            className="btn btn-primary min-h-touch-primary"
+                        >
+                            Save address
+                        </button>
+                    </>
+                }
             >
                 <AddressForm
+                    key={editingAddress?.id ?? 'new'}
+                    id="address-form"
                     initialValues={
                         editingAddress
                             ? {
@@ -152,7 +172,7 @@ export default function Addresses({ addresses }: AddressesPageProps) {
                     }
                     errors={formErrors}
                     onSubmit={handleSubmit}
-                    onCancel={() => setModalOpen(false)}
+                    hideActions
                 />
             </Modal>
         </>

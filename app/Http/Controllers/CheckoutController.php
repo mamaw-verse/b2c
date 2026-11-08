@@ -10,6 +10,7 @@ use App\Http\Requests\CreateCheckoutRequest;
 use App\Http\Requests\ShowCheckoutRequest;
 use App\Models\Address;
 use App\Models\CartItem;
+use App\Models\Order;
 use App\Models\ShippingOption;
 use App\Models\User;
 use App\Models\Voucher;
@@ -51,6 +52,7 @@ final class CheckoutController
                         'slug' => $product->slug,
                         'name' => $product->name,
                         'icon' => $product->images->isEmpty() ? 'package' : $product->images->first()->icon,
+                        'image_url' => $product->images->first()?->url,
                         'halal_status' => $product->halal_status->value,
                         'certifier' => $product->halalCertification?->certifying_body,
                         'frozen' => $product->frozen,
@@ -84,7 +86,7 @@ final class CheckoutController
                 'landmark' => $a->landmark,
                 'label' => $a->label->value,
                 'is_default' => $a->is_default,
-                'formatted' => "{$a->street}, {$a->barangay?->name}, {$a->city?->name}, {$a->province?->name} {$a->postal_code}",
+                'formatted' => $a->formattedAddress(),
             ]);
 
         $defaultAddress = $addresses->firstWhere('is_default', true) ?? $addresses->first();
@@ -165,7 +167,7 @@ final class CheckoutController
             ? Voucher::find($request->input('platform_voucher_id'))
             : null;
 
-        $action->handle(
+        $result = $action->handle(
             $user,
             $address,
             $shippingOption,
@@ -175,8 +177,10 @@ final class CheckoutController
             $request->input('notes')
         );
 
+        $order = $result instanceof Order ? $result : $result->first();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Your order has been placed successfully!']);
 
-        return redirect()->route('cart.index');
+        return redirect()->route('order-confirmed', $order);
     }
 }

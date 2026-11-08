@@ -1,6 +1,8 @@
-import { FileBadge, Flag } from 'lucide-react';
+import { Flag } from 'lucide-react';
+import { HalalBadge } from '@/components/halal-badge';
 import { Rating } from '@/components/rating';
 import { PriceBlock } from '@/components/price-block';
+import type { HalalStatus } from '@/types/catalogue';
 
 export type ProductSnapshot = {
     title: string;
@@ -42,13 +44,40 @@ export type ChatSnapshot = {
     hidden_later_count?: number;
 };
 
+export type ShopApplicationSnapshot = {
+    shop_name: string;
+    description?: string;
+    location?: string;
+    contact_number?: string;
+    halal_only?: boolean;
+    id_type?: string;
+    id_number?: string;
+    id_document_url?: string;
+    selfie_url?: string;
+    business_permit_url?: string;
+    bank_name?: string;
+    bank_account_name?: string;
+    applicant_name?: string;
+    applicant_email?: string;
+    submitted_at?: string;
+    flag_notice?: string;
+};
+
 export type ContentPreviewProps = {
-    kind: 'product' | 'review' | 'chat';
+    kind: 'product' | 'review' | 'chat' | 'shop_application';
     snapshot:
         | ProductSnapshot
         | ReviewSnapshot
         | ChatSnapshot
+        | ShopApplicationSnapshot
         | Record<string, unknown>;
+};
+
+const ID_TYPE_LABELS: Record<string, string> = {
+    philsys: 'PhilSys ID',
+    drivers_license: "Driver's license",
+    passport: 'Passport',
+    national_id: 'National ID',
 };
 
 function highlightTerms(text: string, terms: string[] = []) {
@@ -111,7 +140,7 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                                     {data.seller_href ? (
                                         <a
                                             href={data.seller_href}
-                                            className="font-bold text-primary underline"
+                                            className="font-bold text-primary-text underline"
                                         >
                                             {data.seller_name}
                                         </a>
@@ -142,18 +171,11 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                                     Halal status
                                 </dt>
                                 <dd>
-                                    <span
-                                        className={
-                                            data.halal_badge_class ??
-                                            'badge badge-danger'
+                                    <HalalBadge
+                                        status={
+                                            data.halal_status as HalalStatus
                                         }
-                                    >
-                                        <FileBadge
-                                            aria-hidden="true"
-                                            className="size-3.5"
-                                        />
-                                        {data.halal_status}
-                                    </span>
+                                    />
                                 </dd>
                             </div>
                         )}
@@ -200,6 +222,144 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                     {data.order_ref && ` · Order #${data.order_ref}`}
                     {data.date && ` · ${data.date}`}
                 </p>
+            </div>
+        );
+    }
+
+    if (kind === 'shop_application') {
+        const data = snapshot as ShopApplicationSnapshot;
+        const documents = [
+            { label: 'ID document', url: data.id_document_url },
+            { label: 'Selfie', url: data.selfie_url },
+            { label: 'Business permit', url: data.business_permit_url },
+        ].filter((d) => d.url);
+        return (
+            <div className="grid gap-3">
+                <div className="grid content-start gap-2">
+                    <p className="flex flex-wrap items-center gap-2 text-h4">
+                        {data.shop_name}
+                        {data.halal_only && (
+                            <span className="rounded-badge bg-halal-soft px-2 py-0.5 text-caption font-bold text-halal">
+                                Halal only
+                            </span>
+                        )}
+                    </p>
+                    {(data.applicant_name || data.applicant_email) && (
+                        <p className="text-body-sm text-muted-foreground">
+                            Applicant:{' '}
+                            <span className="font-bold text-foreground">
+                                {data.applicant_name}
+                            </span>
+                            {data.applicant_email &&
+                                ` · ${data.applicant_email}`}
+                        </p>
+                    )}
+                    {data.flag_notice && (
+                        <p className="rounded-tile bg-mod-flagged-bg p-2 text-body-sm text-mod-flagged">
+                            {data.flag_notice}
+                        </p>
+                    )}
+                    {data.description && (
+                        <p className="text-body">{data.description}</p>
+                    )}
+                    <dl className="grid gap-1 text-body-sm">
+                        {data.location && (
+                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                                <dt className="text-muted-foreground">
+                                    Location
+                                </dt>
+                                <dd className="text-foreground">
+                                    {data.location}
+                                </dd>
+                            </div>
+                        )}
+                        {data.contact_number && (
+                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                                <dt className="text-muted-foreground">
+                                    Contact
+                                </dt>
+                                <dd className="text-foreground">
+                                    {data.contact_number}
+                                </dd>
+                            </div>
+                        )}
+                        {data.id_type && (
+                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                                <dt className="text-muted-foreground">ID</dt>
+                                <dd className="text-foreground">
+                                    {ID_TYPE_LABELS[data.id_type] ??
+                                        data.id_type}
+                                    {data.id_number && ` · ${data.id_number}`}
+                                </dd>
+                            </div>
+                        )}
+                        {(data.bank_name || data.bank_account_name) && (
+                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                                <dt className="text-muted-foreground">
+                                    Payout
+                                </dt>
+                                <dd className="text-foreground">
+                                    {data.bank_name}
+                                    {data.bank_account_name &&
+                                        ` · ${data.bank_account_name}`}
+                                </dd>
+                            </div>
+                        )}
+                        {data.submitted_at && (
+                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                                <dt className="text-muted-foreground">
+                                    Submitted
+                                </dt>
+                                <dd className="text-foreground">
+                                    {new Date(
+                                        data.submitted_at,
+                                    ).toLocaleDateString('en-PH', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                    })}
+                                </dd>
+                            </div>
+                        )}
+                    </dl>
+                </div>
+                {documents.length > 0 && (
+                    <ul
+                        className="flex flex-wrap gap-2"
+                        aria-label="Application documents"
+                    >
+                        {documents.map((doc) => (
+                            <li
+                                key={doc.label}
+                                className="w-24 shrink-0 overflow-hidden rounded-tile"
+                            >
+                                {doc.url!.toLowerCase().endsWith('.pdf') ? (
+                                    <a
+                                        href={doc.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="grid aspect-square place-items-center border border-border bg-surface-muted p-2 text-center text-caption font-bold text-primary-text underline"
+                                    >
+                                        {doc.label} (PDF)
+                                    </a>
+                                ) : (
+                                    <a
+                                        href={doc.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        title={doc.label}
+                                    >
+                                        <img
+                                            src={doc.url}
+                                            alt={doc.label}
+                                            className="aspect-square size-full object-cover"
+                                        />
+                                    </a>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
         );
     }

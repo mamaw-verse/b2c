@@ -11,6 +11,7 @@ function Toaster({ ...props }: ToasterProps) {
         <Sonner
             theme={appearance}
             position="bottom-right"
+            offset={{ bottom: 'calc(var(--tabbar-h, 56px) + 8px)' }}
             visibleToasts={1}
             gap={8}
             className="toaster group"

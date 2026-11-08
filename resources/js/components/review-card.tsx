@@ -64,7 +64,7 @@ export function ReviewCard({
                             type="button"
                             aria-expanded={expanded}
                             onClick={() => setExpanded(!expanded)}
-                            className="w-fit text-label text-primary"
+                            className="w-fit text-label text-primary-text"
                         >
                             {expanded ? 'See less' : 'See more'}
                         </button>
