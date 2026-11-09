@@ -59,6 +59,21 @@ type OrderDetailPageProps = {
             name: string;
             fee: number;
         };
+        fulfillments?: {
+            id: string;
+            courier_name: string;
+            tracking_number: string;
+            tracking_url?: string | null;
+            status: string;
+            shipped_at: string;
+            delivered_at?: string | null;
+            items: {
+                id: string;
+                quantity: number;
+                order_item?: { product_name: string } | null;
+            }[];
+        }[];
+        fulfillment_status?: string;
         events?: {
             id: string;
             title: string;
@@ -93,9 +108,9 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
 
-    const isCancellable = ['pending', 'to_pay', 'to_ship'].includes(
-        order.status,
-    );
+    const isCancellable =
+        ['pending', 'to_pay', 'to_ship'].includes(order.status) &&
+        (order.fulfillment_status ?? 'unfulfilled') === 'unfulfilled';
     const isReturnable = order.status === 'completed';
     const isToReceive = order.status === 'to_receive';
 
@@ -506,6 +521,74 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                 </span>
                             </p>
                         </section>
+
+                        {order.fulfillments &&
+                            order.fulfillments.length > 0 && (
+                                <section className="panel p-4 md:p-6">
+                                    <h2 className="mb-3 text-h3">Parcels</h2>
+                                    <ul className="grid gap-3">
+                                        {order.fulfillments.map(
+                                            (parcel, index) => (
+                                                <li
+                                                    key={parcel.id}
+                                                    className="rounded-tile border border-border p-3"
+                                                    data-test="parcel"
+                                                >
+                                                    <p className="text-label">
+                                                        Parcel {index + 1} ·{' '}
+                                                        {parcel.courier_name}
+                                                    </p>
+                                                    <p className="text-body-sm text-muted-foreground">
+                                                        {parcel.tracking_url ? (
+                                                            <a
+                                                                href={
+                                                                    parcel.tracking_url
+                                                                }
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="underline"
+                                                            >
+                                                                {
+                                                                    parcel.tracking_number
+                                                                }
+                                                            </a>
+                                                        ) : (
+                                                            parcel.tracking_number
+                                                        )}{' '}
+                                                        · shipped{' '}
+                                                        {formatDateTime(
+                                                            parcel.shipped_at,
+                                                        )}
+                                                        {parcel.delivered_at &&
+                                                            ` · delivered ${formatDateTime(parcel.delivered_at)}`}
+                                                    </p>
+                                                    <ul className="mt-2 text-body-sm">
+                                                        {parcel.items.map(
+                                                            (line) => (
+                                                                <li
+                                                                    key={
+                                                                        line.id
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        line
+                                                                            .order_item
+                                                                            ?.product_name
+                                                                    }{' '}
+                                                                    ×{' '}
+                                                                    {
+                                                                        line.quantity
+                                                                    }
+                                                                </li>
+                                                            ),
+                                                        )}
+                                                    </ul>
+                                                </li>
+                                            ),
+                                        )}
+                                    </ul>
+                                </section>
+                            )}
 
                         {/* Action buttons */}
                         <div className="flex flex-wrap gap-2">

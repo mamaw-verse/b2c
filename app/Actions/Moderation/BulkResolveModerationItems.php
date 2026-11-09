@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Moderation;
 
+use App\Actions\Admin\RecordAuditLog;
 use App\Actions\Moderation\Concerns\ResolvesQueueItem;
 use App\Enums\ModerationState;
 use App\Models\ModerationQueueItem;
@@ -13,11 +14,13 @@ final readonly class BulkResolveModerationItems
 {
     use ResolvesQueueItem;
 
+    public function __construct(private RecordAuditLog $audit) {}
+
     /**
      * @param  list<string>  $ids
      * @return int Number of items processed
      */
-    public function handle(array $ids, string $action, User $admin, string $reason): int
+    public function handle(array $ids, string $action, User $admin, string $reason, ?string $ip = null): int
     {
         $newState = match ($action) {
             'approved' => ModerationState::Resolved,
@@ -33,7 +36,7 @@ final readonly class BulkResolveModerationItems
             ->get();
 
         foreach ($items as $item) {
-            $this->resolve($item, $admin, $action, $newState, $reason);
+            $this->resolve($item, $admin, $action, $newState, $reason, $ip);
         }
 
         return $items->count();

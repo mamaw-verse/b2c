@@ -29,6 +29,7 @@ Route::get('search', [SearchController::class, 'index'])->name('search');
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('shops/{shop:slug}', [ShopController::class, 'show'])->name('shops.show');
+Route::get('pages/{page}', [App\Http\Controllers\ContentPageController::class, 'show'])->name('pages.show');
 Route::get('seller/terms', App\Http\Controllers\Seller\SellerTermsController::class)->name('seller.terms');
 
 Route::prefix('api/psgc')->name('psgc.')->group(function () {
@@ -86,7 +87,13 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::get('dashboard', App\Http\Controllers\Seller\DashboardController::class)->name('dashboard');
         Route::resource('products', App\Http\Controllers\Seller\ProductController::class)->names('products');
         Route::resource('orders', App\Http\Controllers\Seller\OrderController::class)->only(['index', 'show'])->names('orders');
-        Route::post('orders/{order}/shipment', [App\Http\Controllers\Seller\ShipmentController::class, 'store'])->name('orders.shipment.store');
+        Route::post('orders/{order}/chat', [App\Http\Controllers\Seller\OrderChatController::class, 'store'])->name('orders.chat.store');
+        Route::resource('orders.fulfillments', App\Http\Controllers\Seller\FulfillmentController::class)->only(['store', 'update'])->names('orders.fulfillments');
+        Route::get('customers', [App\Http\Controllers\Seller\CustomerController::class, 'index'])->name('customers.index');
+        Route::get('finance', [App\Http\Controllers\Seller\FinanceController::class, 'index'])->name('finance.index');
+        Route::resource('vouchers', App\Http\Controllers\Seller\VoucherController::class)->only(['index', 'store', 'update', 'destroy'])->names('vouchers');
+        Route::post('payouts', [App\Http\Controllers\Seller\PayoutController::class, 'store'])->name('payouts.store');
+        Route::put('payout-account', [App\Http\Controllers\Seller\PayoutAccountController::class, 'update'])->name('payout-account.update');
         Route::get('settings', [App\Http\Controllers\Seller\ShopSettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [App\Http\Controllers\Seller\ShopSettingController::class, 'update'])->name('settings.update');
 
@@ -100,7 +107,16 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::get('dashboard', App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
         Route::resource('moderation', App\Http\Controllers\Admin\ModerationQueueController::class)->parameters(['moderation' => 'moderationQueueItem'])->only(['index', 'show'])->names('moderation');
         Route::post('moderation/{moderationQueueItem}/decisions', [App\Http\Controllers\Admin\ModerationDecisionController::class, 'store'])->name('moderation.decisions.store');
+        Route::resource('payouts', App\Http\Controllers\Admin\PayoutController::class)->only(['index', 'update'])->names('payouts');
         Route::post('moderation/bulk-decisions', [App\Http\Controllers\Admin\BulkModerationDecisionController::class, 'store'])->name('moderation.bulk-decisions.store');
+        Route::get('audit-log', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-log.index');
+        Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->names('categories');
+        Route::resource('vouchers', App\Http\Controllers\Admin\VoucherController::class)->only(['index', 'store', 'update', 'destroy'])->names('vouchers');
+        Route::resource('users', App\Http\Controllers\Admin\UserController::class)->only(['index', 'show'])->names('users');
+        Route::post('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'store'])->name('users.suspension.store');
+        Route::delete('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'destroy'])->name('users.suspension.destroy');
+        Route::get('settings', [App\Http\Controllers\Admin\SettingController::class, 'edit'])->name('settings.edit');
+        Route::put('settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
     });
 });
 

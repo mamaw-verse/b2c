@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Moderation\Concerns;
 
+use App\Actions\Admin\RecordAuditLog;
 use App\Enums\HalalStatus;
 use App\Enums\ModerationState;
 use App\Enums\ReportStatus;
@@ -18,6 +19,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Using classes must expose a private `RecordAuditLog $audit` property.
+ */
 trait ResolvesQueueItem
 {
     protected function resolve(
@@ -26,8 +30,9 @@ trait ResolvesQueueItem
         string $action,
         ModerationState $newState,
         string $reason,
+        ?string $ip = null,
     ): ModerationQueueItem {
-        return DB::transaction(function () use ($item, $admin, $action, $newState, $reason) {
+        return DB::transaction(function () use ($item, $admin, $action, $newState, $reason, $ip) {
             $item->update([
                 'state' => $newState->value,
                 'resolved_by' => $admin->id,
@@ -43,6 +48,8 @@ trait ResolvesQueueItem
             ]);
 
             $this->applySideEffect($item->target, $action, $reason, $admin);
+
+            $this->audit->handle($admin, 'moderation.'.$action, $item, ['reason' => $reason], $ip);
 
             return $item;
         });

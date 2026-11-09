@@ -29,9 +29,50 @@ return [
 
     'couriers' => array_values(array_filter(explode(',', (string) env('MARKETPLACE_COURIERS')))),
 
+    'announcement' => env('MARKETPLACE_ANNOUNCEMENT'),
+
     'nav' => [
         'sell' => env('MARKETPLACE_NAV_SELL_URL', '/seller/dashboard'),
-        'help' => env('MARKETPLACE_NAV_HELP_URL'),
+        'help' => env('MARKETPLACE_NAV_HELP_URL', env('MARKETPLACE_PAGE_HELP') ? '/pages/help' : null),
+    ],
+
+    /* In-app content pages served at /pages/{key}. A page renders only when
+       enabled; sections are { heading, body } blocks. Enable a page once its
+       copy has been reviewed. */
+    'pages' => [
+        'help' => [
+            'enabled' => (bool) env('MARKETPLACE_PAGE_HELP', false),
+            'title' => 'Help centre',
+            'sections' => [],
+        ],
+        'returns' => [
+            'enabled' => (bool) env('MARKETPLACE_PAGE_RETURNS', true),
+            'title' => 'Returns & refunds',
+            'sections' => [
+                ['heading' => 'Return window', 'body' => 'You can request a return within '.env('MARKETPLACE_RETURN_WINDOW_DAYS', 7).' days after your order is completed.'],
+                ['heading' => 'How to request', 'body' => 'Open the order under My purchases and choose Return/Refund. The seller reviews your request and a moderator steps in if it is disputed.'],
+            ],
+        ],
+        'about' => [
+            'enabled' => (bool) env('MARKETPLACE_PAGE_ABOUT', false),
+            'title' => 'About us',
+            'sections' => [],
+        ],
+        'terms' => [
+            'enabled' => (bool) env('MARKETPLACE_PAGE_TERMS', false),
+            'title' => 'Terms of service',
+            'sections' => [],
+        ],
+        'privacy' => [
+            'enabled' => (bool) env('MARKETPLACE_PAGE_PRIVACY', false),
+            'title' => 'Privacy policy',
+            'sections' => [],
+        ],
+        'halal-verification' => [
+            'enabled' => (bool) env('MARKETPLACE_PAGE_HALAL', false),
+            'title' => 'Halal verification',
+            'sections' => [],
+        ],
     ],
 
     'claims' => [
@@ -68,6 +109,23 @@ return [
         'venue' => env('MARKETPLACE_VENUE'),
     ],
 
+    /* Finance. Commission is in basis points (500 = 5%); a category rate
+       overrides this default. Hold days delay a sale's availability for
+       payout; auto_confirm_days completes shipped orders the buyer never
+       confirmed. */
+    'commission' => [
+        'default_bps' => (int) round((float) env('MARKETPLACE_COMMISSION_RATE', 0) * 100),
+    ],
+
+    'auto_confirm_days' => (int) env('MARKETPLACE_AUTO_CONFIRM_DAYS', 7),
+
+    'return_window_days' => (int) env('MARKETPLACE_RETURN_WINDOW_DAYS', 7),
+
+    'payouts' => [
+        'hold_days' => (int) env('MARKETPLACE_PAYOUT_HOLD_DAYS', 7),
+        'minimum' => (int) env('MARKETPLACE_PAYOUT_MINIMUM', 50000),
+    ],
+
     'footer' => [
         'shop' => [
             ['label' => 'Halal Food', 'href' => '/categories/halal-food'],
@@ -76,10 +134,10 @@ return [
             ['label' => 'Modest Fashion', 'href' => '/categories/modest-fashion'],
             ['label' => 'Prayer Essentials', 'href' => '/categories/prayer-essentials'],
             ['label' => 'Books & Quran', 'href' => '/categories/books-quran'],
-            ['label' => 'Vouchers', 'href' => '/categories/vouchers'],
         ],
         'support' => array_values(array_filter([
-            env('MARKETPLACE_NAV_HELP_URL') ? ['label' => 'Help centre', 'href' => env('MARKETPLACE_NAV_HELP_URL')] : null,
+            env('MARKETPLACE_NAV_HELP_URL', env('MARKETPLACE_PAGE_HELP') ? '/pages/help' : null) ? ['label' => 'Help centre', 'href' => env('MARKETPLACE_NAV_HELP_URL', '/pages/help')] : null,
+            env('MARKETPLACE_PAGE_RETURNS', true) ? ['label' => 'Returns & refunds', 'href' => '/pages/returns'] : null,
             ['label' => 'Track order', 'href' => '/account/orders'],
             env('MARKETPLACE_SUPPORT_EMAIL') ? ['label' => 'Contact us', 'href' => 'mailto:'.env('MARKETPLACE_SUPPORT_EMAIL')] : null,
         ])),
@@ -88,7 +146,12 @@ return [
             ['label' => 'Sell on {brand}', 'href' => '/seller/dashboard'],
             ['label' => 'Seller centre', 'href' => '/seller/dashboard'],
         ],
-        'company' => [],
+        'company' => array_values(array_filter([
+            env('MARKETPLACE_PAGE_ABOUT') ? ['label' => 'About us', 'href' => '/pages/about'] : null,
+            env('MARKETPLACE_PAGE_HALAL') ? ['label' => 'Halal verification', 'href' => '/pages/halal-verification'] : null,
+            env('MARKETPLACE_PAGE_TERMS') ? ['label' => 'Terms of service', 'href' => '/pages/terms'] : null,
+            env('MARKETPLACE_PAGE_PRIVACY') ? ['label' => 'Privacy policy', 'href' => '/pages/privacy'] : null,
+        ])),
     ],
 
 ];

@@ -3,6 +3,7 @@ import {
     Bell,
     Boxes,
     Flag,
+    FolderTree,
     Gauge,
     Home,
     Inbox,
@@ -15,6 +16,7 @@ import {
     ScrollText,
     Settings,
     ShoppingBag,
+    Ticket,
     UserRound,
     Users,
     Wallet,
@@ -22,6 +24,12 @@ import {
 import { home as accountHome } from '@/routes/account';
 import { index as addresses } from '@/routes/addresses';
 import { dashboard as adminDashboard } from '@/routes/admin';
+import { index as adminAuditLog } from '@/routes/admin/audit-log';
+import { index as adminCategories } from '@/routes/admin/categories';
+import { index as adminPayouts } from '@/routes/admin/payouts';
+import { edit as adminSettings } from '@/routes/admin/settings';
+import { index as adminUsers } from '@/routes/admin/users';
+import { index as adminVouchers } from '@/routes/admin/vouchers';
 import { edit as editAppearance } from '@/routes/appearance';
 import { index as chat } from '@/routes/chat';
 import { index as notifications } from '@/routes/notifications';
@@ -30,9 +38,12 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import { dashboard as sellerDashboard } from '@/routes/seller';
 import { index as sellerChat } from '@/routes/seller/chat';
+import { index as sellerCustomers } from '@/routes/seller/customers';
+import { index as sellerFinance } from '@/routes/seller/finance';
 import { index as sellerOrders } from '@/routes/seller/orders';
 import { index as sellerProducts } from '@/routes/seller/products';
 import { edit as sellerSettings } from '@/routes/seller/settings';
+import { index as sellerVouchers } from '@/routes/seller/vouchers';
 
 export type WorkspaceKey = 'buyer' | 'seller' | 'admin';
 
@@ -40,11 +51,11 @@ export type WorkspaceKey = 'buyer' | 'seller' | 'admin';
  * flag; nav items referencing a disabled feature are filtered out of
  * `navGroups` so no placeholder links ever render. */
 export const workspaceFeatures = {
-    'seller.marketing': false,
-    'seller.finance': false,
-    'admin.users': false,
-    'admin.audit-log': false,
-    'admin.settings': false,
+    'seller.marketing': true,
+    'seller.finance': true,
+    'admin.users': true,
+    'admin.audit-log': true,
+    'admin.settings': true,
 } as const;
 
 export type WorkspaceFeature = keyof typeof workspaceFeatures;
@@ -180,15 +191,21 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                         badgeKey: 'chat',
                     },
                     {
+                        label: 'Customers',
+                        href: sellerCustomers().url,
+                        icon: Users,
+                        matchPrefix: '/seller/customers',
+                    },
+                    {
                         label: 'Marketing',
-                        href: '/seller/marketing',
+                        href: sellerVouchers().url,
                         icon: Percent,
-                        matchPrefix: '/seller/marketing',
+                        matchPrefix: '/seller/vouchers',
                         feature: 'seller.marketing',
                     },
                     {
                         label: 'Finance',
-                        href: '/seller/finance',
+                        href: sellerFinance().url,
                         icon: Wallet,
                         matchPrefix: '/seller/finance',
                         feature: 'seller.finance',
@@ -229,22 +246,40 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                         icon: Flag,
                     },
                     {
+                        label: 'Categories',
+                        href: adminCategories().url,
+                        icon: FolderTree,
+                        matchPrefix: '/admin/categories',
+                    },
+                    {
+                        label: 'Vouchers',
+                        href: adminVouchers().url,
+                        icon: Ticket,
+                        matchPrefix: '/admin/vouchers',
+                    },
+                    {
+                        label: 'Payouts',
+                        href: adminPayouts().url,
+                        icon: Wallet,
+                        matchPrefix: '/admin/payouts',
+                    },
+                    {
                         label: 'Users',
-                        href: '/admin/users',
+                        href: adminUsers().url,
                         icon: Users,
                         matchPrefix: '/admin/users',
                         feature: 'admin.users',
                     },
                     {
                         label: 'Audit log',
-                        href: '/admin/audit-log',
+                        href: adminAuditLog().url,
                         icon: ScrollText,
                         matchPrefix: '/admin/audit-log',
                         feature: 'admin.audit-log',
                     },
                     {
                         label: 'Settings',
-                        href: '/admin/settings',
+                        href: adminSettings().url,
                         icon: Settings,
                         matchPrefix: '/admin/settings',
                         feature: 'admin.settings',

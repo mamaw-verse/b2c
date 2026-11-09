@@ -396,7 +396,7 @@ test('seller can fulfill order and transition status to to_receive', function ()
     ]);
 
     $this->actingAs($this->sellerUser)
-        ->post(route('seller.orders.shipment.store', $order), [
+        ->post(route('seller.orders.fulfillments.store', $order), [
             'tracking_number' => 'TRACK-998877',
             'courier_name' => 'J&T Express',
         ])
@@ -431,7 +431,7 @@ test('seller cannot fulfill another shops order', function () {
     ]);
 
     $this->actingAs($this->sellerUser)
-        ->post(route('seller.orders.shipment.store', $otherOrder), [
+        ->post(route('seller.orders.fulfillments.store', $otherOrder), [
             'tracking_number' => 'FAKE',
         ])
         ->assertNotFound();

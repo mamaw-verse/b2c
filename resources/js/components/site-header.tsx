@@ -91,14 +91,11 @@ export function SiteHeader({
 
     return (
         <header className="sticky top-0 z-header border-b border-border bg-surface/80 pt-safe backdrop-blur-md">
-            {/* TODO: Announcement bar — wire to backend (e.g. a shared Inertia prop
-                from HandleInertiaRequests) so the text is editable without a deploy.
-            <div className="hidden min-h-[var(--announce-h)] items-center bg-surface-inverse text-caption text-foreground-inverse lg:flex">
-                <p className="page w-full">
-                    Free shipping over ₱499 · Every halal claim is checked by{' '}
-                    {name}
-                </p>
-            </div> */}
+            {marketplace?.announcement && (
+                <div className="hidden min-h-[var(--announce-h)] items-center bg-surface-inverse text-caption text-foreground-inverse lg:flex">
+                    <p className="page w-full">{marketplace.announcement}</p>
+                </div>
+            )}
             <div className="page flex h-header items-center gap-2 md:gap-3 lg:gap-6">
                 {back ? (
                     <>

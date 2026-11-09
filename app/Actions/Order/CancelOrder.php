@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
+use App\Enums\FulfillmentStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderEvent;
@@ -18,7 +19,7 @@ final readonly class CancelOrder
             throw ValidationException::withMessages(['order' => 'Order not found.']);
         }
 
-        if (! $order->status->isCancellable()) {
+        if (! $order->status->isCancellable() || $order->fulfillment_status !== FulfillmentStatus::Unfulfilled) {
             throw ValidationException::withMessages(['order' => 'This order can no longer be cancelled.']);
         }
 

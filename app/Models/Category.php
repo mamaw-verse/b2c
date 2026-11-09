@@ -20,10 +20,12 @@ use Illuminate\Support\Carbon;
  * @property string $slug
  * @property string $icon
  * @property int $sort_order
+ * @property int|null $commission_bps
+ * @property bool $requires_certification
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['parent_id', 'name', 'slug', 'icon', 'sort_order'])]
+#[Fillable(['parent_id', 'name', 'slug', 'icon', 'sort_order', 'commission_bps', 'requires_certification'])]
 final class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
@@ -45,5 +47,26 @@ final class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    /** @return list<string> */
+    public function descendantIds(): array
+    {
+        $ids = [];
+
+        foreach ($this->children()->get() as $child) {
+            $ids[] = $child->id;
+            array_push($ids, ...$child->descendantIds());
+        }
+
+        return $ids;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'requires_certification' => 'boolean',
+            'commission_bps' => 'integer',
+        ];
     }
 }

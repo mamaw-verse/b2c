@@ -287,6 +287,119 @@
                     "expect": "public terms page: h1, version line, draft warning banner, TOC anchors"
                 }
             ]
+        },
+        {
+            "id": "seller-finance",
+            "spec": "specs/seller-finance.spec.ts",
+            "description": "Seller Finance page (W3-23): balance cards, ledger entries, payout account setup, payout request, and admin marks the request as paid.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "seller@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/finance",
+                    "screenshot": "finance-01-overview",
+                    "expect": "balance-available, balance-pending, balance-paid data-test elements visible; at least one ledger-row present from the order-lifecycle spec"
+                },
+                {
+                    "action": "fill payout account and save",
+                    "screenshot": "finance-03-account-set",
+                    "expect": "GCash method hint visible after redirect"
+                },
+                {
+                    "action": "request payout of ₱100",
+                    "screenshot": "finance-04-payout-requested",
+                    "expect": "payout-row with status 'requested' appears in history"
+                },
+                {
+                    "action": "login",
+                    "email": "admin@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/payouts",
+                    "screenshot": "finance-05-admin-payouts",
+                    "expect": "payout-request row visible; Mark paid button present"
+                },
+                {
+                    "action": "fill transfer reference and click Mark paid",
+                    "screenshot": "finance-06-payout-paid",
+                    "expect": "row flips to 'paid' badge"
+                },
+                {
+                    "action": "login",
+                    "email": "seller@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/finance",
+                    "screenshot": "finance-07-seller-payout-paid",
+                    "expect": "payout-row shows 'paid'"
+                }
+            ]
+        },
+        {
+            "id": "admin-console",
+            "spec": "specs/admin-console.spec.ts",
+            "description": "Admin console (W3-30–W3-34): user search, suspend/lift, category CRUD with commission, voucher CRUD, and audit log.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "admin@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/users",
+                    "screenshot": "admin-users-01-list",
+                    "expect": "user-row elements visible; search filter works"
+                },
+                {
+                    "action": "navigate to fresh user and suspend",
+                    "screenshots": [
+                        "admin-users-03-user-detail",
+                        "admin-users-04-suspended"
+                    ],
+                    "expect": "'suspended' badge appears"
+                },
+                {
+                    "action": "lift suspension",
+                    "screenshot": "admin-users-05-lifted",
+                    "expect": "'active' badge appears"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/categories",
+                    "screenshots": [
+                        "admin-categories-01-list",
+                        "admin-categories-02-new-form",
+                        "admin-categories-03-created"
+                    ],
+                    "expect": "new category with '6% commission' badge visible after create"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/vouchers",
+                    "screenshots": [
+                        "admin-vouchers-01-list",
+                        "admin-vouchers-02-new-form",
+                        "admin-vouchers-03-created",
+                        "admin-vouchers-04-updated",
+                        "admin-vouchers-05-deleted"
+                    ],
+                    "expect": "voucher created then deleted; code no longer visible"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/audit-log",
+                    "screenshots": [
+                        "admin-audit-01-all",
+                        "admin-audit-02-filtered"
+                    ],
+                    "expect": "audit-entry rows visible; action filter returns correct subset"
+                }
+            ]
         }
     ],
     "candidateNextScenarios": [

@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, useForm } from '@inertiajs/react';
 import { MessageCircle, Printer, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { DsIcon } from '@/components/ds-icon';
@@ -9,7 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { formatDateTime, formatPeso } from '@/lib/format';
 import { index as ordersIndex } from '@/routes/seller/orders';
-import { store as storeShipment } from '@/routes/seller/orders/shipment';
+import { store as storeChat } from '@/routes/seller/orders/chat';
+import {
+    store as storeFulfillment,
+    update as updateFulfillment,
+} from '@/routes/seller/orders/fulfillments';
 
 type OrderItem = {
     id: string;
@@ -20,6 +24,18 @@ type OrderItem = {
     subtotal: number;
     thumbnail_icon?: string;
     frozen: boolean;
+    remaining: number;
+};
+
+type Fulfillment = {
+    id: string;
+    courier_name: string;
+    tracking_number: string;
+    tracking_url?: string | null;
+    status: string;
+    shipped_at: string;
+    delivered_at?: string | null;
+    items: { order_item_id: string; name: string; quantity: number }[];
 };
 
 type OrderDetail = {
@@ -65,6 +81,9 @@ type OrderDetail = {
         tracking_number?: string | null;
         state?: string | null;
     }[];
+    fulfillment_status: string;
+    fulfillments: Fulfillment[];
+    chat_url: string | null;
     can_ship: boolean;
 };
 
@@ -74,6 +93,31 @@ type PageProps = {
 
 export default function SellerOrderShow({ order }: PageProps) {
     const [shipModalOpen, setShipModalOpen] = useState(false);
+    const [editing, setEditing] = useState<Fulfillment | null>(null);
+    const shipForm = useForm({
+        courier_name: '',
+        tracking_number: '',
+        tracking_url: '',
+        items: order.items
+            .filter((item) => item.remaining > 0)
+            .map((item) => ({
+                order_item_id: item.id,
+                quantity: item.remaining,
+            })),
+    });
+
+    const submitShipment = () => {
+        shipForm.transform((data) => ({
+            ...data,
+            items: data.items.filter((line) => line.quantity > 0),
+        }));
+        shipForm.post(storeFulfillment({ order: order.raw_id }).url, {
+            onSuccess: () => {
+                setShipModalOpen(false);
+                shipForm.reset();
+            },
+        });
+    };
 
     return (
         <>
@@ -139,6 +183,12 @@ export default function SellerOrderShow({ order }: PageProps) {
                                         <p className="text-body-sm text-muted-foreground">
                                             × {item.quantity}
                                         </p>
+                                        {item.remaining < item.quantity && (
+                                            <p className="text-caption text-muted-foreground">
+                                                {item.quantity - item.remaining}{' '}
+                                                shipped
+                                            </p>
+                                        )}
                                     </div>
                                 </li>
                             ))}
@@ -205,6 +255,65 @@ export default function SellerOrderShow({ order }: PageProps) {
                             </div>
                         </div>
                     </section>
+
+                    {order.fulfillments.length > 0 && (
+                        <section className="panel p-4 md:p-6">
+                            <h2 className="mb-4 text-h3">Parcels</h2>
+                            <ul className="grid gap-4">
+                                {order.fulfillments.map((parcel, index) => (
+                                    <li
+                                        key={parcel.id}
+                                        className="rounded-tile border border-border p-3"
+                                        data-test="parcel"
+                                    >
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <p className="text-label">
+                                                Parcel {index + 1} ·{' '}
+                                                {parcel.courier_name}
+                                            </p>
+                                            <Badge
+                                                variant={
+                                                    parcel.status ===
+                                                    'delivered'
+                                                        ? 'success'
+                                                        : 'info'
+                                                }
+                                            >
+                                                {parcel.status === 'delivered'
+                                                    ? 'Delivered'
+                                                    : 'Shipped'}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-body-sm text-muted-foreground">
+                                            Tracking {parcel.tracking_number} ·
+                                            shipped{' '}
+                                            {formatDateTime(parcel.shipped_at)}
+                                        </p>
+                                        <ul className="mt-2 text-body-sm">
+                                            {parcel.items.map((line) => (
+                                                <li key={line.order_item_id}>
+                                                    {line.name} ×{' '}
+                                                    {line.quantity}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        {parcel.status === 'shipped' && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="mt-2"
+                                                onClick={() =>
+                                                    setEditing(parcel)
+                                                }
+                                            >
+                                                Edit tracking
+                                            </Button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
 
                     {/* Payment */}
                     <section className="panel p-4 md:p-6">
@@ -276,13 +385,31 @@ export default function SellerOrderShow({ order }: PageProps) {
             {/* Action bar (sticky on mobile, fixed on desktop) */}
             <div className="fixed inset-x-0 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe md:bottom-0 lg:left-[var(--sidebar-w)]">
                 <div className="mx-auto flex max-w-container items-center gap-2">
-                    <Link
-                        href={`/seller/chat?buyer=${order.buyer.id}`}
-                        className="btn btn-icon btn-ghost text-foreground"
-                        aria-label="Chat with buyer"
-                    >
-                        <MessageCircle className="size-5" aria-hidden="true" />
-                    </Link>
+                    {order.chat_url ? (
+                        <Link
+                            href={order.chat_url}
+                            className="btn btn-icon btn-ghost text-foreground"
+                            aria-label="Chat with buyer"
+                        >
+                            <MessageCircle
+                                className="size-5"
+                                aria-hidden="true"
+                            />
+                        </Link>
+                    ) : (
+                        <Link
+                            href={storeChat({ order: order.raw_id }).url}
+                            method="post"
+                            as="button"
+                            className="btn btn-icon btn-ghost text-foreground"
+                            aria-label="Chat with buyer"
+                        >
+                            <MessageCircle
+                                className="size-5"
+                                aria-hidden="true"
+                            />
+                        </Link>
+                    )}
                     <button
                         type="button"
                         className="btn btn-ghost"
@@ -303,61 +430,181 @@ export default function SellerOrderShow({ order }: PageProps) {
                 </div>
             </div>
 
-            {/* Shipment confirmation modal */}
             <Modal
                 open={shipModalOpen}
                 onOpenChange={setShipModalOpen}
                 title="Arrange shipment"
             >
-                <Form
-                    action={storeShipment({ order: order.raw_id }).url}
-                    method="post"
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        submitShipment();
+                    }}
+                    className="grid gap-4"
                 >
-                    {({ processing, errors }) => (
-                        <div className="grid gap-4">
-                            <p className="text-body text-muted-foreground">
-                                Mark order {order.reference} as shipped and
-                                notify the buyer?
-                            </p>
+                    <p className="text-body text-muted-foreground">
+                        Choose the quantities in this parcel. Items left at 0
+                        ship in a later parcel.
+                    </p>
+                    {shipForm.data.items.map((line, index) => {
+                        const item = order.items.find(
+                            (i) => i.id === line.order_item_id,
+                        );
+
+                        return (
                             <FormField
-                                label="Courier"
-                                required
-                                error={errors.courier_name}
+                                key={line.order_item_id}
+                                label={`${item?.name} (max ${item?.remaining})`}
+                                error={
+                                    shipForm.errors[
+                                        `items.${index}.quantity` as keyof typeof shipForm.errors
+                                    ]
+                                }
                             >
                                 <Input
-                                    name="courier_name"
-                                    placeholder="e.g. J&T Express"
+                                    type="number"
+                                    min={0}
+                                    max={item?.remaining}
+                                    value={line.quantity}
+                                    onChange={(e) =>
+                                        shipForm.setData(
+                                            'items',
+                                            shipForm.data.items.map((l, i) =>
+                                                i === index
+                                                    ? {
+                                                          ...l,
+                                                          quantity: Number(
+                                                              e.target.value,
+                                                          ),
+                                                      }
+                                                    : l,
+                                            ),
+                                        )
+                                    }
                                 />
                             </FormField>
-                            <FormField
-                                label="Tracking number"
-                                required
-                                error={errors.tracking_number}
-                            >
-                                <Input
-                                    name="tracking_number"
-                                    placeholder="e.g. PH-123456789"
-                                />
-                            </FormField>
-                            <div className="flex justify-end gap-3">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={() => setShipModalOpen(false)}
+                        );
+                    })}
+                    <FormField
+                        label="Courier"
+                        required
+                        error={shipForm.errors.courier_name}
+                    >
+                        <Input
+                            name="courier_name"
+                            placeholder="e.g. J&T Express"
+                            value={shipForm.data.courier_name}
+                            onChange={(e) =>
+                                shipForm.setData('courier_name', e.target.value)
+                            }
+                        />
+                    </FormField>
+                    <FormField
+                        label="Tracking number"
+                        required
+                        error={shipForm.errors.tracking_number}
+                    >
+                        <Input
+                            name="tracking_number"
+                            placeholder="e.g. PH-123456789"
+                            value={shipForm.data.tracking_number}
+                            onChange={(e) =>
+                                shipForm.setData(
+                                    'tracking_number',
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </FormField>
+                    <FormField
+                        label="Tracking link"
+                        error={shipForm.errors.tracking_url}
+                    >
+                        <Input
+                            name="tracking_url"
+                            type="url"
+                            placeholder="https://"
+                            value={shipForm.data.tracking_url}
+                            onChange={(e) =>
+                                shipForm.setData('tracking_url', e.target.value)
+                            }
+                        />
+                    </FormField>
+                    <div className="flex justify-end gap-3">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setShipModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={shipForm.processing}>
+                            <Truck className="size-4" aria-hidden="true" />
+                            Confirm shipment
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+
+            <Modal
+                open={editing !== null}
+                onOpenChange={(open) => !open && setEditing(null)}
+                title="Edit tracking"
+            >
+                {editing && (
+                    <Form
+                        action={
+                            updateFulfillment({
+                                order: order.raw_id,
+                                fulfillment: editing.id,
+                            }).url
+                        }
+                        method="put"
+                        onSuccess={() => setEditing(null)}
+                    >
+                        {({ processing, errors }) => (
+                            <div className="grid gap-4">
+                                <FormField
+                                    label="Courier"
+                                    required
+                                    error={errors.courier_name}
                                 >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={processing}>
-                                    <Truck
-                                        className="size-4"
-                                        aria-hidden="true"
+                                    <Input
+                                        name="courier_name"
+                                        defaultValue={editing.courier_name}
                                     />
-                                    Confirm shipment
-                                </Button>
+                                </FormField>
+                                <FormField
+                                    label="Tracking number"
+                                    required
+                                    error={errors.tracking_number}
+                                >
+                                    <Input
+                                        name="tracking_number"
+                                        defaultValue={editing.tracking_number}
+                                    />
+                                </FormField>
+                                <FormField
+                                    label="Tracking link"
+                                    error={errors.tracking_url}
+                                >
+                                    <Input
+                                        name="tracking_url"
+                                        type="url"
+                                        defaultValue={
+                                            editing.tracking_url ?? ''
+                                        }
+                                    />
+                                </FormField>
+                                <div className="flex justify-end">
+                                    <Button type="submit" disabled={processing}>
+                                        Save
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                </Form>
+                        )}
+                    </Form>
+                )}
             </Modal>
         </>
     );

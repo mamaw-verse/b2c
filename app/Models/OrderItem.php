@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
@@ -23,10 +24,12 @@ use Illuminate\Support\Carbon;
  * @property int $unit_price
  * @property int $qty
  * @property int $subtotal
+ * @property int $commission_bps
+ * @property int $commission_amount
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['order_id', 'product_id', 'product_variation_id', 'product_name', 'variation_label', 'unit_price', 'qty', 'subtotal'])]
+#[Fillable(['order_id', 'product_id', 'product_variation_id', 'product_name', 'variation_label', 'unit_price', 'qty', 'subtotal', 'commission_bps', 'commission_amount'])]
 final class OrderItem extends Model
 {
     /** @use HasFactory<OrderItemFactory> */
@@ -50,6 +53,17 @@ final class OrderItem extends Model
         return $this->belongsTo(ProductVariation::class, 'product_variation_id');
     }
 
+    /** @return HasMany<FulfillmentItem, $this> */
+    public function fulfillmentItems(): HasMany
+    {
+        return $this->hasMany(FulfillmentItem::class);
+    }
+
+    public function remainingQuantity(): int
+    {
+        return $this->qty - (int) $this->fulfillmentItems()->sum('quantity');
+    }
+
     /** @return HasOne<Review, $this> */
     public function review(): HasOne
     {
@@ -62,6 +76,8 @@ final class OrderItem extends Model
             'unit_price' => 'integer',
             'qty' => 'integer',
             'subtotal' => 'integer',
+            'commission_bps' => 'integer',
+            'commission_amount' => 'integer',
         ];
     }
 }

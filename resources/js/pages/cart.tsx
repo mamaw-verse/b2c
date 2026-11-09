@@ -104,10 +104,7 @@ export default function Cart({
         });
     };
 
-    const allVouchers: VoucherItem[] = [
-        ...platformVouchers,
-        ...groups.flatMap((g) => (g as any).availableVouchers ?? []),
-    ];
+    const allVouchers: VoucherItem[] = [...platformVouchers];
 
     const isCartEmpty = groups.length === 0;
 

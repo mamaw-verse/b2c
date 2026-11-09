@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\FulfillmentStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Values\OrderTotals;
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $platform_voucher_id
  * @property PaymentMethod $payment_method
  * @property OrderStatus $status
+ * @property FulfillmentStatus $fulfillment_status
  * @property int $subtotal
  * @property int $shipping_fee
  * @property int $shipping_discount
@@ -38,11 +40,14 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['user_id', 'shop_id', 'address_id', 'shipping_option_id', 'voucher_id', 'platform_voucher_id', 'payment_method', 'status', 'subtotal', 'shipping_fee', 'shipping_discount', 'voucher_discount', 'platform_voucher_discount', 'total', 'cod_fee', 'notes'])]
+#[Fillable(['user_id', 'shop_id', 'address_id', 'shipping_option_id', 'voucher_id', 'platform_voucher_id', 'payment_method', 'status', 'fulfillment_status', 'subtotal', 'shipping_fee', 'shipping_discount', 'voucher_discount', 'platform_voucher_discount', 'total', 'cod_fee', 'notes'])]
 final class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
     use HasFactory, HasUlids;
+
+    /** @var array<string, mixed> */
+    protected $attributes = ['fulfillment_status' => 'unfulfilled'];
 
     /** @var list<string> */
     protected $appends = ['reference', 'status_label', 'status_badge_variant'];
@@ -89,6 +94,18 @@ final class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    /** @return HasMany<Fulfillment, $this> */
+    public function fulfillments(): HasMany
+    {
+        return $this->hasMany(Fulfillment::class)->orderBy('shipped_at');
+    }
+
+    /** @return HasMany<LedgerEntry, $this> */
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(LedgerEntry::class);
+    }
+
     /** @return HasMany<OrderEvent, $this> */
     public function events(): HasMany
     {
@@ -131,6 +148,7 @@ final class Order extends Model
         return [
             'payment_method' => PaymentMethod::class,
             'status' => OrderStatus::class,
+            'fulfillment_status' => FulfillmentStatus::class,
             'subtotal' => 'integer',
             'shipping_fee' => 'integer',
             'shipping_discount' => 'integer',

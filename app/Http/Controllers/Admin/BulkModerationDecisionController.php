@@ -17,6 +17,7 @@ final class BulkModerationDecisionController
             $request->action(),
             $request->user(),
             $request->decisionReason(),
+            $request->ip(),
         );
 
         return redirect()->route('admin.moderation.index');

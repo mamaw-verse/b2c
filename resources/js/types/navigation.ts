@@ -36,6 +36,7 @@ export type WorkspaceEntry = {
 
 export type Marketplace = {
     tagline: string;
+    announcement: string | null;
     support: { email: string | null; hours: string | null };
     registration: string | null;
     payments: string[];

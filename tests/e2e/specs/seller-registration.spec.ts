@@ -1,11 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import {
-    api,
-    createVerifiedUser,
-    login,
-    shot,
-    uniqueEmail,
-} from '../helpers';
+import { api, createVerifiedUser, login, shot, uniqueEmail } from '../helpers';
 
 const ADMIN = 'admin@example.com';
 

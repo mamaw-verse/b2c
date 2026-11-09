@@ -25,11 +25,13 @@ final class ModerationDecisionController
         $admin = $request->user();
         $reason = $request->decisionReason();
 
+        $ip = $request->ip();
+
         match ($request->action()) {
-            'approved' => $approve->handle($moderationQueueItem, $admin, $reason),
-            'rejected' => $reject->handle($moderationQueueItem, $admin, $reason),
-            'hidden' => $hide->handle($moderationQueueItem, $admin, $reason),
-            'suspended' => $suspend->handle($moderationQueueItem, $admin, $reason),
+            'approved' => $approve->handle($moderationQueueItem, $admin, $reason, $ip),
+            'rejected' => $reject->handle($moderationQueueItem, $admin, $reason, $ip),
+            'hidden' => $hide->handle($moderationQueueItem, $admin, $reason, $ip),
+            'suspended' => $suspend->handle($moderationQueueItem, $admin, $reason, $ip),
         };
 
         return redirect()->route('admin.moderation.index');

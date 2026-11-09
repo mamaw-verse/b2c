@@ -52,3 +52,7 @@ Env vars:
 - Registrations create real users in the dev database via unique emails — do not
   point `E2E_BASE_URL` at a production or shared environment.
 - Runs are serial (`workers: 1`) because scenarios write to one database.
+
+## Wave 3
+
+Planned specs and route additions are listed in `docs/planning/07-wave-3-implementation-tasks.md` §4. Keep `scenarios.json` and `specs/accessibility.spec.ts` in sync with every new route.

@@ -37,12 +37,25 @@ const surfaces = [
             '/seller/settings',
             '/seller/chat',
             '/seller/notifications',
+            '/seller/finance',
+            '/seller/customers',
+            '/seller/vouchers',
         ],
     },
     {
         role: 'admin',
         email: 'admin@example.com',
-        paths: ['/admin/dashboard', '/admin/moderation', '/settings/profile'],
+        paths: [
+            '/admin/dashboard',
+            '/admin/moderation',
+            '/settings/profile',
+            '/admin/users',
+            '/admin/categories',
+            '/admin/vouchers',
+            '/admin/payouts',
+            '/admin/audit-log',
+            '/admin/settings',
+        ],
     },
 ];
 

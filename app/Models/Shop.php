@@ -43,13 +43,16 @@ use Illuminate\Support\Carbon;
  * @property string|null $state
  * @property string|null $postal_code
  * @property string|null $business_permit_url
+ * @property string|null $payout_method
+ * @property string|null $payout_account_name
+ * @property string|null $payout_account_number
  * @property bool $agreed_to_terms
  * @property string|null $terms_version
  * @property Carbon|null $terms_accepted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by', 'address_line', 'city', 'state', 'postal_code', 'business_permit_url', 'agreed_to_terms', 'terms_version', 'terms_accepted_at'])]
+#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by', 'address_line', 'city', 'state', 'postal_code', 'business_permit_url', 'payout_method', 'payout_account_name', 'payout_account_number', 'agreed_to_terms', 'terms_version', 'terms_accepted_at'])]
 final class Shop extends Model
 {
     /** @use HasFactory<ShopFactory> */
@@ -95,6 +98,18 @@ final class Shop extends Model
         return $this->hasMany(Order::class);
     }
 
+    /** @return HasMany<LedgerEntry, $this> */
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(LedgerEntry::class);
+    }
+
+    /** @return HasMany<Payout, $this> */
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
+
     /** @return HasMany<Conversation, $this> */
     public function conversations(): HasMany
     {
@@ -115,6 +130,7 @@ final class Shop extends Model
             'vacation_mode' => 'boolean',
             'auto_reply' => 'boolean',
             'shipping_channels' => 'array',
+            'payout_account_number' => 'encrypted',
             'status' => ShopStatus::class,
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',

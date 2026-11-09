@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Message;
 use App\Models\ModerationQueueItem;
 use App\Models\Product;
+use App\Support\Settings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -55,7 +56,7 @@ final class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'brand' => config('app.brand'),
-            'marketplace' => config('marketplace'),
+            'marketplace' => fn () => app(Settings::class)->marketplaceConfig(),
             'auth' => [
                 'user' => $request->user(),
             ],

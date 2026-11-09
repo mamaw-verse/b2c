@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Cart;
 
+use App\Actions\Finance\ResolveCommissionRate;
 use App\Enums\DiscountType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
@@ -26,6 +27,8 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class PlaceOrder
 {
+    public function __construct(private ResolveCommissionRate $commission) {}
+
     /**
      * @return Order|Collection<int, Order>
      */
@@ -107,6 +110,8 @@ final readonly class PlaceOrder
                     $lineSubtotal = $unitPrice * $item->qty;
                     $subtotal += $lineSubtotal;
 
+                    $commissionBps = $this->commission->handle($item->product->category);
+
                     $orderItemsData[] = [
                         'product_id' => $item->product_id,
                         'product_variation_id' => $item->product_variation_id,
@@ -115,6 +120,8 @@ final readonly class PlaceOrder
                         'unit_price' => $unitPrice,
                         'qty' => $item->qty,
                         'subtotal' => $lineSubtotal,
+                        'commission_bps' => $commissionBps,
+                        'commission_amount' => (int) round($lineSubtotal * $commissionBps / 10000),
                     ];
                 }
 
