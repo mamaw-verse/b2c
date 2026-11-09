@@ -60,7 +60,7 @@ final readonly class PlaceOrder
                 ]);
             }
 
-            $createdOrders = new Collection;
+            $createdOrders = [];
             $shopGroups = $items->groupBy('product.shop_id');
             $shopCount = $shopGroups->count();
 
@@ -144,7 +144,7 @@ final readonly class PlaceOrder
                     $platformVoucher->increment('used_count');
                 }
 
-                $codFee = ($paymentEnum === PaymentMethod::Cod) ? config('checkout.cod_fee') : 0;
+                $codFee = ($paymentEnum === PaymentMethod::Cod) ? config()->integer('checkout.cod_fee') : 0;
                 $total = max(0, $subtotal + $shippingFee - $shippingDiscount - $voucherDiscount - $platformVoucherDiscount + $codFee);
 
                 $status = ($paymentEnum === PaymentMethod::Cod)
@@ -189,13 +189,13 @@ final readonly class PlaceOrder
                     "Order #{$order->id} placed. Total ".Money::format($total),
                 ));
 
-                $createdOrders->push($order);
+                $createdOrders[] = $order;
             }
 
             // Remove selected cart items
             CartItem::where('user_id', $user->id)->where('selected', true)->delete();
 
-            return $createdOrders->count() === 1 ? $createdOrders->first() : $createdOrders;
+            return count($createdOrders) === 1 ? $createdOrders[0] : new Collection($createdOrders);
         });
     }
 

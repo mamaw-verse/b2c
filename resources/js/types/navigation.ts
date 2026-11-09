@@ -18,6 +18,22 @@ export type FooterLink = {
     href: string;
 };
 
+export type SharedWorkspace = {
+    key: 'buyer' | 'seller' | 'admin';
+    label: string;
+    href: string;
+    current: boolean;
+};
+
+export type WorkspaceEntry = {
+    key: 'buyer' | 'seller' | 'admin';
+    label: string;
+    href: string;
+    icon: LucideIcon;
+    current: boolean;
+    note?: string;
+};
+
 export type Marketplace = {
     tagline: string;
     support: { email: string | null; hours: string | null };

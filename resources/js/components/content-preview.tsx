@@ -44,22 +44,29 @@ export type ChatSnapshot = {
     hidden_later_count?: number;
 };
 
+export type ShopCertificateSnapshot = {
+    certifying_body?: string;
+    number?: string;
+    valid_until?: string;
+    status?: string;
+    document_url?: string;
+};
+
 export type ShopApplicationSnapshot = {
     shop_name: string;
     description?: string;
-    location?: string;
-    contact_number?: string;
-    halal_only?: boolean;
-    id_type?: string;
-    id_number?: string;
-    id_document_url?: string;
-    selfie_url?: string;
+    logo_url?: string;
+    address_line?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
     business_permit_url?: string;
-    bank_name?: string;
-    bank_account_name?: string;
+    certificates?: ShopCertificateSnapshot[];
     applicant_name?: string;
     applicant_email?: string;
     submitted_at?: string;
+    terms_version?: string;
+    terms_accepted_at?: string;
     flag_notice?: string;
 };
 
@@ -71,13 +78,6 @@ export type ContentPreviewProps = {
         | ChatSnapshot
         | ShopApplicationSnapshot
         | Record<string, unknown>;
-};
-
-const ID_TYPE_LABELS: Record<string, string> = {
-    philsys: 'PhilSys ID',
-    drivers_license: "Driver's license",
-    passport: 'Passport',
-    national_id: 'National ID',
 };
 
 function highlightTerms(text: string, terms: string[] = []) {
@@ -228,22 +228,34 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
 
     if (kind === 'shop_application') {
         const data = snapshot as ShopApplicationSnapshot;
+        const address = [
+            data.address_line,
+            data.city,
+            data.state,
+            data.postal_code,
+        ]
+            .filter(Boolean)
+            .join(', ');
         const documents = [
-            { label: 'ID document', url: data.id_document_url },
-            { label: 'Selfie', url: data.selfie_url },
             { label: 'Business permit', url: data.business_permit_url },
+            ...(data.certificates ?? []).map((certificate, i) => ({
+                label: certificate.certifying_body ?? `Certificate ${i + 1}`,
+                url: certificate.document_url,
+            })),
         ].filter((d) => d.url);
         return (
             <div className="grid gap-3">
                 <div className="grid content-start gap-2">
-                    <p className="flex flex-wrap items-center gap-2 text-h4">
-                        {data.shop_name}
-                        {data.halal_only && (
-                            <span className="rounded-badge bg-halal-soft px-2 py-0.5 text-caption font-bold text-halal">
-                                Halal only
-                            </span>
+                    <div className="flex items-center gap-3">
+                        {data.logo_url && (
+                            <img
+                                src={data.logo_url}
+                                alt={`${data.shop_name} logo`}
+                                className="size-12 shrink-0 rounded-tile border border-border object-cover"
+                            />
                         )}
-                    </p>
+                        <p className="text-h4">{data.shop_name}</p>
+                    </div>
                     {(data.applicant_name || data.applicant_email) && (
                         <p className="text-body-sm text-muted-foreground">
                             Applicant:{' '}
@@ -263,46 +275,12 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                         <p className="text-body">{data.description}</p>
                     )}
                     <dl className="grid gap-1 text-body-sm">
-                        {data.location && (
+                        {address && (
                             <div className="grid grid-cols-[7rem_1fr] gap-3">
                                 <dt className="text-muted-foreground">
-                                    Location
+                                    Address
                                 </dt>
-                                <dd className="text-foreground">
-                                    {data.location}
-                                </dd>
-                            </div>
-                        )}
-                        {data.contact_number && (
-                            <div className="grid grid-cols-[7rem_1fr] gap-3">
-                                <dt className="text-muted-foreground">
-                                    Contact
-                                </dt>
-                                <dd className="text-foreground">
-                                    {data.contact_number}
-                                </dd>
-                            </div>
-                        )}
-                        {data.id_type && (
-                            <div className="grid grid-cols-[7rem_1fr] gap-3">
-                                <dt className="text-muted-foreground">ID</dt>
-                                <dd className="text-foreground">
-                                    {ID_TYPE_LABELS[data.id_type] ??
-                                        data.id_type}
-                                    {data.id_number && ` · ${data.id_number}`}
-                                </dd>
-                            </div>
-                        )}
-                        {(data.bank_name || data.bank_account_name) && (
-                            <div className="grid grid-cols-[7rem_1fr] gap-3">
-                                <dt className="text-muted-foreground">
-                                    Payout
-                                </dt>
-                                <dd className="text-foreground">
-                                    {data.bank_name}
-                                    {data.bank_account_name &&
-                                        ` · ${data.bank_account_name}`}
-                                </dd>
+                                <dd className="text-foreground">{address}</dd>
                             </div>
                         )}
                         {data.submitted_at && (
@@ -321,8 +299,80 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                                 </dd>
                             </div>
                         )}
+                        {data.terms_version && (
+                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                                <dt className="text-muted-foreground">
+                                    Seller terms
+                                </dt>
+                                <dd className="text-foreground">
+                                    v{data.terms_version}
+                                    {data.terms_accepted_at && (
+                                        <>
+                                            {' '}
+                                            · accepted{' '}
+                                            {new Date(
+                                                data.terms_accepted_at,
+                                            ).toLocaleDateString('en-PH', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric',
+                                            })}
+                                        </>
+                                    )}
+                                </dd>
+                            </div>
+                        )}
                     </dl>
                 </div>
+                {(data.certificates ?? []).length > 0 && (
+                    <ul
+                        className="grid gap-1 text-body-sm"
+                        aria-label="Certificates"
+                    >
+                        {data.certificates!.map((certificate, i) => (
+                            <li
+                                key={i}
+                                className="flex flex-wrap items-center gap-x-2 gap-y-0.5"
+                            >
+                                <span className="font-bold text-foreground">
+                                    {certificate.certifying_body ??
+                                        `Certificate ${i + 1}`}
+                                </span>
+                                {certificate.number && (
+                                    <span className="text-muted-foreground">
+                                        · {certificate.number}
+                                    </span>
+                                )}
+                                {certificate.valid_until && (
+                                    <span className="text-muted-foreground">
+                                        · expires{' '}
+                                        {new Date(
+                                            certificate.valid_until,
+                                        ).toLocaleDateString('en-PH', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                        })}
+                                    </span>
+                                )}
+                                {certificate.status && (
+                                    <span
+                                        className={`rounded-badge px-2 py-0.5 text-caption font-bold ${
+                                            certificate.status === 'expired'
+                                                ? 'bg-danger-soft text-danger-text'
+                                                : certificate.status ===
+                                                    'expiring'
+                                                  ? 'bg-mod-flagged-bg text-mod-flagged'
+                                                  : 'bg-halal-soft text-halal'
+                                        }`}
+                                    >
+                                        {certificate.status}
+                                    </span>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                )}
                 {documents.length > 0 && (
                     <ul
                         className="flex flex-wrap gap-2"

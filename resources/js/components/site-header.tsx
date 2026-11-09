@@ -7,13 +7,16 @@ import {
     Store,
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { AccountUserMenu } from '@/components/account-user-menu';
 import { NameAvatar } from '@/components/name-avatar';
 import { SearchInput } from '@/components/search-input';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/utils';
-import { dashboard, home } from '@/routes';
+import { home } from '@/routes';
+import { index as chatIndex } from '@/routes/chat';
 import { login } from '@/routes';
+import { index as notificationsIndex } from '@/routes/notifications';
 import { show as categoryShow } from '@/routes/categories';
 
 /** One style for every link in the category nav: constant weight (no layout
@@ -47,8 +50,12 @@ export function SiteHeader({
         cartCount,
         searchSuggestions,
         marketplace,
+        workspaces,
     } = usePage().props;
     const { url } = usePage();
+    // Buyer and seller surfaces are stripped for admins — hide the
+    // storefront entries that lead into them.
+    const isAdmin = (workspaces ?? []).some((w) => w.key === 'admin');
     const chatUnread = unreadCounts?.chat ?? 0;
     const notifUnread = unreadCounts?.notifications ?? 0;
     const cartItems = cartCount ?? 0;
@@ -148,50 +155,62 @@ export function SiteHeader({
                             </span>
                         )}
                     </Link>
-                    <span className="lg:hidden">
-                        <Link
-                            href={auth.user ? '/chat' : login().url}
-                            aria-label={`Chat${chatUnread > 0 ? `, ${chatUnread} unread` : ''}`}
-                            className="btn btn-icon btn-ghost relative text-foreground"
-                        >
-                            <MessageCircle aria-hidden="true" />
-                            {chatUnread > 0 && (
-                                <span
-                                    aria-hidden="true"
-                                    className="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-caption leading-5 text-primary-foreground"
-                                >
-                                    {chatUnread > 99 ? '99+' : chatUnread}
-                                </span>
-                            )}
-                        </Link>
-                    </span>
+                    {!isAdmin && (
+                        <span className="lg:hidden">
+                            <Link
+                                href={auth.user ? chatIndex().url : login().url}
+                                aria-label={`Chat${chatUnread > 0 ? `, ${chatUnread} unread` : ''}`}
+                                className="btn btn-icon btn-ghost relative text-foreground"
+                            >
+                                <MessageCircle aria-hidden="true" />
+                                {chatUnread > 0 && (
+                                    <span
+                                        aria-hidden="true"
+                                        className="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-caption leading-5 text-primary-foreground"
+                                    >
+                                        {chatUnread > 99 ? '99+' : chatUnread}
+                                    </span>
+                                )}
+                            </Link>
+                        </span>
+                    )}
                     <span className="hidden items-center gap-1 lg:flex">
-                        <Link
-                            href={auth.user ? '/notifications' : login().url}
-                            aria-label={`Notifications${notifUnread > 0 ? `, ${notifUnread} unread` : ''}`}
-                            className="btn btn-icon btn-ghost relative text-foreground"
-                        >
-                            <Bell aria-hidden="true" />
-                            {notifUnread > 0 && (
-                                <span
-                                    aria-hidden="true"
-                                    className="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-caption leading-5 text-primary-foreground"
-                                >
-                                    {notifUnread > 99 ? '99+' : notifUnread}
-                                </span>
-                            )}
-                        </Link>
-                        <Link
-                            href={auth.user ? dashboard() : login()}
-                            className="flex min-h-touch items-center gap-2 rounded-button px-2 text-label hover:bg-surface-muted"
-                        >
-                            <NameAvatar
-                                name={auth.user?.name ?? 'Guest'}
-                                size="sm"
-                                label={false}
-                            />
-                            <span>{auth.user?.name ?? 'Log in'}</span>
-                        </Link>
+                        {!isAdmin && (
+                            <Link
+                                href={
+                                    auth.user
+                                        ? notificationsIndex().url
+                                        : login().url
+                                }
+                                aria-label={`Notifications${notifUnread > 0 ? `, ${notifUnread} unread` : ''}`}
+                                className="btn btn-icon btn-ghost relative text-foreground"
+                            >
+                                <Bell aria-hidden="true" />
+                                {notifUnread > 0 && (
+                                    <span
+                                        aria-hidden="true"
+                                        className="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-caption leading-5 text-primary-foreground"
+                                    >
+                                        {notifUnread > 99 ? '99+' : notifUnread}
+                                    </span>
+                                )}
+                            </Link>
+                        )}
+                        {auth.user ? (
+                            <AccountUserMenu />
+                        ) : (
+                            <Link
+                                href={login()}
+                                className="flex min-h-touch items-center gap-2 rounded-button px-2 text-label hover:bg-surface-muted"
+                            >
+                                <NameAvatar
+                                    name="Guest"
+                                    size="sm"
+                                    label={false}
+                                />
+                                <span>Log in</span>
+                            </Link>
+                        )}
                     </span>
                 </div>
             </div>
@@ -229,10 +248,10 @@ export function SiteHeader({
                                     </li>
                                 );
                             })}
-                            {(marketplace?.nav.sell ||
+                            {((marketplace?.nav.sell && !isAdmin) ||
                                 marketplace?.nav.help) && (
                                 <li className="ms-auto flex">
-                                    {marketplace?.nav.sell && (
+                                    {marketplace?.nav.sell && !isAdmin && (
                                         <a
                                             href={marketplace.nav.sell}
                                             className={navLink(false)}

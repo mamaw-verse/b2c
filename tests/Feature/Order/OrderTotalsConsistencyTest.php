@@ -15,7 +15,7 @@ uses(RefreshDatabase::class);
 
 test('cart, checkout, buyer order and seller order totals agree for the same order', function () {
     $buyer = User::factory()->create();
-    $sellerUser = User::factory()->create(['role' => 'seller']);
+    $sellerUser = User::factory()->create();
     $product = Product::factory()->certified()->create([
         'price' => 78000,
         'stock' => 10,

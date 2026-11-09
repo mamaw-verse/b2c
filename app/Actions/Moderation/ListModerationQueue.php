@@ -13,7 +13,7 @@ final readonly class ListModerationQueue
 {
     /**
      * @param  array<string, mixed>  $filters
-     * @return CursorPaginator<ModerationQueueItem>
+     * @return CursorPaginator<int, ModerationQueueItem>
      */
     public function handle(array $filters = []): CursorPaginator
     {

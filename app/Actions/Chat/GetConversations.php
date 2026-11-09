@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Chat;
 
+use App\Enums\Workspace;
 use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,9 +12,13 @@ use Illuminate\Database\Eloquent\Collection;
 final readonly class GetConversations
 {
     /**
+     * Conversations where the user participates as the workspace's party:
+     * the buyer inbox lists the user's own threads, the seller inbox the
+     * threads addressed to their shop.
+     *
      * @return Collection<int, Conversation>
      */
-    public function handle(User $user, ?string $search = null): Collection
+    public function handle(User $user, ?string $search = null, Workspace $workspace = Workspace::Buyer): Collection
     {
         $query = Conversation::query()
             ->with(['shop', 'latestMessage.product', 'latestMessage.order'])
@@ -25,11 +30,13 @@ final readonly class GetConversations
                                 ->orWhereNull('sender_id');
                         });
                 },
-            ])
-            ->where(function ($q) use ($user): void {
-                $q->where('user_id', $user->id)
-                    ->orWhereHas('shop', fn ($sq) => $sq->where('user_id', $user->id));
-            });
+            ]);
+
+        if ($workspace === Workspace::Seller) {
+            $query->whereHas('shop', fn ($sq) => $sq->where('user_id', $user->id));
+        } else {
+            $query->where('user_id', $user->id);
+        }
 
         if ($search !== null && mb_trim($search) !== '') {
             $term = '%'.mb_trim($search).'%';

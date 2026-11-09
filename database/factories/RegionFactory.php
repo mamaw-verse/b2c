@@ -18,7 +18,7 @@ final class RegionFactory extends Factory
     {
         return [
             'code' => fake()->unique()->numerify('##0000000'),
-            'name' => fake()->state().' Region',
+            'name' => fake()->city().' Region',
         ];
     }
 }

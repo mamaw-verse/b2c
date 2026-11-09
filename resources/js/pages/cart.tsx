@@ -9,7 +9,7 @@ import { OrderSummary } from '@/components/order-summary';
 import { EmptyState } from '@/components/ui/empty-state';
 import { VoucherPicker, type VoucherItem } from '@/components/voucher-picker';
 import { formatPeso } from '@/lib/format';
-import { cn } from '@/lib/utils';
+import { show as checkout } from '@/routes/checkout';
 
 type CartPageProps = {
     groups: CartShopGroupData[];
@@ -35,6 +35,10 @@ export default function Cart({
 
     const allItems = groups.flatMap((g) => g.items);
     const availableItems = allItems.filter((i) => !i.unavailable);
+    const hasUnavailableSelection = allItems.some(
+        (i) => i.selected && i.unavailable,
+    );
+    const checkoutBlocked = selectedCount === 0 || hasUnavailableSelection;
     const isAllSelected =
         availableItems.length > 0 && availableItems.every((i) => i.selected);
 
@@ -121,6 +125,17 @@ export default function Cart({
                     )}
                 </h1>
 
+                {hasUnavailableSelection && (
+                    <p
+                        role="alert"
+                        className="panel mb-4 p-4 text-body-sm text-danger-text"
+                    >
+                        Some selected items are unavailable or exceed current
+                        stock. Reduce their quantity, remove them, or deselect
+                        them to continue.
+                    </p>
+                )}
+
                 {isCartEmpty ? (
                     <div className="panel p-8 text-center">
                         <EmptyState
@@ -195,8 +210,9 @@ export default function Cart({
                         </div>
 
                         {/* Summary column (desktop) */}
-                        <div className="sticky top-20 hidden lg:col-span-4 lg:block">
+                        <div className="hidden lg:col-span-4 lg:block lg:self-stretch">
                             <OrderSummary
+                                className="sticky top-20"
                                 lines={[
                                     {
                                         label: `Merchandise subtotal (${selectedCount} items)`,
@@ -206,16 +222,14 @@ export default function Cart({
                                 total={selectedTotal}
                                 title="Order summary"
                             >
-                                <Link
-                                    href="/checkout"
-                                    className={cn(
-                                        'btn btn-primary min-h-touch-primary w-full text-center',
-                                        selectedCount === 0 &&
-                                            'pointer-events-none opacity-50',
-                                    )}
+                                <button
+                                    type="button"
+                                    onClick={() => router.visit(checkout())}
+                                    disabled={checkoutBlocked}
+                                    className="btn btn-primary min-h-touch-primary w-full text-center"
                                 >
                                     Proceed to Checkout ({selectedCount})
-                                </Link>
+                                </button>
                             </OrderSummary>
                         </div>
                     </div>
@@ -253,16 +267,14 @@ export default function Cart({
                             </p>
                         </div>
 
-                        <Link
-                            href="/checkout"
-                            className={cn(
-                                'btn btn-primary min-h-touch-primary px-6 text-center',
-                                selectedCount === 0 &&
-                                    'pointer-events-none opacity-50',
-                            )}
+                        <button
+                            type="button"
+                            onClick={() => router.visit(checkout())}
+                            disabled={checkoutBlocked}
+                            className="btn btn-primary min-h-touch-primary px-6 text-center"
                         >
                             Checkout ({selectedCount})
-                        </Link>
+                        </button>
                     </div>
                 </div>
             )}

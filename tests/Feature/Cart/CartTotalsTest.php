@@ -39,9 +39,24 @@ test('computes subtotal and shipping correctly', function () {
     $result = $action->handle($user, null, null, $shipping);
 
     expect($result['subtotal'])->toBe(120000)
-        ->and($result['shippingFee'])->toBe(10000)
-        ->and($result['total'])->toBe(130000)
+        ->and($result['shippingFee'])->toBe(20000)
+        ->and($result['total'])->toBe(140000)
         ->and($result['isHalal'])->toBeTrue();
+});
+
+test('multi shop preview includes shipping and COD fees for every order', function () {
+    $user = User::factory()->create();
+    foreach ([10000, 20000] as $price) {
+        $product = Product::factory()->certified()->create(['price' => $price]);
+        CartItem::factory()->create(['user_id' => $user->id, 'product_id' => $product->id, 'qty' => 1, 'selected' => true]);
+    }
+    $shipping = ShippingOption::factory()->create(['fee' => 8000]);
+
+    $result = app(ComputeCartTotals::class)->handle($user, null, null, $shipping, 'cod');
+
+    expect($result['shippingFee'])->toBe(16000);
+    expect($result['codFee'])->toBe(4000);
+    expect($result['total'])->toBe(50000);
 });
 
 test('applies shop and platform vouchers', function () {

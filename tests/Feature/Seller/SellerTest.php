@@ -19,15 +19,15 @@ use Inertia\Testing\AssertableInertia as Assert;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->sellerUser = User::factory()->create(['role' => 'seller']);
+    $this->sellerUser = User::factory()->create();
     $this->shop = Shop::factory()->create([
         'user_id' => $this->sellerUser->id,
         'name' => 'Barakah Pantry',
         'slug' => 'barakah-pantry-'.Str::random(6),
     ]);
 
-    $this->buyerUser = User::factory()->create(['role' => 'buyer']);
-    $this->otherSellerUser = User::factory()->create(['role' => 'seller']);
+    $this->buyerUser = User::factory()->create();
+    $this->otherSellerUser = User::factory()->create();
     $this->otherShop = Shop::factory()->create([
         'user_id' => $this->otherSellerUser->id,
         'name' => 'Other Shop',
@@ -49,21 +49,31 @@ test('guests are redirected to login when accessing seller pages', function () {
     $this->get(route('seller.settings.edit'))->assertRedirect(route('login'));
 });
 
-test('buyers without a shop are denied access with 404', function () {
+test('buyers without a shop are redirected to the application flow', function () {
     $this->actingAs($this->buyerUser)
         ->get(route('seller.dashboard'))
-        ->assertNotFound();
+        ->assertRedirect(route('seller.register'));
 
     $this->actingAs($this->buyerUser)
         ->get(route('seller.products.index'))
-        ->assertNotFound();
+        ->assertRedirect(route('seller.register'));
 
     $this->actingAs($this->buyerUser)
         ->get(route('seller.orders.index'))
-        ->assertNotFound();
+        ->assertRedirect(route('seller.register'));
 
     $this->actingAs($this->buyerUser)
         ->get(route('seller.settings.edit'))
+        ->assertRedirect(route('seller.register'));
+});
+
+test('buyers without a shop get 404 on non-GET and JSON seller requests', function () {
+    $this->actingAs($this->buyerUser)
+        ->post(route('seller.products.store'), [])
+        ->assertNotFound();
+
+    $this->actingAs($this->buyerUser)
+        ->getJson(route('seller.dashboard'))
         ->assertNotFound();
 });
 
@@ -253,6 +263,32 @@ test('seller cannot edit or update or delete another shops product', function ()
     $this->actingAs($this->sellerUser)
         ->delete(route('seller.products.destroy', $otherProduct))
         ->assertNotFound();
+});
+
+test('seller updates the latest halal certificate without changing older certificates', function () {
+    $product = Product::factory()->certified()->create(['shop_id' => $this->shop->id]);
+    $older = $product->halalCertifications()->create([
+        'certifying_body' => 'Old Body',
+        'number' => 'OLD',
+        'valid_until' => now()->addMonth(),
+    ]);
+    $latest = $product->halalCertifications()->create([
+        'certifying_body' => 'Current Body',
+        'number' => 'CURRENT',
+        'valid_until' => now()->addYear(),
+    ]);
+
+    $this->actingAs($this->sellerUser)->put(route('seller.products.update', $product), [
+        'halal_status' => 'certified',
+        'certifying_body' => 'Updated Body',
+        'certificate_number' => 'UPDATED',
+        'valid_until' => now()->addYears(2)->toDateString(),
+        'ingredients' => 'Dates',
+        'no_pork_alcohol_declared' => true,
+    ])->assertSessionHasNoErrors()->assertRedirect(route('seller.products.index'));
+
+    $this->assertDatabaseHas('halal_certifications', ['id' => $latest->id, 'number' => 'UPDATED']);
+    $this->assertDatabaseHas('halal_certifications', ['id' => $older->id, 'number' => 'OLD']);
 });
 
 test('seller can update product and delete product', function () {

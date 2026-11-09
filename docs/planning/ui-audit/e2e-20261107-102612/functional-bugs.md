@@ -15,10 +15,12 @@ Related UI findings: `findings.md`. Implementation tickets: `tasks.md`.
 **Observed behaviour:** `POST /cart` with `{ product_id, qty: 2 }` returns HTTP 422 for the logged-in buyer (`test@example.com`). The product page DOM confirms the product exists and stock is "0 units".
 
 **Likely causes (two candidates):**
+
 1. The cart controller's form request validates `qty <= stock` and the product is at 0, so it correctly rejects the add-to-cart. But the product page still shows the "Add to cart" button as enabled — the front-end does not honour the zero-stock state (see FB-03).
 2. The form request has an unrelated validation rule that fails (e.g. a missing required field, or the product variant ID is expected rather than the base `product_id`).
 
 **How to diagnose:**
+
 ```bash
 vendor/bin/sail artisan tinker --execute '
 $product = App\Models\Product::where("slug","quran-with-english-translation-hardcover")->first();
@@ -26,9 +28,11 @@ echo "stock: {$product->stock}\n";
 echo "id: {$product->id}\n";
 '
 ```
+
 Then manually `POST /cart` with `product_id` and `qty: 2` and read the validation error keys from the 422 JSON body.
 
 **Fix:** Two separate fixes are needed:
+
 1. Determine the actual validation failure and fix the form request or the payload.
 2. Fix the UI to disable "Add to cart" / "Buy now" when `stock === 0` (see FB-03 and task T2-02).
 
@@ -44,6 +48,7 @@ Then manually `POST /cart` with `product_id` and `qty: 2` and read the validatio
 **Observed behaviour:** Fortify's login throttle fires when the same credentials (`test@example.com / password`) are used three times (once per Playwright project: desktop → tablet → mobile) within a short window. The 429 is rendered inside a Laravel exception-page iframe in a dialog.
 
 **Fix options (pick one):**
+
 1. Configure the e2e environment to use a very high or disabled throttle for the test user (`config/fortify.php` → `limiters` → custom rate limiter with `by: 'e2e-bypass'`, or set the test environment's `FORTIFY_LOGIN_LIMITER=10000`).
 2. Add a `beforeEach` in the test that calls `RateLimiter::clear('login.' . sha1('test@example.com'))` via `php artisan` or a test-only API route before each login attempt.
 3. Give each Playwright project a separate test account (e.g. `buyer-360@example.com`, `buyer-768@example.com`, `buyer-1280@example.com`).
@@ -61,14 +66,17 @@ Then manually `POST /cart` with `product_id` and `qty: 2` and read the validatio
 **E2E evidence:** The DOM snapshot in all three projects confirms the buttons are present and clickable (no `disabled` attribute). The 422 from `POST /cart` is the backend correctly rejecting the request — but the UI should have prevented the interaction entirely.
 
 **Expected behaviour:**
+
 - When `stock === 0`, both "Add to cart" and "Buy now" must be `disabled` with an "Out of stock" label.
 - The product page Inertia prop `product.stock` (or `product.in_stock`) must be passed to the component and used to control the disabled state.
 
 **Fix:**
+
 - Backend: ensure the product Inertia resource includes `in_stock: bool` and `stock: int`.
 - Frontend: `resources/js/pages/Buyer/Product.tsx` — `disabled={!product.in_stock}` on both buttons; show "Out of stock" text in place of the stock count when `stock === 0`.
 
 **Tests:**
+
 - Feature test: `GET /products/{slug}` with a zero-stock product → response props include `in_stock: false`.
 - Feature test: `POST /cart` with a zero-stock product → 422 with `errors.qty` or `errors.stock`.
 
@@ -110,6 +118,7 @@ Then manually `POST /cart` with `product_id` and `qty: 2` and read the validatio
 **Fix:** Both buyer and seller order detail views must read from the same `OrderTotals` value object (or serialised resource). The seller view must include: subtotal, shipping, COD fee (when applicable), discount, and total. The COD fee should be labelled "COD fee (collect from buyer)".
 
 **Tests:**
+
 - Feature test: seller `GET /seller/orders/{id}` response includes `subtotal`, `shipping`, `cod_fee`, `total` where `subtotal + shipping + cod_fee = total`.
 - Unit test: `OrderTotals` correctly sums all components.
 
@@ -117,11 +126,11 @@ Then manually `POST /cart` with `product_id` and `qty: 2` and read the validatio
 
 ## Summary table
 
-| ID | Sev | Area | Short description | Blocking e2e? |
-|---|---|---|---|---|
-| FB-01 | P0 | Cart | `POST /cart` returns 422 (zero-stock product) | Yes — all projects |
-| FB-02 | P1 | Auth | Login rate-limit 429 blocks tablet + mobile runs | Yes — 768 + 360 |
-| FB-03 | P0 | Stock | Zero-stock product purchasable in UI | No (UI only) |
-| FB-04 | P1 | Orders | Order ID prefix differs buyer vs seller | No |
-| FB-05 | P1 | Orders | Timestamp 8h apart buyer vs seller | No |
-| FB-06 | P0 | Orders | Seller total missing COD fee line | No |
+| ID    | Sev | Area   | Short description                                | Blocking e2e?      |
+| ----- | --- | ------ | ------------------------------------------------ | ------------------ |
+| FB-01 | P0  | Cart   | `POST /cart` returns 422 (zero-stock product)    | Yes — all projects |
+| FB-02 | P1  | Auth   | Login rate-limit 429 blocks tablet + mobile runs | Yes — 768 + 360    |
+| FB-03 | P0  | Stock  | Zero-stock product purchasable in UI             | No (UI only)       |
+| FB-04 | P1  | Orders | Order ID prefix differs buyer vs seller          | No                 |
+| FB-05 | P1  | Orders | Timestamp 8h apart buyer vs seller               | No                 |
+| FB-06 | P0  | Orders | Seller total missing COD fee line                | No                 |

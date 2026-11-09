@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\Workspace;
 use Database\Factories\ConversationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -39,6 +40,19 @@ final class Conversation extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    /**
+     * Whether the user participates in this conversation as the given
+     * workspace's party: buyer chats are scoped to the buyer column,
+     * seller chats to the shop owner.
+     */
+    public function isParty(User $user, Workspace $workspace): bool
+    {
+        return match ($workspace) {
+            Workspace::Seller => $this->shop->user_id === $user->id,
+            default => $this->user_id === $user->id,
+        };
     }
 
     /** @return HasMany<Message, $this> */

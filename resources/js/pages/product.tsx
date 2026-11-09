@@ -33,9 +33,12 @@ export default function Product({
     reviews?: ReviewData[];
     related?: ProductCardData[];
 }) {
-    const { auth } = usePage().props;
+    const { auth, seller, workspaces } = usePage().props;
     // The sticky action bar replaces the bottom tab bar on this page.
     setLayoutProps({ tabBar: false });
+    const isOwnProduct = seller?.shop_id === p.shop.id;
+    // Chat is a buyer surface — stripped for admins.
+    const isAdmin = (workspaces ?? []).some((w) => w.key === 'admin');
     const [pickerOpen, setPickerOpen] = useState(false);
     const [reportOpen, setReportOpen] = useState(false);
     const [qty, setQty] = useState(1);
@@ -45,7 +48,7 @@ export default function Product({
             router.visit(login().url);
             return;
         }
-        router.post('/chat', {
+        router.post('/account/chat', {
             shop_id: p.shop.id,
             product_id: p.id,
         });
@@ -240,41 +243,57 @@ export default function Product({
                                 <Store aria-hidden="true" />
                                 <span>Shop</span>
                             </Link>
-                            <button
-                                type="button"
-                                onClick={handleChatClick}
-                                className="flex min-h-touch-primary w-12 shrink-0 flex-col items-center justify-center rounded-button text-caption text-muted-foreground hover:bg-surface-muted lg:hidden"
-                            >
-                                <MessageCircle aria-hidden="true" />
-                                <span>Chat</span>
-                            </button>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                icon={<MessageCircle aria-hidden="true" />}
-                                className="hidden lg:flex"
-                                onClick={handleChatClick}
-                            >
-                                Chat
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                size="lg"
-                                icon={<DsIcon name="shopping-cart" />}
-                                className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-8 max-[399px]:[&>svg]:hidden"
-                                onClick={() => buyAction(false)}
-                                disabled={!p.in_stock}
-                            >
-                                Add to cart
-                            </Button>
-                            <Button
-                                size="lg"
-                                className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-10"
-                                onClick={() => buyAction(true)}
-                                disabled={!p.in_stock}
-                            >
-                                {p.in_stock ? 'Buy now' : 'Out of stock'}
-                            </Button>
+                            {!isAdmin && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={handleChatClick}
+                                        className="flex min-h-touch-primary w-12 shrink-0 flex-col items-center justify-center rounded-button text-caption text-muted-foreground hover:bg-surface-muted lg:hidden"
+                                    >
+                                        <MessageCircle aria-hidden="true" />
+                                        <span>Chat</span>
+                                    </button>
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        icon={
+                                            <MessageCircle aria-hidden="true" />
+                                        }
+                                        className="hidden lg:flex"
+                                        onClick={handleChatClick}
+                                    >
+                                        Chat
+                                    </Button>
+                                </>
+                            )}
+                            {isOwnProduct ? (
+                                <p className="flex-1 self-center text-center text-label text-muted-foreground">
+                                    This is your product
+                                </p>
+                            ) : (
+                                <>
+                                    <Button
+                                        variant="secondary"
+                                        size="lg"
+                                        icon={<DsIcon name="shopping-cart" />}
+                                        className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-8 max-[399px]:[&>svg]:hidden"
+                                        onClick={() => buyAction(false)}
+                                        disabled={!p.in_stock}
+                                    >
+                                        Add to cart
+                                    </Button>
+                                    <Button
+                                        size="lg"
+                                        className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-10"
+                                        onClick={() => buyAction(true)}
+                                        disabled={!p.in_stock}
+                                    >
+                                        {p.in_stock
+                                            ? 'Buy now'
+                                            : 'Out of stock'}
+                                    </Button>
+                                </>
+                            )}
                         </StickyActionBar>
                     </div>
                 </div>

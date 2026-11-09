@@ -214,7 +214,7 @@ export function ImageUploader({
                     <li data-ds-add>
                         <label
                             htmlFor={`${prefix}-input`}
-                            className={`grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed bg-surface p-2 text-center text-body-sm font-bold transition-colors focus-ring ${
+                            className={`focus-ring grid aspect-square cursor-pointer place-items-center rounded-tile border-2 border-dashed bg-surface p-2 text-center text-body-sm font-bold transition-colors ${
                                 isDraggingOver
                                     ? 'border-primary bg-primary-soft text-primary-text'
                                     : 'border-border-control text-primary-text hover:bg-primary-soft'

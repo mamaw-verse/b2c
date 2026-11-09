@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { CircleAlert, Plus, Ticket } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { AddressCard, type AddressData } from '@/components/address-card';
@@ -19,6 +19,8 @@ import {
 import { Modal } from '@/components/ui/modal';
 import { VoucherPicker, type VoucherItem } from '@/components/voucher-picker';
 import { formatPeso } from '@/lib/format';
+import { index as cart } from '@/routes/cart';
+import { store as checkout } from '@/routes/checkout';
 
 type CheckoutGroup = {
     shop: {
@@ -40,6 +42,8 @@ type CheckoutGroup = {
         frozen?: boolean;
         variation?: { id: string; label: string } | null;
         qty: number;
+        stock: number;
+        unavailable: string | null;
         unit_price: number;
         subtotal: number;
     }>;
@@ -121,11 +125,13 @@ export default function Checkout({
 
     // Compute dynamic client summary lines
     const subtotal = summary?.subtotal ?? 0;
-    const shippingFee = currentShipping?.fee ?? summary?.shippingFee ?? 0;
+    const shippingFee = currentShipping
+        ? currentShipping.fee * groups.length
+        : (summary?.shippingFee ?? 0);
     const selectedMethod = paymentMethods.find(
         (m) => m.id === selectedPaymentMethod,
     );
-    const codFee = selectedMethod?.fee ?? 0;
+    const codFee = (selectedMethod?.fee ?? 0) * groups.length;
 
     // Voucher discounts
     let voucherDiscount = 0;
@@ -200,7 +206,13 @@ export default function Checkout({
         });
     };
 
+    const hasUnavailableItems = groups.some((group) =>
+        group.items.some((item) => item.unavailable),
+    );
+    const checkoutBlocked = hasUnavailableItems || groups.length === 0;
+
     const handlePlaceOrder = () => {
+        if (submitting || checkoutBlocked) return;
         if (!selectedAddressId) {
             setFormErrors({ address: 'Please select a delivery address.' });
             return;
@@ -214,7 +226,7 @@ export default function Checkout({
         setFormErrors({});
 
         router.post(
-            '/checkout',
+            checkout.url(),
             {
                 address_id: selectedAddressId,
                 shipping_option_id: selectedShippingId,
@@ -239,6 +251,29 @@ export default function Checkout({
 
             <div className="py-4 pb-28 md:py-6 lg:pb-8">
                 <h1 className="mb-4 text-h2">Checkout</h1>
+
+                {(checkoutBlocked || Object.keys(formErrors).length > 0) && (
+                    <div
+                        role="alert"
+                        className="panel mb-4 grid gap-2 p-4 text-body-sm text-danger-text"
+                    >
+                        {checkoutBlocked && (
+                            <p>
+                                Review your cart: selected items are unavailable
+                                or exceed current stock.
+                            </p>
+                        )}
+                        {Object.entries(formErrors).map(([field, message]) => (
+                            <p key={field}>{message}</p>
+                        ))}
+                        <Link
+                            href={cart()}
+                            className="w-fit font-bold underline"
+                        >
+                            Return to cart to update your items
+                        </Link>
+                    </div>
+                )}
 
                 <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
                     {/* Main flow column */}
@@ -326,6 +361,11 @@ export default function Checkout({
                                                             item.unit_price,
                                                         )}
                                                     </p>
+                                                    {item.unavailable && (
+                                                        <p className="text-body-sm text-danger-text">
+                                                            {item.unavailable}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <span className="tabular text-label font-bold">
                                                     {formatPeso(item.subtotal)}
@@ -429,8 +469,9 @@ export default function Checkout({
                     </div>
 
                     {/* Summary column (desktop) */}
-                    <div className="sticky top-20 hidden lg:col-span-4 lg:block">
+                    <div className="hidden lg:col-span-4 lg:block lg:self-stretch">
                         <OrderSummary
+                            className="sticky top-20"
                             lines={summaryLines}
                             total={calculatedTotal}
                             cod={selectedPaymentMethod === 'cod'}
@@ -440,7 +481,7 @@ export default function Checkout({
                             <button
                                 type="button"
                                 onClick={handlePlaceOrder}
-                                disabled={submitting}
+                                disabled={submitting || checkoutBlocked}
                                 aria-busy={submitting}
                                 className="btn btn-primary min-h-touch-primary w-full text-center"
                             >
@@ -471,7 +512,7 @@ export default function Checkout({
                     <button
                         type="button"
                         onClick={handlePlaceOrder}
-                        disabled={submitting}
+                        disabled={submitting || checkoutBlocked}
                         aria-busy={submitting}
                         className="btn btn-primary min-h-touch-primary px-8"
                     >

@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 final class PsgcSeeder extends Seeder
 {
@@ -27,7 +28,7 @@ final class PsgcSeeder extends Seeder
         // ── Regions ────────────────────────────────────────────────────────────
         /** @var array<array{psgcCode:string,regCode:string,regionName:string}> $rawRegions */
         $rawRegions = json_decode(
-            file_get_contents(self::DATA_DIR.'psgc-regions.json'),
+            File::get(self::DATA_DIR.'psgc-regions.json'),
             true,
         );
 
@@ -51,7 +52,7 @@ final class PsgcSeeder extends Seeder
         // ── Provinces ──────────────────────────────────────────────────────────
         /** @var array<array{psgcCode:string,regCode:string,provCode:string,provName:string}> $rawProvinces */
         $rawProvinces = json_decode(
-            file_get_contents(self::DATA_DIR.'psgc-provinces.json'),
+            File::get(self::DATA_DIR.'psgc-provinces.json'),
             true,
         );
 
@@ -87,13 +88,13 @@ final class PsgcSeeder extends Seeder
         // ── Cities / Municipalities ────────────────────────────────────────────
         /** @var array<string,string> $postalCodeMap psgcCode → postal_code */
         $postalCodeMap = json_decode(
-            file_get_contents(self::DATA_DIR.'psgc-postalcodes.json'),
+            File::get(self::DATA_DIR.'psgc-postalcodes.json'),
             true,
         ) ?: [];
 
         /** @var array<array{psgcCode:string,regCode:string,provCode:string,munCityCode:string,munCityName:string}> $rawMunCities */
         $rawMunCities = json_decode(
-            file_get_contents(self::DATA_DIR.'psgc-muncities.json'),
+            File::get(self::DATA_DIR.'psgc-muncities.json'),
             true,
         );
 
@@ -132,7 +133,7 @@ final class PsgcSeeder extends Seeder
         // ── Barangays ──────────────────────────────────────────────────────────
         /** @var array<array{psgcCode:string,regCode:string,munCityCode:string,brgyCode:string,brgyName:string}> $rawBarangays */
         $rawBarangays = json_decode(
-            file_get_contents(self::DATA_DIR.'psgc-barangays.json'),
+            File::get(self::DATA_DIR.'psgc-barangays.json'),
             true,
         );
 

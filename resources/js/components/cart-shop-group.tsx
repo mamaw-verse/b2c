@@ -47,7 +47,7 @@ export function CartShopGroup({
             router.visit(login().url);
             return;
         }
-        router.post('/chat', { shop_id: group.shop.id });
+        router.post('/account/chat', { shop_id: group.shop.id });
     };
     const headingId = `shop-group-${group.shop.id}-h`;
 

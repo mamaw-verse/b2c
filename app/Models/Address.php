@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $city_code
  * @property string $barangay_code
  * @property string $street
+ * @property-read string $formatted_address
  * @property string $postal_code
  * @property string|null $landmark
  * @property AddressLabel $label
@@ -69,7 +70,7 @@ final class Address extends Model
         return $this->belongsTo(Barangay::class, 'barangay_code', 'code');
     }
 
-    public function formattedAddress(): string
+    public function formatAddress(): string
     {
         $parts = array_filter([
             $this->street,
@@ -83,7 +84,7 @@ final class Address extends Model
 
     public function getFormattedAddressAttribute(): string
     {
-        return $this->formattedAddress();
+        return $this->formatAddress();
     }
 
     protected function casts(): array

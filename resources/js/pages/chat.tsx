@@ -3,21 +3,26 @@ import { useCallback, useEffect, useState } from 'react';
 import { ChatList } from '@/components/chat-list';
 import { ChatThread } from '@/components/chat-thread';
 import { ReportDialog } from '@/components/report-dialog';
-import PublicLayout from '@/layouts/public-layout';
+import AppLayout from '@/layouts/app-layout';
+import SellerLayout from '@/layouts/seller-layout';
 import type { Conversation, Message } from '@/types/chat';
 
 interface ChatPageProps {
     conversations: Conversation[];
     activeConversation?: Conversation | null;
     messages?: Message[];
+    workspace: 'buyer' | 'seller';
 }
 
 export default function ChatPage({
     conversations,
     activeConversation = null,
     messages = [],
+    workspace,
 }: ChatPageProps) {
     const { auth } = usePage().props;
+    const Layout = workspace === 'seller' ? SellerLayout : AppLayout;
+    const chatBase = workspace === 'seller' ? '/seller/chat' : '/account/chat';
     const [selectedConv, setSelectedConv] = useState<Conversation | null>(
         activeConversation,
     );
@@ -47,7 +52,7 @@ export default function ChatPage({
 
     const handleSelectConversation = (conv: Conversation) => {
         setSelectedConv(conv);
-        router.visit(`/chat/${conv.id}`, {
+        router.visit(`${chatBase}/${conv.id}`, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -55,7 +60,7 @@ export default function ChatPage({
 
     const handleBackToList = () => {
         setSelectedConv(null);
-        router.visit('/chat', {
+        router.visit(chatBase, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -73,7 +78,7 @@ export default function ChatPage({
                 id: optimisticId,
                 conversation_id: selectedConv.id,
                 sender_id: auth.user.id,
-                sender_role: 'buyer',
+                sender_role: workspace === 'seller' ? 'seller' : 'buyer',
                 type: 'text',
                 body: text,
                 product_id: null,
@@ -85,7 +90,7 @@ export default function ChatPage({
             setThreadMessages((prev) => [...prev, optimisticMsg]);
 
             router.post(
-                `/chat/${selectedConv.id}/messages`,
+                `${chatBase}/${selectedConv.id}/messages`,
                 { body: text, type: 'text' },
                 {
                     preserveScroll: true,
@@ -102,7 +107,7 @@ export default function ChatPage({
                 },
             );
         },
-        [selectedConv, auth.user.id],
+        [selectedConv, auth.user.id, chatBase, workspace],
     );
 
     const handleRetry = useCallback(
@@ -120,11 +125,11 @@ export default function ChatPage({
     );
 
     return (
-        <PublicLayout activeTab="Chat">
+        <Layout>
             <Head title="Chat" />
             <h1 className="sr-only">Chats</h1>
 
-            <div className="-mx-[var(--gutter)] flex h-[calc(100dvh-var(--header-h)-var(--tabbar-h)-env(safe-area-inset-top,0px))] overflow-hidden pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] md:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top,0px))] md:border-x md:border-border md:pb-0 lg:h-[calc(100dvh-var(--header-h)-var(--nav-h)-var(--announce-h)-env(safe-area-inset-top,0px))]">
+            <div className="flex h-[calc(100dvh-var(--header-h)-var(--tabbar-h)-env(safe-area-inset-top,0px))] overflow-hidden md:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top,0px))]">
                 {/* Conversations list column: full screen on phone when no active convo, 320px sidebar on md+ */}
                 <div
                     className={`h-full w-full md:block md:w-80 md:shrink-0 lg:w-[var(--chat-list-w,320px)] ${
@@ -179,6 +184,6 @@ export default function ChatPage({
                     targetTitle={`Report ${selectedConv.shop.name}`}
                 />
             )}
-        </PublicLayout>
+        </Layout>
     );
 }

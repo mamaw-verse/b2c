@@ -205,7 +205,10 @@ export function Combobox({
                     <label htmlFor={id} className="text-label text-foreground">
                         {label}
                         {required && (
-                            <span className="text-danger-text" aria-hidden="true">
+                            <span
+                                className="text-danger-text"
+                                aria-hidden="true"
+                            >
                                 {' '}
                                 *
                             </span>

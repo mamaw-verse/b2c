@@ -41,13 +41,7 @@ final class CartController
                 $variation = $item->variation;
 
                 $stock = $variation ? $variation->stock : $product->stock;
-                $isAvailable = $product->published && $product->halal_status->visibleToBuyers() && $stock > 0;
-                $unavailableReason = null;
-                if (! $product->published || ! $product->halal_status->visibleToBuyers()) {
-                    $unavailableReason = 'Item is currently unavailable';
-                } elseif ($stock < 1) {
-                    $unavailableReason = 'Out of stock — remove to checkout';
-                }
+                $unavailableReason = $item->availabilityWarning();
 
                 return [
                     'id' => $item->id,
@@ -65,9 +59,9 @@ final class CartController
                     ] : null,
                     'qty' => $item->qty,
                     'stock' => $stock,
-                    'unit_price' => $variation?->price ?? $product->price,
+                    'unit_price' => $variation->price ?? $product->price,
                     'was_price' => $product->was_price,
-                    'selected' => $item->selected && $isAvailable,
+                    'selected' => $item->selected,
                     'unavailable' => $unavailableReason,
                 ];
             })->values()->all();
@@ -92,9 +86,9 @@ final class CartController
             ];
         })->values()->all();
 
-        $selectedItems = $items->filter(fn ($i) => $i->selected && $i->product->published && $i->product->halal_status->visibleToBuyers() && ($i->variation ? $i->variation->stock : $i->product->stock) > 0);
+        $selectedItems = $items->filter(fn (CartItem $item) => $item->selected && $item->availabilityWarning() === null);
         $selectedCount = $selectedItems->sum('qty');
-        $selectedTotal = $selectedItems->sum(fn ($i) => ($i->variation?->price ?? $i->product->price) * $i->qty);
+        $selectedTotal = $selectedItems->sum(fn ($i) => ($i->variation->price ?? $i->product->price) * $i->qty);
 
         $platformVouchers = Voucher::whereNull('shop_id')->where('is_active', true)->get();
 
@@ -114,7 +108,7 @@ final class CartController
         /** @var Product $product */
         $product = Product::findOrFail($request->input('product_id'));
         $variation = $request->filled('product_variation_id')
-            ? ProductVariation::findOrFail($request->input('product_variation_id'))
+            ? ProductVariation::whereKey($request->input('product_variation_id'))->firstOrFail()
             : null;
 
         $action->handle(

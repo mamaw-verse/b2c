@@ -37,6 +37,9 @@ async function firstPsgcCodes(page: Parameters<typeof api>[0]) {
 }
 
 test.describe.serial('full order lifecycle', () => {
+    let orderId: string;
+    let reference: string;
+    let total: number;
     test('buyer browses, checks out, and sees the order', async ({ page }) => {
         await login(page, BUYER);
 
@@ -57,21 +60,14 @@ test.describe.serial('full order lifecycle', () => {
         expect(address.status).toBeLessThan(400);
 
         // Browse a seeded Barakah Pantry product.
-        await page.goto(
-            '/products/quran-with-english-translation-hardcover',
-        );
+        await page.goto('/products/quran-with-english-translation-hardcover');
         await shot(page, 'buyer-01-product');
         const props = await pageProps<{ product: { id: string } }>(page);
         const productId = props.product.id;
 
         // Add to cart through the real UI button.
-        await page
-            .getByRole('button', { name: 'Add to cart' })
-            .first()
-            .click();
-        await expect(
-            page.getByText(/added to cart/i).first(),
-        ).toBeVisible();
+        await page.getByRole('button', { name: 'Add to cart' }).first().click();
+        await expect(page.getByText(/added to cart/i).first()).toBeVisible();
 
         // File a report so the admin moderation queue has an item to review.
         await api(page, 'POST', '/reports', {
@@ -85,16 +81,13 @@ test.describe.serial('full order lifecycle', () => {
         await page.goto('/cart');
         await shot(page, 'buyer-02-cart');
         await page
-            .getByRole('link', { name: /Checkout/ })
-            .last()
+            .getByRole('button', { name: /Checkout/ })
+            .first()
             .click();
         await expect(page).toHaveURL(/checkout/);
         await shot(page, 'buyer-03-checkout');
 
-        await page
-            .getByRole('button', { name: 'Place order' })
-            .first()
-            .click();
+        await page.getByRole('button', { name: 'Place order' }).first().click();
         await expect(page).toHaveURL(/order-confirmed/, {
             timeout: 15_000,
         });
@@ -106,12 +99,16 @@ test.describe.serial('full order lifecycle', () => {
         // Order appears under the buyer's account.
         await page.goto('/account/orders');
         await shot(page, 'buyer-05-orders');
-        await page
-            .getByRole('link', { name: 'View details' })
-            .first()
-            .click();
+        await page.getByRole('link', { name: 'View details' }).first().click();
         await expect(page).toHaveURL(/account\/orders\/.+/);
         await shot(page, 'buyer-06-order-detail');
+        await page.reload();
+        const detail = await pageProps<{
+            order: { id: string; reference: string; total: number };
+        }>(page);
+        orderId = detail.order.id;
+        reference = detail.order.reference;
+        total = detail.order.total;
     });
 
     test('seller sees the order and arranges shipment', async ({ page }) => {
@@ -122,32 +119,63 @@ test.describe.serial('full order lifecycle', () => {
 
         await page.goto('/seller/orders?status=to_ship');
         await expect(
-            page.getByRole('link', { name: /\d{2}[a-z0-9]+/i }).first(),
+            page.locator('a[href*="/seller/orders/"]').first(),
         ).toBeVisible();
         await shot(page, 'seller-02-orders');
 
-        await page.locator('a[href*="/seller/orders/"]').first().click();
+        await page
+            .locator(`a[href="/seller/orders/${orderId}"]`)
+            .first()
+            .click();
         await expect(page).toHaveURL(/seller\/orders\/.+/);
         await shot(page, 'seller-03-order');
 
-        await page
-            .getByRole('button', { name: /Arrange shipment/ })
-            .click();
+        await page.getByRole('button', { name: /Arrange shipment/ }).click();
         await shot(page, 'seller-04-ship-modal');
-        await page
-            .getByLabel(/Courier/i)
-            .fill('J&T Express');
-        await page
-            .getByLabel(/Tracking number/i)
-            .fill('PH-E2E1234567');
-        await page
-            .getByRole('button', { name: 'Confirm shipment' })
-            .click();
+        await page.getByLabel(/Courier/i).fill('J&T Express');
+        await page.getByLabel(/Tracking number/i).fill('PH-E2E1234567');
+        await page.getByRole('button', { name: 'Confirm shipment' }).click();
 
-        await expect(
-            page.getByText(/To.?Receive/i).first(),
-        ).toBeVisible({ timeout: 15_000 });
+        await expect(page.getByText(/To.?Receive/i).first()).toBeVisible({
+            timeout: 15_000,
+        });
         await shot(page, 'seller-05-shipped');
+    });
+
+    test('buyer confirms receipt and reviews the shipped order', async ({
+        page,
+    }) => {
+        await login(page, BUYER);
+        await page.goto(`/account/orders/${orderId}`);
+        const detail = await pageProps<{
+            order: { reference: string; total: number };
+        }>(page);
+        expect(detail.order.reference).toBe(reference);
+        expect(detail.order.total).toBe(total);
+        await expect(
+            page.getByText('PH-E2E1234567', { exact: false }).first(),
+        ).toBeVisible();
+        await shot(page, 'buyer-07-tracking');
+
+        page.once('dialog', (dialog) => dialog.accept());
+        await page
+            .getByRole('button', { name: 'Order received', exact: true })
+            .click();
+        await expect(
+            page.getByText('Completed', { exact: true }).first(),
+        ).toBeVisible();
+        await shot(page, 'buyer-08-received');
+        await page
+            .getByRole('link', { name: 'Write a review' })
+            .first()
+            .click();
+        await page
+            .locator('#review-text')
+            .fill('The order arrived in good condition. E2E lifecycle review.');
+        await shot(page, 'buyer-09-review');
+        await page.getByRole('button', { name: /Submit review/i }).click();
+        await expect(page).toHaveURL(new RegExp(`/account/orders/${orderId}$`));
+        await shot(page, 'buyer-10-reviewed');
     });
 
     test('admin reviews dashboard and decides a moderation item', async ({
@@ -164,10 +192,7 @@ test.describe.serial('full order lifecycle', () => {
         ).toBeVisible();
         await shot(page, 'admin-02-queue');
 
-        await page
-            .locator('a[href*="/admin/moderation/"]')
-            .first()
-            .click();
+        await page.locator('a[href*="/admin/moderation/"]').first().click();
         await expect(page).toHaveURL(/admin\/moderation\/.+/);
         await shot(page, 'admin-03-item');
 

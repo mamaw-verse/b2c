@@ -70,11 +70,13 @@ enum ShopStatus: string
 File: `app/Enums/ModerationItemType.php`
 
 Add case:
+
 ```php
 case ShopApplication = 'shop_application';
 ```
 
 Add label:
+
 ```php
 self::ShopApplication => 'Shop application',
 ```
@@ -84,6 +86,7 @@ self::ShopApplication => 'Shop application',
 File: `app/Enums/ModerationReason.php`
 
 Add cases:
+
 ```php
 case InvalidIdDocument = 'invalid_id_document';
 case IncompleteShopInfo = 'incomplete_shop_info';
@@ -92,6 +95,7 @@ case ProhibitedBusinessType = 'prohibited_business_type';
 ```
 
 Add labels:
+
 ```php
 self::InvalidIdDocument => 'Invalid or unreadable ID document',
 self::IncompleteShopInfo => 'Incomplete shop information',
@@ -431,6 +435,7 @@ Add `canBecomeSeller` prop:
 File: `resources/js/pages/home.tsx`
 
 Add to props type:
+
 ```typescript
 canBecomeSeller?: boolean;
 ```
@@ -438,11 +443,13 @@ canBecomeSeller?: boolean;
 Add a link in the hero section, alongside "Shop the fair":
 
 ```tsx
-{canBecomeSeller && (
-    <Button size="lg" variant="outline" href="/seller/register">
-        Sell to {name}
-    </Button>
-)}
+{
+    canBecomeSeller && (
+        <Button size="lg" variant="outline" href="/seller/register">
+            Sell to {name}
+        </Button>
+    );
+}
 ```
 
 The `name` prop (app name) is already available via Inertia shared props.
@@ -483,6 +490,7 @@ If the user already has a pending/rejected shop, show the current status instead
 File: `resources/js/pages/admin/moderation/show.tsx`
 
 Handle `preview.kind === 'shop_application'` — render a `ShopApplicationPreview` component showing:
+
 - Shop name, description, location, halal-only badge
 - Applicant name and email
 - ID type and number, ID document image, selfie image

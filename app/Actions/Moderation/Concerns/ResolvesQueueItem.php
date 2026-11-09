@@ -59,11 +59,7 @@ trait ResolvesQueueItem
             $action === 'hidden' && $target instanceof Review => $target->update(['hidden' => true]),
             $action === 'suspended' && $target instanceof Shop => $target->update(['suspended' => true]),
             $action === 'suspended' && $target instanceof Product => $target->update(['hidden' => true, 'published' => false]),
-            $action === 'approved' && $target instanceof Shop && $target->status === ShopStatus::Pending => $target->update([
-                'status' => ShopStatus::Approved,
-                'reviewed_at' => now(),
-                'reviewed_by' => $admin->id,
-            ]),
+            $action === 'approved' && $target instanceof Shop && $target->status === ShopStatus::Pending => $this->approveShopApplication($target, $admin),
             $action === 'rejected' && $target instanceof Shop && $target->status === ShopStatus::Pending => $target->update([
                 'status' => ShopStatus::Rejected,
                 'rejection_reason' => $reason,
@@ -100,6 +96,18 @@ trait ResolvesQueueItem
         } elseif ($action === 'rejected') {
             $report->update(['status' => ReportStatus::Dismissed]);
         }
+    }
+
+    private function approveShopApplication(Shop $shop, User $admin): void
+    {
+        $shop->update([
+            'status' => ShopStatus::Approved,
+            'reviewed_at' => now(),
+            'reviewed_by' => $admin->id,
+        ]);
+
+        // Approving the application verifies the certificates submitted with it.
+        $shop->halalCertifications()->update(['checked_at' => now()]);
     }
 
     private function approveCertifiedProduct(Product $product): void

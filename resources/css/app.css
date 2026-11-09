@@ -173,10 +173,10 @@
     --dur-slow: 320ms;
     --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    /* Focus ring: one 2px indicator, offset 2px. --focus-ring-on-brand is the
+    /* Focus ring: one 1px indicator, offset 2px. --focus-ring-on-brand is the
        inset ring on filled brand buttons; --focus-ring-error is light, the
        .dark scope swaps it for a dark-safe red. */
-    --focus-ring-width: 2px;
+    --focus-ring-width: 1px;
     --focus-ring-offset: 2px;
     --focus-ring-on-brand: #ffffff;
     --focus-ring-error: var(--danger);
@@ -607,7 +607,7 @@
         @apply border-border outline-ring/50;
     }
 
-    /* Focus: ONE indicator — a 2px outline in --focus-ring-color with a 2px
+    /* Focus: ONE indicator — a 1px outline in --focus-ring-color with a 2px
      offset, on :focus-visible only (mouse clicks never show it; text inputs
      match :focus-visible anyway, so they still indicate focus). Themes only
      swap the token: .dark sets --focus-ring-color-dark, .on-inverse sets
@@ -942,6 +942,21 @@
     .panel {
         @apply rounded-panel border border-border bg-surface;
     }
+}
+
+/* Focused composite containers (.focus-ring/.focus-ring-inset, e.g. the
+   quantity stepper): the border joins the ring colour so border + outline
+   read as one indicator. Unlayered on purpose: containers carry utility
+   borders (border-border-control, border-2) and utilities beat the base
+   and component layers regardless of specificity. */
+:is(.focus-ring, .focus-ring-inset):is(
+    :has(:focus-visible),
+    [data-force~='focus']
+) {
+    border-color: var(--focus-ring-color);
+}
+:is(.focus-ring, .focus-ring-inset):has([aria-invalid='true']:focus-visible) {
+    border-color: var(--focus-ring-error);
 }
 
 /* Forced colours / high contrast: the system Highlight colour must win over

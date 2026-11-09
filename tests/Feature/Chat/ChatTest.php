@@ -106,8 +106,8 @@ test('buyer and seller can send messages in conversation', function () {
     $response->assertCreated()
         ->assertJsonPath('message.sender_role', MessageSenderRole::Buyer->value);
 
-    // Seller sends reply
-    $replyResponse = $this->actingAs($seller)->postJson(route('chat.messages.store', $conversation), [
+    // Seller sends reply through the seller workspace inbox
+    $replyResponse = $this->actingAs($seller)->postJson(route('seller.chat.messages.store', $conversation), [
         'body' => 'Hello buyer, thanks for reaching out!',
     ]);
     $replyResponse->assertCreated()

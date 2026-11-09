@@ -18,7 +18,7 @@ export function Accordion({ items, name, className }: AccordionProps) {
         >
             {items.map((item, i) => (
                 <details key={i} className="group" open={item.open} name={name}>
-                    <summary className="flex min-h-touch-primary list-none items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle focus-inset [&::-webkit-details-marker]:hidden">
+                    <summary className="focus-inset flex min-h-touch-primary list-none items-center justify-between gap-3 px-4 text-label hover:bg-surface-subtle [&::-webkit-details-marker]:hidden">
                         {item.title}
                         <ChevronDown
                             aria-hidden="true"

@@ -188,7 +188,9 @@ export function ReportDialog({
                     ))}
                 </fieldset>
 
-                {error && <p className="text-body-sm text-danger-text">{error}</p>}
+                {error && (
+                    <p className="text-body-sm text-danger-text">{error}</p>
+                )}
 
                 <div className="grid gap-1.5">
                     <div className="flex items-baseline justify-between gap-2">

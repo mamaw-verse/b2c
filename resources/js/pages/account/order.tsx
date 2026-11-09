@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { TextArea } from '@/components/ui/textarea';
 import { formatDate, formatDateTime, formatPeso } from '@/lib/format';
+import { create as createReview } from '@/routes/reviews';
 
 type OrderDetailPageProps = {
     order: {
@@ -304,7 +305,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                         <button
                                             type="button"
                                             onClick={() =>
-                                                router.post('/chat', {
+                                                router.post('/account/chat', {
                                                     shop_id: order.shop!.id,
                                                 })
                                             }
@@ -372,16 +373,19 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                                             </span>
                                                         </span>
                                                     ) : (
-                                                        <Link
-                                                            href={`/account/order-items/${item.id}/reviews/create`}
+                                                        <Button
+                                                            asChild
+                                                            size="sm"
+                                                            variant="neutral"
                                                         >
-                                                            <Button
-                                                                size="sm"
-                                                                variant="neutral"
+                                                            <Link
+                                                                href={createReview(
+                                                                    item.id,
+                                                                )}
                                                             >
                                                                 Write a review
-                                                            </Button>
-                                                        </Link>
+                                                            </Link>
+                                                        </Button>
                                                     )}
                                                 </div>
                                             )}
@@ -447,9 +451,7 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                                         </dt>
                                         <dd className="tabular text-promo">
                                             −
-                                            {formatPeso(
-                                                order.voucher_discount,
-                                            )}
+                                            {formatPeso(order.voucher_discount)}
                                         </dd>
                                     </div>
                                 )}
@@ -621,8 +623,5 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
 }
 
 OrderDetail.layout = {
-    breadcrumbs: [
-        { title: 'My Purchases', href: '/account/orders' },
-        { title: 'Order Details', href: '#' },
-    ],
+    breadcrumbs: [{ title: 'My Purchases', href: '/account/orders' }],
 };

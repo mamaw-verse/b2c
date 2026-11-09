@@ -49,7 +49,9 @@ export function AddressForm({
     hideActions = false,
 }: AddressFormProps) {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const [name, setName] = useState(initialValues?.name ?? auth.user?.name ?? '');
+    const [name, setName] = useState(
+        initialValues?.name ?? auth.user?.name ?? '',
+    );
     const [phone, setPhone] = useState(initialValues?.phone ?? '');
     const [regionCode, setRegionCode] = useState(
         initialValues?.region_code ?? '',
@@ -164,7 +166,10 @@ export function AddressForm({
                 <input
                     id="af-name"
                     type="text"
-                    className={cn('field py-2.5', errors.name && 'border-danger')}
+                    className={cn(
+                        'field py-2.5',
+                        errors.name && 'border-danger',
+                    )}
                     value={name}
                     required
                     autoComplete="name"
@@ -210,10 +215,15 @@ export function AddressForm({
                 id="af-province"
                 label="Province"
                 required
-                options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+                options={provinces.map((p) => ({
+                    value: p.code,
+                    label: p.name,
+                }))}
                 value={provinceCode}
                 disabled={!regionCode}
-                placeholder={!regionCode ? 'Select region first' : 'Select province'}
+                placeholder={
+                    !regionCode ? 'Select region first' : 'Select province'
+                }
                 onChange={(code) => {
                     setProvinceCode(code);
                     setCityCode('');

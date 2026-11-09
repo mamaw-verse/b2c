@@ -166,7 +166,7 @@ export default function ModerationIndex({
     };
 
     return (
-        <AdminLayout pendingQueueCount={items.length}>
+        <AdminLayout>
             <Head title="Moderation Queue" />
 
             <div className="mx-auto max-w-container p-gutter py-6 md:p-6">

@@ -95,9 +95,7 @@ export default function SellerOrderShow({ order }: PageProps) {
                     {/* Header */}
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-h1">
-                                Order {order.reference}
-                            </h1>
+                            <h1 className="text-h1">Order {order.reference}</h1>
                             <p className="mt-1 text-body text-muted-foreground">
                                 Placed on {formatDateTime(order.created_at)}
                             </p>
@@ -118,7 +116,9 @@ export default function SellerOrderShow({ order }: PageProps) {
                                 >
                                     <span className="bg-surface-raised grid size-12 shrink-0 place-items-center rounded-tile text-muted-foreground">
                                         <DsIcon
-                                            name={item.thumbnail_icon ?? 'package'}
+                                            name={
+                                                item.thumbnail_icon ?? 'package'
+                                            }
                                             className="size-5"
                                         />
                                     </span>
@@ -251,10 +251,7 @@ export default function SellerOrderShow({ order }: PageProps) {
                             <h2 className="mb-4 text-h3">Timeline</h2>
                             <ol className="relative ml-3 border-l border-border">
                                 {order.timeline.map((event, i) => (
-                                    <li
-                                        key={i}
-                                        className="mb-4 ml-4 last:mb-0"
-                                    >
+                                    <li key={i} className="mb-4 ml-4 last:mb-0">
                                         <span className="absolute -left-1.5 mt-1.5 size-3 rounded-full border border-surface bg-border" />
                                         <p className="text-label">
                                             {event.title}
@@ -277,10 +274,10 @@ export default function SellerOrderShow({ order }: PageProps) {
             </div>
 
             {/* Action bar (sticky on mobile, fixed on desktop) */}
-            <div className="fixed inset-x-0 bottom-0 z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe lg:left-[var(--sidebar-w)]">
+            <div className="fixed inset-x-0 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe md:bottom-0 lg:left-[var(--sidebar-w)]">
                 <div className="mx-auto flex max-w-container items-center gap-2">
                     <Link
-                        href={`/chat?buyer=${order.buyer.id}`}
+                        href={`/seller/chat?buyer=${order.buyer.id}`}
                         className="btn btn-icon btn-ghost text-foreground"
                         aria-label="Chat with buyer"
                     >

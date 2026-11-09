@@ -12,7 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 final readonly class GetOrders
 {
     /**
-     * @return LengthAwarePaginator<Order>
+     * @return LengthAwarePaginator<int, Order>
      */
     public function handle(User $user, ?OrderStatus $status = null): LengthAwarePaginator
     {

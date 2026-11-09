@@ -43,7 +43,7 @@ final class CheckoutController
                     'halal_only' => $shop->halal_only,
                 ],
                 'items' => $shopItems->map(function (CartItem $item) {
-                    $variation = $item->variation;
+                    $variation = $item->product_variation_id === null ? null : $item->variation;
                     $product = $item->product;
 
                     return [
@@ -61,8 +61,10 @@ final class CheckoutController
                             'label' => mb_trim("{$variation->option1_value} {$variation->option2_value}"),
                         ] : null,
                         'qty' => $item->qty,
-                        'unit_price' => $variation?->price ?? $product->price,
-                        'subtotal' => ($variation?->price ?? $product->price) * $item->qty,
+                        'stock' => $variation->stock ?? $product->stock,
+                        'unavailable' => $item->availabilityWarning(),
+                        'unit_price' => $variation->price ?? $product->price,
+                        'subtotal' => ($variation->price ?? $product->price) * $item->qty,
                     ];
                 })->values()->all(),
             ];
@@ -86,7 +88,7 @@ final class CheckoutController
                 'landmark' => $a->landmark,
                 'label' => $a->label->value,
                 'is_default' => $a->is_default,
-                'formatted' => $a->formattedAddress(),
+                'formatted' => $a->formatAddress(),
             ]);
 
         $defaultAddress = $addresses->firstWhere('is_default', true) ?? $addresses->first();
@@ -107,7 +109,7 @@ final class CheckoutController
         $summary = $computeTotals->handle($user, null, null, $defaultShipping);
 
         $codFee = (int) config('checkout.cod_fee');
-        $paymentMethods = collect(config('checkout.payment_methods', []))
+        $paymentMethods = collect(config()->array('checkout.payment_methods', []))
             ->map(function (array $method) use ($codFee): array {
                 $isCod = $method['id'] === 'cod';
 
@@ -160,11 +162,11 @@ final class CheckoutController
         $shippingOption = ShippingOption::findOrFail($request->input('shipping_option_id'));
 
         $shopVoucher = $request->filled('shop_voucher_id')
-            ? Voucher::find($request->input('shop_voucher_id'))
+            ? Voucher::whereKey($request->input('shop_voucher_id'))->first()
             : null;
 
         $platformVoucher = $request->filled('platform_voucher_id')
-            ? Voucher::find($request->input('platform_voucher_id'))
+            ? Voucher::whereKey($request->input('platform_voucher_id'))->first()
             : null;
 
         $result = $action->handle(

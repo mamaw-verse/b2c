@@ -22,7 +22,7 @@ test('non-admin users receive 404 for admin dashboard', function () {
 });
 
 test('seller users receive 404 for admin routes', function () {
-    $seller = User::factory()->create(['role' => 'seller']);
+    $seller = User::factory()->create();
     $item = ModerationQueueItem::factory()->create();
 
     $this->actingAs($seller)

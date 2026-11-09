@@ -12,7 +12,7 @@ final readonly class ListSellerProducts
 {
     /**
      * @param  array{status?: string|null, search?: string|null, category?: string|null, stock?: string|null}  $filters
-     * @return LengthAwarePaginator<Product>
+     * @return LengthAwarePaginator<int, covariant array<string, mixed>>
      */
     public function handle(Shop $shop, array $filters = []): LengthAwarePaginator
     {
@@ -54,7 +54,7 @@ final readonly class ListSellerProducts
             'halal_status' => $p->halal_status->value,
             'certifier' => $p->halalCertification?->certifying_body,
             'variations_count' => $p->variations_count,
-            'icon' => $p->images->first()?->icon ?? 'package',
+            'icon' => $p->images->first()->icon ?? 'package',
         ]);
     }
 }

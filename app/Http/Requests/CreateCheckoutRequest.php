@@ -30,7 +30,7 @@ final class CreateCheckoutRequest extends FormRequest
         }
 
         if ($this->has('address_id')) {
-            $address = Address::find($this->input('address_id'));
+            $address = Address::whereKey($this->input('address_id'))->first();
             if ($address !== null && $address->user_id !== $user->id) {
                 return Response::denyAsNotFound();
             }
@@ -55,13 +55,26 @@ final class CreateCheckoutRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            $ownShopItem = CartItem::with('product.shop')
+                ->where('user_id', $this->user()->id)
+                ->where('selected', true)
+                ->get()
+                ->first(fn (CartItem $item) => $item->product->shop->user_id === $this->user()->id);
+
+            if ($ownShopItem !== null) {
+                $validator->errors()->add(
+                    'cart',
+                    'You cannot check out items from your own shop.',
+                );
+            }
+
             $outOfStock = CartItem::with(['product', 'variation'])
                 ->where('user_id', $this->user()->id)
                 ->where('selected', true)
                 ->get()
                 ->first(fn (CartItem $item) => ! $item->product->published
                     || ! $item->product->halal_status->visibleToBuyers()
-                    || ($item->variation?->stock ?? $item->product->stock) < $item->qty);
+                    || ($item->variation->stock ?? $item->product->stock) < $item->qty);
 
             if ($outOfStock !== null) {
                 $validator->errors()->add(

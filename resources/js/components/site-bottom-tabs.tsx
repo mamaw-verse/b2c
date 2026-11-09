@@ -1,7 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Bell, House, LayoutGrid, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { dashboard, home, login } from '@/routes';
+import { home, login } from '@/routes';
+import { home as accountHome } from '@/routes/account';
+import { index as chatIndex } from '@/routes/chat';
+import { index as notificationsIndex } from '@/routes/notifications';
 import { show as categoryShow } from '@/routes/categories';
 
 export type TabName = 'Home' | 'Categories' | 'Chat' | 'Notifications' | 'Me';
@@ -22,7 +25,10 @@ const tabs: TabItem[] = [
 
 /** Bottom tab bar: phone + tablet storefront navigation. Hidden at lg. */
 export function SiteBottomTabs({ active = 'Home' }: { active?: TabName }) {
-    const { auth, navCategories, unreadCounts } = usePage().props;
+    const { auth, navCategories, unreadCounts, workspaces } = usePage().props;
+    // Buyer surfaces are stripped for admins — chat and notifications
+    // tabs are hidden and "Me" leads to the admin console.
+    const isAdmin = (workspaces ?? []).some((w) => w.key === 'admin');
 
     const hrefFor = (tab: TabName): string => {
         switch (tab) {
@@ -33,15 +39,21 @@ export function SiteBottomTabs({ active = 'Home' }: { active?: TabName }) {
                     ? categoryShow.url(navCategories[0].slug)
                     : '#';
             case 'Chat':
-                return auth.user ? '/chat' : login().url;
+                return auth.user ? chatIndex().url : login().url;
             case 'Notifications':
-                return auth.user ? '/notifications' : login().url;
+                return auth.user ? notificationsIndex().url : login().url;
             case 'Me':
-                return (auth.user ? dashboard() : login()).url;
+                return auth.user
+                    ? (workspaces?.[0]?.href ?? accountHome().url)
+                    : login().url;
             default:
                 return '#';
         }
     };
+
+    const visibleTabs = isAdmin
+        ? tabs.filter((t) => t.name !== 'Chat' && t.name !== 'Notifications')
+        : tabs;
 
     return (
         <nav
@@ -49,7 +61,7 @@ export function SiteBottomTabs({ active = 'Home' }: { active?: TabName }) {
             className="fixed inset-x-0 bottom-0 z-header border-t border-border bg-surface pb-safe md:hidden"
         >
             <ul className="mx-auto flex max-w-xl">
-                {tabs.map(({ name, icon: Icon, countKey }) => {
+                {visibleTabs.map(({ name, icon: Icon, countKey }) => {
                     const count = countKey
                         ? (unreadCounts?.[countKey] ?? 0)
                         : 0;

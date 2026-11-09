@@ -84,7 +84,7 @@ final readonly class UpdateSellerProduct
 
             // Update or create certification
             if ($isHalalCertified && ! empty($data['certifying_body'])) {
-                $cert = $product->halalCertifications()->latestOfMany('valid_until')->first();
+                $cert = $product->halalCertifications()->latest('valid_until')->first();
                 if ($cert) {
                     $cert->update([
                         'certifying_body' => $data['certifying_body'],

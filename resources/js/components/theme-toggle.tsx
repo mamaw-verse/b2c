@@ -16,7 +16,8 @@ const options: { value: Appearance; icon: typeof Sun; label: string }[] = [
 ];
 
 export function ThemeToggle() {
-    const { appearance, resolvedAppearance, updateAppearance } = useAppearance();
+    const { appearance, resolvedAppearance, updateAppearance } =
+        useAppearance();
     const Icon = resolvedAppearance === 'dark' ? Moon : Sun;
 
     return (
@@ -35,7 +36,10 @@ export function ThemeToggle() {
                         aria-checked={appearance === value}
                         className={appearance === value ? 'font-bold' : ''}
                     >
-                        <OptionIcon className="mr-2 size-4" aria-hidden="true" />
+                        <OptionIcon
+                            className="mr-2 size-4"
+                            aria-hidden="true"
+                        />
                         {label}
                     </DropdownMenuItem>
                 ))}

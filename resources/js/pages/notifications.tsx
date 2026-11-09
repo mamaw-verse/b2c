@@ -4,16 +4,20 @@ import type { MouseEvent } from 'react';
 import { NotificationItem } from '@/components/notification-item';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import PublicLayout from '@/layouts/public-layout';
+import AppLayout from '@/layouts/app-layout';
+import SellerLayout from '@/layouts/seller-layout';
 import type { AppNotification } from '@/types/chat';
 
 interface NotificationsPageProps {
     notifications: AppNotification[];
+    workspace: 'buyer' | 'seller';
 }
 
 export default function NotificationsPage({
     notifications,
+    workspace,
 }: NotificationsPageProps) {
+    const Layout = workspace === 'seller' ? SellerLayout : AppLayout;
     const unreadCount = notifications.filter((n) => n.read_at === null).length;
 
     const handleMarkAllRead = () => {
@@ -54,15 +58,21 @@ export default function NotificationsPage({
     };
 
     return (
-        <PublicLayout activeTab="Notifications">
+        <Layout>
             <Head title="Notifications" />
 
-            <div className="mx-auto max-w-2xl py-6 pb-24 md:pb-12">
-                <div className="mb-4 flex items-center justify-between">
+            <div
+                className={
+                    workspace === 'seller'
+                        ? 'mx-auto grid w-full max-w-container gap-4 p-gutter py-8 md:gap-6'
+                        : 'grid gap-4 md:gap-6'
+                }
+            >
+                <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-h2">Notifications</h1>
+                        <h1 className="text-h1">Notifications</h1>
                         {unreadCount > 0 && (
-                            <p className="text-body-sm text-muted-foreground">
+                            <p className="mt-0.5 text-body text-muted-foreground">
                                 {unreadCount} unread
                             </p>
                         )}
@@ -96,6 +106,6 @@ export default function NotificationsPage({
                     </ul>
                 )}
             </div>
-        </PublicLayout>
+        </Layout>
     );
 }

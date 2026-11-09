@@ -16,15 +16,16 @@ void createInertiaApp({
         switch (true) {
             case name.startsWith('auth/'):
                 return AuthLayout;
+            case name === 'seller/terms':
+                return PublicLayout;
             case name === 'seller/register':
+            case name === 'seller/suspended':
                 return AppLayout;
             case name.startsWith('seller/'):
                 return SellerLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             case name.startsWith('account/'):
-                return AppLayout;
-            case name === 'dashboard':
                 return AppLayout;
             // Pages that render their own shell to pass it props (e.g.
             // pendingQueueCount, activeTab) must not be wrapped again.

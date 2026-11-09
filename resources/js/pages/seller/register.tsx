@@ -1,82 +1,442 @@
-import { Form, Head } from '@inertiajs/react';
-import { Clock, Store } from 'lucide-react';
-import { useState } from 'react';
-import { ImageUploader } from '@/components/image-uploader';
-import { PhoneInput } from '@/components/phone-input';
+import { Form, Head, Link } from '@inertiajs/react';
+import { CheckCircle2, ChevronDown, Circle, Plus, Store } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Combobox } from '@/components/combobox';
+import { FileField } from '@/components/file-field';
+import { Banner } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { TextArea } from '@/components/ui/textarea';
+import SellerTermsController from '@/actions/App/Http/Controllers/Seller/SellerTermsController';
 import { store as storeRegistration } from '@/routes/seller/register';
+
+type ExistingCertificate = {
+    certifying_body: string;
+    certificate_number: string;
+    valid_until: string;
+};
 
 type ExistingApplication = {
     status: 'pending' | 'rejected';
     shop_name: string;
     description: string | null;
-    location: string | null;
-    contact_number: string | null;
-    halal_only: boolean;
-    id_type: string | null;
-    id_number: string | null;
-    bank_name: string | null;
-    bank_account_name: string | null;
-    bank_account_number: string | null;
+    address_line: string | null;
+    city: string | null;
+    state: string | null;
+    postal_code: string | null;
+    certificates: ExistingCertificate[];
     rejection_reason: string | null;
+    terms_version: string | null;
+    terms_accepted_at: string | null;
     submitted_at: string | null;
 };
 
-const ID_TYPES = [
-    { value: 'philsys', label: 'PhilSys ID' },
-    { value: 'drivers_license', label: "Driver's license" },
-    { value: 'passport', label: 'Passport' },
-    { value: 'national_id', label: 'National ID' },
-];
+type CertificateDraft = {
+    certifying_body: string;
+    certificate_number: string;
+    valid_until: string;
+    document: File | null;
+};
+
+type PsgcItem = {
+    code: string;
+    name: string;
+    postal_code?: string;
+};
+
+const DESCRIPTION_MAX = 1000;
+
+const emptyCertificate = (): CertificateDraft => ({
+    certifying_body: '',
+    certificate_number: '',
+    valid_until: '',
+    document: null,
+});
+
+function todayInputValue(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+const FIELD_META: Record<string, { label: string; target: string }> = {
+    logo: { label: 'Shop logo', target: 'f-logo' },
+    shop_name: { label: 'Shop name', target: 'f-shop-name' },
+    description: { label: 'Shop description', target: 'f-description' },
+    region: { label: 'Region', target: 'f-region' },
+    address_line: { label: 'Street address', target: 'f-street' },
+    barangay: { label: 'Barangay', target: 'f-barangay' },
+    city: { label: 'City / Municipality', target: 'f-city' },
+    state: { label: 'Province', target: 'f-province' },
+    postal_code: { label: 'Postal code', target: 'f-postal' },
+    business_permit: { label: 'Business permit', target: 'f-permit' },
+    certificates: { label: 'Certificates', target: 'f-certificates' },
+    agreed_to_terms: { label: 'Seller terms', target: 'f-terms' },
+    confirm: { label: 'Accuracy confirmation', target: 'f-confirm' },
+    halal_only: { label: 'Halal-only commitment', target: 'f-halal' },
+};
+
+const CERT_FIELD_LABELS: Record<string, string> = {
+    certifying_body: 'issuing body',
+    certificate_number: 'certificate number',
+    valid_until: 'expiry date',
+    document: 'document',
+};
+
+function errorMeta(key: string): { label: string; target: string } {
+    const certMatch = key.match(/^certificates\.(\d+)\.(.+)$/);
+    if (certMatch) {
+        const index = Number(certMatch[1]);
+        const field = certMatch[2];
+        return {
+            label: `Certificate ${index + 1} — ${CERT_FIELD_LABELS[field] ?? field}`,
+            target: `cert-${index}-${field}`,
+        };
+    }
+
+    return FIELD_META[key] ?? { label: key, target: 'seller-register-form' };
+}
+
+/** Danger banner listing server errors; grabs focus when it mounts. */
+function ErrorSummary({ errors }: { errors: Record<string, string> }) {
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        ref.current?.focus();
+    }, []);
+
+    return (
+        <div
+            ref={ref}
+            tabIndex={-1}
+            data-test="error-summary"
+            className="focus-ring rounded-panel"
+        >
+            <Banner tone="danger" live title="Please fix the following">
+                <ul className="grid list-disc gap-1 pl-5">
+                    {Object.entries(errors).map(([key, message]) => {
+                        const meta = errorMeta(key);
+                        return (
+                            <li key={key}>
+                                <a
+                                    href={`#${meta.target}`}
+                                    className="font-bold underline"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        document
+                                            .getElementById(meta.target)
+                                            ?.focus();
+                                    }}
+                                >
+                                    {meta.label}
+                                </a>
+                                : {message}
+                            </li>
+                        );
+                    })}
+                </ul>
+            </Banner>
+        </div>
+    );
+}
 
 export default function SellerRegister({
     application,
+    terms,
 }: {
     application: ExistingApplication | null;
+    terms: { version: string };
 }) {
-    const [contactNumber, setContactNumber] = useState(
-        application?.contact_number ?? '',
+    const [shopName, setShopName] = useState(application?.shop_name ?? '');
+    const [description, setDescription] = useState(
+        application?.description ?? '',
     );
-    const [idDocument, setIdDocument] = useState<File[]>([]);
-    const [selfie, setSelfie] = useState<File[]>([]);
-    const [businessPermit, setBusinessPermit] = useState<File[]>([]);
+    const [logo, setLogo] = useState<File | null>(null);
+    const [businessPermit, setBusinessPermit] = useState<File | null>(null);
+
+    const [regionCode, setRegionCode] = useState('');
+    const [provinceCode, setProvinceCode] = useState('');
+    const [cityCode, setCityCode] = useState('');
+    const [barangayCode, setBarangayCode] = useState('');
+    const [street, setStreet] = useState(application?.address_line ?? '');
+    const [postalCode, setPostalCode] = useState(
+        application?.postal_code ?? '',
+    );
+    const [postalLocked, setPostalLocked] = useState(false);
+
+    const [regions, setRegions] = useState<PsgcItem[]>([]);
+    const [provinces, setProvinces] = useState<PsgcItem[]>([]);
+    const [cities, setCities] = useState<PsgcItem[]>([]);
+    const [barangays, setBarangays] = useState<PsgcItem[]>([]);
+
+    const [certificates, setCertificates] = useState<CertificateDraft[]>(
+        application?.certificates?.length
+            ? application.certificates.map((certificate) => ({
+                  ...certificate,
+                  document: null,
+              }))
+            : [emptyCertificate()],
+    );
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [confirmedAccuracy, setConfirmedAccuracy] = useState(false);
+    const [halalOnly, setHalalOnly] = useState(false);
+    const [clientErrors, setClientErrors] = useState<Record<string, string>>(
+        {},
+    );
+
+    const clearClientError = (key: string) =>
+        setClientErrors((current) => {
+            if (!(key in current)) {
+                return current;
+            }
+            const next = { ...current };
+            delete next[key];
+
+            return next;
+        });
+
+    /** Client-side mirror of the request rules; the summary lists every gap.
+        PSGC selects must hold a chosen value, not just typed text. */
+    const validateBeforeSubmit = (): boolean => {
+        const missing: Record<string, string> = {};
+        if (!shopName.trim()) {
+            missing.shop_name = 'Enter your shop name.';
+        }
+        if (!description.trim()) {
+            missing.description = 'Enter your shop description.';
+        }
+        if (!regionCode) {
+            missing.region = 'Select your region.';
+        }
+        if (!provinceCode) {
+            missing.state = 'Select your province.';
+        }
+        if (!cityCode) {
+            missing.city = 'Select your city or municipality.';
+        }
+        if (!barangayCode) {
+            missing.barangay = 'Select your barangay.';
+        }
+        if (!street.trim()) {
+            missing.address_line = 'Enter your street address.';
+        }
+        if (!postalCode.trim()) {
+            missing.postal_code = 'Enter your postal code.';
+        }
+        if (!businessPermit) {
+            missing.business_permit = 'Upload your business permit.';
+        }
+        certificates.forEach((certificate, index) => {
+            if (!certificate.certifying_body.trim()) {
+                missing[`certificates.${index}.certifying_body`] =
+                    'Enter the issuing body.';
+            }
+            if (!certificate.certificate_number.trim()) {
+                missing[`certificates.${index}.certificate_number`] =
+                    'Enter the certificate number.';
+            }
+            if (!certificate.valid_until) {
+                missing[`certificates.${index}.valid_until`] =
+                    'Enter the expiry date.';
+            }
+            if (!certificate.document) {
+                missing[`certificates.${index}.document`] =
+                    'Upload the certificate document.';
+            }
+        });
+        if (!agreedToTerms) {
+            missing.agreed_to_terms = 'You must agree to the Seller Terms.';
+        }
+        if (!confirmedAccuracy) {
+            missing.confirm = 'Confirm the information is true and correct.';
+        }
+        setClientErrors(missing);
+
+        return Object.keys(missing).length === 0;
+    };
+
+    // Cascading PSGC lists (same endpoints as the buyer address form).
+    useEffect(() => {
+        fetch('/api/psgc/regions')
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data: PsgcItem[]) => setRegions(data))
+            .catch(() => setRegions([]));
+    }, []);
+
+    useEffect(() => {
+        if (!regionCode) {
+            setProvinces([]);
+            return;
+        }
+        fetch(`/api/psgc/regions/${regionCode}/provinces`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data: PsgcItem[]) => setProvinces(data))
+            .catch(() => setProvinces([]));
+    }, [regionCode]);
+
+    useEffect(() => {
+        if (!provinceCode) {
+            setCities([]);
+            return;
+        }
+        fetch(`/api/psgc/provinces/${provinceCode}/cities`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data: PsgcItem[]) => setCities(data))
+            .catch(() => setCities([]));
+    }, [provinceCode]);
+
+    useEffect(() => {
+        if (!cityCode) {
+            setBarangays([]);
+            return;
+        }
+        fetch(`/api/psgc/cities/${cityCode}/barangays`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data: PsgcItem[]) => setBarangays(data))
+            .catch(() => setBarangays([]));
+    }, [cityCode]);
+
+    const provinceName =
+        provinces.find((p) => p.code === provinceCode)?.name ?? '';
+    const cityName = cities.find((c) => c.code === cityCode)?.name ?? '';
+    const barangayName =
+        barangays.find((b) => b.code === barangayCode)?.name ?? '';
+
+    const updateCertificate = (
+        index: number,
+        patch: Partial<CertificateDraft>,
+    ) => {
+        setCertificates((current) =>
+            current.map((certificate, i) =>
+                i === index ? { ...certificate, ...patch } : certificate,
+            ),
+        );
+    };
+
+    // Checklist computed from live form values — one line per section.
+    const checklist = [
+        {
+            key: 'profile',
+            label: 'Shop profile',
+            done: shopName.trim() !== '' && description.trim() !== '',
+        },
+        {
+            key: 'address',
+            label: 'Pickup & business address',
+            done: Boolean(
+                regionCode &&
+                provinceCode &&
+                cityCode &&
+                barangayCode &&
+                street.trim() &&
+                postalCode.trim(),
+            ),
+        },
+        {
+            key: 'documents',
+            label: 'Documents',
+            done:
+                businessPermit !== null &&
+                certificates.length > 0 &&
+                certificates.every(
+                    (certificate) =>
+                        certificate.certifying_body.trim() !== '' &&
+                        certificate.certificate_number.trim() !== '' &&
+                        certificate.valid_until !== '' &&
+                        certificate.document !== null,
+                ),
+        },
+        {
+            key: 'declaration',
+            label: 'Review & submit',
+            done: agreedToTerms && confirmedAccuracy,
+        },
+    ];
+    const doneCount = checklist.filter((item) => item.done).length;
+
+    const checklistList = (
+        <ol className="grid gap-2">
+            {checklist.map((item) => (
+                <li
+                    key={item.key}
+                    data-test={`checklist-${item.key}`}
+                    data-done={item.done || undefined}
+                    className="flex items-center gap-2 text-body-sm"
+                >
+                    {item.done ? (
+                        <CheckCircle2
+                            className="size-4 shrink-0 text-halal"
+                            aria-hidden="true"
+                        />
+                    ) : (
+                        <Circle
+                            className="size-4 shrink-0 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                    )}
+                    <span
+                        className={
+                            item.done
+                                ? 'text-foreground'
+                                : 'text-muted-foreground'
+                        }
+                    >
+                        {item.label}
+                    </span>
+                    <span className="ml-auto text-caption text-muted-foreground">
+                        {item.done ? 'Done' : 'To do'}
+                    </span>
+                </li>
+            ))}
+        </ol>
+    );
 
     if (application?.status === 'pending') {
         return (
             <>
                 <Head title="Seller application" />
-                <div className="mx-auto max-w-2xl p-gutter py-8">
-                    <section className="panel grid justify-items-center gap-3 p-6 text-center md:p-10">
-                        <span className="grid size-12 place-items-center rounded-tile bg-info-soft text-info-text">
-                            <Clock className="size-6" aria-hidden="true" />
-                        </span>
-                        <h1 className="text-h2">Application under review</h1>
-                        <p className="max-w-md text-body text-muted-foreground">
+                <div className="w-full max-w-3xl">
+                    <Banner tone="info" title="Application under review">
+                        <p>
                             Your application for{' '}
                             <strong className="text-foreground">
                                 {application.shop_name}
-                            </strong>{' '}
-                            is under review. We'll notify you within 3 business
-                            days.
+                            </strong>
+                            {application.submitted_at && (
+                                <>
+                                    {' '}
+                                    — submitted{' '}
+                                    {new Date(
+                                        application.submitted_at,
+                                    ).toLocaleDateString('en-PH', {
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                    })}
+                                </>
+                            )}{' '}
+                            is under review. We'll review it and notify you here
+                            within 3 business days.
                         </p>
-                        {application.submitted_at && (
-                            <p className="text-body-sm text-muted-foreground">
-                                Submitted{' '}
-                                {new Date(
-                                    application.submitted_at,
-                                ).toLocaleDateString('en-PH', {
-                                    month: 'long',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                })}
+                        {application.terms_version && (
+                            <p className="mt-2">
+                                Accepted Seller Terms v
+                                {application.terms_version}
+                                {application.terms_accepted_at &&
+                                    ` on ${new Date(application.terms_accepted_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+                                .
                             </p>
                         )}
-                    </section>
+                        <p className="mt-2">
+                            <Link
+                                href="/account"
+                                className="font-bold text-primary-text underline"
+                            >
+                                Back to account
+                            </Link>
+                        </p>
+                    </Banner>
                 </div>
             </>
         );
@@ -85,314 +445,730 @@ export default function SellerRegister({
     return (
         <>
             <Head title="Become a seller" />
-            <Form
-                action={storeRegistration().url}
-                method="post"
-                transform={(data) => ({
-                    ...data,
-                    id_document: idDocument[0],
-                    selfie: selfie[0],
-                    business_permit: businessPermit[0],
-                })}
-            >
-                {({ errors, processing }) => (
-                    <div className="mx-auto max-w-3xl p-gutter py-8">
-                        <div className="mb-6 flex items-start gap-3">
-                            <span className="grid size-10 shrink-0 place-items-center rounded-tile bg-primary-soft text-primary-text">
-                                <Store className="size-5" aria-hidden="true" />
+            <div className="w-full lg:grid lg:grid-cols-[minmax(0,48rem)_minmax(14rem,18rem)] lg:items-start lg:gap-10">
+                {/* Application checklist — collapsible above the form on small
+                    screens, a sticky rail on lg+. */}
+                <aside
+                    aria-label="Application checklist"
+                    className="mb-6 lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:order-2 lg:mb-0"
+                >
+                    <details className="panel p-4 lg:hidden">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-label text-foreground [&::-webkit-details-marker]:hidden">
+                            <span>
+                                Application checklist — {doneCount}/
+                                {checklist.length} complete
                             </span>
-                            <div>
-                                <h1 className="text-h1">Become a seller</h1>
-                                <p className="text-body text-muted-foreground">
-                                    Tell us about your shop. Applications are
-                                    reviewed within 3 business days.
-                                </p>
-                            </div>
-                        </div>
+                            <ChevronDown
+                                className="size-4 text-muted-foreground"
+                                aria-hidden="true"
+                            />
+                        </summary>
+                        <div className="mt-3">{checklistList}</div>
+                    </details>
+                    <div className="panel hidden p-4 lg:block">
+                        <p className="mb-3 text-label text-foreground">
+                            Your application
+                        </p>
+                        {checklistList}
+                        <p className="mt-3 text-caption text-muted-foreground">
+                            {doneCount === checklist.length
+                                ? 'Ready to submit'
+                                : 'Complete all sections to submit.'}
+                        </p>
+                    </div>
+                </aside>
 
-                        {application?.status === 'rejected' && (
-                            <div
-                                role="alert"
-                                className="mb-6 rounded-panel bg-danger-soft p-4 text-body text-danger-text"
+                <div className="lg:order-1" id="seller-register-form">
+                    <header className="mb-6">
+                        <h1 className="flex items-center gap-2 text-h1">
+                            <Store
+                                className="size-7 shrink-0 text-primary-text"
+                                aria-hidden="true"
+                            />
+                            Become a seller
+                        </h1>
+                        <p className="mt-1 text-body text-muted-foreground">
+                            Tell us about your shop. Applications are reviewed
+                            within 3 business days.
+                        </p>
+                    </header>
+
+                    <div className="mb-8">
+                        <Banner tone="info" title="Before you start">
+                            <ul className="list-disc pl-5">
+                                <li>
+                                    A business permit (required) — DTI business
+                                    name registration or mayor's permit
+                                </li>
+                                <li>
+                                    At least one certificate (required), such as
+                                    a halal certificate, with its number and
+                                    expiry date
+                                </li>
+                                <li>Optional: a shop logo</li>
+                            </ul>
+                        </Banner>
+                    </div>
+
+                    {application?.status === 'rejected' && (
+                        <div className="mb-8">
+                            <Banner
+                                tone="danger"
+                                live
+                                title="Your previous application was rejected"
                             >
-                                <p className="font-bold">
-                                    Your previous application was rejected
-                                </p>
                                 {application.rejection_reason && (
-                                    <p className="mt-1">
+                                    <p>
                                         Reason: {application.rejection_reason}
                                     </p>
                                 )}
                                 <p className="mt-1">
                                     Update your details and submit a new
-                                    application below.
+                                    application below. Documents must be
+                                    uploaded again.
                                 </p>
-                            </div>
-                        )}
+                            </Banner>
+                        </div>
+                    )}
 
-                        <div className="grid gap-6">
-                            {/* Shop information */}
-                            <section className="panel p-4 md:p-6">
-                                <h2 className="mb-4 text-h3">
-                                    Shop information
-                                </h2>
-                                <div className="grid gap-4">
-                                    <FormField
-                                        label="Shop name"
-                                        error={errors.shop_name}
-                                        required
-                                    >
-                                        <Input
-                                            name="shop_name"
-                                            defaultValue={
-                                                application?.shop_name ?? ''
-                                            }
-                                            maxLength={120}
-                                            required
-                                        />
-                                    </FormField>
-                                    <FormField
-                                        label="Shop description"
-                                        error={errors.description}
-                                        required
-                                    >
-                                        <TextArea
-                                            name="description"
-                                            defaultValue={
-                                                application?.description ?? ''
-                                            }
-                                            rows={4}
-                                            maxLength={1000}
-                                            required
-                                        />
-                                    </FormField>
-                                    <FormField
-                                        label="Pickup location (city)"
-                                        error={errors.location}
-                                        required
-                                    >
-                                        <Input
-                                            name="location"
-                                            defaultValue={
-                                                application?.location ?? ''
-                                            }
-                                            maxLength={255}
-                                            placeholder="e.g. Quezon City"
-                                            required
-                                        />
-                                    </FormField>
-                                    <Switch
-                                        id="halal_only"
-                                        name="halal_only"
-                                        value="1"
-                                        label="Halal-only shop"
-                                        description="I commit to selling only halal-certified products in this shop."
-                                        defaultChecked={
-                                            application?.halal_only ?? false
-                                        }
-                                    />
-                                    {errors.halal_only && (
-                                        <p className="text-body-sm font-bold text-danger-text">
-                                            {errors.halal_only}
-                                        </p>
+                    <Form
+                        action={storeRegistration().url}
+                        method="post"
+                        noValidate
+                        onBefore={validateBeforeSubmit}
+                        transform={(data) => ({
+                            ...data,
+                            shop_name: shopName,
+                            description: description,
+                            logo: logo,
+                            business_permit: businessPermit,
+                            address_line: [street, barangayName]
+                                .filter(Boolean)
+                                .join(', '),
+                            city: cityName,
+                            state: provinceName,
+                            postal_code: postalCode,
+                            certificates: certificates.map((certificate) => ({
+                                certifying_body: certificate.certifying_body,
+                                certificate_number:
+                                    certificate.certificate_number,
+                                valid_until: certificate.valid_until,
+                                document: certificate.document,
+                            })),
+                        })}
+                    >
+                        {({ errors: serverErrors, processing }) => {
+                            const errors = {
+                                ...clientErrors,
+                                ...serverErrors,
+                            };
+
+                            return (
+                                <div className="grid gap-8">
+                                    {Object.keys(errors).length > 0 && (
+                                        <ErrorSummary errors={errors} />
                                     )}
-                                </div>
-                            </section>
 
-                            {/* Contact details */}
-                            <section className="panel p-4 md:p-6">
-                                <h2 className="mb-4 text-h3">
-                                    Contact details
-                                </h2>
-                                <input
-                                    type="hidden"
-                                    name="contact_number"
-                                    value={contactNumber}
-                                />
-                                <PhoneInput
-                                    label="Contact number"
-                                    value={contactNumber}
-                                    onChange={setContactNumber}
-                                    error={errors.contact_number}
-                                    required
-                                />
-                            </section>
-
-                            {/* Identity verification */}
-                            <section className="panel p-4 md:p-6">
-                                <h2 className="mb-1 text-h3">
-                                    Identity verification
-                                </h2>
-                                <p className="mb-4 text-body text-muted-foreground">
-                                    We verify every seller with a
-                                    government-issued ID and a selfie.
-                                </p>
-                                <div className="grid gap-4">
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <FormField
-                                            label="ID type"
-                                            error={errors.id_type}
-                                            required
-                                        >
-                                            <select
-                                                name="id_type"
-                                                className="field"
-                                                defaultValue={
-                                                    application?.id_type ?? ''
-                                                }
-                                                required
-                                            >
-                                                <option value="">
-                                                    Select ID type
-                                                </option>
-                                                {ID_TYPES.map((t) => (
-                                                    <option
-                                                        key={t.value}
-                                                        value={t.value}
-                                                    >
-                                                        {t.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </FormField>
-                                        <FormField
-                                            label="ID number"
-                                            error={errors.id_number}
-                                            required
-                                        >
-                                            <Input
-                                                name="id_number"
-                                                defaultValue={
-                                                    application?.id_number ?? ''
-                                                }
-                                                maxLength={50}
-                                                required
-                                            />
-                                        </FormField>
-                                    </div>
-                                    <ImageUploader
-                                        files={idDocument}
-                                        onChange={setIdDocument}
-                                        max={1}
-                                        label="ID document photo"
-                                        error={errors.id_document}
-                                    />
-                                    <ImageUploader
-                                        files={selfie}
-                                        onChange={setSelfie}
-                                        max={1}
-                                        label="Selfie holding your ID"
-                                        error={errors.selfie}
-                                    />
-                                </div>
-                            </section>
-
-                            {/* Business documents */}
-                            <section className="panel p-4 md:p-6">
-                                <h2 className="mb-1 text-h3">
-                                    Business documents
-                                </h2>
-                                <p className="mb-4 text-body text-muted-foreground">
-                                    Optional for individual sellers. Required
-                                    for registered businesses.
-                                </p>
-                                <ImageUploader
-                                    files={businessPermit}
-                                    onChange={setBusinessPermit}
-                                    max={1}
-                                    accept="image/*,application/pdf"
-                                    label="Business permit / DTI registration"
-                                    error={errors.business_permit}
-                                />
-                            </section>
-
-                            {/* Payout account */}
-                            <section className="panel p-4 md:p-6">
-                                <h2 className="mb-4 text-h3">Payout account</h2>
-                                <div className="grid gap-4">
-                                    <FormField
-                                        label="Bank or e-wallet"
-                                        error={errors.bank_name}
-                                        required
+                                    {/* 1. Shop profile */}
+                                    <section
+                                        aria-labelledby="section-profile"
+                                        className="grid gap-4"
                                     >
-                                        <Input
-                                            name="bank_name"
-                                            defaultValue={
-                                                application?.bank_name ?? ''
-                                            }
-                                            maxLength={120}
-                                            placeholder="e.g. BDO, GCash, Maya"
-                                            required
+                                        <div>
+                                            <h2
+                                                id="section-profile"
+                                                className="text-h3"
+                                            >
+                                                1. Shop profile
+                                            </h2>
+                                            <p className="mt-1 text-body-sm text-muted-foreground">
+                                                How buyers will see your shop.
+                                            </p>
+                                        </div>
+                                        <FileField
+                                            id="f-logo"
+                                            label="Shop logo"
+                                            accept="image/*"
+                                            acceptLabel="JPG, PNG or WebP"
+                                            variant="avatar"
+                                            value={logo}
+                                            onChange={setLogo}
+                                            error={errors.logo}
+                                            optional
+                                            helper="Shown on your shop page."
                                         />
-                                    </FormField>
-                                    <div className="grid gap-4 sm:grid-cols-2">
                                         <FormField
-                                            label="Account name"
-                                            error={errors.bank_account_name}
-                                            required
+                                            id="f-shop-name"
+                                            label="Shop name"
+                                            error={errors.shop_name}
+                                            help="Shown publicly on your shop page. Must be unique. Up to 120 characters."
                                         >
                                             <Input
-                                                name="bank_account_name"
-                                                defaultValue={
-                                                    application?.bank_account_name ??
-                                                    ''
+                                                value={shopName}
+                                                onChange={(e) =>
+                                                    setShopName(e.target.value)
                                                 }
                                                 maxLength={120}
+                                                autoComplete="organization"
                                                 required
+                                                aria-required="true"
                                             />
                                         </FormField>
                                         <FormField
-                                            label="Account number"
-                                            error={errors.bank_account_number}
-                                            required
+                                            id="f-description"
+                                            label="Shop description"
+                                            error={errors.description}
+                                            help="What you sell and how you source it."
+                                            counter={`${description.length} / ${DESCRIPTION_MAX}`}
                                         >
-                                            <Input
-                                                name="bank_account_number"
-                                                defaultValue={
-                                                    application?.bank_account_number ??
-                                                    ''
+                                            <TextArea
+                                                value={description}
+                                                onChange={(e) =>
+                                                    setDescription(
+                                                        e.target.value,
+                                                    )
                                                 }
-                                                maxLength={50}
+                                                rows={4}
+                                                maxLength={DESCRIPTION_MAX}
                                                 required
+                                                aria-required="true"
                                             />
                                         </FormField>
-                                    </div>
+                                    </section>
+
+                                    {/* 2. Pickup & business address */}
+                                    <section
+                                        aria-labelledby="section-address"
+                                        className="grid gap-4 border-t border-border pt-8"
+                                    >
+                                        <div>
+                                            <h2
+                                                id="section-address"
+                                                className="text-h3"
+                                            >
+                                                2. Pickup & business address
+                                            </h2>
+                                            <p className="mt-1 text-body-sm text-muted-foreground">
+                                                Couriers collect orders and
+                                                returns from this address.
+                                            </p>
+                                        </div>
+                                        <div className="grid items-start gap-4 md:grid-cols-2">
+                                            <FormField
+                                                id="f-street"
+                                                label="Street address / Unit / Building"
+                                                error={errors.address_line}
+                                            >
+                                                <Input
+                                                    value={street}
+                                                    onChange={(e) =>
+                                                        setStreet(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    maxLength={255}
+                                                    placeholder="e.g. Unit 4B, 12 Bagong Silang St."
+                                                    autoComplete="street-address"
+                                                    required
+                                                    aria-required="true"
+                                                />
+                                            </FormField>
+                                            <Combobox
+                                                id="f-region"
+                                                label="Region"
+                                                options={regions.map((r) => ({
+                                                    value: r.code,
+                                                    label: r.name,
+                                                }))}
+                                                value={regionCode}
+                                                placeholder="Select region"
+                                                error={errors.region}
+                                                onChange={(code) => {
+                                                    setRegionCode(code);
+                                                    setProvinceCode('');
+                                                    setCityCode('');
+                                                    setBarangayCode('');
+                                                    clearClientError('region');
+                                                }}
+                                            />
+                                            <Combobox
+                                                id="f-province"
+                                                label="Province"
+                                                options={provinces.map((p) => ({
+                                                    value: p.code,
+                                                    label: p.name,
+                                                }))}
+                                                value={provinceCode}
+                                                disabled={!regionCode}
+                                                placeholder={
+                                                    !regionCode
+                                                        ? 'Select region first'
+                                                        : 'Select province'
+                                                }
+                                                onChange={(code) => {
+                                                    setProvinceCode(code);
+                                                    setCityCode('');
+                                                    setBarangayCode('');
+                                                    clearClientError('state');
+                                                }}
+                                                error={errors.state}
+                                            />
+                                            <Combobox
+                                                id="f-city"
+                                                label="City / Municipality"
+                                                options={cities.map((c) => ({
+                                                    value: c.code,
+                                                    label: c.name,
+                                                }))}
+                                                value={cityCode}
+                                                disabled={!provinceCode}
+                                                placeholder={
+                                                    !provinceCode
+                                                        ? 'Select province first'
+                                                        : 'Search city/municipality'
+                                                }
+                                                onChange={(code) => {
+                                                    setCityCode(code);
+                                                    setBarangayCode('');
+                                                    clearClientError('city');
+                                                    const selected =
+                                                        cities.find(
+                                                            (c) =>
+                                                                c.code === code,
+                                                        );
+                                                    if (selected?.postal_code) {
+                                                        setPostalCode(
+                                                            selected.postal_code,
+                                                        );
+                                                        setPostalLocked(true);
+                                                    } else {
+                                                        setPostalLocked(false);
+                                                    }
+                                                }}
+                                                error={errors.city}
+                                            />
+                                            <Combobox
+                                                id="f-barangay"
+                                                label="Barangay"
+                                                options={barangays.map((b) => ({
+                                                    value: b.code,
+                                                    label: b.name,
+                                                }))}
+                                                value={barangayCode}
+                                                disabled={!cityCode}
+                                                placeholder={
+                                                    !cityCode
+                                                        ? 'Select city first'
+                                                        : 'Search barangay'
+                                                }
+                                                onChange={(code) => {
+                                                    setBarangayCode(code);
+                                                    clearClientError(
+                                                        'barangay',
+                                                    );
+                                                }}
+                                                error={errors.barangay}
+                                            />
+                                            <FormField
+                                                id="f-postal"
+                                                label="Postal code"
+                                                error={errors.postal_code}
+                                                help={
+                                                    postalLocked
+                                                        ? 'Filled from your city.'
+                                                        : '4-digit ZIP code.'
+                                                }
+                                            >
+                                                <Input
+                                                    value={postalCode}
+                                                    onChange={(e) =>
+                                                        setPostalCode(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    maxLength={10}
+                                                    inputMode="numeric"
+                                                    autoComplete="postal-code"
+                                                    readOnly={postalLocked}
+                                                    required
+                                                    aria-required="true"
+                                                />
+                                            </FormField>
+                                        </div>
+                                    </section>
+
+                                    {/* 3. Documents */}
+                                    <section
+                                        aria-labelledby="section-documents"
+                                        className="grid gap-4 border-t border-border pt-8"
+                                    >
+                                        <div>
+                                            <h2
+                                                id="section-documents"
+                                                className="text-h3"
+                                            >
+                                                3. Documents
+                                            </h2>
+                                            <p className="mt-1 text-body-sm text-muted-foreground">
+                                                Clear photos or scans are fine —
+                                                we verify them during review.
+                                            </p>
+                                        </div>
+
+                                        <FileField
+                                            id="f-permit"
+                                            label="Business permit"
+                                            accept="image/*,application/pdf"
+                                            acceptLabel="JPG, PNG or PDF"
+                                            variant="document"
+                                            value={businessPermit}
+                                            onChange={setBusinessPermit}
+                                            error={errors.business_permit}
+                                            helper="DTI business name registration or mayor's permit."
+                                        />
+
+                                        <div
+                                            id="f-certificates"
+                                            tabIndex={-1}
+                                            className="grid gap-6"
+                                        >
+                                            {certificates.map(
+                                                (certificate, index) => (
+                                                    <fieldset
+                                                        key={index}
+                                                        className="overflow-hidden rounded-panel border border-border"
+                                                    >
+                                                        <legend className="sr-only">
+                                                            Certificate{' '}
+                                                            {index + 1}
+                                                        </legend>
+                                                        <div className="flex items-center justify-between gap-2 border-b border-border bg-surface-muted px-4 py-2.5">
+                                                            <p className="text-label text-foreground">
+                                                                Certificate{' '}
+                                                                {index + 1}
+                                                            </p>
+                                                            {index > 0 && (
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="link"
+                                                                    onClick={() =>
+                                                                        setCertificates(
+                                                                            (
+                                                                                current,
+                                                                            ) =>
+                                                                                current.filter(
+                                                                                    (
+                                                                                        _,
+                                                                                        i,
+                                                                                    ) =>
+                                                                                        i !==
+                                                                                        index,
+                                                                                ),
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Remove
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                        <div className="grid items-start gap-4 p-4 md:grid-cols-2">
+                                                            <FormField
+                                                                id={`cert-${index}-certifying_body`}
+                                                                label="Issuing body"
+                                                                error={
+                                                                    errors[
+                                                                        `certificates.${index}.certifying_body`
+                                                                    ]
+                                                                }
+                                                                help="Name of the certifying organisation."
+                                                            >
+                                                                <Input
+                                                                    value={
+                                                                        certificate.certifying_body
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        updateCertificate(
+                                                                            index,
+                                                                            {
+                                                                                certifying_body:
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    maxLength={
+                                                                        255
+                                                                    }
+                                                                    placeholder="e.g. Islamic Da'wah Council of the Philippines"
+                                                                    required
+                                                                    aria-required="true"
+                                                                />
+                                                            </FormField>
+                                                            <FormField
+                                                                id={`cert-${index}-certificate_number`}
+                                                                label="Certificate number"
+                                                                error={
+                                                                    errors[
+                                                                        `certificates.${index}.certificate_number`
+                                                                    ]
+                                                                }
+                                                                help="As printed on the certificate."
+                                                            >
+                                                                <Input
+                                                                    value={
+                                                                        certificate.certificate_number
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        updateCertificate(
+                                                                            index,
+                                                                            {
+                                                                                certificate_number:
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    maxLength={
+                                                                        100
+                                                                    }
+                                                                    required
+                                                                    aria-required="true"
+                                                                />
+                                                            </FormField>
+                                                            <FormField
+                                                                id={`cert-${index}-valid_until`}
+                                                                label="Expiry date"
+                                                                error={
+                                                                    errors[
+                                                                        `certificates.${index}.valid_until`
+                                                                    ]
+                                                                }
+                                                                help={
+                                                                    certificate.valid_until
+                                                                        ? `Expires ${(() => {
+                                                                              const d =
+                                                                                  new Date(
+                                                                                      `${certificate.valid_until}T00:00:00`,
+                                                                                  );
+                                                                              return `${d.getDate()} ${d.toLocaleDateString('en-PH', { month: 'short' })} ${d.getFullYear()}`;
+                                                                          })()} — we re-check certificates for expiry after approval.`
+                                                                        : 'Must be in the future. We re-check certificates for expiry after approval.'
+                                                                }
+                                                            >
+                                                                <Input
+                                                                    type="date"
+                                                                    value={
+                                                                        certificate.valid_until
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        updateCertificate(
+                                                                            index,
+                                                                            {
+                                                                                valid_until:
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    min={todayInputValue()}
+                                                                    lang="en-PH"
+                                                                    required
+                                                                    aria-required="true"
+                                                                />
+                                                            </FormField>
+                                                            <FileField
+                                                                id={`cert-${index}-document`}
+                                                                label="Certificate document"
+                                                                accept="image/*,application/pdf"
+                                                                acceptLabel="JPG, PNG or PDF"
+                                                                variant="document"
+                                                                value={
+                                                                    certificate.document
+                                                                }
+                                                                onChange={(
+                                                                    file,
+                                                                ) =>
+                                                                    updateCertificate(
+                                                                        index,
+                                                                        {
+                                                                            document:
+                                                                                file,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                error={
+                                                                    errors[
+                                                                        `certificates.${index}.document`
+                                                                    ]
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </fieldset>
+                                                ),
+                                            )}
+                                            {errors.certificates && (
+                                                <p className="text-body-sm font-bold text-danger-text">
+                                                    {errors.certificates}
+                                                </p>
+                                            )}
+                                            <div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        setCertificates(
+                                                            (current) => [
+                                                                ...current,
+                                                                emptyCertificate(),
+                                                            ],
+                                                        )
+                                                    }
+                                                    icon={
+                                                        <Plus
+                                                            className="size-4"
+                                                            aria-hidden="true"
+                                                        />
+                                                    }
+                                                >
+                                                    Add another certificate
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* 4. Review & submit */}
+                                    <section
+                                        aria-labelledby="section-submit"
+                                        className="grid gap-4 border-t border-border pt-8"
+                                    >
+                                        <h2
+                                            id="section-submit"
+                                            className="text-h3"
+                                        >
+                                            4. Review & submit
+                                        </h2>
+                                        <div className="grid gap-3">
+                                            <label className="flex items-start gap-3">
+                                                <Checkbox
+                                                    id="f-terms"
+                                                    name="agreed_to_terms"
+                                                    value="1"
+                                                    required
+                                                    checked={agreedToTerms}
+                                                    onChange={(e) =>
+                                                        setAgreedToTerms(
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                />
+                                                <span className="text-body">
+                                                    I agree to the{' '}
+                                                    <a
+                                                        href={SellerTermsController.url()}
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        className="font-bold text-primary-text underline"
+                                                    >
+                                                        Seller Terms
+                                                    </a>{' '}
+                                                    (version {terms.version}).
+                                                </span>
+                                            </label>
+                                            {errors.agreed_to_terms && (
+                                                <p className="text-body-sm font-bold text-danger-text">
+                                                    {errors.agreed_to_terms}
+                                                </p>
+                                            )}
+                                            <label className="flex items-start gap-3">
+                                                <Checkbox
+                                                    id="f-confirm"
+                                                    required
+                                                    checked={confirmedAccuracy}
+                                                    onChange={(e) =>
+                                                        setConfirmedAccuracy(
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                />
+                                                <span className="text-body">
+                                                    I confirm the information
+                                                    and documents are true and
+                                                    correct.
+                                                </span>
+                                            </label>
+                                            <div>
+                                                <label className="flex items-start gap-3">
+                                                    <Checkbox
+                                                        id="f-halal"
+                                                        name="halal_only"
+                                                        value="1"
+                                                        checked={halalOnly}
+                                                        onChange={(e) =>
+                                                            setHalalOnly(
+                                                                e.target
+                                                                    .checked,
+                                                            )
+                                                        }
+                                                        aria-describedby="f-halal-help"
+                                                    />
+                                                    <span className="text-body">
+                                                        Apply for the Halal-only
+                                                        shop badge
+                                                    </span>
+                                                </label>
+                                                <p
+                                                    id="f-halal-help"
+                                                    className="mt-1 pl-8 text-body-sm text-muted-foreground"
+                                                >
+                                                    Your shop will show a
+                                                    Halal-only badge. You commit
+                                                    to listing only
+                                                    halal-certified or
+                                                    halal-permissible products,
+                                                    and we may remove the badge
+                                                    if a listing breaks this.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-3 border-t border-border pt-4">
+                                            <p className="text-body-sm text-muted-foreground">
+                                                We'll review your application
+                                                and notify you here. You can
+                                                still shop while you wait.
+                                            </p>
+                                            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+                                                <Button variant="link" asChild>
+                                                    <Link href="/account">
+                                                        Cancel
+                                                    </Link>
+                                                </Button>
+                                                <Button
+                                                    type="submit"
+                                                    disabled={processing}
+                                                    className="w-full sm:w-auto"
+                                                >
+                                                    {processing
+                                                        ? 'Submitting…'
+                                                        : 'Submit application'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </section>
                                 </div>
-                            </section>
-
-                            {/* Terms */}
-                            <section className="panel p-4 md:p-6">
-                                <label className="flex items-start gap-3">
-                                    <Checkbox
-                                        name="agreed_to_terms"
-                                        value="1"
-                                        className="mt-0.5"
-                                        required
-                                    />
-                                    <span className="text-body">
-                                        I agree to the seller terms and declare
-                                        that the information provided is true
-                                        and correct.
-                                    </span>
-                                </label>
-                                {errors.agreed_to_terms && (
-                                    <p className="mt-2 text-body-sm font-bold text-danger-text">
-                                        {errors.agreed_to_terms}
-                                    </p>
-                                )}
-                            </section>
-                        </div>
-
-                        <div className="mt-6 flex justify-end">
-                            <Button type="submit" disabled={processing}>
-                                {processing
-                                    ? 'Submitting…'
-                                    : 'Submit application'}
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </Form>
+                            );
+                        }}
+                    </Form>
+                </div>
+            </div>
         </>
     );
 }

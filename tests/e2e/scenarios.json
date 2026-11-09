@@ -1,208 +1,298 @@
 {
- "$comment": "Machine-readable e2e scenario manifest for AI agents. Each scenario maps to a spec file; agents may also execute steps manually with a browser tool and must capture the listed screenshots into output/screenshots/<project>/. Viewport projects: desktop-1280, tablet-768, mobile-360.",
- "baseUrl": "${E2E_BASE_URL:-http://localhost}",
- "screenshotDir": "tests/e2e/output/screenshots",
- "scenarios": [
-  {
-   "id": "smoke",
-   "spec": "specs/smoke.spec.ts",
-   "description": "Public pages and the registration/login boundary.",
-   "steps": [
-    {
-     "action": "goto",
-     "url": "/",
-     "screenshot": "01-home",
-     "expect": "page renders with a title"
-    },
-    {
-     "action": "goto",
-     "url": "/login",
-     "screenshot": "02-login-form",
-     "expect": "email and password inputs visible"
-    },
-    {
-     "action": "goto",
-     "url": "/register",
-     "screenshot": "03-register-form",
-     "expect": "name and email inputs visible"
-    },
-    {
-     "action": "register",
-     "email": "unique",
-     "screenshots": [
-      "10-register-filled",
-      "11-after-register"
-     ],
-     "expect": "lands on /dashboard or /email/verify"
-    },
-    {
-     "action": "login",
-     "email": "nonexistent",
-     "screenshot": "20-login-failed",
-     "expect": "stays on /login with validation feedback"
-    }
-   ]
-  },
-  {
-   "id": "focus",
-   "spec": "specs/focus.spec.ts",
-   "description": "Focus indicator pattern: one 2px ring on the header search field and the quantity stepper in the app, plus every control on the styleguide foundation page, in light and dark.",
-   "steps": [
-    {
-     "action": "goto",
-     "url": "/",
-     "expect": "search input shows a single 2px outline, offset 0 (hugs the border)",
-     "screenshot": "focus-01-header-search"
-    },
-    {
-     "action": "goto",
-     "url": "product page -> Add to cart -> stepper",
-     "expect": "ring on the stepper container, none on the inner input",
-     "screenshot": "focus-02-quantity-stepper"
-    },
-    {
-     "action": "tab",
-     "url": "file:// docs/design-system/styleguide/focus.html",
-     "expect": "each control shows exactly one 2px indicator in light and dark",
-     "screenshots": [
-      "focus-10-light",
-      "focus-11-dark"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "order-lifecycle",
-   "spec": "specs/order-lifecycle.spec.ts",
-   "description": "Full order lifecycle across the three roles: buyer checkout, seller fulfilment, admin moderation. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
-   "steps": [
-    {
-     "action": "login",
-     "email": "test@example.com",
-     "note": "seeded buyer; must be email-verified (seeders set email_verified_at)"
-    },
-    {
-     "action": "seed",
-     "via": "POST /account/addresses + POST /cart + POST /reports",
-     "expect": "buyer has a default address, a selected cart item, and a pending report"
-    },
-    {
-     "action": "checkout",
-     "screenshots": [
-      "buyer-01-product",
-      "buyer-02-cart",
-      "buyer-03-checkout",
-      "buyer-04-order-placed",
-      "buyer-05-orders",
-      "buyer-06-order-detail"
-     ],
-     "expect": "order is placed (COD, default shipping) and listed under /account/orders"
-    },
-    {
-     "action": "login",
-     "email": "seller@example.com",
-     "screenshots": [
-      "seller-01-dashboard",
-      "seller-02-orders",
-      "seller-03-order",
-      "seller-04-ship-modal",
-      "seller-05-shipped"
-     ],
-     "expect": "order shows under To Ship; Arrange shipment moves it to To Receive"
-    },
-    {
-     "action": "login",
-     "email": "admin@example.com",
-     "screenshots": [
-      "admin-01-dashboard",
-      "admin-02-queue",
-      "admin-03-item",
-      "admin-04-decided"
-     ],
-     "expect": "buyer's report appears in the moderation queue and can be approved"
-    }
-   ]
-  },
-  {
-   "id": "admin-shell",
-   "spec": "specs/admin-shell.spec.ts",
-   "description": "Regression: admin routes render only the admin shell (no storefront chrome); pages that render their own shell are not double-wrapped.",
-   "steps": [
-    {
-     "action": "login",
-     "email": "admin@example.com"
-    },
-    {
-     "action": "goto",
-     "url": "/admin/dashboard",
-     "expect": "main[data-shell=admin] visible, zero [data-shell=public]",
-     "screenshot": "admin-shell-dashboard"
-    },
-    {
-     "action": "goto",
-     "url": "/admin/moderation",
-     "expect": "main[data-shell=admin] visible, zero [data-shell=public]"
-    },
-    {
-     "action": "login",
-     "email": "test@example.com"
-    },
-    {
-     "action": "goto",
-     "url": "/chat",
-     "expect": "exactly one [data-shell] element (public)"
-    },
-    {
-     "action": "goto",
-     "url": "/notifications",
-     "expect": "exactly one [data-shell] element (public)"
-    }
-   ]
-  },
-  {
-   "id": "storefront",
-   "spec": "specs/storefront.spec.ts",
-   "description": "Storefront chrome: product-card states (regular, discounted, frozen/halal, sold out, long name) snapshotted at 360/768/1280 in light and dark; category-nav states (default/hover/active/focus, no current item on home); WCAG contrast on price, old price, promo tag and nav text in both themes; footer trust strip, link groups, legal bar and sub-640px disclosures.",
-   "steps": [
-    {
-     "action": "goto",
-     "url": "/",
-     "screenshots": [
-      "card-00-grid",
-      "card-01-regular",
-      "card-02-discounted",
-      "card-03-frozen-halal",
-      "card-04-sold-out",
-      "card-05-long-name"
-     ],
-     "expect": "price is the strongest text; promo only on the -NN% tag; halal badge gated by category; sold-out card dimmed with tag"
-    },
-    {
-     "action": "goto",
-     "url": "/categories/dates-sweets",
-     "screenshot": "nav-01-states",
-     "expect": "aria-current on the current category, 2px indicator, hover pill brand-50/700, 2px offset-2 focus ring; none active on /"
-    },
-    {
-     "action": "assert",
-     "expect": "contrast >= 4.5:1 for price, old price, tag, nav text in light and dark"
-    },
-    {
-     "action": "goto",
-     "url": "/",
-     "screenshots": [
-      "footer-01",
-      "footer-02-accordion"
-     ],
-     "expect": "trust strip, 5 link groups + brand block, legal bar; disclosures below 640px with aria-expanded"
-    }
-   ]
-  }
- ],
- "candidateNextScenarios": [
-  "catalogue browse: / -> category -> product -> screenshot each",
-  "search: /search?q=... -> results screenshot",
-  "buyer marks order received + leaves a review",
-  "seller product create/edit with halal declaration"
- ]
+    "$comment": "Machine-readable e2e scenario manifest for AI agents. Each scenario maps to a spec file; agents may also execute steps manually with a browser tool and must capture the listed screenshots into output/screenshots/<project>/. Viewport projects: desktop-1280, tablet-768, mobile-360, iphone-safari (real WebKit engine, iPhone UA + touch).",
+    "baseUrl": "${E2E_BASE_URL:-http://localhost}",
+    "screenshotDir": "tests/e2e/output/screenshots",
+    "scenarios": [
+        {
+            "id": "accessibility",
+            "spec": "specs/accessibility.spec.ts",
+            "description": "WCAG 2.1 AA axe checks of public, buyer, seller and admin routes in light and dark at all three viewport widths. JSON attachments retain violations and manual-review findings; a11y-role-index screenshots capture every scanned route.",
+            "steps": [
+                {
+                    "action": "scan workspace routes in light and dark",
+                    "expect": "HTTP 200, visible main content and no automated WCAG A/AA violations"
+                }
+            ]
+        },
+        {
+            "id": "smoke",
+            "spec": "specs/smoke.spec.ts",
+            "description": "Public pages and the registration/login boundary.",
+            "steps": [
+                {
+                    "action": "goto",
+                    "url": "/",
+                    "screenshot": "01-home",
+                    "expect": "page renders with a title"
+                },
+                {
+                    "action": "goto",
+                    "url": "/login",
+                    "screenshot": "02-login-form",
+                    "expect": "email and password inputs visible"
+                },
+                {
+                    "action": "goto",
+                    "url": "/register",
+                    "screenshot": "03-register-form",
+                    "expect": "name and email inputs visible"
+                },
+                {
+                    "action": "register",
+                    "email": "unique",
+                    "screenshots": ["10-register-filled", "11-after-register"],
+                    "expect": "lands on /account or /email/verify"
+                },
+                {
+                    "action": "login",
+                    "email": "nonexistent",
+                    "screenshot": "20-login-failed",
+                    "expect": "stays on /login with validation feedback"
+                }
+            ]
+        },
+        {
+            "id": "focus",
+            "spec": "specs/focus.spec.ts",
+            "description": "Focus indicator pattern: one 1px ring on the header search field and the quantity stepper in the app, plus every control on the styleguide foundation page, in light and dark.",
+            "steps": [
+                {
+                    "action": "goto",
+                    "url": "/",
+                    "expect": "search input shows a single 1px outline, offset 0 (hugs the border)",
+                    "screenshot": "focus-01-header-search"
+                },
+                {
+                    "action": "goto",
+                    "url": "product page -> Add to cart -> stepper",
+                    "expect": "ring on the stepper container, none on the inner input",
+                    "screenshot": "focus-02-quantity-stepper"
+                },
+                {
+                    "action": "tab",
+                    "url": "file:// docs/design-system/styleguide/focus.html",
+                    "expect": "each control shows exactly one 2px indicator in light and dark",
+                    "screenshots": ["focus-10-light", "focus-11-dark"]
+                }
+            ]
+        },
+        {
+            "id": "order-lifecycle",
+            "spec": "specs/order-lifecycle.spec.ts",
+            "description": "Full order lifecycle across the three roles: buyer checkout, seller fulfilment, admin moderation. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "test@example.com",
+                    "note": "seeded buyer; must be email-verified (seeders set email_verified_at)"
+                },
+                {
+                    "action": "seed",
+                    "via": "POST /account/addresses + POST /cart + POST /reports",
+                    "expect": "buyer has a default address, a selected cart item, and a pending report"
+                },
+                {
+                    "action": "checkout",
+                    "screenshots": [
+                        "buyer-01-product",
+                        "buyer-02-cart",
+                        "buyer-03-checkout",
+                        "buyer-04-order-placed",
+                        "buyer-05-orders",
+                        "buyer-06-order-detail"
+                    ],
+                    "expect": "order is placed (COD, default shipping) and listed under /account/orders"
+                },
+                {
+                    "action": "login",
+                    "email": "seller@example.com",
+                    "screenshots": [
+                        "seller-01-dashboard",
+                        "seller-02-orders",
+                        "seller-03-order",
+                        "seller-04-ship-modal",
+                        "seller-05-shipped"
+                    ],
+                    "expect": "order shows under To Ship; Arrange shipment moves it to To Receive"
+                },
+                {
+                    "action": "confirm receipt and submit review",
+                    "email": "test@example.com",
+                    "screenshots": [
+                        "buyer-07-tracking",
+                        "buyer-08-received",
+                        "buyer-09-review",
+                        "buyer-10-reviewed"
+                    ],
+                    "expect": "same order reference and total, tracking visible, receipt completes the order, review submits"
+                },
+                {
+                    "action": "login",
+                    "email": "admin@example.com",
+                    "screenshots": [
+                        "admin-01-dashboard",
+                        "admin-02-queue",
+                        "admin-03-item",
+                        "admin-04-decided"
+                    ],
+                    "expect": "buyer's report appears in the moderation queue and can be approved"
+                }
+            ]
+        },
+        {
+            "id": "admin-shell",
+            "spec": "specs/admin-shell.spec.ts",
+            "description": "Regression: admin routes render only the admin shell (no storefront chrome); pages that render their own shell are not double-wrapped.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "admin@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/dashboard",
+                    "expect": "main[data-shell=admin] visible, zero [data-shell=public]",
+                    "screenshot": "admin-shell-dashboard"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/moderation",
+                    "expect": "main[data-shell=admin] visible, zero [data-shell=public]"
+                },
+                {
+                    "action": "goto",
+                    "url": "/settings/profile",
+                    "expect": "main[data-shell=admin] visible, zero [data-shell=public]"
+                },
+                {
+                    "action": "goto",
+                    "url": "/account/notifications",
+                    "expect": "redirected to /admin/dashboard (buyer surfaces stripped for admins)"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/dashboard",
+                    "expect": "redirected to /admin/dashboard (seller surfaces stripped for admins)"
+                },
+                {
+                    "action": "login",
+                    "email": "test@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/account/chat",
+                    "expect": "exactly one [data-shell] element (app)"
+                },
+                {
+                    "action": "goto",
+                    "url": "/account/notifications",
+                    "expect": "exactly one [data-shell] element (app)"
+                }
+            ]
+        },
+        {
+            "id": "storefront",
+            "spec": "specs/storefront.spec.ts",
+            "description": "Storefront chrome: product-card states (regular, discounted, frozen/halal, sold out, long name) snapshotted at 360/768/1280 in light and dark; category-nav states (default/hover/active/focus, no current item on home); WCAG contrast on price, old price, promo tag and nav text in both themes; footer trust strip, link groups, legal bar and sub-640px disclosures.",
+            "steps": [
+                {
+                    "action": "goto",
+                    "url": "/",
+                    "screenshots": [
+                        "card-00-grid",
+                        "card-01-regular",
+                        "card-02-discounted",
+                        "card-03-frozen-halal",
+                        "card-04-sold-out",
+                        "card-05-long-name"
+                    ],
+                    "expect": "price is the strongest text; promo only on the -NN% tag; halal badge gated by category; sold-out card dimmed with tag"
+                },
+                {
+                    "action": "goto",
+                    "url": "/categories/dates-sweets",
+                    "screenshot": "nav-01-states",
+                    "expect": "aria-current on the current category, 2px indicator, hover pill brand-50/700, 1px offset-2 focus ring; none active on /"
+                },
+                {
+                    "action": "assert",
+                    "expect": "contrast >= 4.5:1 for price, old price, tag, nav text in light and dark"
+                },
+                {
+                    "action": "goto",
+                    "url": "/",
+                    "screenshots": ["footer-01", "footer-02-accordion"],
+                    "expect": "trust strip, 5 link groups + brand block, legal bar; disclosures below 640px with aria-expanded"
+                }
+            ]
+        },
+        {
+            "id": "seller-registration",
+            "spec": "specs/seller-registration.spec.ts",
+            "description": "Seller application lifecycle: error summary on empty submit, PSGC cascading selects with auto-filled postal code, file uploads (logo PNG, permit/cert PDFs), certificate add/remove, client-side checklist completion, submit into pending state, admin approval via the moderation queue (type=shop_application), and the applicant entering the seller workspace. Once approved, /seller/register 404s for the applicant.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "test@example.com",
+                    "note": "seeded verified buyer with no shop"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/register",
+                    "screenshot": "seller-reg-01-form"
+                },
+                {
+                    "action": "submit-empty-with-declarations",
+                    "screenshot": "seller-reg-02-error-summary",
+                    "expect": "danger Banner summary visible and focused, error links jump to fields"
+                },
+                {
+                    "action": "fill-form",
+                    "note": "PSGC selects region\u2192province\u2192city\u2192barangay, postal auto-filled+locked from city, uploads via input[type=file]",
+                    "expect": "checklist items turn done"
+                },
+                {
+                    "action": "submit",
+                    "screenshot": "seller-reg-04-pending",
+                    "expect": "pending Banner 'Application under review'"
+                },
+                {
+                    "action": "login",
+                    "email": "admin@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/moderation?type=shop_application&state=pending",
+                    "screenshots": [
+                        "seller-reg-05-queue",
+                        "seller-reg-06-application",
+                        "seller-reg-07-approved"
+                    ],
+                    "expect": "application item shows shop name and documents; Approve decides it and returns to the queue"
+                },
+                {
+                    "action": "login",
+                    "email": "test@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/dashboard",
+                    "screenshot": "seller-reg-08-dashboard",
+                    "expect": "approved applicant reaches the seller workspace instead of bouncing to /seller/register"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/terms",
+                    "screenshot": "seller-terms",
+                    "expect": "public terms page: h1, version line, draft warning banner, TOC anchors"
+                }
+            ]
+        }
+    ],
+    "candidateNextScenarios": [
+        "catalogue browse: / -> category -> product -> screenshot each",
+        "search: /search?q=... -> results screenshot",
+        "buyer marks order received + leaves a review",
+        "seller product create/edit with halal declaration"
+    ]
 }

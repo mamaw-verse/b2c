@@ -68,7 +68,7 @@ export function RatingInput({
                                 htmlFor={id}
                                 data-on={isOn ? true : undefined}
                                 onPointerOver={() => setHoverValue(star)}
-                                className={`grid min-h-touch min-w-touch cursor-pointer place-items-center text-border-control transition-colors duration-150 data-[on]:text-rating rounded-button focus-ring ${
+                                className={`focus-ring grid min-h-touch min-w-touch cursor-pointer place-items-center rounded-button text-border-control transition-colors duration-150 data-[on]:text-rating ${
                                     disabled
                                         ? 'cursor-not-allowed opacity-50'
                                         : ''

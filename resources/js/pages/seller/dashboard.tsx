@@ -170,7 +170,7 @@ export default function SellerDashboard({
                                     View all
                                 </Link>
                             </div>
-                            <div className="panel divide-y divide-border overflow-hidden">
+                            <ul className="panel divide-y divide-border overflow-hidden">
                                 {recent_orders.map((order) => (
                                     <OrderRow
                                         key={order.id}
@@ -186,7 +186,7 @@ export default function SellerDashboard({
                                         detailUrl={order.detail_url}
                                     />
                                 ))}
-                            </div>
+                            </ul>
                         </section>
                     )}
                 </div>

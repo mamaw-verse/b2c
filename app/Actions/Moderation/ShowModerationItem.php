@@ -7,6 +7,7 @@ namespace App\Actions\Moderation;
 use App\Enums\ModerationItemType;
 use App\Enums\ModerationReason;
 use App\Models\Conversation;
+use App\Models\HalalCertification;
 use App\Models\Message;
 use App\Models\ModerationQueueItem;
 use App\Models\Product;
@@ -15,6 +16,7 @@ use App\Models\Review;
 use App\Models\Shop;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Storage;
 
 final readonly class ShowModerationItem
 {
@@ -27,14 +29,14 @@ final readonly class ShowModerationItem
             'target' => function (MorphTo $morphTo) {
                 $morphTo->morphWith([
                     Product::class => ['shop', 'images'],
-                    Shop::class => ['owner'],
+                    Shop::class => ['owner', 'halalCertifications'],
                     Review::class => ['user'],
                     Report::class => [
                         'reporter',
                         'reportable' => function (MorphTo $nested) {
                             $nested->morphWith([
                                 Product::class => ['shop', 'images'],
-                                Shop::class => ['owner'],
+                                Shop::class => ['owner', 'halalCertifications'],
                                 Review::class => ['user'],
                                 Conversation::class => ['messages'],
                             ]);
@@ -93,7 +95,7 @@ final readonly class ShowModerationItem
                 'seller_href' => $product->shop ? route('shops.show', $product->shop->slug) : null,
                 'photos' => $product->images->pluck('url')->filter()->values()->all(),
                 'flag_notice' => $this->reasonLabel($item),
-                'halal_status' => $product->halal_status?->value ?? 'unknown',
+                'halal_status' => $product->halal_status->value,
                 'ingredients' => $product->ingredients,
                 'flagged_terms' => $this->flaggedTerms($item->reason_code),
             ],
@@ -111,7 +113,6 @@ final readonly class ShowModerationItem
                 'seller_href' => route('shops.show', $shop->slug),
                 'photos' => array_values(array_filter([$shop->banner_url, $shop->logo_url])),
                 'flag_notice' => $this->reasonLabel($item),
-                'halal_status' => $shop->halal_only ? 'halal-only shop' : 'general shop',
             ],
         ];
     }
@@ -124,16 +125,25 @@ final readonly class ShowModerationItem
             'snapshot' => [
                 'shop_name' => $shop->name,
                 'description' => $shop->description,
-                'location' => $shop->location,
-                'contact_number' => $shop->contact_number,
-                'halal_only' => $shop->halal_only,
-                'id_type' => $shop->id_type,
-                'id_number' => $shop->id_number,
-                'id_document_url' => $shop->id_document_url,
-                'selfie_url' => $shop->selfie_url,
+                'logo_url' => $shop->logo_url,
+                'address_line' => $shop->address_line,
+                'city' => $shop->city,
+                'state' => $shop->state,
+                'postal_code' => $shop->postal_code,
                 'business_permit_url' => $shop->business_permit_url,
-                'bank_name' => $shop->bank_name,
-                'bank_account_name' => $shop->bank_account_name,
+                'certificates' => $shop->halalCertifications
+                    ->map(fn (HalalCertification $certificate) => [
+                        'certifying_body' => $certificate->certifying_body,
+                        'number' => $certificate->number,
+                        'valid_until' => $certificate->valid_until->toDateString(),
+                        'status' => $certificate->status(),
+                        'document_url' => $certificate->document_path
+                            ? Storage::disk('public')->url($certificate->document_path)
+                            : null,
+                    ])
+                    ->all(),
+                'terms_version' => $shop->terms_version,
+                'terms_accepted_at' => $shop->terms_accepted_at?->toISOString(),
                 'applicant_name' => $shop->owner?->name,
                 'applicant_email' => $shop->owner?->email,
                 'submitted_at' => $shop->submitted_at?->toISOString(),
@@ -150,7 +160,7 @@ final readonly class ShowModerationItem
             'snapshot' => [
                 'rating' => $review->rating,
                 'text' => $review->body,
-                'author' => $review->anonymous ? 'Anonymous' : ($review->user?->name ?? 'Anonymous'),
+                'author' => $review->anonymous ? 'Anonymous' : ($review->user->name ?? 'Anonymous'),
                 'date' => $review->created_at?->format('M d, Y'),
                 'flagged_terms' => $this->flaggedTerms($item->reason_code),
             ],
@@ -169,8 +179,8 @@ final readonly class ShowModerationItem
             'snapshot' => [
                 'messages' => $messages->map(fn (Message $message) => [
                     'id' => $message->id,
-                    'sender' => $message->sender_role?->value === 'seller' ? 'seller' : 'buyer',
-                    'sender_label' => $message->sender_role?->value === 'seller' ? 'Seller' : 'Buyer',
+                    'sender' => $message->sender_role->value === 'seller' ? 'seller' : 'buyer',
+                    'sender_label' => $message->sender_role->value === 'seller' ? 'Seller' : 'Buyer',
                     'text' => $message->body ?? '',
                     'reported' => $message->id === $item->target_id,
                     'created_at' => $message->created_at?->toISOString(),

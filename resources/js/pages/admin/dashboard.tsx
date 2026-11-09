@@ -45,14 +45,14 @@ export default function AdminDashboard({
         (counts.pending?.keyword ?? 0) + (counts.flagged?.keyword ?? 0);
 
     return (
-        <AdminLayout pendingQueueCount={pendingTotal + flaggedTotal}>
+        <AdminLayout>
             <Head title="Admin Dashboard" />
 
             <div className="mx-auto max-w-container p-gutter py-6 md:p-6">
                 {/* Header */}
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-h1">Moderation Dashboard</h1>
+                        <h1 className="text-h1">Dashboard</h1>
                         <p className="mt-1 text-body text-muted-foreground">
                             Real-time overview of the moderation queue, reports,
                             and halal compliance.

@@ -56,8 +56,8 @@ export function CartItem({
                 <input
                     type="checkbox"
                     className="size-5 accent-primary disabled:cursor-not-allowed"
-                    checked={item.selected && !isUnavailable}
-                    disabled={isUnavailable}
+                    checked={item.selected}
+                    disabled={isUnavailable && !item.selected}
                     onChange={(e) => onSelect?.(e.target.checked)}
                 />
                 <span className="sr-only">Select {item.name}</span>
@@ -135,7 +135,11 @@ export function CartItem({
                         value={item.qty}
                         min={1}
                         max={Math.max(1, item.stock)}
-                        disabled={isUnavailable || syncing}
+                        disabled={
+                            syncing ||
+                            item.stock < 1 ||
+                            (isUnavailable && item.qty <= item.stock)
+                        }
                         onChange={(q) => onQty?.(q)}
                     />
                 </div>

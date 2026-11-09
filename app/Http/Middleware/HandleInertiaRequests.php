@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\ModerationState;
+use App\Enums\Workspace;
 use App\Models\Category;
+use App\Models\Message;
+use App\Models\ModerationQueueItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -39,6 +43,14 @@ final class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $workspace = Workspace::fromRequest($request);
+        $shop = $user?->shop;
+        // Admins have a single unified shell, so their badges and unread
+        // counts always reflect the account (buyer) scope even on /admin/*.
+        $countScope = $workspace === Workspace::Admin ? Workspace::Buyer : $workspace;
+        $allowed = $user === null ? [] : Workspace::allowedFor($user);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -47,14 +59,38 @@ final class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'workspaces' => fn () => collect($allowed)
+                ->map(fn (Workspace $w) => [
+                    'key' => $w->value,
+                    'label' => $w->label(),
+                    'href' => $w->home(),
+                    'current' => $w === $workspace || count($allowed) === 1,
+                ])->all(),
+            'seller' => $shop === null ? null : [
+                'status' => $shop->status->value,
+                'suspended' => (bool) $shop->suspended,
+                'shop_name' => $shop->name,
+                'shop_id' => $shop->id,
+            ],
+            // Pending + flagged moderation items, shared on every page so the
+            // admin sidebar badge stays visible outside the admin pages too.
+            'pendingQueueCount' => fn () => $user?->isAdmin() ? ModerationQueueItem::whereIn('state', [
+                ModerationState::Pending->value,
+                ModerationState::Flagged->value,
+            ])->count() : 0,
             'unreadCounts' => fn () => $request->user() ? [
-                'chat' => \App\Models\Message::whereHas('conversation', function ($q) use ($request) {
-                    $q->where('user_id', $request->user()->id)
-                        ->orWhereHas('shop', fn ($sq) => $sq->where('user_id', $request->user()->id));
+                'chat' => Message::whereHas('conversation', function ($q) use ($request, $countScope) {
+                    if ($countScope === Workspace::Seller) {
+                        $q->whereHas('shop', fn ($sq) => $sq->where('user_id', $request->user()->id));
+                    } else {
+                        $q->where('user_id', $request->user()->id);
+                    }
                 })->where(function ($q) use ($request) {
                     $q->where('sender_id', '!=', $request->user()->id)->orWhereNull('sender_id');
                 })->whereNull('read_at')->count(),
-                'notifications' => $request->user()->unreadNotifications()->count(),
+                'notifications' => $request->user()->unreadNotifications()
+                    ->whereRaw("COALESCE(data::jsonb->>'workspace', 'buyer') = ?", [$countScope->value])
+                    ->count(),
             ] : null,
             'cartCount' => fn () => $request->user()?->cartItems()->count() ?? 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

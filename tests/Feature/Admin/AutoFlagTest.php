@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Artisan;
 uses(RefreshDatabase::class);
 
 test('product with prohibited ingredient is automatically flagged on create', function () {
-    $seller = User::factory()->create(['role' => 'seller']);
+    $seller = User::factory()->create();
     $shop = Shop::factory()->create(['user_id' => $seller->id]);
     $category = Category::factory()->create();
 
@@ -46,7 +46,7 @@ test('product with prohibited ingredient is automatically flagged on create', fu
 });
 
 test('product claiming halal in title without certificate is automatically flagged', function () {
-    $seller = User::factory()->create(['role' => 'seller']);
+    $seller = User::factory()->create();
     $shop = Shop::factory()->create(['user_id' => $seller->id]);
     $category = Category::factory()->create();
 

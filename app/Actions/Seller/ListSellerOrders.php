@@ -13,7 +13,7 @@ final readonly class ListSellerOrders
 {
     /**
      * @param  array{status?: string|null, search?: string|null}  $filters
-     * @return LengthAwarePaginator<Order>
+     * @return LengthAwarePaginator<int, covariant array<string, mixed>>
      */
     public function handle(Shop $shop, array $filters = []): LengthAwarePaginator
     {
@@ -49,7 +49,7 @@ final readonly class ListSellerOrders
             'urgent' => $order->status === OrderStatus::ToShip && $order->created_at?->isToday() === true,
             'pay' => mb_strtoupper($order->payment_method->value),
             'shipping_name' => $order->shippingOption->name,
-            'thumbnail_icon' => $order->items->first()?->product?->images?->first()?->icon ?? 'package',
+            'thumbnail_icon' => $order->items->first()?->product?->images?->first()->icon ?? 'package',
             'created_at' => $order->created_at?->toISOString(),
         ]);
     }

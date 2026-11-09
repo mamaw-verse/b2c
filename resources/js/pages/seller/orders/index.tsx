@@ -62,7 +62,7 @@ export default function SellerOrdersIndex({
                         </p>
                     </div>
                 ) : (
-                    <div className="panel divide-y divide-border overflow-hidden">
+                    <ul className="panel divide-y divide-border overflow-hidden">
                         {orders.data.map((order) => (
                             <OrderRow
                                 key={order.id}
@@ -81,7 +81,7 @@ export default function SellerOrdersIndex({
                                 }
                             />
                         ))}
-                    </div>
+                    </ul>
                 )}
 
                 <p className="mt-4 text-body-sm text-muted-foreground">

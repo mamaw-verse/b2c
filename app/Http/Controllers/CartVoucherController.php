@@ -20,7 +20,7 @@ final class CartVoucherController
         $voucher = $action->handle(
             $user,
             (string) $request->input('code'),
-            (array) $request->input('cart_item_ids', [])
+            array_values($request->array('cart_item_ids'))
         );
 
         return back()->with('applied_voucher', [

@@ -38,20 +38,18 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $submitted_at
  * @property Carbon|null $reviewed_at
  * @property string|null $reviewed_by
- * @property string|null $contact_number
- * @property string|null $id_type
- * @property string|null $id_number
- * @property string|null $id_document_url
- * @property string|null $selfie_url
+ * @property string|null $address_line
+ * @property string|null $city
+ * @property string|null $state
+ * @property string|null $postal_code
  * @property string|null $business_permit_url
- * @property string|null $bank_account_name
- * @property string|null $bank_account_number
- * @property string|null $bank_name
  * @property bool $agreed_to_terms
+ * @property string|null $terms_version
+ * @property Carbon|null $terms_accepted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by', 'contact_number', 'id_type', 'id_number', 'id_document_url', 'selfie_url', 'business_permit_url', 'bank_account_name', 'bank_account_number', 'bank_name', 'agreed_to_terms'])]
+#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by', 'address_line', 'city', 'state', 'postal_code', 'business_permit_url', 'agreed_to_terms', 'terms_version', 'terms_accepted_at'])]
 final class Shop extends Model
 {
     /** @use HasFactory<ShopFactory> */
@@ -121,6 +119,7 @@ final class Shop extends Model
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'agreed_to_terms' => 'boolean',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 }

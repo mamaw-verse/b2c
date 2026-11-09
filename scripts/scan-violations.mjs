@@ -39,8 +39,11 @@ const rules = [
                 line,
             ),
     ],
-    ['removed sale colour token', /\b(?:bg-sale|text-sale|badge-sale|--sale)\b/g],
-    ['placeholder link href="#"', /href=["']#["']/g],
+    [
+        'removed sale colour token',
+        /\b(?:bg-sale|text-sale|badge-sale|--sale)\b/g,
+    ],
+    ['placeholder link href="#"', /href\s*[:=]\s*["']#["']/g],
     [
         'aria-pressed on a link (navigation uses aria-current)',
         /aria-pressed/g,
@@ -51,13 +54,19 @@ const rules = [
 /** @type {[string, RegExp, ((match: string, line: string) => boolean) | undefined][]} */
 const PAGES_RULES = [
     /* Pages share one .page gutter; horizontal scrollers use .bleed-x. */
-    ['page-level gutter padding (use .page / .bleed-x)', /\b(?:px-gutter|md:px-0|lg:px-0)\b/g],
+    [
+        'page-level gutter padding (use .page / .bleed-x)',
+        /\b(?:px-gutter|md:px-0|lg:px-0)\b/g,
+    ],
 ];
 
 /* CSS pass: no focus indicators outside the foundation file
    (resources/css/app.css is the only allowed place). */
 const CSS_RULES = [
-    ['focus style outside the foundation file', /:focus(?:-visible|-within)?|(?:^|[;{])\s*outline(-\w+)?\s*:|\bfocus-ring|\bfocus-inset\b/g],
+    [
+        'focus style outside the foundation file',
+        /:focus(?:-visible|-within)?|(?:^|[;{])\s*outline(-\w+)?\s*:|\bfocus-ring|\bfocus-inset\b/g,
+    ],
 ];
 
 function* walk(dir) {
@@ -106,7 +115,9 @@ if (fs.existsSync('config/marketplace.php')) {
     s.split('\n').forEach((line, i) => {
         for (const m of line.matchAll(/example\.com|["']#["']/g)) {
             n++;
-            console.log(`config/marketplace.php:${i + 1}: placeholder value: ${m[0]}`);
+            console.log(
+                `config/marketplace.php:${i + 1}: placeholder value: ${m[0]}`,
+            );
         }
     });
 }

@@ -27,9 +27,10 @@ final class CreateModerationDecisionRequest extends FormRequest
         ];
     }
 
+    /** @return 'approved'|'rejected'|'hidden'|'suspended' */
     public function action(): string
     {
-        return $this->string('action')->toString();
+        return $this->validated('action');
     }
 
     public function decisionReason(): string

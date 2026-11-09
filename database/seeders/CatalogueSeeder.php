@@ -56,11 +56,9 @@ final class CatalogueSeeder extends Seeder
             [
                 'name' => 'Barakah Pantry Owner',
                 'password' => bcrypt('password'),
-                'role' => 'seller',
                 'email_verified_at' => now(),
             ]
         );
-        $seller->update(['role' => 'seller']);
 
         $barakah = Shop::create([
             'user_id' => $seller->id,
@@ -200,7 +198,7 @@ final class CatalogueSeeder extends Seeder
             ['Kabsa spice blend, family pack 80g', 9500, null, 4.6, 1800, 'utensils', false, 'certified', 'IDCP', false, 60, 'Halal Food', $barakah, '/images/catalogue/prod-rendang-paste.jpg'],
             ['Halal marshmallows, vanilla 200g', 12900, null, 4.5, 940, 'candy', true, 'certified', 'IDCP', false, 50, 'Dates & Sweets', $barakah, '/images/catalogue/prod-wild-honey.jpg'],
             ['Halal gelatin powder, unflavoured 250g', 21500, null, 4.6, 620, 'candy', false, 'certified', 'IDCP', false, 38, 'Dates & Sweets', $barakah, '/images/catalogue/prod-wild-honey.jpg'],
-            ['Prayer beads, tasbih olive wood 99', 15500, null, 0, 'moon-star', false, 'na', null, false, 80, 'Prayer Essentials', $barakah, '/images/catalogue/prod-travel-prayer-mat.jpg'],
+            ['Prayer beads, tasbih olive wood 99', 15500, null, 0, 0, 'moon-star', false, 'na', null, false, 80, 'Prayer Essentials', $barakah, '/images/catalogue/prod-travel-prayer-mat.jpg'],
             ['Miswak natural toothbrush sticks, 5-pack', 8900, null, 4.3, 430, 'moon-star', false, 'na', null, false, 90, 'Prayer Essentials', $barakah, '/images/catalogue/prod-travel-prayer-mat.jpg'],
             ['Abaya everyday wear, breathable crepe, black', 189000, 229000, 4.8, 3100, 'shirt', true, 'na', null, false, 15, 'Modest Fashion', $barakah, '/images/catalogue/prod-chiffon-hijab.jpg'],
             ['Henna cone, organic body-art 25g', 6900, null, 4.4, 520, 'droplets', false, 'na', null, false, 70, 'Health & Beauty', $barakah, '/images/catalogue/prod-halal-nailpolish.jpg'],
@@ -210,13 +208,13 @@ final class CatalogueSeeder extends Seeder
             ['Dates energy bars, no added sugar, box of 12', 29900, 35900, 4.5, 1300, 'candy', false, 'certified', 'IDCP', false, 48, 'Dates & Sweets', $barakah, '/images/catalogue/prod-ajwa-dates.jpg'],
             ['Halal corned beef 340g, easy-open can', 13900, null, 4.4, 4400, 'beef', false, 'certified', 'HDIP', false, 75, 'Meat & Seafood', $meats, '/images/catalogue/prod-beef-tapa.jpg'],
             ['Frozen lamb kebabs, marinated 600g', 48500, null, 4.7, 950, 'beef', false, 'certified', 'HDIP', true, 28, 'Meat & Seafood', $meats, '/images/catalogue/prod-beef-tapa.jpg'],
-            ['Extra long product name fixture for layout testing — premium hand-poured prayer candle gift set with engraved keepsake box and ribbon', 58900, null, 0, 'house', false, 'na', null, false, 12, 'Home & Living', $barakah, null],
+            ['Extra long product name fixture for layout testing — premium hand-poured prayer candle gift set with engraved keepsake box and ribbon', 58900, null, 0, 0, 'house', false, 'na', null, false, 12, 'Home & Living', $barakah, null],
             ['Bamboo prayer bead stand and tasbih holder, carved', 19900, null, 4.4, 210, 'house', false, 'na', null, false, 26, 'Home & Living', $barakah, null],
             ['Halal-certified chicken nuggets, frozen 1kg', 32900, null, 4.6, 2700, 'beef', false, 'certified', 'HDIP', true, 60, 'Meat & Seafood', $meats, '/images/catalogue/prod-halal-chicken.jpg'],
             ['Toddler prayer dress set, soft cotton 2-piece', 44900, null, 4.8, 190, 'smile', false, 'na', null, false, 22, 'Baby & Kids', $barakah, null],
             ['Muslim-friendly baby wipes, fragrance-free 80s', 9900, null, 4.5, 3800, 'smile', true, 'na', null, false, 90, 'Baby & Kids', $barakah, null],
-            ['Gift voucher ₱500, spendable on any halal shop', 50000, null, 0, 'ticket', false, 'na', null, false, 999, 'Vouchers', $barakah, null],
-            ['Gift voucher ₱1000, Eid bundle card', 100000, null, 0, 'ticket', false, 'na', null, false, 999, 'Vouchers', $barakah, null],
+            ['Gift voucher ₱500, spendable on any halal shop', 50000, null, 0, 0, 'ticket', false, 'na', null, false, 999, 'Vouchers', $barakah, null],
+            ['Gift voucher ₱1000, Eid bundle card', 100000, null, 0, 0, 'ticket', false, 'na', null, false, 999, 'Vouchers', $barakah, null],
             ['Instant beef rendang paste 200g, mild', 18900, null, 4.6, 1100, 'utensils', false, 'review', null, false, 30, 'Halal Food', $barakah, '/images/catalogue/prod-rendang-paste.jpg'],
             ['Medjool dates 1kg box, soft and sweet', 115000, null, 4.9, 3400, 'candy', true, 'certified', 'IDCP', false, 18, 'Dates & Sweets', $barakah, '/images/catalogue/prod-ajwa-dates.jpg'],
             ['Sambal paste halal-certified 250g', 14900, null, 4.5, 880, 'utensils', false, 'certified', 'IDCP', false, 64, 'Halal Food', $barakah, '/images/catalogue/prod-rendang-paste.jpg'],

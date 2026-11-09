@@ -19,12 +19,13 @@ final class ShopFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->company();
+        $city = fake()->randomElement(['Taguig', 'Davao City', 'Quezon City', 'Zamboanga City', 'Cotabato City', 'Manila', 'Marawi City', 'Cagayan de Oro']);
 
         return [
             'user_id' => null,
             'name' => $name,
             'slug' => Str::slug($name),
-            'location' => fake()->randomElement(['Taguig', 'Davao City', 'Quezon City', 'Zamboanga City', 'Cotabato City', 'Manila', 'Marawi City', 'Cagayan de Oro']),
+            'location' => $city,
             'rating' => fake()->randomFloat(1, 4.2, 5.0),
             'followers_count' => fake()->numberBetween(120, 15000),
             'chat_response_rate' => fake()->numberBetween(80, 99),
@@ -33,12 +34,10 @@ final class ShopFactory extends Factory
             'logo_url' => null,
             'banner_url' => null,
             'status' => ShopStatus::Approved->value,
-            'contact_number' => fake()->numerify('09#########'),
-            'id_type' => fake()->randomElement(['philsys', 'drivers_license', 'passport', 'national_id']),
-            'id_number' => fake()->bothify('??#######'),
-            'bank_name' => fake()->randomElement(['BDO', 'BPI', 'Metrobank', 'GCash', 'Maya']),
-            'bank_account_name' => fake()->name(),
-            'bank_account_number' => fake()->numerify('####-####-####'),
+            'address_line' => fake()->streetAddress(),
+            'city' => $city,
+            'state' => fake()->randomElement(['Metro Manila', 'Davao del Sur', 'Zamboanga del Sur', 'Maguindanao del Norte']),
+            'postal_code' => fake()->numerify('####'),
             'agreed_to_terms' => true,
         ];
     }
@@ -58,6 +57,13 @@ final class ShopFactory extends Factory
             'submitted_at' => now(),
             'reviewed_at' => now(),
             'rejection_reason' => fake()->sentence(),
+        ]);
+    }
+
+    public function suspended(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'suspended' => true,
         ]);
     }
 }

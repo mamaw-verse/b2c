@@ -44,5 +44,11 @@ export default defineConfig({
                 viewport: { width: 360, height: 800 },
             },
         },
+        {
+            // Real WebKit engine with iPhone viewport, UA and touch —
+            // closest scripted coverage for the iOS Safari gate.
+            name: 'iphone-safari',
+            use: { ...devices['iPhone 14'] },
+        },
     ],
 });

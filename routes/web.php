@@ -29,6 +29,7 @@ Route::get('search', [SearchController::class, 'index'])->name('search');
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('shops/{shop:slug}', [ShopController::class, 'show'])->name('shops.show');
+Route::get('seller/terms', App\Http\Controllers\Seller\SellerTermsController::class)->name('seller.terms');
 
 Route::prefix('api/psgc')->name('psgc.')->group(function () {
     Route::get('regions', PsgcRegionController::class)->name('regions');
@@ -37,8 +38,8 @@ Route::prefix('api/psgc')->name('psgc.')->group(function () {
     Route::get('cities/{city}/barangays', PsgcBarangayController::class)->name('barangays');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::class])->group(function () {
+    Route::redirect('dashboard', '/account', 301)->name('dashboard');
 
     Route::resource('cart', CartController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('cart.vouchers', CartVoucherController::class)->only(['store', 'destroy']);
@@ -48,37 +49,54 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('order-confirmed/{order}', App\Http\Controllers\Account\OrderConfirmationController::class)->name('order-confirmed');
 
-    Route::resource('account/addresses', AddressController::class)->only(['index', 'store', 'update', 'destroy'])->names('addresses');
-    Route::put('account/addresses/{address}/default', [AddressDefaultController::class, 'update'])->name('addresses.default.update');
-
-    Route::resource('account/orders', OrderController::class)->only(['index', 'show'])->names('orders');
-    Route::post('account/orders/{order}/cancel', [OrderCancellationController::class, 'store'])->name('orders.cancel');
-    Route::put('account/orders/{order}/received', [OrderReceivedController::class, 'update'])->name('orders.received');
-    Route::post('account/orders/{order}/return', [OrderReturnController::class, 'store'])->name('orders.return');
-    Route::resource('account/order-items/{orderItem}/reviews', ReviewController::class)->only(['create', 'store'])->names('reviews');
-
-    Route::resource('chat', App\Http\Controllers\Chat\ConversationController::class)->parameters(['chat' => 'conversation'])->only(['index', 'store', 'show'])->names('chat');
-    Route::post('chat/{conversation}/messages', [App\Http\Controllers\Chat\MessageController::class, 'store'])->name('chat.messages.store');
-    Route::post('chat/{conversation}/read', [App\Http\Controllers\Chat\ConversationReadController::class, 'store'])->name('chat.read.store');
-
-    Route::get('notifications', [App\Http\Controllers\Notification\NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('notifications/read', [App\Http\Controllers\Notification\NotificationReadController::class, 'store'])->name('notifications.read.store');
+    Route::redirect('chat', '/account/chat', 301);
+    Route::redirect('chat/{conversation}', '/account/chat/{conversation}', 301);
+    Route::redirect('notifications', '/account/notifications', 301);
 
     Route::post('reports', [App\Http\Controllers\Report\ReportController::class, 'store'])->name('reports.store');
 
-    Route::get('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'create'])->name('seller.register');
-    Route::post('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'store'])->name('seller.register.store');
+    // Buyer workspace surfaces. Buyer and seller pages are stripped for
+    // admins — their only surfaces are the admin console and settings.
+    Route::middleware('workspace:buyer')->group(function () {
+        Route::inertia('account', 'account/home')->name('account.home');
 
-    Route::prefix('seller')->name('seller.')->group(function () {
+        Route::resource('account/addresses', AddressController::class)->only(['index', 'store', 'update', 'destroy'])->names('addresses');
+        Route::put('account/addresses/{address}/default', [AddressDefaultController::class, 'update'])->name('addresses.default.update');
+
+        Route::resource('account/orders', OrderController::class)->only(['index', 'show'])->names('orders');
+        Route::post('account/orders/{order}/cancel', [OrderCancellationController::class, 'store'])->name('orders.cancel');
+        Route::put('account/orders/{order}/received', [OrderReceivedController::class, 'update'])->name('orders.received');
+        Route::post('account/orders/{order}/return', [OrderReturnController::class, 'store'])->name('orders.return');
+        Route::resource('account/order-items/{orderItem}/reviews', ReviewController::class)->only(['create', 'store'])->names('reviews');
+
+        Route::resource('account/chat', App\Http\Controllers\Chat\ConversationController::class)->parameters(['chat' => 'conversation'])->only(['index', 'store', 'show'])->names('chat');
+        Route::post('account/chat/{conversation}/messages', [App\Http\Controllers\Chat\MessageController::class, 'store'])->name('chat.messages.store');
+        Route::post('account/chat/{conversation}/read', [App\Http\Controllers\Chat\ConversationReadController::class, 'store'])->name('chat.read.store');
+
+        Route::get('account/notifications', [App\Http\Controllers\Notification\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/read', [App\Http\Controllers\Notification\NotificationReadController::class, 'store'])->name('notifications.read.store');
+
+        // The seller application flow is a buyer-area surface too.
+        Route::get('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'create'])->name('seller.register');
+        Route::post('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'store'])->name('seller.register.store');
+        Route::get('seller/suspended', App\Http\Controllers\Seller\SuspendedShopController::class)->name('seller.suspended');
+    });
+
+    Route::prefix('seller')->name('seller.')->middleware('workspace:seller')->group(function () {
         Route::get('dashboard', App\Http\Controllers\Seller\DashboardController::class)->name('dashboard');
         Route::resource('products', App\Http\Controllers\Seller\ProductController::class)->names('products');
         Route::resource('orders', App\Http\Controllers\Seller\OrderController::class)->only(['index', 'show'])->names('orders');
         Route::post('orders/{order}/shipment', [App\Http\Controllers\Seller\ShipmentController::class, 'store'])->name('orders.shipment.store');
         Route::get('settings', [App\Http\Controllers\Seller\ShopSettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [App\Http\Controllers\Seller\ShopSettingController::class, 'update'])->name('settings.update');
+
+        Route::resource('chat', App\Http\Controllers\Chat\ConversationController::class)->parameters(['chat' => 'conversation'])->only(['index', 'show'])->names('chat');
+        Route::post('chat/{conversation}/messages', [App\Http\Controllers\Chat\MessageController::class, 'store'])->name('chat.messages.store');
+        Route::post('chat/{conversation}/read', [App\Http\Controllers\Chat\ConversationReadController::class, 'store'])->name('chat.read.store');
+        Route::get('notifications', [App\Http\Controllers\Notification\NotificationController::class, 'index'])->name('notifications.index');
     });
 
-    Route::prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware('workspace:admin')->group(function () {
         Route::get('dashboard', App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
         Route::resource('moderation', App\Http\Controllers\Admin\ModerationQueueController::class)->parameters(['moderation' => 'moderationQueueItem'])->only(['index', 'show'])->names('moderation');
         Route::post('moderation/{moderationQueueItem}/decisions', [App\Http\Controllers\Admin\ModerationDecisionController::class, 'store'])->name('moderation.decisions.store');

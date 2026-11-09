@@ -1,49 +1,30 @@
 import { Link } from '@inertiajs/react';
-import type { LucideIcon } from 'lucide-react';
-import {
-    Home,
-    LockKeyhole,
-    MapPin,
-    Package,
-    Palette,
-    UserRound,
-} from 'lucide-react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import {
+    flatNav,
+    navGroups,
+    navItemActive,
+    type WorkspaceNavItem,
+} from '@/lib/workspaces';
 import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
-import { edit as editAppearance } from '@/routes/appearance';
-import { edit as editProfile } from '@/routes/profile';
-import { edit as editSecurity } from '@/routes/security';
-
-export type AccountNavItem = {
-    label: string;
-    href: string;
-    icon: LucideIcon;
-};
-
-export const accountNavItems: AccountNavItem[] = [
-    { label: 'Home', href: dashboard().url, icon: Home },
-    { label: 'Orders', href: '/account/orders', icon: Package },
-    { label: 'Addresses', href: '/account/addresses', icon: MapPin },
-    { label: 'Profile', href: editProfile().url, icon: UserRound },
-    { label: 'Security', href: editSecurity().url, icon: LockKeyhole },
-    { label: 'Appearance', href: editAppearance().url, icon: Palette },
-];
 
 export function AccountNavLinks({
     full = false,
-    items = accountNavItems,
+    items = flatNav('buyer'),
+    badges = {},
 }: {
     full?: boolean;
-    items?: AccountNavItem[];
+    items?: WorkspaceNavItem[];
+    badges?: Partial<Record<string, number>>;
 }) {
-    const { isCurrentUrl } = useCurrentUrl();
+    const { currentUrl } = useCurrentUrl();
 
     return (
         <ul className="grid gap-0.5">
             {items.map((item) => {
-                const active = isCurrentUrl(item.href);
+                const active = navItemActive(item, currentUrl);
                 const Icon = item.icon;
+                const badge = item.badgeKey ? (badges[item.badgeKey] ?? 0) : 0;
 
                 return (
                     <li key={item.label}>
@@ -70,6 +51,16 @@ export function AccountNavLinks({
                             >
                                 {item.label}
                             </span>
+                            {badge > 0 && (
+                                <span
+                                    className={cn(
+                                        'badge badge-solid',
+                                        !full && 'hidden lg:inline-flex',
+                                    )}
+                                >
+                                    {badge}
+                                </span>
+                            )}
                         </Link>
                     </li>
                 );
@@ -78,13 +69,23 @@ export function AccountNavLinks({
     );
 }
 
-export function AccountSidebar() {
+export function AccountSidebar({
+    badges = {},
+}: {
+    badges?: Partial<Record<string, number>>;
+}) {
     return (
         <nav aria-label="Account" className="flex flex-col gap-1">
-            <p className="px-3 pt-2 pb-1 text-eyebrow text-muted-foreground uppercase md:hidden lg:block">
-                My account
-            </p>
-            <AccountNavLinks />
+            {navGroups('buyer').map((group) => (
+                <div key={group.label}>
+                    {group.label && (
+                        <p className="px-3 pt-2 pb-1 text-eyebrow text-muted-foreground uppercase md:hidden lg:block">
+                            {group.label}
+                        </p>
+                    )}
+                    <AccountNavLinks items={group.items} badges={badges} />
+                </div>
+            ))}
         </nav>
     );
 }

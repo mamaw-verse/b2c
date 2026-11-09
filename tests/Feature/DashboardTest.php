@@ -11,10 +11,21 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can visit the dashboard', function () {
+test('the legacy dashboard redirects to the buyer account home', function () {
     $user = User::factory()->create();
-    $this->actingAs($user);
 
-    $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertRedirect('/account');
+});
+
+test('authenticated users can visit the buyer account home', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get('/account')
+        ->assertOk()
+        ->assertInertia(
+            fn ($page) => $page->component('account/home'),
+        );
 });

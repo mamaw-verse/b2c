@@ -16,7 +16,7 @@ final readonly class ListActiveVouchers
      */
     public function handle(int $limit = 3): array
     {
-        return Voucher::with('shop')
+        return array_values(Voucher::with('shop')
             ->where('is_active', true)
             ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
@@ -33,7 +33,7 @@ final readonly class ListActiveVouchers
                     : 'No expiry',
                 'kind' => $voucher->kind->value,
             ])
-            ->all();
+            ->all());
     }
 
     private function title(Voucher $voucher): string

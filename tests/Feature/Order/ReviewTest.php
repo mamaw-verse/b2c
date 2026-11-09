@@ -13,6 +13,32 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
+test('buyer can open the review form without submitting a rating', function () {
+    $user = User::factory()->create();
+    $order = Order::factory()->completed()->create(['user_id' => $user->id]);
+    $item = OrderItem::factory()->create(['order_id' => $order->id]);
+
+    $this->actingAs($user)->get(route('reviews.create', $item))
+        ->assertOk()
+        ->assertInertia(fn (Inertia\Testing\AssertableInertia $page) => $page
+            ->component('account/review')
+            ->where('orderItem.id', $item->id));
+});
+
+test('review form is hidden for another buyers item or an incomplete order', function (bool $ownsOrder, string $status) {
+    $user = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $ownsOrder ? $user->id : User::factory()->create()->id,
+        'status' => $status,
+    ]);
+    $item = OrderItem::factory()->create(['order_id' => $order->id]);
+
+    $this->actingAs($user)->get(route('reviews.create', $item))->assertNotFound();
+})->with([
+    'another buyer' => [false, 'completed'],
+    'not received' => [true, 'to_receive'],
+]);
+
 test('user can submit review for a completed order item', function () {
     Storage::fake('public');
 

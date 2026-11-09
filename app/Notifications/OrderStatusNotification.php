@@ -33,6 +33,7 @@ final class OrderStatusNotification extends Notification
     {
         return [
             'type' => 'order',
+            'workspace' => 'buyer',
             'order_id' => $this->order->id,
             'title' => $this->title,
             'text' => $this->text,

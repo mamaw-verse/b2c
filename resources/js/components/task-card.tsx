@@ -6,7 +6,7 @@ export interface TaskCardProps {
     count: number | string;
     label: string;
     ic?: string;
-    href?: string;
+    href: string;
     tone?: string;
     urgent?: boolean;
     className?: string;
@@ -16,7 +16,7 @@ export function TaskCard({
     count,
     label,
     ic = 'package',
-    href = '#',
+    href,
     tone = 'text-primary-text',
     urgent = false,
     className,

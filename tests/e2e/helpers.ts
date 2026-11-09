@@ -1,8 +1,10 @@
 import { test, type Page } from '@playwright/test';
+import { execSync } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const outputDir = process.env.E2E_OUTPUT_DIR ?? 'output';
+const repoRoot = path.resolve(import.meta.dirname, '..', '..');
 
 /**
  * Capture a named, full-page screenshot into output/screenshots/<project>/.
@@ -43,6 +45,20 @@ export function uniqueEmail(prefix = 'e2e'): string {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
 }
 
+/**
+ * Create a verified user through Sail + artisan (password: "password").
+ * Specs run against the dev database, so this seeds fixture users that
+ * cannot be produced through the UI (verified routes block unverified
+ * registrations, e.g. /seller/register).
+ */
+export function createVerifiedUser(email: string, name = 'E2E User'): void {
+    const php = `App\\Models\\User::create(['name' => '${name}', 'email' => '${email}', 'password' => bcrypt('password')])->forceFill(['email_verified_at' => now()])->save();`;
+    execSync(`vendor/bin/sail artisan tinker --execute "${php}"`, {
+        cwd: repoRoot,
+        stdio: 'pipe',
+    });
+}
+
 /** Log in through the real Fortify form and wait for the redirect away. */
 export async function login(
     page: Page,
@@ -63,8 +79,7 @@ export async function pageProps<T = Record<string, unknown>>(
     page: Page,
 ): Promise<T> {
     const raw = await page.evaluate(
-        () =>
-            document.querySelector('script[data-page]')?.textContent ?? '{}',
+        () => document.querySelector('script[data-page]')?.textContent ?? '{}',
     );
     return (JSON.parse(raw) as { props: T }).props;
 }
@@ -93,10 +108,16 @@ export async function api<T = unknown>(
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    ...(data ? { 'Content-Type': 'application/json' } : {}),
-                    ...(xsrf ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrf) } : {}),
+                    ...(data && method !== 'GET'
+                        ? { 'Content-Type': 'application/json' }
+                        : {}),
+                    ...(xsrf
+                        ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrf) }
+                        : {}),
                 },
-                body: data ? JSON.stringify(data) : undefined,
+                ...(method !== 'GET' && data
+                    ? { body: JSON.stringify(data) }
+                    : {}),
             });
             const text = await res.text();
             let body: unknown = text;

@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { dashboard } from '@/routes';
+import { home as accountHome } from '@/routes/account';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
@@ -36,7 +36,7 @@ const accountLinks = [
     },
 ];
 
-export default function Dashboard() {
+export default function AccountHome() {
     const { auth, name } = usePage<{ auth: Auth; name: string }>().props;
 
     return (
@@ -91,11 +91,11 @@ export default function Dashboard() {
     );
 }
 
-Dashboard.layout = {
+AccountHome.layout = {
     breadcrumbs: [
         {
             title: 'Account home',
-            href: dashboard(),
+            href: accountHome(),
         },
     ],
 };

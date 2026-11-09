@@ -46,6 +46,21 @@ final class CartItem extends Model
         return $this->belongsTo(ProductVariation::class, 'product_variation_id');
     }
 
+    public function availabilityWarning(): ?string
+    {
+        if (! $this->product->published || ! $this->product->halal_status->visibleToBuyers()) {
+            return 'Item is currently unavailable';
+        }
+
+        $stock = $this->product_variation_id === null ? $this->product->stock : $this->variation->stock;
+
+        return match (true) {
+            $stock < 1 => 'Out of stock — remove or deselect to checkout',
+            $stock < $this->qty => "Only {$stock} left — reduce quantity or deselect to checkout",
+            default => null,
+        };
+    }
+
     protected function casts(): array
     {
         return [

@@ -16,7 +16,7 @@ test('formattedAddress skips empty segments instead of double commas', function 
     $address->setRelation('city', null);
     $address->setRelation('province', null);
 
-    expect($address->formattedAddress())->toBe('123 E2E Street, 1000');
+    expect($address->formatted_address)->toBe('123 E2E Street, 1000');
 });
 
 test('formattedAddress joins all present segments', function () {
@@ -28,6 +28,6 @@ test('formattedAddress joins all present segments', function () {
     $address->setRelation('city', new City(['name' => 'Cotabato City']));
     $address->setRelation('province', new Province(['name' => 'Maguindanao']));
 
-    expect($address->formattedAddress())
+    expect($address->formatted_address)
         ->toBe('1 Rizal Ave, Poblacion, Cotabato City, Maguindanao 9600');
 });

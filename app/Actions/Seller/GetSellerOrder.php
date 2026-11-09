@@ -35,7 +35,7 @@ final readonly class GetSellerOrder
                 'recipient_name' => $order->address?->name,
                 'phone' => $order->address?->phone,
                 'street' => $order->address?->street,
-                'formatted' => $order->address?->formattedAddress(),
+                'formatted' => $order->address?->formatAddress(),
                 'landmark' => $order->address?->landmark,
             ],
             'shipping_option' => [
@@ -59,8 +59,8 @@ final readonly class GetSellerOrder
                 'price' => $item->unit_price,
                 'quantity' => $item->qty,
                 'subtotal' => $item->subtotal,
-                'thumbnail_icon' => $item->product?->images->first()?->icon ?? 'package',
-                'frozen' => $item->product?->frozen ?? false,
+                'thumbnail_icon' => $item->product?->images->first()->icon ?? 'package',
+                'frozen' => $item->product->frozen ?? false,
             ]),
             'timeline' => $order->events->map(fn ($e) => [
                 'title' => $e->title,

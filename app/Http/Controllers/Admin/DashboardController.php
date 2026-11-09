@@ -19,10 +19,11 @@ final class DashboardController
         $counts = ModerationQueueItem::query()
             ->select('state', 'type', DB::raw('count(*) as total'))
             ->groupBy('state', 'type')
+            ->toBase()
             ->get()
-            ->groupBy(fn ($item) => $item->state instanceof ModerationState ? $item->state->value : (string) $item->state)
+            ->groupBy('state')
             ->map(fn ($rows) => $rows->mapWithKeys(fn ($item) => [
-                ($item->type instanceof ModerationItemType ? $item->type->value : (string) $item->type) => (int) $item->total,
+                $item->type => (int) $item->total,
             ]));
 
         $expiringCount = ModerationQueueItem::query()

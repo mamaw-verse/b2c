@@ -64,7 +64,7 @@ final readonly class GetSellerDashboard
             ['count' => $toShipCount, 'label' => 'To ship', 'ic' => 'package', 'href' => route('seller.orders.index', ['status' => 'to_ship'])],
             ['count' => $shipTodayCount, 'label' => 'Ship today', 'ic' => 'alarm-clock', 'urgent' => true, 'href' => route('seller.orders.index', ['status' => 'to_ship'])],
             ['count' => $returnRequestsCount, 'label' => 'Return requests', 'ic' => 'undo-2', 'href' => route('seller.orders.index', ['status' => 'return_refund'])],
-            ['count' => $unreadChatsCount, 'label' => 'Unread chats', 'ic' => 'message-circle', 'href' => route('chat.index')],
+            ['count' => $unreadChatsCount, 'label' => 'Unread chats', 'ic' => 'message-circle', 'href' => route('seller.chat.index')],
             ['count' => $needsChangesCount, 'label' => 'Needs changes', 'ic' => 'triangle-alert', 'urgent' => $needsChangesCount > 0, 'href' => route('seller.products.index', ['status' => 'review'])],
             ['count' => $lowStockCount, 'label' => 'Low stock', 'ic' => 'boxes', 'href' => route('seller.products.index', ['stock' => 'low'])],
         ];
@@ -175,7 +175,7 @@ final readonly class GetSellerDashboard
                 'due' => null,
                 'urgent' => $order->created_at?->isToday() === true,
                 'pay' => mb_strtoupper($order->payment_method->value),
-                'thumbnail_icon' => $order->items->first()?->product?->images?->first()?->icon ?? 'package',
+                'thumbnail_icon' => $order->items->first()?->product?->images?->first()->icon ?? 'package',
                 'detail_url' => route('seller.orders.show', $order),
             ]);
 

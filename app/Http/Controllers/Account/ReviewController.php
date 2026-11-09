@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Actions\Order\SubmitReview;
 use App\Http\Requests\Account\CreateReviewRequest;
+use App\Http\Requests\Account\ShowReviewRequest;
 use App\Models\OrderItem;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 final class ReviewController
 {
-    public function create(CreateReviewRequest $request, OrderItem $orderItem): Response
+    public function create(ShowReviewRequest $request, OrderItem $orderItem): Response
     {
         $orderItem->load(['product.images', 'order', 'review']);
 

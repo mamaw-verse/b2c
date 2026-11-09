@@ -70,7 +70,7 @@ final readonly class ApplyVoucher
         }
 
         $subtotal = $items->sum(function (CartItem $item): int {
-            $price = $item->variation?->price ?? $item->product->price;
+            $price = $item->variation->price ?? $item->product->price;
 
             return $price * $item->qty;
         });

@@ -45,7 +45,7 @@ final readonly class ComputeCartTotals
         $isHalal = $items->isNotEmpty();
 
         foreach ($items as $item) {
-            $price = $item->variation?->price ?? $item->product->price;
+            $price = $item->variation->price ?? $item->product->price;
             $subtotal += $price * $item->qty;
             $itemCount += $item->qty;
 
@@ -55,13 +55,13 @@ final readonly class ComputeCartTotals
         }
 
         // Determine shipping fee
+        $shopCount = $items->pluck('product.shop_id')->unique()->count();
         $shippingFee = 0;
         if ($shippingOption !== null) {
-            $shippingFee = $shippingOption->fee;
+            $shippingFee = $shippingOption->fee * $shopCount;
         } elseif ($items->isNotEmpty()) {
             // Default shipping fee per shop represented in selected items
-            $shopCount = $items->pluck('product.shop_id')->unique()->count();
-            $shippingFee = config('checkout.default_shipping_fee') * max(1, $shopCount);
+            $shippingFee = config()->integer('checkout.default_shipping_fee') * $shopCount;
         }
 
         // Calculate discounts
@@ -79,12 +79,12 @@ final readonly class ComputeCartTotals
 
         if ($shopVoucher !== null && $shopVoucher->kind === VoucherKind::Shop) {
             $shopSubtotal = $items->filter(fn (CartItem $i) => $i->product->shop_id === $shopVoucher->shop_id)
-                ->sum(fn (CartItem $i) => ($i->variation?->price ?? $i->product->price) * $i->qty);
+                ->sum(fn (CartItem $i) => ($i->variation->price ?? $i->product->price) * $i->qty);
 
             $voucherDiscount = $this->calculateDiscount($shopVoucher, $shopSubtotal);
         }
 
-        $codFee = ($paymentMethod === 'cod') ? config('checkout.cod_fee') : 0;
+        $codFee = ($paymentMethod === 'cod') ? config()->integer('checkout.cod_fee') * $shopCount : 0;
 
         $total = max(0, $subtotal + $shippingFee - $shippingDiscount - $voucherDiscount - $platformVoucherDiscount + $codFee);
 

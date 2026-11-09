@@ -31,7 +31,7 @@ export default function Shop({
             router.visit(login().url);
             return;
         }
-        router.post('/chat', { shop_id: shop.id });
+        router.post('/account/chat', { shop_id: shop.id });
     };
 
     const grid = (

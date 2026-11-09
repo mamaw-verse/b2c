@@ -84,7 +84,9 @@ export default function SellerProductsIndex({
             render: (p) => (
                 <span
                     className={
-                        p.stock <= 5 ? 'text-label text-danger-text' : 'text-label'
+                        p.stock <= 5
+                            ? 'text-label text-danger-text'
+                            : 'text-label'
                     }
                 >
                     {p.stock}

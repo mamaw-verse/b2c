@@ -39,20 +39,21 @@ final class CreateShopRegistrationRequest extends FormRequest
         }
 
         return [
+            'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'shop_name' => ['required', 'string', 'max:120', Rule::unique('shops', 'name')->ignore($this->user()->shop)],
             'description' => ['required', 'string', 'max:1000'],
-            'location' => ['required', 'string', 'max:255'],
-            'contact_number' => ['required', 'string', 'max:20'],
-            'halal_only' => ['boolean'],
-            'id_type' => ['required', 'string', 'in:philsys,drivers_license,passport,national_id'],
-            'id_number' => ['required', 'string', 'max:50'],
-            'id_document' => ['required', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'selfie' => ['required', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'business_permit' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'bank_account_name' => ['required', 'string', 'max:120'],
-            'bank_account_number' => ['required', 'string', 'max:50'],
-            'bank_name' => ['required', 'string', 'max:120'],
+            'address_line' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:120'],
+            'state' => ['required', 'string', 'max:120'],
+            'postal_code' => ['required', 'string', 'max:10'],
+            'business_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'certificates' => ['required', 'array', 'min:1'],
+            'certificates.*.certifying_body' => ['required', 'string', 'max:255'],
+            'certificates.*.certificate_number' => ['required', 'string', 'max:100'],
+            'certificates.*.valid_until' => ['required', 'date', 'after_or_equal:today'],
+            'certificates.*.document' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'agreed_to_terms' => ['accepted'],
+            'halal_only' => ['boolean'],
         ];
     }
 
@@ -63,14 +64,13 @@ final class CreateShopRegistrationRequest extends FormRequest
     {
         return array_merge(
             $this->only([
-                'shop_name', 'description', 'location', 'contact_number', 'halal_only',
-                'id_type', 'id_number', 'bank_account_name', 'bank_account_number',
-                'bank_name',
+                'shop_name', 'description', 'address_line', 'city', 'state',
+                'postal_code', 'halal_only',
             ]),
             [
-                'id_document' => $this->file('id_document'),
-                'selfie' => $this->file('selfie'),
+                'logo' => $this->file('logo'),
                 'business_permit' => $this->file('business_permit'),
+                'certificates' => $this->validated('certificates'),
             ],
         );
     }

@@ -52,6 +52,22 @@ return [
         env('MARKETPLACE_SOCIAL_YOUTUBE') ? ['label' => 'YouTube', 'icon' => 'youtube', 'href' => env('MARKETPLACE_SOCIAL_YOUTUBE')] : null,
     ])),
 
+    /* Seller Terms shown at /seller/terms and versioned on acceptance.
+       `draft` stays true until legal review signs the text off. Any value
+       left null renders as "[to be confirmed]" on the page. */
+    'seller_terms' => [
+        'version' => env('SELLER_TERMS_VERSION', '0.1'),
+        'updated' => env('SELLER_TERMS_UPDATED', '2026-11-09'),
+        'draft' => (bool) env('SELLER_TERMS_DRAFT', true),
+        'entity_name' => env('MARKETPLACE_ENTITY_NAME'),
+        'commission_rate' => env('MARKETPLACE_COMMISSION_RATE'),
+        'payout_schedule' => env('MARKETPLACE_PAYOUT_SCHEDULE'),
+        'ship_within_days' => env('MARKETPLACE_SHIP_WITHIN_DAYS'),
+        'return_window_days' => env('MARKETPLACE_RETURN_WINDOW_DAYS'),
+        'contact_email' => env('MARKETPLACE_SUPPORT_EMAIL'),
+        'venue' => env('MARKETPLACE_VENUE'),
+    ],
+
     'footer' => [
         'shop' => [
             ['label' => 'Halal Food', 'href' => '/categories/halal-food'],

@@ -41,7 +41,7 @@ test.describe('auth journey', () => {
 
         await page.click('[data-test="register-user-button"]');
         // Verified middleware may send fresh accounts to /email/verify instead.
-        await expect(page).toHaveURL(/dashboard|email\/verify/, {
+        await expect(page).toHaveURL(/account|email\/verify/, {
             timeout: 15_000,
         });
         await shot(page, '11-after-register');

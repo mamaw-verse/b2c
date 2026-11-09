@@ -18,7 +18,7 @@ final class CartSelectionController
 
         $action->handle(
             $user,
-            (array) $request->input('item_ids'),
+            array_values($request->array('item_ids')),
             (bool) $request->input('selected')
         );
 

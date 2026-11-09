@@ -12,12 +12,7 @@ export interface OrderRowProps {
     items: number;
     total: number;
     status: string;
-    statusVariant?:
-        | 'neutral'
-        | 'info'
-        | 'warning'
-        | 'success'
-        | 'danger';
+    statusVariant?: 'neutral' | 'info' | 'warning' | 'success' | 'danger';
     due?: string | null;
     urgent?: boolean;
     pay: string;

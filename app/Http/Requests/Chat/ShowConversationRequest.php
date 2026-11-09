@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Chat;
 
+use App\Enums\Workspace;
 use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -23,10 +24,11 @@ final class ShowConversationRequest extends FormRequest
             return Response::denyAsNotFound();
         }
 
-        $isBuyer = $conversation->user_id === $user->id;
-        $isSeller = $conversation->shop->user_id === $user->id;
+        $workspace = $this->routeIs('seller.*') ? Workspace::Seller : Workspace::Buyer;
 
-        return ($isBuyer || $isSeller) ? Response::allow() : Response::denyAsNotFound();
+        return $conversation->isParty($user, $workspace)
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
     /**

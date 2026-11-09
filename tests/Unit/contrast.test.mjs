@@ -17,7 +17,9 @@ function tokens(cssText, fallback = new Map()) {
         if (depth > 5) return null;
         const raw = map.get(name);
         if (!raw) return null;
-        const v = raw.match(/^var\(--([\w-]+)\)$/) ? resolve(raw.match(/^var\(--([\w-]+)\)$/)[1], depth + 1) : raw;
+        const v = raw.match(/^var\(--([\w-]+)\)$/)
+            ? resolve(raw.match(/^var\(--([\w-]+)\)$/)[1], depth + 1)
+            : raw;
         return /^#[0-9a-fA-F]{3,8}$/.test(v) ? v : null;
     };
     const out = {};
@@ -29,11 +31,14 @@ function lum(hex) {
     const h = hex.replace('#', '');
     const full = h.length <= 4 ? [...h].map((c) => c + c).join('') : h;
     const rgb = [0, 2, 4].map((o) => parseInt(full.slice(o, o + 2), 16) / 255);
-    const [r, g, b] = rgb.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    const [r, g, b] = rgb.map((c) =>
+        c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4,
+    );
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-const ratio = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+const ratio = (a, b) =>
+    (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
 
 // [foreground token, background token, minimum ratio, label]
 const PAIRS = [
@@ -77,13 +82,18 @@ for (let i = darkEnd; i < css.length; i++) {
 
 const scopes = {
     light: tokens(css.slice(0, darkStart)),
-    dark: tokens(css.slice(darkStart, darkEnd), (() => {
-        const m = new Map();
-        for (const mm of css.slice(0, darkStart).matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) {
-            m.set(mm[1], mm[2].trim());
-        }
-        return m;
-    })()),
+    dark: tokens(
+        css.slice(darkStart, darkEnd),
+        (() => {
+            const m = new Map();
+            for (const mm of css
+                .slice(0, darkStart)
+                .matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) {
+                m.set(mm[1], mm[2].trim());
+            }
+            return m;
+        })(),
+    ),
 };
 
 let n = 0;
@@ -93,13 +103,17 @@ for (const [scope, t] of Object.entries(scopes)) {
         const b = bg.startsWith('#') ? bg : t[bg];
         if (!f || !b) {
             n++;
-            console.log(`contrast[${scope}]: missing token ${!f ? fg : bg} (${label})`);
+            console.log(
+                `contrast[${scope}]: missing token ${!f ? fg : bg} (${label})`,
+            );
             continue;
         }
         const r = ratio(f, b);
         if (r < min) {
             n++;
-            console.log(`contrast[${scope}]: ${fg} on ${bg} = ${r.toFixed(2)} < ${min} (${label})`);
+            console.log(
+                `contrast[${scope}]: ${fg} on ${bg} = ${r.toFixed(2)} < ${min} (${label})`,
+            );
         }
     }
 }

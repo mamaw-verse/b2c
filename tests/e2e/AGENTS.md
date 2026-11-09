@@ -7,12 +7,15 @@ own `package.json`.
 
 ## Layout
 
-- `playwright.config.ts` — 3 viewport projects: `desktop-1280`, `tablet-768`, `mobile-360`.
+- `playwright.config.ts` — 4 projects: `desktop-1280`, `tablet-768`, `mobile-360` (Chromium viewports) and `iphone-safari` (real WebKit engine, iPhone UA + touch).
 - `specs/` — test specs. `smoke.spec.ts` covers public pages + auth boundaries.
 - `scenarios.json` — machine-readable scenario manifest; read this first when
   extending coverage or executing steps manually.
 - `helpers.ts` — `shot(page, name)` writes named full-page screenshots to
-  `output/screenshots/<project>/<name>.png`; `uniqueEmail()` for registrations.
+  `output/screenshots/<project>/<name>.png`; `uniqueEmail()` for registrations;
+  `createVerifiedUser(email)` seeds a verified fixture user through
+  `vendor/bin/sail artisan` (needed because `verified` routes like
+  `/seller/register` block UI-registered accounts).
 - `output/` — gitignored run artifacts (screenshots, traces, HTML report, results.json).
 
 ## Running

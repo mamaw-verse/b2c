@@ -1,16 +1,12 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { shot } from '../helpers';
+import { pageProps, shot } from '../helpers';
 
 const outputDir = process.env.E2E_OUTPUT_DIR ?? 'output';
 
 /** Named element screenshot into output/screenshots/<project>/, light + dark. */
-async function shotEl(
-    page: Page,
-    el: Locator,
-    name: string,
-): Promise<void> {
+async function shotEl(page: Page, el: Locator, name: string): Promise<void> {
     const project = test.info().project.name;
     const dir = path.join(outputDir, 'screenshots', project);
     await mkdir(dir, { recursive: true });
@@ -50,13 +46,15 @@ function ratio(a: string, b: string): number {
 }
 
 const computed = (page: Page, sel: string, props: string[]) =>
-    page.locator(sel).first().evaluate(
-        (el, props) => {
+    page
+        .locator(sel)
+        .first()
+        .evaluate((el, props) => {
             const cs = getComputedStyle(el);
-            return Object.fromEntries(props.map((p) => [p, cs.getPropertyValue(p)]));
-        },
-        props,
-    );
+            return Object.fromEntries(
+                props.map((p) => [p, cs.getPropertyValue(p)]),
+            );
+        }, props);
 
 test.describe('product card', () => {
     test('renders every state with the shared component', async ({ page }) => {
@@ -72,11 +70,18 @@ test.describe('product card', () => {
         const [pp, tp] = await Promise.all([
             price.evaluate((el) => {
                 const cs = getComputedStyle(el);
-                return { size: parseFloat(cs.fontSize), weight: Number(cs.fontWeight), color: cs.color };
+                return {
+                    size: parseFloat(cs.fontSize),
+                    weight: Number(cs.fontWeight),
+                    color: cs.color,
+                };
             }),
             title.evaluate((el) => {
                 const cs = getComputedStyle(el);
-                return { size: parseFloat(cs.fontSize), weight: Number(cs.fontWeight) };
+                return {
+                    size: parseFloat(cs.fontSize),
+                    weight: Number(cs.fontWeight),
+                };
             }),
         ]);
         expect(pp.size).toBeGreaterThan(tp.size);
@@ -88,7 +93,9 @@ test.describe('product card', () => {
         const l = card(page, 'Halal-certified chicken longganisa');
         await expect(l).toBeVisible();
         await shotEl(page, l, 'card-03-frozen-halal');
-        await expect(l.getByLabel(/Halal certified, verified by/)).toBeVisible();
+        await expect(
+            l.getByLabel(/Halal certified, verified by/),
+        ).toBeVisible();
 
         const oos = card(page, 'Halal-certified beef tapa');
         await expect(oos).toBeVisible();
@@ -104,7 +111,10 @@ test.describe('product card', () => {
         await expect(quran.getByLabel(/Halal certified/)).toHaveCount(0);
 
         await page.goto('/categories/modest-fashion');
-        const malong = card(page, 'Handwoven Maranao malong, hand-stitched tapestry');
+        const malong = card(
+            page,
+            'Handwoven Maranao malong, hand-stitched tapestry',
+        );
         await expect(malong).toBeVisible();
         await shotEl(page, malong, 'card-05-long-name');
         await expect(malong.getByLabel(/Halal certified/)).toHaveCount(0);
@@ -114,7 +124,9 @@ test.describe('product card', () => {
 test.describe('category nav', () => {
     test('no item is current on the home page', async ({ page }) => {
         await page.goto('/');
-        await expect(catNav(page).locator('[aria-current="page"]')).toHaveCount(0);
+        await expect(catNav(page).locator('[aria-current="page"]')).toHaveCount(
+            0,
+        );
     });
 
     test('active, hover and focus states use tokens', async ({ page }) => {
@@ -138,44 +150,52 @@ test.describe('category nav', () => {
         expect(ind.h).toBe('2px');
         expect(ind.fontWeight).toBe('500'); // weight must not change between states
 
-        // Hover: brand-50 pill + brand-700 text.
-        const other = catNav(page).getByRole('link', {
-            name: 'Halal Food',
-        });
-        await other.hover();
-        const hv = await other.evaluate((el) => {
-            const cs = getComputedStyle(el);
-            return { bg: cs.backgroundColor, color: cs.color, w: cs.fontWeight };
-        });
-        expect(hv.bg).toBe('rgb(234, 244, 237)');
-        expect(hv.color).toBe('rgb(16, 69, 45)');
-        expect(hv.w).toBe('500');
+        // Hover and Tab focus need a pointing device / keyboard — real
+        // Mobile Safari (touch-only) correctly applies neither.
+        if (!test.info().project.use.hasTouch) {
+            // Hover: brand-50 pill + brand-700 text.
+            const other = catNav(page).getByRole('link', {
+                name: 'Halal Food',
+            });
+            await other.hover();
+            const hv = await other.evaluate((el) => {
+                const cs = getComputedStyle(el);
+                return {
+                    bg: cs.backgroundColor,
+                    color: cs.color,
+                    w: cs.fontWeight,
+                };
+            });
+            expect(hv.bg).toBe('rgb(234, 244, 237)');
+            expect(hv.color).toBe('rgb(16, 69, 45)');
+            expect(hv.w).toBe('500');
 
-        // Keyboard: tab into the nav; the shared ring is 2px offset 2px.
-        for (let i = 0; i < 20; i++) {
-            const inNav = await page.evaluate(() =>
-                document
-                    .querySelector('nav[aria-label="Categories"]')
-                    ?.contains(document.activeElement),
-            );
-            if (inNav) break;
-            await page.keyboard.press('Tab');
+            // Keyboard: tab into the nav; the shared ring is 1px offset 2px.
+            for (let i = 0; i < 20; i++) {
+                const inNav = await page.evaluate(() =>
+                    document
+                        .querySelector('nav[aria-label="Categories"]')
+                        ?.contains(document.activeElement),
+                );
+                if (inNav) break;
+                await page.keyboard.press('Tab');
+            }
+            const focused = await page.evaluate(() => {
+                const el = document.activeElement;
+                if (!el) return null;
+                const cs = getComputedStyle(el);
+                return {
+                    inNav: !!el.closest('nav[aria-label="Categories"]'),
+                    w: cs.outlineWidth,
+                    style: cs.outlineStyle,
+                    offset: cs.outlineOffset,
+                };
+            });
+            expect(focused?.inNav).toBe(true);
+            expect(focused?.w).toBe('1px');
+            expect(focused?.style).toBe('solid');
+            expect(focused?.offset).toBe('2px');
         }
-        const focused = await page.evaluate(() => {
-            const el = document.activeElement;
-            if (!el) return null;
-            const cs = getComputedStyle(el);
-            return {
-                inNav: !!el.closest('nav[aria-label="Categories"]'),
-                w: cs.outlineWidth,
-                style: cs.outlineStyle,
-                offset: cs.outlineOffset,
-            };
-        });
-        expect(focused?.inNav).toBe(true);
-        expect(focused?.w).toBe('2px');
-        expect(focused?.style).toBe('solid');
-        expect(focused?.offset).toBe('2px');
         await shot(page, 'nav-01-states');
     });
 });
@@ -219,7 +239,9 @@ test.describe('contrast', () => {
             expect(ratio(price.color, hexSurface)).toBeGreaterThanOrEqual(4.5);
             expect(ratio(was.color, hexSurface)).toBeGreaterThanOrEqual(4.5);
             expect(ratio(navColor, hexSurface)).toBeGreaterThanOrEqual(4.5);
-            expect(ratio(tagColors.fg, tagColors.bg)).toBeGreaterThanOrEqual(4.5);
+            expect(ratio(tagColors.fg, tagColors.bg)).toBeGreaterThanOrEqual(
+                4.5,
+            );
         });
     }
 });
@@ -229,24 +251,55 @@ test.describe('footer', () => {
         await page.goto('/');
         const footer = page.locator('footer');
         await expect(footer).toBeVisible();
-        await expect(
-            footer.getByText(/Every halal claim is verified by/),
-        ).toBeVisible();
-        for (const t of ['COD', 'GCash', 'Maya', 'J&T Express']) {
+
+        // The trust strip renders only for configured values — assert
+        // exactly what config/marketplace.php advertises for this env.
+        const { marketplace } = await pageProps<{
+            marketplace: {
+                claims: { halal_verification: boolean };
+                payments: string[];
+                couriers: string[];
+                registration: string | null;
+                footer: Record<
+                    'shop' | 'support' | 'trust' | 'sell' | 'company',
+                    { label: string; href: string | null }[]
+                >;
+            };
+        }>(page);
+        if (marketplace.claims.halal_verification) {
+            await expect(
+                footer.getByText(/Every halal claim is verified by/),
+            ).toBeVisible();
+        }
+        for (const t of [...marketplace.payments, ...marketplace.couriers]) {
             await expect(footer.getByText(t, { exact: true })).toBeVisible();
         }
-        for (const h of ['Shop', 'Support', 'Halal & trust', 'Sell', 'Company']) {
+        // Link groups render only when at least one link is configured.
+        const groupHeadings: [string, keyof typeof marketplace.footer][] = [
+            ['Shop', 'shop'],
+            ['Support', 'support'],
+            ['Halal & trust', 'trust'],
+            ['Sell', 'sell'],
+            ['Company', 'company'],
+        ];
+        for (const [h, key] of groupHeadings) {
+            if (!marketplace.footer[key].some((l) => l.href)) continue;
             await expect(
                 footer.getByRole('navigation', { name: h }),
             ).toBeAttached();
         }
-        await expect(footer.getByText(/© \d{4}/)).toBeVisible();
+        // The legal bar renders only when a registration line is configured.
+        if (marketplace.registration) {
+            await expect(
+                footer.getByText(marketplace.registration),
+            ).toBeVisible();
+        }
         await shot(page, 'footer-01');
     });
 
     test('groups collapse into disclosures below 640px', async ({ page }) => {
         test.skip(
-            test.info().project.name !== 'mobile-360',
+            (page.viewportSize()?.width ?? 0) >= 640,
             'accordion only below 640px',
         );
         await page.goto('/');

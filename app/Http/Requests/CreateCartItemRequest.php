@@ -22,14 +22,24 @@ final class CreateCartItemRequest extends FormRequest
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        $product = Product::find($this->input('product_id'));
+        $product = Product::whereKey($this->input('product_id'))->first();
         $variation = $this->filled('product_variation_id')
-            ? ProductVariation::find($this->input('product_variation_id'))
+            ? ProductVariation::whereKey($this->input('product_variation_id'))->first()
             : null;
-        $availableStock = $variation?->stock ?? $product?->stock;
+        $availableStock = $variation->stock ?? $product?->stock;
 
         return [
-            'product_id' => ['required', 'string', 'exists:products,id'],
+            'product_id' => [
+                'required',
+                'string',
+                'exists:products,id',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    $product = Product::whereKey($value)->first();
+                    if ($product?->shop?->user_id === $this->user()?->id) {
+                        $fail('This is your own product.');
+                    }
+                },
+            ],
             'product_variation_id' => ['nullable', 'string', 'exists:product_variations,id'],
             'qty' => [
                 'sometimes',

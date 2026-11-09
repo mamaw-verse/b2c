@@ -81,7 +81,7 @@ export function Tabs({
                         tabIndex={i === active ? 0 : -1}
                         onClick={() => select(i)}
                         className={cn(
-                            'relative flex min-h-touch shrink-0 items-center gap-1.5 px-4 text-label whitespace-nowrap text-muted-foreground after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full hover:text-foreground focus-inset aria-selected:text-primary-text aria-selected:after:bg-primary',
+                            'focus-inset relative flex min-h-touch shrink-0 items-center gap-1.5 px-4 text-label whitespace-nowrap text-muted-foreground after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full hover:text-foreground aria-selected:text-primary-text aria-selected:after:bg-primary',
                             fill && 'md:flex-1 md:justify-center',
                         )}
                     >

@@ -10,6 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { WorkspaceSwitcherMenuItems } from '@/components/workspace-switcher';
 import { useInitials } from '@/hooks/use-initials';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
@@ -38,6 +39,10 @@ export function AccountUserMenu() {
                         {auth.user.email}
                     </span>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                    <WorkspaceSwitcherMenuItems />
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild>

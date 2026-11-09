@@ -54,8 +54,5 @@ export default function ReviewPage({ orderItem }: ReviewPageProps) {
 }
 
 ReviewPage.layout = {
-    breadcrumbs: [
-        { title: 'My Purchases', href: '/account/orders' },
-        { title: 'Write Review', href: '#' },
-    ],
+    breadcrumbs: [{ title: 'My Purchases', href: '/account/orders' }],
 };

@@ -120,8 +120,5 @@ export default function OrderConfirmed({ order }: OrderConfirmedPageProps) {
 }
 
 OrderConfirmed.layout = {
-    breadcrumbs: [
-        { title: 'My Purchases', href: '/account/orders' },
-        { title: 'Order confirmed', href: '#' },
-    ],
+    breadcrumbs: [{ title: 'My Purchases', href: '/account/orders' }],
 };

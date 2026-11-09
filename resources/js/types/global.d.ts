@@ -1,5 +1,5 @@
 import type { Auth } from '@/types/auth';
-import type { Marketplace } from '@/types/navigation';
+import type { Marketplace, SharedWorkspace } from '@/types/navigation';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -17,7 +17,15 @@ declare module '@inertiajs/core' {
             navCategories: { id: string; name: string; slug: string }[];
             searchSuggestions?: string[];
             unreadCounts?: { chat: number; notifications: number } | null;
+            pendingQueueCount?: number;
             cartCount?: number;
+            workspaces?: SharedWorkspace[];
+            seller?: {
+                status: 'pending' | 'approved' | 'rejected';
+                suspended: boolean;
+                shop_name: string;
+                shop_id: string;
+            } | null;
             marketplace: Marketplace;
             [key: string]: unknown;
         };
