@@ -109,6 +109,7 @@ function CategoryFields({
                     id={category ? `cert-${category.id}` : 'cert-new'}
                     type="checkbox"
                     name="requires_certification"
+                    value="1"
                     defaultChecked={category?.requires_certification ?? true}
                     className="size-4"
                 />

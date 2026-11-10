@@ -59,6 +59,19 @@ export function createVerifiedUser(email: string, name = 'E2E User'): void {
     });
 }
 
+/**
+ * Top up a seeded catalogue product's stock through Sail + artisan.
+ * Checkouts decrement the finite seed stock, so repeated e2e runs would
+ * eventually hit an out-of-stock product and disable "Add to cart".
+ */
+export function ensureProductStock(slug: string, stock = 999): void {
+    const php = `App\\Models\\Product::where('slug', '${slug}')->update(['stock' => ${stock}]);`;
+    execSync(`vendor/bin/sail artisan tinker --execute "${php}"`, {
+        cwd: repoRoot,
+        stdio: 'pipe',
+    });
+}
+
 /** Log in through the real Fortify form and wait for the redirect away. */
 export async function login(
     page: Page,

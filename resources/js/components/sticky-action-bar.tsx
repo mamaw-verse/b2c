@@ -19,7 +19,9 @@ export function StickyActionBar({
     return (
         <div
             className={cn(
-                fixed ? 'fixed inset-x-0 bottom-0 z-sticky-bar' : 'relative',
+                fixed
+                    ? 'fixed inset-x-0 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] z-sticky-bar md:bottom-0'
+                    : 'relative',
                 'border-t border-border bg-surface pb-safe shadow-sticky lg:static lg:border-0 lg:bg-transparent lg:pb-0 lg:shadow-none',
                 className,
             )}

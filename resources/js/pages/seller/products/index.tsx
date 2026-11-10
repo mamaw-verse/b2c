@@ -2,20 +2,24 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
+import { DsIcon } from '@/components/ds-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { create, edit } from '@/routes/seller/products';
+import { formatPeso } from '@/lib/format';
+import { create, destroy, edit } from '@/routes/seller/products';
 
 type Product = {
     id: string;
     name: string;
-    category: string;
-    price: string;
+    category_name: string;
+    price: number;
     stock: number;
-    halal_status: string | null;
-    is_published: boolean;
-    thumbnail?: string | null;
+    halal_status: string;
+    published: boolean;
+    certifier: string | null;
+    variations_count: number;
+    icon: string;
 };
 
 type Category = {
@@ -25,18 +29,18 @@ type Category = {
 
 type PageProps = {
     products: { data: Product[]; total: number };
-    filters: { search?: string; status?: string; category_id?: number };
+    filters: { search?: string; status?: string; category?: string };
     categories: Category[];
 };
 
-function halalBadge(status: string | null) {
-    if (!status) {
-        return null;
-    }
+function halalBadge(status: string) {
     if (status === 'certified') {
         return <Badge variant="halal">Certified</Badge>;
     }
-    return <Badge variant="neutral">Not ingestible</Badge>;
+    if (status === 'not_ingestible' || status === 'na') {
+        return <Badge variant="neutral">Not ingestible</Badge>;
+    }
+    return <Badge variant="neutral">{status}</Badge>;
 }
 
 export default function SellerProductsIndex({
@@ -61,22 +65,21 @@ export default function SellerProductsIndex({
             render: (p) => (
                 <div className="flex items-center gap-3">
                     <span className="bg-surface-raised grid size-10 shrink-0 place-items-center rounded-tile text-muted-foreground">
-                        {p.thumbnail ? (
-                            <img
-                                src={p.thumbnail}
-                                alt=""
-                                className="size-10 rounded-tile object-cover"
-                            />
-                        ) : (
-                            <span className="text-caption">No img</span>
-                        )}
+                        <DsIcon name={p.icon} className="size-5" />
                     </span>
                     <span className="truncate text-label">{p.name}</span>
                 </div>
             ),
         },
-        { key: 'category', label: 'Category' },
-        { key: 'price', label: 'Price', align: 'end' },
+        { key: 'category_name', label: 'Category' },
+        {
+            key: 'price',
+            label: 'Price',
+            align: 'end',
+            render: (p) => (
+                <span className="tabular">{formatPeso(p.price)}</span>
+            ),
+        },
         {
             key: 'stock',
             label: 'Stock',
@@ -99,10 +102,10 @@ export default function SellerProductsIndex({
             render: (p) => halalBadge(p.halal_status),
         },
         {
-            key: 'is_published',
+            key: 'published',
             label: 'Status',
             render: (p) =>
-                p.is_published ? (
+                p.published ? (
                     <Badge variant="success">Published</Badge>
                 ) : (
                     <Badge variant="neutral">Draft</Badge>
@@ -121,7 +124,7 @@ export default function SellerProductsIndex({
                         Edit
                     </Link>
                     <Link
-                        href={edit({ product: p.id })}
+                        href={destroy({ product: p.id })}
                         method="delete"
                         as="button"
                         className="btn btn-ghost btn-sm text-label text-danger-text"
@@ -183,12 +186,10 @@ export default function SellerProductsIndex({
                     </select>
                     <select
                         className="field w-full sm:w-auto"
-                        value={filters.category_id ?? ''}
+                        value={filters.category ?? ''}
                         onChange={(e) =>
                             applyFilter({
-                                category_id: e.target.value
-                                    ? Number(e.target.value)
-                                    : undefined,
+                                category: e.target.value || undefined,
                             })
                         }
                         aria-label="Filter by category"

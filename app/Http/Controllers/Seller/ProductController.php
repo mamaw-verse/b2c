@@ -39,7 +39,7 @@ final class ProductController
         return Inertia::render('seller/products/form', [
             'product' => null,
             'categories' => Category::orderBy('name')->get(['id', 'name']),
-            'certifyingBodies' => [
+            'certifying_bodies' => [
                 'Islamic Da’wah Council of the Philippines (IDCP)',
                 'Halal Development Institute of the Philippines (HDIP)',
                 'Mindanao Halal Authority (MinHA)',
@@ -70,6 +70,7 @@ final class ProductController
             'frozen' => $product->frozen,
             'free_shipping' => $product->free_shipping,
             'published' => $product->published,
+            'has_variations' => $product->variations->isNotEmpty(),
             'halal_status' => $product->halal_status->value === 'certified' || $product->halal_status->value === 'review' ? 'certified' : ($product->halal_status->value === 'na' ? 'not_ingestible' : $product->halal_status->value),
             'certifying_body' => $product->halalCertification?->certifying_body,
             'certificate_number' => $product->halalCertification?->number,
@@ -83,6 +84,8 @@ final class ProductController
             'height' => $product->height,
             'option1_name' => $product->option1_name,
             'option2_name' => $product->option2_name,
+            'option1_values' => $product->variations->pluck('option1_value')->unique()->values()->all(),
+            'option2_values' => $product->variations->pluck('option2_value')->filter()->unique()->values()->all(),
             'variations' => $product->variations->map(fn ($v) => [
                 'option1_value' => $v->option1_value,
                 'option2_value' => $v->option2_value,
@@ -99,7 +102,7 @@ final class ProductController
         return Inertia::render('seller/products/form', [
             'product' => $productData,
             'categories' => Category::orderBy('name')->get(['id', 'name']),
-            'certifyingBodies' => [
+            'certifying_bodies' => [
                 'Islamic Da’wah Council of the Philippines (IDCP)',
                 'Halal Development Institute of the Philippines (HDIP)',
                 'Mindanao Halal Authority (MinHA)',

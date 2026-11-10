@@ -13,6 +13,7 @@ const surfaces = [
             '/seller/terms',
             '/categories/halal-food',
             '/products/quran-with-english-translation-hardcover',
+            '/search?q=dates',
         ],
     },
     {
@@ -33,6 +34,7 @@ const surfaces = [
         paths: [
             '/seller/dashboard',
             '/seller/products',
+            '/seller/products/create',
             '/seller/orders',
             '/seller/settings',
             '/seller/chat',

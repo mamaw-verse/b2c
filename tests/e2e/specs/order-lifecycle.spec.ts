@@ -1,9 +1,21 @@
 import { expect, test } from '@playwright/test';
-import { api, login, pageProps, shot } from '../helpers';
+import {
+    api,
+    createVerifiedUser,
+    ensureProductStock,
+    login,
+    pageProps,
+    shot,
+    uniqueEmail,
+} from '../helpers';
 
 const BUYER = 'test@example.com';
 const SELLER = 'seller@example.com';
 const ADMIN = 'admin@example.com';
+const PRODUCT = 'quran-with-english-translation-hardcover';
+
+// Checkouts consume the seeded stock, so restock before this file's specs run.
+test.beforeAll(() => ensureProductStock(PRODUCT));
 
 type PsgcEntry = { code: string; name: string };
 
@@ -60,7 +72,7 @@ test.describe.serial('full order lifecycle', () => {
         expect(address.status).toBeLessThan(400);
 
         // Browse a seeded Barakah Pantry product.
-        await page.goto('/products/quran-with-english-translation-hardcover');
+        await page.goto(`/products/${PRODUCT}`);
         await shot(page, 'buyer-01-product');
         const props = await pageProps<{ product: { id: string } }>(page);
         const productId = props.product.id;
@@ -204,5 +216,59 @@ test.describe.serial('full order lifecycle', () => {
             timeout: 15_000,
         });
         await shot(page, 'admin-04-decided');
+    });
+});
+
+test.describe('order cancellation', () => {
+    test('buyer cancels a pending order', async ({ page }) => {
+        const email = uniqueEmail('cancel');
+        createVerifiedUser(email, 'Cancel E2E');
+        await login(page, email);
+
+        const psgc = await firstPsgcCodes(page);
+        const address = await api(page, 'POST', '/account/addresses', {
+            name: 'Cancel E2E',
+            phone: '+639171234567',
+            region_code: psgc.region.code,
+            province_code: psgc.province.code,
+            city_code: psgc.city.code,
+            barangay_code: psgc.barangay.code,
+            street: '123 Cancel Street',
+            postal_code: '1000',
+            label: 'home',
+            is_default: true,
+        });
+        expect(address.status).toBeLessThan(400);
+
+        await page.goto(`/products/${PRODUCT}`);
+        await page.getByRole('button', { name: 'Add to cart' }).first().click();
+        await expect(page.getByText(/added to cart/i).first()).toBeVisible();
+
+        await page.goto('/cart');
+        await page
+            .getByRole('button', { name: /Checkout/ })
+            .first()
+            .click();
+        await expect(page).toHaveURL(/checkout/);
+        await page.getByRole('button', { name: 'Place order' }).first().click();
+        await expect(page).toHaveURL(/order-confirmed/, {
+            timeout: 15_000,
+        });
+
+        await page.goto('/account/orders');
+        await page.getByRole('link', { name: 'View details' }).first().click();
+        await expect(page).toHaveURL(/account\/orders\/.+/);
+
+        await page.getByRole('button', { name: 'Cancel order' }).click();
+        const dialog = page.locator('dialog[open]');
+        await expect(dialog).toContainText('Cancel Order');
+        await dialog
+            .getByRole('button', { name: 'Confirm cancellation' })
+            .click();
+
+        await expect(
+            page.getByText('Cancelled', { exact: true }).first(),
+        ).toBeVisible({ timeout: 15_000 });
+        await shot(page, 'buyer-cancel-01');
     });
 });

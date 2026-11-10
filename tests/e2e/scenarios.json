@@ -6,7 +6,7 @@
         {
             "id": "accessibility",
             "spec": "specs/accessibility.spec.ts",
-            "description": "WCAG 2.1 AA axe checks of public, buyer, seller and admin routes in light and dark at all three viewport widths. JSON attachments retain violations and manual-review findings; a11y-role-index screenshots capture every scanned route.",
+            "description": "WCAG 2.1 AA axe checks of public, buyer, seller and admin routes in light and dark at all three viewport widths, including /search?q=dates and /seller/products/create. JSON attachments retain violations and manual-review findings; a11y-role-index screenshots capture every scanned route.",
             "steps": [
                 {
                     "action": "scan workspace routes in light and dark",
@@ -48,6 +48,17 @@
                     "email": "nonexistent",
                     "screenshot": "20-login-failed",
                     "expect": "stays on /login with validation feedback"
+                },
+                {
+                    "action": "goto",
+                    "url": "/pages/returns",
+                    "screenshot": "smoke-content-01",
+                    "expect": "HTTP 200 and an h1 for the Returns & refunds page"
+                },
+                {
+                    "action": "goto",
+                    "url": "/pages/nonexistent",
+                    "expect": "HTTP 404 for an unknown content page"
                 }
             ]
         },
@@ -136,6 +147,12 @@
                         "admin-04-decided"
                     ],
                     "expect": "buyer's report appears in the moderation queue and can be approved"
+                },
+                {
+                    "action": "buyer places a fresh order and cancels it",
+                    "email": "unique verified buyer",
+                    "screenshot": "buyer-cancel-01",
+                    "expect": "order detail shows the Cancelled status after confirming cancellation"
                 }
             ]
         },
@@ -400,12 +417,160 @@
                     "expect": "audit-entry rows visible; action filter returns correct subset"
                 }
             ]
+        },
+        {
+            "id": "seller-products",
+            "spec": "specs/seller-products.spec.ts",
+            "description": "Seller product CRUD: list, create a simple published product, create a certified-halal draft with certificate fields, filter by name, edit the name and save as draft, then delete the product.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "seller@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/products",
+                    "screenshot": "products-01-list",
+                    "expect": "Add product link, product table caption and search input visible"
+                },
+                {
+                    "action": "create simple product and publish",
+                    "screenshots": ["products-02-create-form", "products-03-created"],
+                    "expect": "redirects to /seller/products with the new product row visible"
+                },
+                {
+                    "action": "create certified halal product as draft",
+                    "screenshot": "products-04-halal-fields",
+                    "expect": "certifying body, certificate number, valid until, ingredients and declaration fields appear and save"
+                },
+                {
+                    "action": "filter list by product name",
+                    "screenshot": "products-05-filtered",
+                    "expect": "URL contains search= and only the matching row is visible"
+                },
+                {
+                    "action": "edit name and save as draft",
+                    "screenshots": ["products-06-edit", "products-07-updated"],
+                    "expect": "updated name and Draft badge visible in the list"
+                },
+                {
+                    "action": "delete product and accept the confirm dialog",
+                    "screenshot": "products-08-deleted",
+                    "expect": "the product row disappears"
+                }
+            ]
+        },
+        {
+            "id": "search",
+            "spec": "specs/search.spec.ts",
+            "description": "Public search: results for a query, halal filter chip, sort control, empty state and navigation from a result to the product detail page.",
+            "steps": [
+                {
+                    "action": "goto",
+                    "url": "/search?q=dates",
+                    "screenshot": "search-01-results",
+                    "expect": "h1 contains the query and #sr-grid shows product cards"
+                },
+                {
+                    "action": "toggle Halal certified chip",
+                    "screenshot": "search-02-halal-filter",
+                    "expect": "URL contains halal= and results re-render"
+                },
+                {
+                    "action": "change sort to Price: low to high",
+                    "screenshot": "search-03-sorted",
+                    "expect": "URL contains sort=price_asc"
+                },
+                {
+                    "action": "goto",
+                    "url": "/search?q=xyzzy-no-match-9999",
+                    "screenshot": "search-04-empty",
+                    "expect": "'No products match' and a Clear filters link to /search"
+                },
+                {
+                    "action": "click the first result card",
+                    "screenshot": "search-05-product-landed",
+                    "expect": "lands on /products/{slug}"
+                }
+            ]
+        },
+        {
+            "id": "product-detail",
+            "spec": "specs/product-detail.spec.ts",
+            "description": "Buyer product detail page: price and review sections, halal certification facts, variation picker, report dialog, anonymous chat redirect and the sold-out state.",
+            "steps": [
+                {
+                    "action": "goto",
+                    "url": "/products/quran-with-english-translation-hardcover",
+                    "screenshots": ["pdp-01-detail", "pdp-02-reviews"],
+                    "expect": "h1, price block and #pd-rev reviews section visible"
+                },
+                {
+                    "action": "goto",
+                    "url": "/products/ajwa-dates-500g-premium-grade-resealable-tub",
+                    "screenshot": "pdp-03-halal",
+                    "expect": "Halal summary shows the certifying body"
+                },
+                {
+                    "action": "click Add to cart on a product with variants",
+                    "screenshot": "pdp-04-variation-picker",
+                    "expect": "'Select variation' dialog opens with option inputs"
+                },
+                {
+                    "action": "login as test@example.com and click Report",
+                    "screenshot": "pdp-05-report-dialog",
+                    "expect": "report dialog opens with reason radios"
+                },
+                {
+                    "action": "click Chat while logged out",
+                    "screenshot": "pdp-06-chat-login-redirect",
+                    "expect": "redirected to /login"
+                },
+                {
+                    "action": "goto",
+                    "url": "/products/halal-certified-beef-tapa-300g-vacuum-pack",
+                    "screenshot": "pdp-07-sold-out",
+                    "expect": "the Buy now button reads Out of stock and is disabled"
+                }
+            ]
+        },
+        {
+            "id": "seller-vouchers",
+            "spec": "specs/seller-vouchers.spec.ts",
+            "description": "Seller Marketing page: shop voucher create, edit and delete.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "seller@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/vouchers",
+                    "screenshot": "sv-01-list",
+                    "expect": "h1 Marketing and the New voucher details element visible"
+                },
+                {
+                    "action": "create a fixed ₱50 voucher with ₱300 minimum spend",
+                    "screenshot": "sv-02-created",
+                    "expect": "voucher row appears with the code and '₱50 off'"
+                },
+                {
+                    "action": "edit the discount to ₱75",
+                    "screenshot": "sv-03-updated",
+                    "expect": "voucher row summary shows '₱75 off'"
+                },
+                {
+                    "action": "delete the voucher",
+                    "screenshot": "sv-04-deleted",
+                    "expect": "the voucher row disappears"
+                }
+            ]
         }
     ],
     "candidateNextScenarios": [
         "catalogue browse: / -> category -> product -> screenshot each",
-        "search: /search?q=... -> results screenshot",
-        "buyer marks order received + leaves a review",
-        "seller product create/edit with halal declaration"
+        "buyer address CRUD: update, delete and set default",
+        "seller settings and seller customers surfaces",
+        "chat send/read and notifications produced by actions"
     ]
 }

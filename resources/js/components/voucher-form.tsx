@@ -169,6 +169,7 @@ export function VoucherFields({
                     id={id('is_active')}
                     type="checkbox"
                     name="is_active"
+                    value="1"
                     defaultChecked={voucher?.is_active ?? true}
                     className="size-4"
                 />

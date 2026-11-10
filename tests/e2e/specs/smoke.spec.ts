@@ -26,6 +26,22 @@ test.describe('public pages', () => {
     });
 });
 
+test.describe('content pages', () => {
+    test('a published content page renders', async ({ page }) => {
+        const response = await page.goto('/pages/returns');
+
+        expect(response?.status()).toBe(200);
+        await expect(page.locator('h1')).toContainText('Returns');
+        await shot(page, 'smoke-content-01');
+    });
+
+    test('an unknown content page returns 404', async ({ page }) => {
+        const response = await page.goto('/pages/nonexistent');
+
+        expect(response?.status()).toBe(404);
+    });
+});
+
 test.describe('auth journey', () => {
     test('a visitor can register and reaches a post-auth page', async ({
         page,

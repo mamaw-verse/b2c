@@ -9,12 +9,11 @@ import { TextArea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-    create as storeRoute,
+    store as storeRoute,
     update as updateRoute,
 } from '@/routes/seller/products';
 
 type Category = { id: number; name: string };
-type CertifyingBody = { id: number; name: string };
 
 type ProductData = {
     id: string;
@@ -22,11 +21,13 @@ type ProductData = {
     category_id: number | null;
     description: string;
     halal_status: 'certified' | 'not_ingestible' | null;
-    certifying_body_id: number | null;
+    certifying_body: string | null;
     certificate_number: string | null;
     valid_until: string | null;
     ingredients: string | null;
     no_pork_alcohol_declared: boolean;
+    price: number | null;
+    stock: number | null;
     weight: number | null;
     length: number | null;
     width: number | null;
@@ -43,7 +44,7 @@ type ProductData = {
 type PageProps = {
     product: ProductData | null;
     categories: Category[];
-    certifying_bodies: CertifyingBody[];
+    certifying_bodies: string[];
 };
 
 export default function SellerProductForm({
@@ -57,7 +58,7 @@ export default function SellerProductForm({
         product?.halal_status ?? '',
     );
     const [hasVariations, setHasVariations] = useState(
-        product?.has_variations ?? false,
+        product?.has_variations ?? (product?.variations?.length ?? 0) > 0,
     );
     const [variations, setVariations] = useState<VariationItem[]>(
         product?.variations ?? [],
@@ -69,10 +70,18 @@ export default function SellerProductForm({
         product?.option2_name ?? 'Colour',
     );
     const [option1Values, setOption1Values] = useState<string[]>(
-        product?.option1_values ?? [],
+        product?.option1_values ??
+            [...new Set(product?.variations?.map((v) => v.option1_value))],
     );
     const [option2Values, setOption2Values] = useState<string[]>(
-        product?.option2_values ?? [],
+        product?.option2_values ??
+            [
+                ...new Set(
+                    product?.variations
+                        ?.map((v) => v.option2_value)
+                        .filter((v): v is string => v != null),
+                ),
+            ],
     );
 
     const action = isEditing
@@ -90,7 +99,7 @@ export default function SellerProductForm({
                 encType="multipart/form-data"
             >
                 {({ errors, processing }) => (
-                    <div className="mx-auto max-w-4xl p-gutter py-8">
+                    <div className="mx-auto max-w-4xl p-gutter py-8 pb-28 lg:pb-8">
                         <h1 className="mb-6 text-h1">{title}</h1>
 
                         <div className="grid gap-6">
@@ -223,16 +232,14 @@ export default function SellerProductForm({
                                         <div className="grid gap-4 rounded-panel bg-halal-soft p-4">
                                             <FormField
                                                 label="Certifying body"
-                                                error={
-                                                    errors.certifying_body_id
-                                                }
+                                                error={errors.certifying_body}
                                                 required
                                             >
                                                 <select
-                                                    name="certifying_body_id"
+                                                    name="certifying_body"
                                                     className="field"
                                                     defaultValue={
-                                                        product?.certifying_body_id ??
+                                                        product?.certifying_body ??
                                                         ''
                                                     }
                                                 >
@@ -240,12 +247,12 @@ export default function SellerProductForm({
                                                         Select certifying body
                                                     </option>
                                                     {certifying_bodies.map(
-                                                        (b) => (
+                                                        (body) => (
                                                             <option
-                                                                key={b.id}
-                                                                value={b.id}
+                                                                key={body}
+                                                                value={body}
                                                             >
-                                                                {b.name}
+                                                                {body}
                                                             </option>
                                                         ),
                                                     )}
@@ -301,6 +308,7 @@ export default function SellerProductForm({
                                             <label className="flex items-start gap-3 rounded-panel border border-halal bg-halal-soft/50 p-3">
                                                 <Checkbox
                                                     name="no_pork_alcohol_declared"
+                                                    value="1"
                                                     defaultChecked={
                                                         product?.no_pork_alcohol_declared
                                                     }
@@ -348,8 +356,10 @@ export default function SellerProductForm({
                                                     min="0"
                                                     step="0.01"
                                                     defaultValue={
+                                                        product?.price ??
                                                         product?.variations?.[0]
-                                                            ?.price ?? ''
+                                                            ?.price ??
+                                                        ''
                                                     }
                                                 />
                                             </FormField>
@@ -364,8 +374,10 @@ export default function SellerProductForm({
                                                     min="0"
                                                     step="1"
                                                     defaultValue={
+                                                        product?.stock ??
                                                         product?.variations?.[0]
-                                                            ?.stock ?? ''
+                                                            ?.stock ??
+                                                        ''
                                                     }
                                                 />
                                             </FormField>
@@ -545,7 +557,7 @@ export default function SellerProductForm({
                         </div>
 
                         {/* Sticky bottom bar */}
-                        <div className="fixed inset-x-0 bottom-0 z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe lg:left-[var(--sidebar-w)]">
+                        <div className="fixed inset-x-0 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe md:bottom-0 lg:left-[var(--sidebar-w)]">
                             <div className="mx-auto flex max-w-4xl items-center gap-3">
                                 <span className="hidden flex-1 text-body-sm text-muted-foreground lg:block">
                                     {isEditing
