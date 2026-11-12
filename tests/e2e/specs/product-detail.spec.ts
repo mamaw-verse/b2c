@@ -22,12 +22,15 @@ test.describe('product detail', () => {
         await shot(page, 'pdp-02-reviews');
     });
 
-    test('shows halal certification facts', async ({ page }) => {
+    test('shows halal badge and validity without the certifier', async ({
+        page,
+    }) => {
         await page.goto(AJWA);
 
         const facts = page.locator('ul[aria-label="Halal summary"]');
         await expect(facts).toBeVisible();
-        await expect(facts).toContainText('Certified by');
+        await expect(facts).toContainText('Valid to');
+        await expect(page.getByText(/Certified by/)).toHaveCount(0);
         await shot(page, 'pdp-03-halal');
     });
 

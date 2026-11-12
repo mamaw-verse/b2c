@@ -13,6 +13,7 @@ const surfaces = [
             '/seller/terms',
             '/categories/halal-food',
             '/products/quran-with-english-translation-hardcover',
+            '/shops/barakah-pantry',
             '/search?q=dates',
         ],
     },

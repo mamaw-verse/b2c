@@ -212,6 +212,11 @@ test.describe.serial('full order lifecycle', () => {
             .getByRole('button', { name: /^Approve$/ })
             .first()
             .click();
+        const confirm = page.locator('dialog[open]');
+        await expect(confirm).toContainText('Approve item');
+        await confirm
+            .getByRole('button', { name: 'Approve', exact: true })
+            .click();
         await expect(page).toHaveURL(/admin\/moderation$/, {
             timeout: 15_000,
         });

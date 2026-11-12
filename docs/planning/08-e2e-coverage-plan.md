@@ -199,3 +199,20 @@ Existing `smoke`, `order-lifecycle`, and `accessibility` entries get their `step
 - [x] `order-lifecycle.spec.ts` cancellation extension — passing
 - [x] `accessibility.spec.ts` — updated with new routes from above specs
 - [x] `scenarios.json` — all new entries registered
+
+### QA1 revision pass (2026-11-12)
+
+Specs updated for the qa1.md changes (halal section removed from the seller
+product form, certifier name removed from the PDP, moderation request-changes
+flow, shop follow/chat gating):
+
+- [x] `seller-products.spec.ts` — halal-fields test replaced with a
+      variations generation/apply-to-all test; asserts no halal section
+- [x] `product-detail.spec.ts` — halal facts assert badge + validity, no
+      certifier name
+- [x] `seller-registration.spec.ts` — added admin "Request changes" → seller
+      resubmit → admin approve round; approve now confirms a dialog
+- [x] `order-lifecycle.spec.ts` — admin approve confirms the dialog
+- [x] `shop.spec.ts` — NEW: follow/unfollow, chat start, admin/owner gating;
+      registered in `scenarios.json`
+- [x] `accessibility.spec.ts` — added `/shops/barakah-pantry` to public paths

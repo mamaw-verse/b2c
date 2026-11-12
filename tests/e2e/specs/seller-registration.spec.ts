@@ -35,6 +35,64 @@ async function pickOptionByLabel(page: Page, id: string, label: string) {
     await page.locator(`#${id}`).press('Enter');
 }
 
+/**
+ * Fill the PSGC address fields: first region/province, then a city that has
+ * both barangays and a postal code in the PSGC data. PSGC selections and
+ * file uploads are not persisted between applications, so resubmissions
+ * after "changes requested" must call this again.
+ */
+async function pickAddress(page: Page) {
+    await pickFirstOption(page, 'f-region');
+    await pickFirstOption(page, 'f-province');
+
+    // The UI lists options in API order, so "first option" matches the
+    // first entry of the same endpoints.
+    const regions = await api<PsgcEntry[]>(page, 'GET', '/api/psgc/regions');
+    const provinces = await api<PsgcEntry[]>(
+        page,
+        'GET',
+        `/api/psgc/regions/${regions.body[0].code}/provinces`,
+    );
+    const cities = await api<PsgcEntry[]>(
+        page,
+        'GET',
+        `/api/psgc/provinces/${provinces.body[0].code}/cities`,
+    );
+
+    let city = cities.body[0];
+    for (const candidate of cities.body) {
+        if (!candidate.postal_code) continue;
+        const barangays = await api<PsgcEntry[]>(
+            page,
+            'GET',
+            `/api/psgc/cities/${candidate.code}/barangays`,
+        );
+        if (barangays.body.length > 0) {
+            city = candidate;
+            break;
+        }
+    }
+
+    await pickOptionByLabel(page, 'f-city', city.name);
+    await pickFirstOption(page, 'f-barangay');
+    await page.locator('#f-street').fill('Unit 4B, 12 E2E Street');
+
+    // The postal code is auto-filled and locked when the city has one.
+    const postal = page.locator('#f-postal');
+    if (city.postal_code) {
+        await expect(postal).toHaveValue(city.postal_code);
+        await expect(postal).toHaveAttribute('readonly', '');
+    } else {
+        await postal.fill('7000');
+    }
+}
+
+const uploadPdf = {
+    name: 'document.pdf',
+    mimeType: 'application/pdf',
+    buffer: MINIMAL_PDF,
+};
+
 test.describe.serial('seller registration', () => {
     test.beforeAll(() => {
         applicantEmail = uniqueEmail('seller-applicant');
@@ -124,55 +182,8 @@ test.describe.serial('seller registration', () => {
             page.locator('[data-test="checklist-profile"]').first(),
         ).toHaveAttribute('data-done', 'true');
 
-        // 2. Address — first region and province, then a city that has both
-        // barangays and a postal code in the PSGC data.
-        await pickFirstOption(page, 'f-region');
-        await pickFirstOption(page, 'f-province');
-
-        // The UI lists options in API order, so "first option" matches the
-        // first entry of the same endpoints.
-        const regions = await api<PsgcEntry[]>(
-            page,
-            'GET',
-            '/api/psgc/regions',
-        );
-        const provinces = await api<PsgcEntry[]>(
-            page,
-            'GET',
-            `/api/psgc/regions/${regions.body[0].code}/provinces`,
-        );
-        const cities = await api<PsgcEntry[]>(
-            page,
-            'GET',
-            `/api/psgc/provinces/${provinces.body[0].code}/cities`,
-        );
-
-        let city = cities.body[0];
-        for (const candidate of cities.body) {
-            if (!candidate.postal_code) continue;
-            const barangays = await api<PsgcEntry[]>(
-                page,
-                'GET',
-                `/api/psgc/cities/${candidate.code}/barangays`,
-            );
-            if (barangays.body.length > 0) {
-                city = candidate;
-                break;
-            }
-        }
-
-        await pickOptionByLabel(page, 'f-city', city.name);
-        await pickFirstOption(page, 'f-barangay');
-        await page.locator('#f-street').fill('Unit 4B, 12 E2E Street');
-
-        // The postal code is auto-filled and locked when the city has one.
-        const postal = page.locator('#f-postal');
-        if (city.postal_code) {
-            await expect(postal).toHaveValue(city.postal_code);
-            await expect(postal).toHaveAttribute('readonly', '');
-        } else {
-            await postal.fill('7000');
-        }
+        // 2. Address.
+        await pickAddress(page);
         await expect(
             page.locator('[data-test="checklist-address"]').first(),
         ).toHaveAttribute('data-done', 'true');
@@ -230,15 +241,91 @@ test.describe.serial('seller registration', () => {
         await shot(page, 'seller-reg-04-pending');
     });
 
-    test('admin approves the application in the moderation queue', async ({
-        page,
-    }) => {
+    test('admin requests changes on the application', async ({ page }) => {
         await login(page, ADMIN);
         await page.goto(
             '/admin/moderation?type=shop_application&state=pending',
         );
 
-        // The application from this run must be in the pending queue.
+        const item = page.locator('a[href*="/admin/moderation/"]', {
+            hasText: shopName,
+        });
+        await expect(item).toBeVisible();
+        await item.click();
+        await expect(page).toHaveURL(/admin\/moderation\/.+/);
+        await shot(page, 'seller-reg-06-request-item');
+
+        // Narrow containers tuck the secondary actions behind "More actions".
+        const requestButton = page.getByRole('button', {
+            name: 'Request changes',
+            exact: true,
+        });
+        if (await requestButton.first().isVisible()) {
+            await requestButton.first().click();
+        } else {
+            await page.getByRole('button', { name: 'More actions' }).click();
+            // The popover opens upward into the sticky bar's stacking
+            // context, so the bottom nav can overlap it on small screens —
+            // dispatch the click directly on the menu item.
+            await page
+                .getByRole('menuitem', { name: 'Request changes' })
+                .dispatchEvent('click');
+        }
+
+        const dialog = page.locator('dialog[open]');
+        await expect(dialog).toContainText('Request changes');
+        await dialog
+            .locator('#mab-request-reason')
+            .fill('Please upload a clearer business permit scan.');
+        await shot(page, 'seller-reg-07-request-dialog');
+        await dialog.getByRole('button', { name: 'Send request' }).click();
+
+        // The item stays in the queue as flagged and the decision redirects
+        // back to the moderation index.
+        await expect(page).toHaveURL(/admin\/moderation$/, {
+            timeout: 15_000,
+        });
+        await shot(page, 'seller-reg-08-request-sent');
+    });
+
+    test('the seller sees the requested changes and resubmits', async ({
+        page,
+    }) => {
+        await login(page, applicantEmail);
+        await page.goto('/seller/register');
+
+        await expect(
+            page.getByText('Changes were requested on your application'),
+        ).toBeVisible();
+        await expect(
+            page.getByText(/clearer business permit scan/),
+        ).toBeVisible();
+        await expect(page.locator('#f-shop-name')).toHaveValue(shopName);
+        await shot(page, 'seller-reg-09-changes-banner');
+
+        // PSGC selections and file uploads are not persisted — redo them.
+        await pickAddress(page);
+        await page.locator('#f-permit-file').setInputFiles(uploadPdf);
+        await page.locator('#cert-0-document-file').setInputFiles(uploadPdf);
+
+        await page.locator('#f-terms').check();
+        await page.getByRole('checkbox', { name: /true and correct/i }).check();
+        await page.locator('#f-halal').check();
+
+        await page.getByRole('button', { name: 'Submit application' }).click();
+        await expect(page.getByText('Application under review')).toBeVisible({
+            timeout: 15_000,
+        });
+        await shot(page, 'seller-reg-10-resubmitted');
+    });
+
+    test('admin approves the resubmitted application', async ({ page }) => {
+        await login(page, ADMIN);
+        await page.goto(
+            '/admin/moderation?type=shop_application&state=pending',
+        );
+
+        // Resubmission re-opened the same queue item as pending.
         const item = page.locator('a[href*="/admin/moderation/"]', {
             hasText: shopName,
         });
@@ -255,6 +342,11 @@ test.describe.serial('seller registration', () => {
         await page
             .getByRole('button', { name: /^Approve$/ })
             .first()
+            .click();
+        const confirm = page.locator('dialog[open]');
+        await expect(confirm).toContainText('Approve item');
+        await confirm
+            .getByRole('button', { name: 'Approve', exact: true })
             .click();
         await expect(page).toHaveURL(/admin\/moderation$/, {
             timeout: 15_000,

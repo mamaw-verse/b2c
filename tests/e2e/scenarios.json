@@ -146,7 +146,7 @@
                         "admin-03-item",
                         "admin-04-decided"
                     ],
-                    "expect": "buyer's report appears in the moderation queue and can be approved"
+                    "expect": "buyer's report appears in the moderation queue and can be approved after confirming the dialog"
                 },
                 {
                     "action": "buyer places a fresh order and cancels it",
@@ -246,12 +246,12 @@
         {
             "id": "seller-registration",
             "spec": "specs/seller-registration.spec.ts",
-            "description": "Seller application lifecycle: error summary on empty submit, PSGC cascading selects with auto-filled postal code, file uploads (logo PNG, permit/cert PDFs), certificate add/remove, client-side checklist completion, submit into pending state, admin approval via the moderation queue (type=shop_application), and the applicant entering the seller workspace. Once approved, /seller/register 404s for the applicant.",
+            "description": "Seller application lifecycle: error summary on empty submit, PSGC cascading selects with auto-filled postal code, file uploads (logo PNG, permit/cert PDFs), certificate add/remove, client-side checklist completion, submit into pending state, admin requests changes (item flagged, shop changes_requested), seller sees the note and resubmits, admin approval via the moderation queue (type=shop_application) behind a confirm dialog, and the applicant entering the seller workspace. Once approved, /seller/register 404s for the applicant.",
             "steps": [
                 {
                     "action": "login",
-                    "email": "test@example.com",
-                    "note": "seeded verified buyer with no shop"
+                    "email": "unique verified applicant (created in beforeAll)",
+                    "note": "fresh user per project run so the apply → changes → resubmit → approve flow is exercised for real"
                 },
                 {
                     "action": "goto",
@@ -281,15 +281,42 @@
                     "action": "goto",
                     "url": "/admin/moderation?type=shop_application&state=pending",
                     "screenshots": [
+                        "seller-reg-06-request-item",
+                        "seller-reg-07-request-dialog",
+                        "seller-reg-08-request-sent"
+                    ],
+                    "expect": "Request changes opens a dialog with a required message; sending it flags the item and returns to the queue"
+                },
+                {
+                    "action": "login",
+                    "email": "unique verified applicant (created in beforeAll)"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/register",
+                    "screenshots": [
+                        "seller-reg-09-changes-banner",
+                        "seller-reg-10-resubmitted"
+                    ],
+                    "expect": "'Changes were requested' banner shows the admin's note; PSGC and uploads must be redone; resubmit returns to 'Application under review'"
+                },
+                {
+                    "action": "login",
+                    "email": "admin@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/admin/moderation?type=shop_application&state=pending",
+                    "screenshots": [
                         "seller-reg-05-queue",
                         "seller-reg-06-application",
                         "seller-reg-07-approved"
                     ],
-                    "expect": "application item shows shop name and documents; Approve decides it and returns to the queue"
+                    "expect": "resubmitted item is pending again; Approve asks for confirmation, then decides it and returns to the queue"
                 },
                 {
                     "action": "login",
-                    "email": "test@example.com"
+                    "email": "unique verified applicant (created in beforeAll)"
                 },
                 {
                     "action": "goto",
@@ -421,7 +448,7 @@
         {
             "id": "seller-products",
             "spec": "specs/seller-products.spec.ts",
-            "description": "Seller product CRUD: list, create a simple published product, create a certified-halal draft with certificate fields, filter by name, edit the name and save as draft, then delete the product.",
+            "description": "Seller product CRUD: list, create a simple published product (no halal section anymore), generate variant rows from option values with apply-to-all price/stock, filter by name, edit the name and save as draft, then delete the product.",
             "steps": [
                 {
                     "action": "login",
@@ -442,9 +469,13 @@
                     "expect": "redirects to /seller/products with the new product row visible"
                 },
                 {
-                    "action": "create certified halal product as draft",
-                    "screenshot": "products-04-halal-fields",
-                    "expect": "certifying body, certificate number, valid until, ingredients and declaration fields appear and save"
+                    "action": "generate variations and apply to all",
+                    "screenshots": [
+                        "products-04-variations",
+                        "products-04-apply-all",
+                        "products-05-variation-form"
+                    ],
+                    "expect": "2 option-1 × 2 option-2 values produce 4 rows; Apply fills ₱49.50/100 on every row; removing a value drops its rows; saves as draft"
                 },
                 {
                     "action": "filter list by product name",
@@ -512,7 +543,7 @@
                     "action": "goto",
                     "url": "/products/ajwa-dates-500g-premium-grade-resealable-tub",
                     "screenshot": "pdp-03-halal",
-                    "expect": "Halal summary shows the certifying body"
+                    "expect": "Halal summary shows the badge and 'Valid to' date; no certifier name anywhere"
                 },
                 {
                     "action": "click Add to cart on a product with variants",
@@ -534,6 +565,38 @@
                     "url": "/products/halal-certified-beef-tapa-300g-vacuum-pack",
                     "screenshot": "pdp-07-sold-out",
                     "expect": "the Buy now button reads Out of stock and is disabled"
+                }
+            ]
+        },
+        {
+            "id": "shop-page",
+            "spec": "specs/shop.spec.ts",
+            "description": "Shop page follow/chat gating: guests bounce to login, buyers toggle Follow (is_following prop flips) and start a chat, admins and the shop owner see neither button.",
+            "steps": [
+                {
+                    "action": "goto",
+                    "url": "/shops/barakah-pantry",
+                    "screenshot": "shop-01-guest",
+                    "expect": "shop header renders; clicking Follow redirects to /login"
+                },
+                {
+                    "action": "login",
+                    "email": "test@example.com"
+                },
+                {
+                    "action": "follow then unfollow",
+                    "screenshots": ["shop-02-follow", "shop-03-unfollowed"],
+                    "expect": "Follow becomes 'Following' and persists across reload; clicking again reverts to 'Follow'"
+                },
+                {
+                    "action": "click Chat",
+                    "screenshot": "shop-04-chat",
+                    "expect": "redirects to /account/chat/{conversation}"
+                },
+                {
+                    "action": "login as admin and as the shop owner",
+                    "screenshots": ["shop-05-admin", "shop-06-owner"],
+                    "expect": "neither Follow nor Chat renders for admin@example.com or seller@example.com (the owner)"
                 }
             ]
         },

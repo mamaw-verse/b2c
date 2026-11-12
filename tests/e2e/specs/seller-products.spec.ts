@@ -43,9 +43,7 @@ test.describe.serial('seller products', () => {
             'textarea[name="description"]',
             'Automated e2e simple product.',
         );
-        await page
-            .locator('input[name="halal_status"][value="not_ingestible"]')
-            .check();
+        await expect(page.getByText('Halal information')).toHaveCount(0);
         await page.fill('input[name="price"]', '199');
         await page.fill('input[name="stock"]', '15');
         await page.fill('input[name="weight"]', '0.4');
@@ -59,51 +57,84 @@ test.describe.serial('seller products', () => {
         await shot(page, 'products-03-created');
     });
 
-    test('seller sees halal certificate fields when certified', async ({
+    test('seller generates variations and applies values to all', async ({
         page,
     }) => {
         await login(page, SELLER);
         await page.goto('/seller/products/create');
 
-        await page
-            .locator('input[name="halal_status"][value="certified"]')
-            .check();
+        await page.locator('#has_variations').check();
+
+        const matrix = page.locator('section').filter({
+            has: page.getByRole('heading', {
+                name: 'Sales information',
+            }),
+        });
         await expect(
-            page.locator('select[name="certifying_body"]'),
-        ).toBeVisible();
-        await expect(
-            page.locator('input[name="certificate_number"]'),
-        ).toBeVisible();
-        await expect(page.locator('input[name="valid_until"]')).toBeVisible();
-        await expect(
-            page.locator('textarea[name="ingredients"]'),
-        ).toBeVisible();
-        await expect(
-            page.locator('input[name="no_pork_alcohol_declared"]'),
+            matrix.getByText('Add at least one value to generate variations.'),
         ).toBeVisible();
 
-        await page.fill('input[name="name"]', `E2E Certified ${stamp()}`);
+        const optionAdd = matrix.getByRole('button', {
+            name: 'Add',
+            exact: true,
+        });
+        const addValue = async (option: number, value: string) => {
+            await optionAdd.nth(option).click();
+            const input = page.getByPlaceholder('New value');
+            await input.fill(value);
+            await input
+                .locator('xpath=..')
+                .getByRole('button', { name: 'Add' })
+                .click();
+        };
+
+        await addValue(0, 'S');
+        await addValue(0, 'M');
+        await addValue(1, 'Red');
+        await addValue(1, 'Blue');
+
+        // 2 sizes × 2 colours = 4 generated rows.
+        const rowInputs = page.locator('input[name*="[option1_value]"]');
+        await expect(rowInputs).toHaveCount(4);
+        await shot(page, 'products-04-variations');
+
+        // Apply to all fills every row; decimal prices are preserved.
+        await matrix.getByPlaceholder('Price').fill('49.50');
+        await matrix.getByPlaceholder('Stock').fill('100');
+        await matrix
+            .getByRole('button', { name: 'Apply', exact: true })
+            .click();
+
+        const prices = page.locator('input[name*="[price]"]');
+        await expect(prices).toHaveCount(4);
+        for (let i = 0; i < 4; i++) {
+            await expect(prices.nth(i)).toHaveValue('49.5');
+        }
+        await expect(
+            page.locator('input[name*="[stock]"]').first(),
+        ).toHaveValue('100');
+        await shot(page, 'products-04-apply-all');
+
+        // Removing an option value drops its rows but keeps the rest.
+        await page.getByRole('button', { name: 'Remove M' }).click();
+        await expect(rowInputs).toHaveCount(2);
+        await expect(prices.first()).toHaveValue('49.5');
+
+        const variationName = `E2E Variations ${stamp()}`;
+        await page.fill('input[name="name"]', variationName);
         await page.selectOption('select[name="category_id"]', { index: 1 });
         await page.fill(
             'textarea[name="description"]',
-            'Automated e2e certified product.',
+            'Automated e2e variations product.',
         );
-        await page.selectOption('select[name="certifying_body"]', {
-            index: 1,
-        });
-        await page.fill('input[name="certificate_number"]', 'CERT-E2E-001');
-        await page.fill('input[name="valid_until"]', '2027-12-31');
-        await page.fill('textarea[name="ingredients"]', 'Dates, water.');
-        await page.check('input[name="no_pork_alcohol_declared"]');
-        await page.fill('input[name="price"]', '250');
-        await page.fill('input[name="stock"]', '12');
-        await page.fill('input[name="weight"]', '0.5');
-        await shot(page, 'products-04-halal-fields');
+        await page.fill('input[name="weight"]', '0.3');
+        await shot(page, 'products-05-variation-form');
 
         await page.getByRole('button', { name: 'Save draft' }).click();
         await expect(page).toHaveURL(/seller\/products$/, {
             timeout: 15_000,
         });
+        await expect(productRow(page, variationName)).toBeVisible();
     });
 
     test('seller filters the product list by name', async ({ page }) => {
