@@ -10,10 +10,14 @@ export function ShopHeader({
     shop: s,
     onChat,
     onReport,
+    onFollow,
+    following = false,
 }: {
     shop: ShopData;
     onChat?: () => void;
     onReport?: () => void;
+    onFollow?: () => void;
+    following?: boolean;
 }) {
     const stats: [string, string | number][] = [
         ['Rating', `${s.rating} / 5`],
@@ -84,20 +88,28 @@ export function ShopHeader({
                     </p>
                 </div>
                 <div className="flex gap-2 md:pb-1">
-                    <Button
-                        icon={<DsIcon name="plus" />}
-                        className="flex-1 md:flex-none"
-                    >
-                        Follow
-                    </Button>
-                    <Button
-                        variant="outline"
-                        icon={<DsIcon name="message-circle" />}
-                        className="flex-1 md:flex-none"
-                        onClick={onChat}
-                    >
-                        Chat
-                    </Button>
+                    {onFollow && (
+                        <Button
+                            variant={following ? 'neutral' : 'default'}
+                            icon={
+                                <DsIcon name={following ? 'check' : 'plus'} />
+                            }
+                            className="flex-1 md:flex-none"
+                            onClick={onFollow}
+                        >
+                            {following ? 'Following' : 'Follow'}
+                        </Button>
+                    )}
+                    {onChat && (
+                        <Button
+                            variant="outline"
+                            icon={<DsIcon name="message-circle" />}
+                            className="flex-1 md:flex-none"
+                            onClick={onChat}
+                        >
+                            Chat
+                        </Button>
+                    )}
                     {onReport && (
                         <Button
                             variant="ghost"

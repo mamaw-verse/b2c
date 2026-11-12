@@ -22,6 +22,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\ShopFollowController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -56,12 +57,14 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
 
     Route::post('reports', [App\Http\Controllers\Report\ReportController::class, 'store'])->name('reports.store');
 
+    Route::post('account/addresses', [AddressController::class, 'store'])->name('addresses.store');
+
     // Buyer workspace surfaces. Buyer and seller pages are stripped for
     // admins — their only surfaces are the admin console and settings.
     Route::middleware('workspace:buyer')->group(function () {
         Route::inertia('account', 'account/home')->name('account.home');
 
-        Route::resource('account/addresses', AddressController::class)->only(['index', 'store', 'update', 'destroy'])->names('addresses');
+        Route::resource('account/addresses', AddressController::class)->only(['index', 'update', 'destroy'])->names('addresses');
         Route::put('account/addresses/{address}/default', [AddressDefaultController::class, 'update'])->name('addresses.default.update');
 
         Route::resource('account/orders', OrderController::class)->only(['index', 'show'])->names('orders');
@@ -76,6 +79,9 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
 
         Route::get('account/notifications', [App\Http\Controllers\Notification\NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/read', [App\Http\Controllers\Notification\NotificationReadController::class, 'store'])->name('notifications.read.store');
+
+        Route::post('shops/{shop:slug}/follow', [ShopFollowController::class, 'store'])->name('shops.follow.store');
+        Route::delete('shops/{shop:slug}/follow', [ShopFollowController::class, 'destroy'])->name('shops.follow.destroy');
 
         // The seller application flow is a buyer-area surface too.
         Route::get('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'create'])->name('seller.register');

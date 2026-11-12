@@ -21,8 +21,8 @@ final class CreateShopRegistrationRequest extends FormRequest
 
         return match (true) {
             $shop === null => Response::allow(),
-            // A rejected application may be edited and resubmitted.
-            $shop->status === ShopStatus::Rejected => Response::allow(),
+            // A rejected or changes-requested application may be edited and resubmitted.
+            in_array($shop->status, [ShopStatus::Rejected, ShopStatus::ChangesRequested], true) => Response::allow(),
             // GET shows the pending application's status; resubmission is not allowed.
             $shop->status === ShopStatus::Pending && ! $this->isMethod('post') => Response::allow(),
             default => Response::denyAsNotFound(),

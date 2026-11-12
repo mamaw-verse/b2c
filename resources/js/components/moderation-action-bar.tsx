@@ -5,19 +5,18 @@ import {
     EyeOff,
     FileBadge,
     SquarePen,
-    TriangleAlert,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ReasonPicker } from '@/components/reason-picker';
 
 export type ModerationAction =
     | 'approve'
     | 'reject'
-    | 'request_changes'
-    | 'request_certificate'
+    | 'changes_requested'
+    | 'certificate_requested'
     | 'hide'
-    | 'warn'
     | 'suspend';
 
 export type ModerationActionBarProps = {
@@ -43,6 +42,66 @@ const DEFAULT_TEMPLATES = [
     'Incomplete documents',
 ];
 
+type RequestAction = 'changes_requested' | 'certificate_requested';
+type ConfirmAction = 'approve' | 'hide' | 'suspend';
+
+const REQUEST_ACTIONS: Record<
+    RequestAction,
+    {
+        title: string;
+        confirmLabel: string;
+        prefill: string;
+    }
+> = {
+    changes_requested: {
+        title: 'Request changes',
+        confirmLabel: 'Send request',
+        prefill: '',
+    },
+    certificate_requested: {
+        title: 'Request certificate',
+        confirmLabel: 'Send request',
+        prefill: 'Please upload a valid halal certificate.',
+    },
+};
+
+const CONFIRM_ACTIONS: Record<
+    ConfirmAction,
+    {
+        title: string;
+        text: string;
+        confirmLabel: string;
+        tone: 'danger' | 'primary';
+        action: string;
+        reason: string;
+    }
+> = {
+    approve: {
+        title: 'Approve item',
+        text: 'Approve this item? The decision is recorded and the item leaves the queue.',
+        confirmLabel: 'Approve',
+        tone: 'primary',
+        action: 'approved',
+        reason: 'Approved by moderator',
+    },
+    hide: {
+        title: 'Hide content',
+        text: 'Hide this content? It will be taken down pending revision by the author.',
+        confirmLabel: 'Hide',
+        tone: 'danger',
+        action: 'hidden',
+        reason: 'Hidden by moderator',
+    },
+    suspend: {
+        title: 'Suspend target',
+        text: 'Suspend this target? This is a serious action that restricts the seller or shop.',
+        confirmLabel: 'Suspend',
+        tone: 'danger',
+        action: 'suspended',
+        reason: 'Target suspended by moderator',
+    },
+};
+
 export function ModerationActionBar({
     onDecide,
     templates = DEFAULT_TEMPLATES,
@@ -52,6 +111,13 @@ export function ModerationActionBar({
 }: ModerationActionBarProps) {
     const [rejectOpen, setRejectOpen] = useState(false);
     const [moreOpen, setMoreOpen] = useState(false);
+    const [requestAction, setRequestAction] = useState<RequestAction | null>(
+        null,
+    );
+    const [requestReason, setRequestReason] = useState('');
+    const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
+        null,
+    );
     const [selectedReason, setSelectedReason] = useState<string>('');
     const [note, setNote] = useState('');
     const [internalNote, setInternalNote] = useState(false);
@@ -67,6 +133,21 @@ export function ModerationActionBar({
         );
     }
 
+    const resetReasonFields = () => {
+        setSelectedReason('');
+        setNote('');
+        setInternalNote(false);
+        setRejectError(null);
+    };
+
+    const composedReason = () =>
+        [selectedReason, note].filter(Boolean).join(' — ');
+
+    const openRequestDialog = (action: RequestAction) => {
+        setRequestReason(REQUEST_ACTIONS[action].prefill);
+        setRequestAction(action);
+    };
+
     const handleRejectSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedReason) {
@@ -76,12 +157,27 @@ export function ModerationActionBar({
         setRejectError(null);
         onDecide({
             action: 'rejected',
-            reason: selectedReason,
-            note: note || undefined,
-            internalNote,
+            reason: composedReason(),
         });
         setRejectOpen(false);
+        resetReasonFields();
     };
+
+    const handleRequestSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!requestAction || !requestReason.trim()) {
+            return;
+        }
+        onDecide({
+            action: requestAction,
+            reason: requestReason.trim(),
+        });
+        setRequestAction(null);
+        setRequestReason('');
+    };
+
+    const requestConfig = requestAction ? REQUEST_ACTIONS[requestAction] : null;
+    const confirmConfig = confirmAction ? CONFIRM_ACTIONS[confirmAction] : null;
 
     return (
         <div className="overflow-hidden rounded-panel border border-border">
@@ -93,10 +189,7 @@ export function ModerationActionBar({
                             type="button"
                             disabled={processing}
                             onClick={() =>
-                                onDecide({
-                                    action: 'hidden',
-                                    reason: 'Requested changes by moderator',
-                                })
+                                openRequestDialog('changes_requested')
                             }
                             className="btn btn-neutral"
                         >
@@ -107,10 +200,7 @@ export function ModerationActionBar({
                             type="button"
                             disabled={processing}
                             onClick={() =>
-                                onDecide({
-                                    action: 'flagged',
-                                    reason: 'Certificate requested',
-                                })
+                                openRequestDialog('certificate_requested')
                             }
                             className="btn btn-neutral"
                         >
@@ -120,12 +210,7 @@ export function ModerationActionBar({
                         <button
                             type="button"
                             disabled={processing}
-                            onClick={() =>
-                                onDecide({
-                                    action: 'hidden',
-                                    reason: 'Hidden by moderator',
-                                })
-                            }
+                            onClick={() => setConfirmAction('hide')}
                             className="btn btn-neutral"
                         >
                             <EyeOff aria-hidden="true" className="icon" />
@@ -134,29 +219,7 @@ export function ModerationActionBar({
                         <button
                             type="button"
                             disabled={processing}
-                            onClick={() =>
-                                onDecide({
-                                    action: 'flagged',
-                                    reason: 'Warning issued',
-                                })
-                            }
-                            className="btn btn-neutral"
-                        >
-                            <TriangleAlert
-                                aria-hidden="true"
-                                className="icon"
-                            />
-                            <span>Warn</span>
-                        </button>
-                        <button
-                            type="button"
-                            disabled={processing}
-                            onClick={() =>
-                                onDecide({
-                                    action: 'suspended',
-                                    reason: 'Target suspended by moderator',
-                                })
-                            }
+                            onClick={() => setConfirmAction('suspend')}
                             className="btn btn-neutral text-danger-text"
                         >
                             <Ban aria-hidden="true" className="icon" />
@@ -187,10 +250,7 @@ export function ModerationActionBar({
                                     role="menuitem"
                                     onClick={() => {
                                         setMoreOpen(false);
-                                        onDecide({
-                                            action: 'hidden',
-                                            reason: 'Requested changes',
-                                        });
+                                        openRequestDialog('changes_requested');
                                     }}
                                     className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
                                 >
@@ -205,10 +265,9 @@ export function ModerationActionBar({
                                     role="menuitem"
                                     onClick={() => {
                                         setMoreOpen(false);
-                                        onDecide({
-                                            action: 'flagged',
-                                            reason: 'Certificate requested',
-                                        });
+                                        openRequestDialog(
+                                            'certificate_requested',
+                                        );
                                     }}
                                     className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
                                 >
@@ -223,10 +282,7 @@ export function ModerationActionBar({
                                     role="menuitem"
                                     onClick={() => {
                                         setMoreOpen(false);
-                                        onDecide({
-                                            action: 'hidden',
-                                            reason: 'Hidden by moderator',
-                                        });
+                                        setConfirmAction('hide');
                                     }}
                                     className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
                                 >
@@ -235,24 +291,6 @@ export function ModerationActionBar({
                                         className="size-4"
                                     />
                                     Hide
-                                </button>
-                                <button
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={() => {
-                                        setMoreOpen(false);
-                                        onDecide({
-                                            action: 'flagged',
-                                            reason: 'Warned seller',
-                                        });
-                                    }}
-                                    className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-foreground hover:bg-surface-muted"
-                                >
-                                    <TriangleAlert
-                                        aria-hidden="true"
-                                        className="size-4"
-                                    />
-                                    Warn seller
                                 </button>
                                 <div
                                     role="separator"
@@ -263,10 +301,7 @@ export function ModerationActionBar({
                                     role="menuitem"
                                     onClick={() => {
                                         setMoreOpen(false);
-                                        onDecide({
-                                            action: 'suspended',
-                                            reason: 'Shop suspended',
-                                        });
+                                        setConfirmAction('suspend');
                                     }}
                                     className="flex min-h-touch w-full items-center gap-3 rounded-button px-3 text-left text-body text-danger-text hover:bg-danger-soft"
                                 >
@@ -284,7 +319,10 @@ export function ModerationActionBar({
                     <button
                         type="button"
                         disabled={processing}
-                        onClick={() => setRejectOpen(true)}
+                        onClick={() => {
+                            resetReasonFields();
+                            setRejectOpen(true);
+                        }}
                         className="btn btn-danger btn-lg flex-1 @3xl:flex-none"
                     >
                         <X aria-hidden="true" className="icon" />
@@ -295,12 +333,7 @@ export function ModerationActionBar({
                     <button
                         type="button"
                         disabled={processing}
-                        onClick={() =>
-                            onDecide({
-                                action: 'approved',
-                                reason: 'Approved by moderator',
-                            })
-                        }
+                        onClick={() => setConfirmAction('approve')}
                         className="btn btn-lg flex-1 @3xl:flex-none"
                     >
                         <Check aria-hidden="true" className="icon" />
@@ -373,6 +406,104 @@ export function ModerationActionBar({
                         </div>
                     </form>
                 </dialog>
+            )}
+
+            {/* Request changes / certificate dialog */}
+            {requestConfig && requestAction && (
+                <dialog
+                    open
+                    aria-labelledby="mab-request-title"
+                    className="z-modal mt-auto mb-0 max-h-[90dvh] w-full rounded-t-panel bg-surface p-0 shadow-sheet transition-[translate,opacity,scale,display,overlay] transition-discrete duration-token md:m-auto md:max-h-[85dvh] md:w-[min(32rem,calc(100vw-2rem))] md:rounded-panel"
+                >
+                    <form
+                        onSubmit={handleRequestSubmit}
+                        className="flex max-h-[inherit] flex-col"
+                    >
+                        <div className="flex justify-center pt-2 md:hidden">
+                            <span
+                                className="h-1.5 w-10 rounded-full bg-border-control"
+                                aria-hidden="true"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-border py-1 pr-1 pl-4 md:py-2">
+                            <h2
+                                id="mab-request-title"
+                                className="flex-1 text-h3"
+                            >
+                                {requestConfig.title}
+                            </h2>
+                            <button
+                                type="button"
+                                className="btn btn-icon btn-ghost text-foreground"
+                                aria-label="Close"
+                                onClick={() => setRequestAction(null)}
+                            >
+                                <X aria-hidden="true" className="icon" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto overscroll-contain p-4">
+                            <label
+                                htmlFor="mab-request-reason"
+                                className="mb-1.5 block text-label"
+                            >
+                                Message to seller{' '}
+                                <span aria-hidden="true">*</span>
+                            </label>
+                            <textarea
+                                id="mab-request-reason"
+                                required
+                                rows={4}
+                                className="field w-full resize-none text-input"
+                                value={requestReason}
+                                onChange={(e) =>
+                                    setRequestReason(e.target.value)
+                                }
+                                placeholder="Describe what the seller needs to provide or fix…"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-2 border-t border-border px-4 pt-3 pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                className="btn btn-neutral"
+                                onClick={() => setRequestAction(null)}
+                            >
+                                <span>Cancel</span>
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing || !requestReason.trim()}
+                                className="btn"
+                            >
+                                <span>{requestConfig.confirmLabel}</span>
+                            </button>
+                        </div>
+                    </form>
+                </dialog>
+            )}
+
+            {/* Confirm dialog for approve / hide / suspend */}
+            {confirmConfig && confirmAction && (
+                <ConfirmDialog
+                    open
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setConfirmAction(null);
+                        }
+                    }}
+                    title={confirmConfig.title}
+                    text={confirmConfig.text}
+                    confirmLabel={confirmConfig.confirmLabel}
+                    cancelLabel="Cancel"
+                    tone={confirmConfig.tone}
+                    loading={processing}
+                    onConfirm={() => {
+                        onDecide({
+                            action: confirmConfig.action,
+                            reason: confirmConfig.reason,
+                        });
+                        setConfirmAction(null);
+                    }}
+                />
             )}
         </div>
     );

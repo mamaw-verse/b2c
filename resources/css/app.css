@@ -852,26 +852,9 @@
      [data-select-chevron] and it wins by covering this background. */
     select.field {
         @apply appearance-none bg-no-repeat pr-10;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238a958e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
         background-position: right 0.75rem center;
         background-size: 1.25rem;
-        -webkit-mask-image: none;
-    }
-    @supports (background: color-mix(in srgb, red, blue)) {
-        select.field {
-            background-image: linear-gradient(
-                var(--subtle-foreground),
-                var(--subtle-foreground)
-            );
-            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-            -webkit-mask-position: right 0.75rem center;
-            -webkit-mask-repeat: no-repeat;
-            -webkit-mask-size: 1.25rem;
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-            mask-position: right 0.75rem center;
-            mask-repeat: no-repeat;
-            mask-size: 1.25rem;
-        }
     }
 
     /* Badge: non-interactive status/label. */

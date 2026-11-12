@@ -54,8 +54,12 @@ export function VariantMatrix({
 
         const updated = variations.map((v) => ({
             ...v,
-            price: applyPrice !== '' ? parseInt(applyPrice, 10) || 0 : v.price,
-            stock: applyStock !== '' ? parseInt(applyStock, 10) || 0 : v.stock,
+            ...(applyPrice !== ''
+                ? { price: parseFloat(applyPrice) || 0 }
+                : {}),
+            ...(applyStock !== ''
+                ? { stock: parseInt(applyStock, 10) || 0 }
+                : {}),
         }));
         onChangeVariations(updated);
     };
@@ -66,10 +70,15 @@ export function VariantMatrix({
         value: string,
     ) => {
         const updated = [...variations];
-        if (field === 'price' || field === 'stock') {
+        if (field === 'price') {
             updated[index] = {
                 ...updated[index],
-                [field]: parseInt(value, 10) || 0,
+                price: parseFloat(value) || 0,
+            };
+        } else if (field === 'stock') {
+            updated[index] = {
+                ...updated[index],
+                stock: parseInt(value, 10) || 0,
             };
         } else {
             updated[index] = {
@@ -313,205 +322,216 @@ export function VariantMatrix({
                 </p>
             )}
 
-            {/* Desktop Table (md+) */}
-            <div className="hidden overflow-x-auto rounded-panel border border-border md:block">
-                <table className="w-full table-fixed text-body">
-                    <caption className="sr-only">
-                        Price and stock per variation
-                    </caption>
-                    <thead className="bg-surface-subtle">
-                        <tr>
-                            <th
-                                scope="col"
-                                className="px-3 py-2 text-left text-th text-muted-foreground uppercase"
-                            >
-                                {option1Name || 'Option 1'}
-                            </th>
-                            {option2Name && (
-                                <th
-                                    scope="col"
-                                    className="w-28 px-3 py-2 text-left text-th text-muted-foreground uppercase"
-                                >
-                                    {option2Name}
-                                </th>
-                            )}
-                            <th
-                                scope="col"
-                                className="w-36 px-3 py-2 text-left text-th text-muted-foreground uppercase"
-                            >
-                                Price
-                            </th>
-                            <th
-                                scope="col"
-                                className="w-32 px-3 py-2 text-left text-th text-muted-foreground uppercase"
-                            >
-                                Stock
-                            </th>
-                            <th
-                                scope="col"
-                                className="w-40 px-3 py-2 text-left text-th text-muted-foreground uppercase"
-                            >
-                                SKU
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                        {variations.map((v, i) => (
-                            <tr key={i}>
-                                <th
-                                    scope="row"
-                                    className="px-3 py-2 text-left text-label"
-                                >
-                                    {v.option1_value}
-                                </th>
-                                {option2Name && (
-                                    <td className="px-3 py-2">
-                                        {v.option2_value ?? '—'}
-                                    </td>
-                                )}
-                                <td className="w-36 px-3 py-2">
-                                    <label
-                                        className="sr-only"
-                                        htmlFor={`${id}-p-${i}`}
+            {variations.length === 0 ? (
+                <p className="text-body-sm text-muted-foreground">
+                    Add at least one value to generate variations.
+                </p>
+            ) : (
+                <>
+                    {/* Desktop Table (md+) */}
+                    <div className="hidden overflow-x-auto rounded-panel border border-border md:block">
+                        <table className="w-full table-fixed text-body">
+                            <caption className="sr-only">
+                                Price and stock per variation
+                            </caption>
+                            <thead className="bg-surface-subtle">
+                                <tr>
+                                    <th
+                                        scope="col"
+                                        className="px-3 py-2 text-left text-th text-muted-foreground uppercase"
                                     >
-                                        Price, {v.option1_value}{' '}
-                                        {v.option2_value}
-                                    </label>
-                                    <div className="relative">
-                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-                                            ₱
+                                        {option1Name || 'Option 1'}
+                                    </th>
+                                    {option2Name && (
+                                        <th
+                                            scope="col"
+                                            className="w-28 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                        >
+                                            {option2Name}
+                                        </th>
+                                    )}
+                                    <th
+                                        scope="col"
+                                        className="w-36 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        Price
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="w-32 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        Stock
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="w-40 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        SKU
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {variations.map((v, i) => (
+                                    <tr key={i}>
+                                        <th
+                                            scope="row"
+                                            className="px-3 py-2 text-left text-label"
+                                        >
+                                            {v.option1_value}
+                                        </th>
+                                        {option2Name && (
+                                            <td className="px-3 py-2">
+                                                {v.option2_value ?? '—'}
+                                            </td>
+                                        )}
+                                        <td className="w-36 px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-p-${i}`}
+                                            >
+                                                Price, {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <div className="relative">
+                                                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                                                    ₱
+                                                </span>
+                                                <input
+                                                    id={`${id}-p-${i}`}
+                                                    type="number"
+                                                    inputMode="numeric"
+                                                    value={v.price}
+                                                    onChange={(e) =>
+                                                        handleCellChange(
+                                                            i,
+                                                            'price',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="field tabular pl-7"
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="w-32 px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-st-${i}`}
+                                            >
+                                                Stock, {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <input
+                                                id={`${id}-st-${i}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                value={v.stock}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'stock',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="field tabular"
+                                            />
+                                        </td>
+                                        <td className="px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-sku-${i}`}
+                                            >
+                                                SKU, {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <input
+                                                id={`${id}-sku-${i}`}
+                                                type="text"
+                                                value={v.sku ?? ''}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'sku',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="field tabular"
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Cards (<md) */}
+                    <ul
+                        className="grid gap-2 md:hidden"
+                        aria-label="Price and stock per variation"
+                    >
+                        {variations.map((v, i) => (
+                            <li key={i} className="card grid gap-2 p-3">
+                                <p className="text-label">
+                                    {v.option1_value}{' '}
+                                    {v.option2_value
+                                        ? `· ${v.option2_value}`
+                                        : ''}
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid gap-1">
+                                        <span
+                                            className="text-body-sm text-muted-foreground"
+                                            aria-hidden="true"
+                                        >
+                                            Price
+                                        </span>
+                                        <div className="relative">
+                                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                                                ₱
+                                            </span>
+                                            <input
+                                                type="number"
+                                                inputMode="numeric"
+                                                value={v.price}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'price',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="field tabular pl-7"
+                                                aria-label={`Price, ${v.option1_value} ${v.option2_value ?? ''}`}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <span
+                                            className="text-body-sm text-muted-foreground"
+                                            aria-hidden="true"
+                                        >
+                                            Stock
                                         </span>
                                         <input
-                                            id={`${id}-p-${i}`}
                                             type="number"
                                             inputMode="numeric"
-                                            value={v.price}
+                                            value={v.stock}
                                             onChange={(e) =>
                                                 handleCellChange(
                                                     i,
-                                                    'price',
+                                                    'stock',
                                                     e.target.value,
                                                 )
                                             }
-                                            className="field tabular pl-7"
+                                            className="field tabular"
+                                            aria-label={`Stock, ${v.option1_value} ${v.option2_value ?? ''}`}
                                         />
                                     </div>
-                                </td>
-                                <td className="w-32 px-3 py-2">
-                                    <label
-                                        className="sr-only"
-                                        htmlFor={`${id}-st-${i}`}
-                                    >
-                                        Stock, {v.option1_value}{' '}
-                                        {v.option2_value}
-                                    </label>
-                                    <input
-                                        id={`${id}-st-${i}`}
-                                        type="number"
-                                        inputMode="numeric"
-                                        value={v.stock}
-                                        onChange={(e) =>
-                                            handleCellChange(
-                                                i,
-                                                'stock',
-                                                e.target.value,
-                                            )
-                                        }
-                                        className="field tabular"
-                                    />
-                                </td>
-                                <td className="px-3 py-2">
-                                    <label
-                                        className="sr-only"
-                                        htmlFor={`${id}-sku-${i}`}
-                                    >
-                                        SKU, {v.option1_value} {v.option2_value}
-                                    </label>
-                                    <input
-                                        id={`${id}-sku-${i}`}
-                                        type="text"
-                                        value={v.sku ?? ''}
-                                        onChange={(e) =>
-                                            handleCellChange(
-                                                i,
-                                                'sku',
-                                                e.target.value,
-                                            )
-                                        }
-                                        className="field tabular"
-                                    />
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Mobile Cards (<md) */}
-            <ul
-                className="grid gap-2 md:hidden"
-                aria-label="Price and stock per variation"
-            >
-                {variations.map((v, i) => (
-                    <li key={i} className="card grid gap-2 p-3">
-                        <p className="text-label">
-                            {v.option1_value}{' '}
-                            {v.option2_value ? `· ${v.option2_value}` : ''}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="grid gap-1">
-                                <span
-                                    className="text-body-sm text-muted-foreground"
-                                    aria-hidden="true"
-                                >
-                                    Price
-                                </span>
-                                <div className="relative">
-                                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-                                        ₱
-                                    </span>
-                                    <input
-                                        type="number"
-                                        inputMode="numeric"
-                                        value={v.price}
-                                        onChange={(e) =>
-                                            handleCellChange(
-                                                i,
-                                                'price',
-                                                e.target.value,
-                                            )
-                                        }
-                                        className="field tabular pl-7"
-                                        aria-label={`Price, ${v.option1_value} ${v.option2_value ?? ''}`}
-                                    />
                                 </div>
-                            </div>
-                            <div className="grid gap-1">
-                                <span
-                                    className="text-body-sm text-muted-foreground"
-                                    aria-hidden="true"
-                                >
-                                    Stock
-                                </span>
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    value={v.stock}
-                                    onChange={(e) =>
-                                        handleCellChange(
-                                            i,
-                                            'stock',
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="field tabular"
-                                    aria-label={`Stock, ${v.option1_value} ${v.option2_value ?? ''}`}
-                                />
-                            </div>
-                        </div>
-                    </li>
-                ))}
-            </ul>
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            )}
         </div>
     );
 }

@@ -14,9 +14,7 @@ test.describe.serial('seller vouchers', () => {
         await page.goto('/seller/vouchers');
 
         await expect(page.locator('h1')).toContainText('Marketing');
-        await expect(
-            page.locator('[data-test="new-voucher"]'),
-        ).toBeVisible();
+        await expect(page.locator('[data-test="new-voucher"]')).toBeVisible();
         await shot(page, 'sv-01-list');
     });
 

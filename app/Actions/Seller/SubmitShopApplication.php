@@ -65,14 +65,25 @@ final readonly class SubmitShopApplication
                 ]);
             }
 
-            ModerationQueueItem::create([
-                'target_type' => $shop->getMorphClass(),
-                'target_id' => $shop->id,
-                'type' => ModerationItemType::ShopApplication,
-                'state' => ModerationState::Pending,
-                'flagged_by_type' => $user->getMorphClass(),
-                'flagged_by_id' => $user->id,
-            ]);
+            ModerationQueueItem::query()
+                ->where('target_type', $shop->getMorphClass())
+                ->where('target_id', $shop->id)
+                ->where('type', ModerationItemType::ShopApplication)
+                ->whereIn('state', [ModerationState::Pending, ModerationState::Flagged])
+                ->first()
+                ?->update([
+                    'state' => ModerationState::Pending,
+                    'reason_code' => null,
+                    'decision_reason' => null,
+                ])
+                ?? ModerationQueueItem::create([
+                    'target_type' => $shop->getMorphClass(),
+                    'target_id' => $shop->id,
+                    'type' => ModerationItemType::ShopApplication,
+                    'state' => ModerationState::Pending,
+                    'flagged_by_type' => $user->getMorphClass(),
+                    'flagged_by_id' => $user->id,
+                ]);
 
             return $shop;
         });

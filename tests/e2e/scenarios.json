@@ -435,7 +435,10 @@
                 },
                 {
                     "action": "create simple product and publish",
-                    "screenshots": ["products-02-create-form", "products-03-created"],
+                    "screenshots": [
+                        "products-02-create-form",
+                        "products-03-created"
+                    ],
                     "expect": "redirects to /seller/products with the new product row visible"
                 },
                 {

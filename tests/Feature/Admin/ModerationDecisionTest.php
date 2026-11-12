@@ -6,6 +6,7 @@ use App\Enums\HalalStatus;
 use App\Enums\ModerationItemType;
 use App\Enums\ModerationState;
 use App\Enums\ReportStatus;
+use App\Enums\ShopStatus;
 use App\Models\HalalCertification;
 use App\Models\ModerationEvent;
 use App\Models\ModerationQueueItem;
@@ -199,4 +200,72 @@ test('admin decision on a report target updates report status and side-effects r
     $product->refresh();
     expect($product->hidden)->toBeTrue()
         ->and($product->published)->toBeFalse();
+});
+
+test('admin can request changes on a shop application, moving item to flagged and shop to changes_requested', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $applicant = User::factory()->create();
+    $shop = Shop::factory()->pending()->create(['user_id' => $applicant->id]);
+
+    $item = ModerationQueueItem::factory()->create([
+        'target_type' => $shop->getMorphClass(),
+        'target_id' => $shop->id,
+        'type' => ModerationItemType::ShopApplication->value,
+        'state' => ModerationState::Pending->value,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.moderation.decisions.store', $item), [
+            'action' => 'changes_requested',
+            'reason' => 'Please provide a clearer business permit.',
+        ])
+        ->assertRedirect(route('admin.moderation.index'));
+
+    $item->refresh();
+    expect($item->state)->toBe(ModerationState::Flagged)
+        ->and($item->reason_code)->toBe('changes_requested')
+        ->and($item->decision_reason)->toBe('Please provide a clearer business permit.')
+        ->and($item->resolved_at)->toBeNull();
+
+    $shop->refresh();
+    expect($shop->status)->toBe(ShopStatus::ChangesRequested)
+        ->and($shop->rejection_reason)->toBe('Please provide a clearer business permit.')
+        ->and($shop->reviewed_at)->not->toBeNull()
+        ->and($shop->reviewed_by)->toBe($admin->id);
+
+    $event = ModerationEvent::where('moderation_queue_item_id', $item->id)->sole();
+    expect($event->action)->toBe('changes_requested')
+        ->and($event->reason)->toBe('Please provide a clearer business permit.');
+});
+
+test('admin can request certificate on a shop application, moving item to flagged and shop to changes_requested', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $applicant = User::factory()->create();
+    $shop = Shop::factory()->pending()->create(['user_id' => $applicant->id]);
+
+    $item = ModerationQueueItem::factory()->create([
+        'target_type' => $shop->getMorphClass(),
+        'target_id' => $shop->id,
+        'type' => ModerationItemType::ShopApplication->value,
+        'state' => ModerationState::Pending->value,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.moderation.decisions.store', $item), [
+            'action' => 'certificate_requested',
+            'reason' => 'Please upload a valid halal certificate.',
+        ])
+        ->assertRedirect(route('admin.moderation.index'));
+
+    $item->refresh();
+    expect($item->state)->toBe(ModerationState::Flagged)
+        ->and($item->reason_code)->toBe('certificate_requested')
+        ->and($item->decision_reason)->toBe('Please upload a valid halal certificate.')
+        ->and($item->resolved_at)->toBeNull();
+
+    $shop->refresh();
+    expect($shop->status)->toBe(ShopStatus::ChangesRequested)
+        ->and($shop->rejection_reason)->toBe('Please upload a valid halal certificate.')
+        ->and($shop->reviewed_at)->not->toBeNull()
+        ->and($shop->reviewed_by)->toBe($admin->id);
 });

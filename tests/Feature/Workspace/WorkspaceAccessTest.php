@@ -46,7 +46,7 @@ test('pending and rejected sellers are sent back to the application flow', funct
     $this->actingAs($user)->get('/seller/products')->assertRedirect(route('seller.register'));
     $this->actingAs($user)->get('/seller/register')->assertOk();
     $this->actingAs($user)->get('/account')->assertOk();
-})->with(['pending', 'rejected']);
+})->with(['pending', 'rejected', 'changesRequested']);
 
 test('approved sellers reach the seller workspace but only their own data', function () {
     $seller = sellerWithShop();

@@ -75,7 +75,9 @@ test.describe.serial('seller products', () => {
             page.locator('input[name="certificate_number"]'),
         ).toBeVisible();
         await expect(page.locator('input[name="valid_until"]')).toBeVisible();
-        await expect(page.locator('textarea[name="ingredients"]')).toBeVisible();
+        await expect(
+            page.locator('textarea[name="ingredients"]'),
+        ).toBeVisible();
         await expect(
             page.locator('input[name="no_pork_alcohol_declared"]'),
         ).toBeVisible();

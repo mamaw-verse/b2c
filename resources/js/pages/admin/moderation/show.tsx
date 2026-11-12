@@ -219,7 +219,9 @@ export default function ModerationShow({
             {
                 action: decision.action,
                 reason:
-                    decision.reason ?? decision.note ?? 'Decided by moderator',
+                    [decision.reason, decision.note]
+                        .filter(Boolean)
+                        .join(' — ') || 'Decided by moderator',
             },
             {
                 onFinish: () => setProcessing(false),

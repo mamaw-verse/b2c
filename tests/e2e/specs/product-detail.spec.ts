@@ -40,7 +40,9 @@ test.describe('product detail', () => {
 
         const dialog = page.locator('dialog[open]');
         await expect(dialog).toContainText('Select variation');
-        await expect(dialog.locator('input[type="radio"]').first()).toBeVisible();
+        await expect(
+            dialog.locator('input[type="radio"]').first(),
+        ).toBeVisible();
         await shot(page, 'pdp-04-variation-picker');
 
         await page.keyboard.press('Escape');

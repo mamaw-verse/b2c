@@ -39,11 +39,6 @@ final class ProductController
         return Inertia::render('seller/products/form', [
             'product' => null,
             'categories' => Category::orderBy('name')->get(['id', 'name']),
-            'certifying_bodies' => [
-                'Islamic Da’wah Council of the Philippines (IDCP)',
-                'Halal Development Institute of the Philippines (HDIP)',
-                'Mindanao Halal Authority (MinHA)',
-            ],
         ]);
     }
 
@@ -57,7 +52,7 @@ final class ProductController
 
     public function edit(EditSellerProductRequest $request, Product $product): Response
     {
-        $product->load(['variations', 'halalCertification', 'images', 'category']);
+        $product->load(['variations', 'images', 'category']);
 
         $productData = [
             'id' => $product->id,
@@ -71,13 +66,6 @@ final class ProductController
             'free_shipping' => $product->free_shipping,
             'published' => $product->published,
             'has_variations' => $product->variations->isNotEmpty(),
-            'halal_status' => $product->halal_status->value === 'certified' || $product->halal_status->value === 'review' ? 'certified' : ($product->halal_status->value === 'na' ? 'not_ingestible' : $product->halal_status->value),
-            'certifying_body' => $product->halalCertification?->certifying_body,
-            'certificate_number' => $product->halalCertification?->number,
-            'valid_until' => $product->halalCertification?->valid_until?->toDateString(),
-            'document_path' => $product->halalCertification?->document_path,
-            'ingredients' => $product->ingredients,
-            'no_pork_alcohol_declared' => $product->no_pork_alcohol_declared,
             'weight' => $product->weight,
             'length' => $product->length,
             'width' => $product->width,
@@ -102,11 +90,6 @@ final class ProductController
         return Inertia::render('seller/products/form', [
             'product' => $productData,
             'categories' => Category::orderBy('name')->get(['id', 'name']),
-            'certifying_bodies' => [
-                'Islamic Da’wah Council of the Philippines (IDCP)',
-                'Halal Development Institute of the Philippines (HDIP)',
-                'Mindanao Halal Authority (MinHA)',
-            ],
         ]);
     }
 

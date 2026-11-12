@@ -9,6 +9,7 @@ enum ShopStatus: string
     case Pending = 'pending';
     case Approved = 'approved';
     case Rejected = 'rejected';
+    case ChangesRequested = 'changes_requested';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum ShopStatus: string
             self::Pending => 'Pending review',
             self::Approved => 'Approved',
             self::Rejected => 'Rejected',
+            self::ChangesRequested => 'Changes requested',
         };
     }
 }

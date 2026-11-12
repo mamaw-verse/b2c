@@ -41,6 +41,7 @@ export type ShopData = {
     logo_url?: string | null;
     banner_url?: string | null;
     products_count?: number;
+    is_following?: boolean;
 };
 
 export type Product = ProductCardData;

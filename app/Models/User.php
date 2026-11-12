@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -90,6 +91,12 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class, 'reporter_id');
+    }
+
+    /** @return BelongsToMany<Shop, $this> */
+    public function followedShops(): BelongsToMany
+    {
+        return $this->belongsToMany(Shop::class, 'shop_followers')->withTimestamps();
     }
 
     protected function casts(): array

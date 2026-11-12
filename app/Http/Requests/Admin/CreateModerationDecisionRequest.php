@@ -21,13 +21,13 @@ final class CreateModerationDecisionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'action' => ['required', Rule::in(['approved', 'rejected', 'hidden', 'suspended'])],
+            'action' => ['required', Rule::in(['approved', 'rejected', 'hidden', 'suspended', 'changes_requested', 'certificate_requested', 'warn'])],
             'reason' => ['required', 'string', 'max:1000'],
             'reason_code' => ['nullable', 'string', 'max:100'],
         ];
     }
 
-    /** @return 'approved'|'rejected'|'hidden'|'suspended' */
+    /** @return 'approved'|'rejected'|'hidden'|'suspended'|'changes_requested'|'certificate_requested'|'warn' */
     public function action(): string
     {
         return $this->validated('action');

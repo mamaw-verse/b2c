@@ -32,7 +32,6 @@ export function HalalCertificateCard({
         : null;
 
     const rows: [string, React.ReactNode][] = [
-        ['Certifying body', cert.certifying_body],
         [
             'Certificate no.',
             <span key="n" className="tabular">

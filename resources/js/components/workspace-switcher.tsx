@@ -94,7 +94,9 @@ export function useWorkspaceEntries(): WorkspaceEntry[] {
             note:
                 seller.status === 'pending'
                     ? 'Application pending'
-                    : 'Application rejected',
+                    : seller.status === 'changes_requested'
+                      ? 'Changes requested'
+                      : 'Application rejected',
             href: sellerRegister().url,
             icon: entryIcons.seller,
             current: current === 'seller',

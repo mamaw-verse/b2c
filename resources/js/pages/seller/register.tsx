@@ -19,7 +19,7 @@ type ExistingCertificate = {
 };
 
 type ExistingApplication = {
-    status: 'pending' | 'rejected';
+    status: 'pending' | 'rejected' | 'changes_requested';
     shop_name: string;
     description: string | null;
     address_line: string | null;
@@ -526,6 +526,28 @@ export default function SellerRegister({
                                     Update your details and submit a new
                                     application below. Documents must be
                                     uploaded again.
+                                </p>
+                            </Banner>
+                        </div>
+                    )}
+
+                    {application?.status === 'changes_requested' && (
+                        <div className="mb-8">
+                            <Banner
+                                tone="warning"
+                                live
+                                title="Changes were requested on your application"
+                            >
+                                {application.rejection_reason && (
+                                    <p>
+                                        Requested changes:{' '}
+                                        {application.rejection_reason}
+                                    </p>
+                                )}
+                                <p className="mt-1">
+                                    Update your details and resubmit below. Your
+                                    application goes back under review once you
+                                    submit.
                                 </p>
                             </Banner>
                         </div>

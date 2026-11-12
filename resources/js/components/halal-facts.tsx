@@ -3,19 +3,13 @@ import { HalalBadge } from '@/components/halal-badge';
 import { cn } from '@/lib/utils';
 
 type HalalFactsProps = {
-    body?: string | null;
     valid?: string | null;
     frozen?: boolean;
     className?: string;
 };
 
-/** Halal facts strip on the PDP: three scannable facts above the fold. */
-export function HalalFacts({
-    body,
-    valid,
-    frozen,
-    className,
-}: HalalFactsProps) {
+/** Halal facts strip on the PDP: scannable facts above the fold. */
+export function HalalFacts({ valid, frozen, className }: HalalFactsProps) {
     return (
         <ul
             aria-label="Halal summary"
@@ -27,12 +21,6 @@ export function HalalFacts({
             <li>
                 <HalalBadge status="certified" />
             </li>
-            {body && (
-                <li className="text-muted-foreground">
-                    Certified by{' '}
-                    <span className="font-bold text-foreground">{body}</span>
-                </li>
-            )}
             {valid && (
                 <li className="text-muted-foreground">
                     Valid to{' '}

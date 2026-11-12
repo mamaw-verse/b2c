@@ -58,9 +58,6 @@ export default function Product({
         ? `${firstVariation.option1_value}${firstVariation.option2_value ? ` · ${firstVariation.option2_value}` : ''}`
         : 'Default';
     const cert = p.certification;
-    const certBodyShort =
-        cert?.certifying_body.match(/\(([^)]+)\)/)?.[1] ??
-        cert?.certifying_body;
     const certValid = cert
         ? new Date(cert.valid_until).toLocaleDateString('en-PH', {
               month: 'short',
@@ -182,11 +179,7 @@ export default function Product({
                             </p>
                         </div>
                         {p.halal_status === 'certified' && (
-                            <HalalFacts
-                                body={certBodyShort}
-                                valid={certValid}
-                                frozen={p.frozen}
-                            />
+                            <HalalFacts valid={certValid} frozen={p.frozen} />
                         )}
                         <div className="rounded-panel bg-surface-cta p-3 md:p-4">
                             <PriceBlock

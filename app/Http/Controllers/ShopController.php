@@ -31,6 +31,7 @@ final class ShopController
                 'logo_url' => $shop->logo_url,
                 'banner_url' => $shop->banner_url,
                 'products_count' => $shop->products()->visible()->count(),
+                'is_following' => $request->user()?->followedShops()->whereKey($shop->id)->exists() ?? false,
             ],
             'products' => Inertia::scroll(fn () => $products->handle($shop, $request->sort())),
         ]);

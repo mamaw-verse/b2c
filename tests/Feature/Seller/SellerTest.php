@@ -222,28 +222,25 @@ test('seller can create a certified halal product with variations and declaratio
     expect($product->halalCertifications()->first()->certifying_body)->toBe('Islamic Da’wah Council of the Philippines (IDCP)');
 });
 
-test('creating halal product fails validation without required certificate fields and declaration', function () {
+test('seller product create without halal status succeeds and stores na', function () {
     $payload = [
-        'name' => 'Ajwa Dates',
+        'name' => 'Plain T-Shirt',
         'category_id' => $this->category->id,
-        'description' => 'Dates description',
-        'halal_status' => 'certified',
-        // Missing certifying_body, certificate_number, valid_until, ingredients, no_pork_alcohol_declared
-        'weight' => 0.5,
-        'price' => 300,
-        'stock' => 10,
+        'description' => 'Comfortable cotton shirt',
+        'weight' => 0.2,
+        'price' => 299,
+        'stock' => 15,
+        'published' => true,
     ];
 
     $response = $this->actingAs($this->sellerUser)
         ->post(route('seller.products.store'), $payload);
 
-    $response->assertSessionHasErrors([
-        'certifying_body',
-        'certificate_number',
-        'valid_until',
-        'ingredients',
-        'no_pork_alcohol_declared',
-    ]);
+    $response->assertRedirect(route('seller.products.index'));
+
+    $product = Product::where('shop_id', $this->shop->id)->where('name', 'Plain T-Shirt')->first();
+    expect($product)->not->toBeNull()
+        ->and($product->halal_status)->toBe(HalalStatus::NotApplicable);
 });
 
 test('seller cannot edit or update or delete another shops product', function () {

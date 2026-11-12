@@ -7,7 +7,6 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { TextArea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     store as storeRoute,
     update as updateRoute,
@@ -20,12 +19,6 @@ type ProductData = {
     name: string;
     category_id: number | null;
     description: string;
-    halal_status: 'certified' | 'not_ingestible' | null;
-    certifying_body: string | null;
-    certificate_number: string | null;
-    valid_until: string | null;
-    ingredients: string | null;
-    no_pork_alcohol_declared: boolean;
     price: number | null;
     stock: number | null;
     weight: number | null;
@@ -44,19 +37,13 @@ type ProductData = {
 type PageProps = {
     product: ProductData | null;
     categories: Category[];
-    certifying_bodies: string[];
 };
 
-export default function SellerProductForm({
-    product,
-    categories,
-    certifying_bodies,
-}: PageProps) {
+export default function SellerProductForm({ product, categories }: PageProps) {
     const isEditing = product !== null;
+    const [name, setName] = useState(product?.name ?? '');
+    const [description, setDescription] = useState(product?.description ?? '');
     const [imageFiles, setImageFiles] = useState<File[]>([]);
-    const [halalStatus, setHalalStatus] = useState<string>(
-        product?.halal_status ?? '',
-    );
     const [hasVariations, setHasVariations] = useState(
         product?.has_variations ?? (product?.variations?.length ?? 0) > 0,
     );
@@ -70,19 +57,44 @@ export default function SellerProductForm({
         product?.option2_name ?? 'Colour',
     );
     const [option1Values, setOption1Values] = useState<string[]>(
-        product?.option1_values ??
-            [...new Set(product?.variations?.map((v) => v.option1_value))],
+        product?.option1_values ?? [
+            ...new Set(product?.variations?.map((v) => v.option1_value)),
+        ],
     );
     const [option2Values, setOption2Values] = useState<string[]>(
-        product?.option2_values ??
-            [
-                ...new Set(
-                    product?.variations
-                        ?.map((v) => v.option2_value)
-                        .filter((v): v is string => v != null),
-                ),
-            ],
+        product?.option2_values ?? [
+            ...new Set(
+                product?.variations
+                    ?.map((v) => v.option2_value)
+                    .filter((v): v is string => v != null),
+            ),
+        ],
     );
+
+    const buildVariations = (
+        o1: string[],
+        o2: string[],
+        useO2: boolean,
+        prev: VariationItem[],
+    ): VariationItem[] =>
+        o1.flatMap((a) =>
+            (useO2 && o2.length ? o2 : [null]).map((b) => {
+                const old = prev.find(
+                    (v) =>
+                        v.option1_value === a &&
+                        (v.option2_value ?? null) === b,
+                );
+                return (
+                    old ?? {
+                        option1_value: a,
+                        option2_value: b,
+                        price: 0,
+                        stock: 0,
+                        sku: null,
+                    }
+                );
+            }),
+        );
 
     const action = isEditing
         ? updateRoute({ product: product!.id })
@@ -115,13 +127,16 @@ export default function SellerProductForm({
                                         required
                                         counter={
                                             <span className="text-caption text-muted-foreground">
-                                                0/120
+                                                {name.length}/120
                                             </span>
                                         }
                                     >
                                         <Input
                                             name="name"
-                                            defaultValue={product?.name ?? ''}
+                                            value={name}
+                                            onChange={(e) =>
+                                                setName(e.target.value)
+                                            }
                                             maxLength={120}
                                             required
                                         />
@@ -156,173 +171,20 @@ export default function SellerProductForm({
                                         error={errors.description}
                                         counter={
                                             <span className="text-caption text-muted-foreground">
-                                                0/3000
+                                                {description.length}/3000
                                             </span>
                                         }
                                     >
                                         <TextArea
                                             name="description"
-                                            defaultValue={
-                                                product?.description ?? ''
+                                            value={description}
+                                            onChange={(e) =>
+                                                setDescription(e.target.value)
                                             }
                                             rows={6}
                                             maxLength={3000}
                                         />
                                     </FormField>
-                                </div>
-                            </section>
-
-                            {/* Halal information */}
-                            <section className="panel p-4 md:p-6">
-                                <h2 className="mb-1 text-h3">
-                                    Halal information
-                                </h2>
-                                <p className="mb-4 text-body text-muted-foreground">
-                                    Required for food, beverages, cosmetics, and
-                                    other ingestible products.
-                                </p>
-                                <div className="grid gap-4">
-                                    <fieldset className="grid gap-2">
-                                        <legend className="text-label font-medium">
-                                            Halal status
-                                        </legend>
-                                        <label className="flex items-center gap-3">
-                                            <input
-                                                type="radio"
-                                                name="halal_status"
-                                                value="certified"
-                                                defaultChecked={
-                                                    product?.halal_status ===
-                                                    'certified'
-                                                }
-                                                onChange={() =>
-                                                    setHalalStatus('certified')
-                                                }
-                                                className="accent-primary"
-                                            />
-                                            <span>
-                                                Halal certified — has a valid
-                                                certificate
-                                            </span>
-                                        </label>
-                                        <label className="flex items-center gap-3">
-                                            <input
-                                                type="radio"
-                                                name="halal_status"
-                                                value="not_ingestible"
-                                                defaultChecked={
-                                                    product?.halal_status ===
-                                                    'not_ingestible'
-                                                }
-                                                onChange={() =>
-                                                    setHalalStatus(
-                                                        'not_ingestible',
-                                                    )
-                                                }
-                                                className="accent-primary"
-                                            />
-                                            <span>
-                                                Not ingestible — e.g. clothing,
-                                                electronics
-                                            </span>
-                                        </label>
-                                    </fieldset>
-
-                                    {halalStatus === 'certified' && (
-                                        <div className="grid gap-4 rounded-panel bg-halal-soft p-4">
-                                            <FormField
-                                                label="Certifying body"
-                                                error={errors.certifying_body}
-                                                required
-                                            >
-                                                <select
-                                                    name="certifying_body"
-                                                    className="field"
-                                                    defaultValue={
-                                                        product?.certifying_body ??
-                                                        ''
-                                                    }
-                                                >
-                                                    <option value="">
-                                                        Select certifying body
-                                                    </option>
-                                                    {certifying_bodies.map(
-                                                        (body) => (
-                                                            <option
-                                                                key={body}
-                                                                value={body}
-                                                            >
-                                                                {body}
-                                                            </option>
-                                                        ),
-                                                    )}
-                                                </select>
-                                            </FormField>
-
-                                            <FormField
-                                                label="Certificate number"
-                                                error={
-                                                    errors.certificate_number
-                                                }
-                                                required
-                                            >
-                                                <Input
-                                                    name="certificate_number"
-                                                    defaultValue={
-                                                        product?.certificate_number ??
-                                                        ''
-                                                    }
-                                                />
-                                            </FormField>
-
-                                            <FormField
-                                                label="Valid until"
-                                                error={errors.valid_until}
-                                                required
-                                            >
-                                                <Input
-                                                    type="date"
-                                                    name="valid_until"
-                                                    defaultValue={
-                                                        product?.valid_until ??
-                                                        ''
-                                                    }
-                                                />
-                                            </FormField>
-
-                                            <FormField
-                                                label="Ingredients"
-                                                error={errors.ingredients}
-                                            >
-                                                <TextArea
-                                                    name="ingredients"
-                                                    defaultValue={
-                                                        product?.ingredients ??
-                                                        ''
-                                                    }
-                                                    rows={3}
-                                                    placeholder="List of ingredients…"
-                                                />
-                                            </FormField>
-
-                                            <label className="flex items-start gap-3 rounded-panel border border-halal bg-halal-soft/50 p-3">
-                                                <Checkbox
-                                                    name="no_pork_alcohol_declared"
-                                                    value="1"
-                                                    defaultChecked={
-                                                        product?.no_pork_alcohol_declared
-                                                    }
-                                                    className="mt-0.5"
-                                                />
-                                                <span className="text-body">
-                                                    I declare this product
-                                                    contains no pork, lard,
-                                                    alcohol, or any
-                                                    haram-derived ingredients.
-                                                </span>
-                                            </label>
-                                        </div>
-                                    )}
                                 </div>
                             </section>
 
@@ -389,9 +251,19 @@ export default function SellerProductForm({
                                         name="has_variations"
                                         label="This product has multiple variants (e.g. size, colour)"
                                         checked={hasVariations}
-                                        onChange={(e) =>
-                                            setHasVariations(e.target.checked)
-                                        }
+                                        onChange={(e) => {
+                                            setHasVariations(e.target.checked);
+                                            if (e.target.checked) {
+                                                setVariations((p) =>
+                                                    buildVariations(
+                                                        option1Values,
+                                                        option2Values,
+                                                        !!option2Name,
+                                                        p,
+                                                    ),
+                                                );
+                                            }
+                                        }}
                                     />
 
                                     {hasVariations && (
@@ -411,11 +283,31 @@ export default function SellerProductForm({
                                                 <FormField label="Option 2 name (optional)">
                                                     <Input
                                                         value={option2Name}
-                                                        onChange={(e) =>
+                                                        onChange={(e) => {
+                                                            const next =
+                                                                e.target.value;
+                                                            const wasEmpty =
+                                                                !option2Name;
+                                                            const isEmpty =
+                                                                !next;
                                                             setOption2Name(
-                                                                e.target.value,
-                                                            )
-                                                        }
+                                                                next,
+                                                            );
+                                                            if (
+                                                                wasEmpty !==
+                                                                isEmpty
+                                                            ) {
+                                                                setVariations(
+                                                                    (p) =>
+                                                                        buildVariations(
+                                                                            option1Values,
+                                                                            option2Values,
+                                                                            !isEmpty,
+                                                                            p,
+                                                                        ),
+                                                                );
+                                                            }
+                                                        }}
                                                         placeholder="e.g. Colour"
                                                     />
                                                 </FormField>
@@ -431,32 +323,66 @@ export default function SellerProductForm({
                                                 onChangeVariations={
                                                     setVariations
                                                 }
-                                                onAddOption1Value={(v) =>
-                                                    setOption1Values((prev) => [
-                                                        ...prev,
+                                                onAddOption1Value={(v) => {
+                                                    const next1 = [
+                                                        ...option1Values,
                                                         v,
-                                                    ])
-                                                }
-                                                onRemoveOption1Value={(v) =>
-                                                    setOption1Values((prev) =>
-                                                        prev.filter(
-                                                            (x) => x !== v,
+                                                    ];
+                                                    setOption1Values(next1);
+                                                    setVariations((p) =>
+                                                        buildVariations(
+                                                            next1,
+                                                            option2Values,
+                                                            !!option2Name,
+                                                            p,
                                                         ),
-                                                    )
-                                                }
-                                                onAddOption2Value={(v) =>
-                                                    setOption2Values((prev) => [
-                                                        ...prev,
+                                                    );
+                                                }}
+                                                onRemoveOption1Value={(v) => {
+                                                    const next1 =
+                                                        option1Values.filter(
+                                                            (x) => x !== v,
+                                                        );
+                                                    setOption1Values(next1);
+                                                    setVariations((p) =>
+                                                        buildVariations(
+                                                            next1,
+                                                            option2Values,
+                                                            !!option2Name,
+                                                            p,
+                                                        ),
+                                                    );
+                                                }}
+                                                onAddOption2Value={(v) => {
+                                                    const next2 = [
+                                                        ...option2Values,
                                                         v,
-                                                    ])
-                                                }
-                                                onRemoveOption2Value={(v) =>
-                                                    setOption2Values((prev) =>
-                                                        prev.filter(
-                                                            (x) => x !== v,
+                                                    ];
+                                                    setOption2Values(next2);
+                                                    setVariations((p) =>
+                                                        buildVariations(
+                                                            option1Values,
+                                                            next2,
+                                                            !!option2Name,
+                                                            p,
                                                         ),
-                                                    )
-                                                }
+                                                    );
+                                                }}
+                                                onRemoveOption2Value={(v) => {
+                                                    const next2 =
+                                                        option2Values.filter(
+                                                            (x) => x !== v,
+                                                        );
+                                                    setOption2Values(next2);
+                                                    setVariations((p) =>
+                                                        buildVariations(
+                                                            option1Values,
+                                                            next2,
+                                                            !!option2Name,
+                                                            p,
+                                                        ),
+                                                    );
+                                                }}
                                                 error={errors.variations}
                                             />
                                             {/* Hidden inputs for variations */}

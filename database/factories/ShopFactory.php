@@ -60,6 +60,16 @@ final class ShopFactory extends Factory
         ]);
     }
 
+    public function changesRequested(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ShopStatus::ChangesRequested->value,
+            'submitted_at' => now(),
+            'reviewed_at' => now(),
+            'rejection_reason' => fake()->sentence(),
+        ]);
+    }
+
     public function suspended(): static
     {
         return $this->state(fn (array $attributes) => [

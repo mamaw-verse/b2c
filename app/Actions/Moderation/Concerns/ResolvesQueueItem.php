@@ -62,10 +62,11 @@ trait ResolvesQueueItem
         }
 
         match (true) {
-            $action === 'hidden' && $target instanceof Product => $target->update(['hidden' => true, 'published' => false]),
-            $action === 'hidden' && $target instanceof Review => $target->update(['hidden' => true]),
+            in_array($action, ['hidden', 'request_changes', 'request_certificate'], true) && $target instanceof Product => $target->update(['hidden' => true, 'published' => false]),
+            in_array($action, ['hidden', 'request_changes', 'request_certificate'], true) && $target instanceof Review => $target->update(['hidden' => true]),
             $action === 'suspended' && $target instanceof Shop => $target->update(['suspended' => true]),
             $action === 'suspended' && $target instanceof Product => $target->update(['hidden' => true, 'published' => false]),
+            in_array($action, ['hidden', 'request_changes', 'request_certificate'], true) && $target instanceof Shop && $target->status === ShopStatus::Pending => $this->requestShopRevision($target, $reason, $admin),
             $action === 'approved' && $target instanceof Shop && $target->status === ShopStatus::Pending => $this->approveShopApplication($target, $admin),
             $action === 'rejected' && $target instanceof Shop && $target->status === ShopStatus::Pending => $target->update([
                 'status' => ShopStatus::Rejected,
@@ -75,24 +76,30 @@ trait ResolvesQueueItem
             ]),
             $action === 'approved' && $target instanceof Product => $this->approveCertifiedProduct($target),
             $action === 'rejected' && $target instanceof Product && $target->halal_status === HalalStatus::Review => $target->update(['halal_status' => HalalStatus::Missing]),
-            $target instanceof Report => $this->resolveReport($target, $action),
+            $target instanceof Report => $this->resolveReport($target, $action, $reason, $admin),
             default => null,
         };
     }
 
-    private function resolveReport(Report $report, string $action): void
+    private function resolveReport(Report $report, string $action, string $reason, User $admin): void
     {
-        if (in_array($action, ['approved', 'hidden', 'suspended'], true)) {
+        // Revision requests behave like hides: the reported content comes
+        // down while the author fixes it and resubmits.
+        $effective = in_array($action, ['request_changes', 'request_certificate'], true) ? 'hidden' : $action;
+
+        if (in_array($effective, ['approved', 'hidden', 'suspended'], true)) {
             $report->update(['status' => ReportStatus::Actioned]);
 
             if ($report->reportable !== null) {
-                if ($action === 'hidden') {
+                if ($effective === 'hidden') {
                     if ($report->reportable instanceof Product) {
                         $report->reportable->update(['hidden' => true, 'published' => false]);
                     } elseif ($report->reportable instanceof Review) {
                         $report->reportable->update(['hidden' => true]);
+                    } elseif ($report->reportable instanceof Shop && $report->reportable->status === ShopStatus::Pending) {
+                        $this->requestShopRevision($report->reportable, $reason, $admin);
                     }
-                } elseif ($action === 'suspended') {
+                } elseif ($effective === 'suspended') {
                     if ($report->reportable instanceof Shop) {
                         $report->reportable->update(['suspended' => true]);
                     } elseif ($report->reportable instanceof Product) {
@@ -100,9 +107,19 @@ trait ResolvesQueueItem
                     }
                 }
             }
-        } elseif ($action === 'rejected') {
+        } elseif ($effective === 'rejected') {
             $report->update(['status' => ReportStatus::Dismissed]);
         }
+    }
+
+    private function requestShopRevision(Shop $shop, string $reason, User $admin): void
+    {
+        $shop->update([
+            'status' => ShopStatus::ChangesRequested,
+            'rejection_reason' => $reason,
+            'reviewed_at' => now(),
+            'reviewed_by' => $admin->id,
+        ]);
     }
 
     private function approveShopApplication(Shop $shop, User $admin): void

@@ -106,15 +106,19 @@ export function ReportDialog({
         });
 
         try {
-            const csrfToken =
-                document
-                    .querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute('content') ?? '';
+            const raw = document.cookie
+                .split('; ')
+                .find((c) => c.startsWith('XSRF-TOKEN='))
+                ?.slice('XSRF-TOKEN='.length);
+            const meta = document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content');
 
             const res = await fetch('/reports', {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-XSRF-TOKEN': raw ? decodeURIComponent(raw) : '',
+                    ...(meta ? { 'X-CSRF-TOKEN': meta } : {}),
                     Accept: 'application/json',
                 },
                 body: formData,

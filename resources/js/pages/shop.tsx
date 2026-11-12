@@ -23,7 +23,10 @@ export default function Shop({
     shop: ShopData;
     products: CursorPage<ProductCardData>;
 }) {
-    const { auth } = usePage().props;
+    const { auth, seller, workspaces } = usePage().props;
+    const isAdmin = (workspaces ?? []).some((w) => w.key === 'admin');
+    const isOwner = seller?.shop_id === shop.id;
+    const canInteract = !isAdmin && !isOwner;
     const [reportOpen, setReportOpen] = useState(false);
 
     const handleChat = () => {
@@ -32,6 +35,28 @@ export default function Shop({
             return;
         }
         router.post('/account/chat', { shop_id: shop.id });
+    };
+
+    const handleFollow = () => {
+        if (!auth.user) {
+            router.visit(login().url);
+            return;
+        }
+        if (shop.is_following) {
+            router.delete(`/shops/${shop.slug}/follow`, {
+                preserveScroll: true,
+                only: ['shop'],
+            });
+        } else {
+            router.post(
+                `/shops/${shop.slug}/follow`,
+                {},
+                {
+                    preserveScroll: true,
+                    only: ['shop'],
+                },
+            );
+        }
     };
 
     const grid = (
@@ -74,7 +99,9 @@ export default function Shop({
                 <div className="pt-4 md:pt-6">
                     <ShopHeader
                         shop={shop}
-                        onChat={handleChat}
+                        onFollow={canInteract ? handleFollow : undefined}
+                        following={shop.is_following}
+                        onChat={canInteract ? handleChat : undefined}
                         onReport={() => setReportOpen(true)}
                     />
                 </div>

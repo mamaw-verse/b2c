@@ -21,7 +21,11 @@ declare module '@inertiajs/core' {
             cartCount?: number;
             workspaces?: SharedWorkspace[];
             seller?: {
-                status: 'pending' | 'approved' | 'rejected';
+                status:
+                    | 'pending'
+                    | 'approved'
+                    | 'rejected'
+                    | 'changes_requested';
                 suspended: boolean;
                 shop_name: string;
                 shop_id: string;

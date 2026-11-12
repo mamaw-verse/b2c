@@ -69,3 +69,33 @@ test('user cannot update or delete another users address', function () {
         ->delete(route('addresses.destroy', $address))
         ->assertNotFound();
 });
+
+test('admin user can create an address and redirects back', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $region = Region::factory()->create();
+    $province = Province::factory()->create(['region_code' => $region->code]);
+    $city = City::factory()->create(['province_code' => $province->code]);
+    $barangay = Barangay::factory()->create(['city_code' => $city->code]);
+
+    $response = $this->actingAs($admin)
+        ->from(route('checkout.show'))
+        ->post(route('addresses.store'), [
+            'name' => 'Admin Buyer',
+            'phone' => '09171234567',
+            'region_code' => $region->code,
+            'province_code' => $province->code,
+            'city_code' => $city->code,
+            'barangay_code' => $barangay->code,
+            'street' => '456 Admin St',
+            'postal_code' => '1000',
+            'label' => 'work',
+        ]);
+
+    $response->assertSessionHasNoErrors();
+    $response->assertRedirect(route('checkout.show'));
+
+    $address = Address::where('user_id', $admin->id)->first();
+    expect($address)->not->toBeNull()
+        ->and($address->name)->toBe('Admin Buyer')
+        ->and($address->phone)->toBe('+639171234567');
+});

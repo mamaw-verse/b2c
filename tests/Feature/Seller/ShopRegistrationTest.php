@@ -293,6 +293,52 @@ test('rejected applicant can resubmit their application in place', function () {
     ]);
 });
 
+test('applicant with requested changes can resubmit their application in place', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $shop = Shop::factory()->changesRequested()->create([
+        'user_id' => $user->id,
+        'rejection_reason' => 'Certificate number is unreadable.',
+    ]);
+
+    $existingItem = ModerationQueueItem::factory()->create([
+        'target_type' => $shop->getMorphClass(),
+        'target_id' => $shop->id,
+        'type' => ModerationItemType::ShopApplication->value,
+        'state' => ModerationState::Flagged->value,
+        'reason_code' => 'changes_requested',
+        'decision_reason' => 'Certificate number is unreadable.',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('seller.register'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('application.status', 'changes_requested')
+            ->where('application.rejection_reason', 'Certificate number is unreadable.')
+        );
+
+    $this->actingAs($user)
+        ->post(route('seller.register.store'), validApplicationPayload())
+        ->assertRedirect(route('seller.register'));
+
+    expect(Shop::where('user_id', $user->id)->count())->toBe(1);
+
+    $shop->refresh();
+    expect($shop->status)->toBe(ShopStatus::Pending)
+        ->and($shop->rejection_reason)->toBeNull()
+        ->and($shop->reviewed_at)->toBeNull()
+        ->and($shop->reviewed_by)->toBeNull();
+
+    expect(ModerationQueueItem::where('target_id', $shop->id)->count())->toBe(1);
+
+    $existingItem->refresh();
+    expect($existingItem->state)->toBe(ModerationState::Pending)
+        ->and($existingItem->reason_code)->toBeNull()
+        ->and($existingItem->decision_reason)->toBeNull();
+});
+
 test('submission fails without agreeing to the seller terms', function () {
     Storage::fake('public');
 
