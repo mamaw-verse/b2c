@@ -216,3 +216,22 @@ flow, shop follow/chat gating):
 - [x] `shop.spec.ts` — NEW: follow/unfollow, chat start, admin/owner gating;
       registered in `scenarios.json`
 - [x] `accessibility.spec.ts` — added `/shops/barakah-pantry` to public paths
+
+### QA2 revision pass (2026-11-12)
+
+Specs updated for the qa2.md changes (return/refund resolution, unified
+orders tables, fulfillment cards with courier tracking, seller customer
+detail, homepage benefits section):
+
+- [x] `order-lifecycle.spec.ts` — order lists now use the shared orders
+      table (`View` links, no status tabs); buyer tracking asserts the
+      `Track parcel` link from the configured J&T template; NEW serial
+      round covers buyer return request → seller decline with required
+      note → buyer declined outcome → re-request → seller approve →
+      `Refunded` status and buyer approved outcome
+- [x] `seller-customers.spec.ts` — NEW: `/seller/customers` list and the
+      customer detail page (contact, stat tiles, order history); registered
+      in `scenarios.json`
+- [x] `smoke.spec.ts` — home page asserts the "Why Choose Our Marketplace?"
+      benefits section and its four audience blocks
+- [x] `accessibility.spec.ts` — `/seller/customers` already covered

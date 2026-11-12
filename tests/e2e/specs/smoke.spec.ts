@@ -11,6 +11,26 @@ test.describe('public pages', () => {
         await shot(page, '01-home');
     });
 
+    test('home page shows the audience benefits section', async ({ page }) => {
+        await page.goto('/');
+        await expect(
+            page.getByRole('heading', {
+                name: 'Why Choose Our Marketplace?',
+            }),
+        ).toBeVisible();
+        for (const audience of [
+            'For Buyers',
+            'For Sellers',
+            'For Certification Applicants',
+            'For Businesses',
+        ]) {
+            await expect(
+                page.getByText(audience, { exact: true }),
+            ).toBeVisible();
+        }
+        await shot(page, '01b-home-benefits');
+    });
+
     test('login page renders the form', async ({ page }) => {
         await page.goto('/login');
         await expect(page.locator('input[name="email"]')).toBeVisible();

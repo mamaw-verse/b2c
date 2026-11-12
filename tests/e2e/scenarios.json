@@ -27,6 +27,12 @@
                 },
                 {
                     "action": "goto",
+                    "url": "/",
+                    "screenshot": "01b-home-benefits",
+                    "expect": "'Why Choose Our Marketplace?' section with For Buyers / For Sellers / For Certification Applicants / For Businesses blocks"
+                },
+                {
+                    "action": "goto",
                     "url": "/login",
                     "screenshot": "02-login-form",
                     "expect": "email and password inputs visible"
@@ -90,7 +96,7 @@
         {
             "id": "order-lifecycle",
             "spec": "specs/order-lifecycle.spec.ts",
-            "description": "Full order lifecycle across the three roles: buyer checkout, seller fulfilment, admin moderation. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
+            "description": "Full order lifecycle across the three roles: buyer checkout, seller fulfilment, admin moderation, and return/refund resolution. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
             "steps": [
                 {
                     "action": "login",
@@ -112,7 +118,7 @@
                         "buyer-05-orders",
                         "buyer-06-order-detail"
                     ],
-                    "expect": "order is placed (COD, default shipping) and listed under /account/orders"
+                    "expect": "order is placed (COD, default shipping) and listed in the My Purchases orders table"
                 },
                 {
                     "action": "login",
@@ -124,7 +130,7 @@
                         "seller-04-ship-modal",
                         "seller-05-shipped"
                     ],
-                    "expect": "order shows under To Ship; Arrange shipment moves it to To Receive"
+                    "expect": "order appears in the seller orders table; Arrange shipment moves it to To Receive"
                 },
                 {
                     "action": "confirm receipt and submit review",
@@ -135,7 +141,7 @@
                         "buyer-09-review",
                         "buyer-10-reviewed"
                     ],
-                    "expect": "same order reference and total, tracking visible, receipt completes the order, review submits"
+                    "expect": "same order reference and total, tracking number plus Track parcel link visible, receipt completes the order, review submits"
                 },
                 {
                     "action": "login",
@@ -147,6 +153,20 @@
                         "admin-04-decided"
                     ],
                     "expect": "buyer's report appears in the moderation queue and can be approved after confirming the dialog"
+                },
+                {
+                    "action": "buyer requests return/refund; seller declines with a note; buyer re-requests; seller approves",
+                    "screenshots": [
+                        "buyer-11-return-request",
+                        "buyer-12-return-pending",
+                        "seller-06-return-request",
+                        "seller-07-decline-modal",
+                        "seller-08-declined",
+                        "buyer-13-return-declined",
+                        "seller-09-refunded",
+                        "buyer-14-refunded"
+                    ],
+                    "expect": "seller sees the Return/refund request panel with the buyer's reason; decline requires a note and restores Completed with the declined outcome on the buyer page; approval sets Refunded and the buyer sees 'Your refund has been approved.'"
                 },
                 {
                     "action": "buyer places a fresh order and cancels it",
@@ -381,6 +401,28 @@
                     "url": "/seller/finance",
                     "screenshot": "finance-07-seller-payout-paid",
                     "expect": "payout-row shows 'paid'"
+                }
+            ]
+        },
+        {
+            "id": "seller-customers",
+            "spec": "specs/seller-customers.spec.ts",
+            "description": "Seller customers list and customer detail page (QA2): a customer row links to a detail page scoped to the seller's shop with contact info, stat tiles, and order history.",
+            "steps": [
+                {
+                    "action": "login",
+                    "email": "seller@example.com"
+                },
+                {
+                    "action": "goto",
+                    "url": "/seller/customers",
+                    "screenshot": "customers-01-list",
+                    "expect": "customer rows with name, email, orders count and total spent visible"
+                },
+                {
+                    "action": "open first customer",
+                    "screenshot": "customers-02-detail",
+                    "expect": "customer detail page shows name, email, stat tiles, and Order History"
                 }
             ]
         },

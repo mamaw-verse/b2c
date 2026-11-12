@@ -108,10 +108,16 @@ test.describe.serial('full order lifecycle', () => {
         ).toBeVisible();
         await shot(page, 'buyer-04-order-placed');
 
-        // Order appears under the buyer's account.
+        // Order appears under the buyer's account orders table.
         await page.goto('/account/orders');
+        await expect(
+            page.getByRole('heading', { name: 'My Purchases' }),
+        ).toBeVisible();
         await shot(page, 'buyer-05-orders');
-        await page.getByRole('link', { name: 'View details' }).first().click();
+        await page
+            .getByRole('link', { name: 'View', exact: true })
+            .first()
+            .click();
         await expect(page).toHaveURL(/account\/orders\/.+/);
         await shot(page, 'buyer-06-order-detail');
         await page.reload();
@@ -129,9 +135,12 @@ test.describe.serial('full order lifecycle', () => {
         await page.goto('/seller/dashboard');
         await shot(page, 'seller-01-dashboard');
 
-        await page.goto('/seller/orders?status=to_ship');
+        await page.goto('/seller/orders');
         await expect(
-            page.locator('a[href*="/seller/orders/"]').first(),
+            page.getByRole('heading', { name: 'Orders', exact: true }),
+        ).toBeVisible();
+        await expect(
+            page.locator(`a[href="/seller/orders/${orderId}"]`),
         ).toBeVisible();
         await shot(page, 'seller-02-orders');
 
@@ -166,6 +175,10 @@ test.describe.serial('full order lifecycle', () => {
         expect(detail.order.total).toBe(total);
         await expect(
             page.getByText('PH-E2E1234567', { exact: false }).first(),
+        ).toBeVisible();
+        // J&T Express has a configured tracking template, so a tracking link renders.
+        await expect(
+            page.getByRole('link', { name: /Track parcel/ }).first(),
         ).toBeVisible();
         await shot(page, 'buyer-07-tracking');
 
@@ -222,6 +235,109 @@ test.describe.serial('full order lifecycle', () => {
         });
         await shot(page, 'admin-04-decided');
     });
+
+    test('buyer requests a return/refund on the completed order', async ({
+        page,
+    }) => {
+        await login(page, BUYER);
+        await page.goto(`/account/orders/${orderId}`);
+        await page.getByRole('button', { name: 'Return / refund' }).click();
+        const returnModal = page.locator('dialog[open]');
+        await expect(returnModal).toContainText('Request Return / Refund');
+        await returnModal
+            .locator('textarea')
+            .fill('E2E: item arrived damaged.');
+        await shot(page, 'buyer-11-return-request');
+        await returnModal
+            .getByRole('button', { name: 'Submit request' })
+            .click();
+        await expect(
+            page.getByText('Return/refund requested', { exact: false }).first(),
+        ).toBeVisible({ timeout: 15_000 });
+        await shot(page, 'buyer-12-return-pending');
+    });
+
+    test('seller sees the return request and declines it with a note', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        await page.goto(`/seller/orders/${orderId}`);
+        await expect(
+            page.getByRole('heading', { name: 'Return/refund request' }),
+        ).toBeVisible();
+        await expect(
+            page.getByText('E2E: item arrived damaged.').first(),
+        ).toBeVisible();
+        await shot(page, 'seller-06-return-request');
+        await page
+            .getByRole('button', { name: 'Decline', exact: true })
+            .first()
+            .click();
+        const declineModal = page.locator('dialog[open]');
+        await expect(declineModal).toContainText('Decline return/refund');
+        await declineModal
+            .locator('textarea')
+            .fill('E2E: cannot approve this request.');
+        await shot(page, 'seller-07-decline-modal');
+        await declineModal
+            .getByRole('button', { name: 'Decline', exact: true })
+            .click();
+        await expect(
+            page.getByText('Completed', { exact: true }).first(),
+        ).toBeVisible({ timeout: 15_000 });
+        await shot(page, 'seller-08-declined');
+    });
+
+    test('buyer sees the decline outcome and re-requests the return', async ({
+        page,
+    }) => {
+        await login(page, BUYER);
+        await page.goto(`/account/orders/${orderId}`);
+        await expect(page.getByText('Return/refund declined.')).toBeVisible({
+            timeout: 15_000,
+        });
+        await expect(
+            page.getByText(/Reason: E2E: cannot approve this request\./),
+        ).toBeVisible();
+        await shot(page, 'buyer-13-return-declined');
+
+        await page.getByRole('button', { name: 'Return / refund' }).click();
+        const secondReturnModal = page.locator('dialog[open]');
+        await secondReturnModal
+            .locator('textarea')
+            .fill('E2E: second return request.');
+        await secondReturnModal
+            .getByRole('button', { name: 'Submit request' })
+            .click();
+        await expect(
+            page.getByText('Return/refund requested', { exact: false }).first(),
+        ).toBeVisible({ timeout: 15_000 });
+    });
+
+    test('seller approves the refund and the order becomes refunded', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        await page.goto(`/seller/orders/${orderId}`);
+        await expect(
+            page.getByText('E2E: second return request.').first(),
+        ).toBeVisible();
+        page.once('dialog', (dialog) => dialog.accept());
+        await page.getByRole('button', { name: 'Approve refund' }).click();
+        await expect(
+            page.getByText('Refunded', { exact: true }).first(),
+        ).toBeVisible({ timeout: 15_000 });
+        await shot(page, 'seller-09-refunded');
+    });
+
+    test('buyer sees the approved refund outcome', async ({ page }) => {
+        await login(page, BUYER);
+        await page.goto(`/account/orders/${orderId}`);
+        await expect(
+            page.getByText('Your refund has been approved.'),
+        ).toBeVisible({ timeout: 15_000 });
+        await shot(page, 'buyer-14-refunded');
+    });
 });
 
 test.describe('order cancellation', () => {
@@ -261,7 +377,10 @@ test.describe('order cancellation', () => {
         });
 
         await page.goto('/account/orders');
-        await page.getByRole('link', { name: 'View details' }).first().click();
+        await page
+            .getByRole('link', { name: 'View', exact: true })
+            .first()
+            .click();
         await expect(page).toHaveURL(/account\/orders\/.+/);
 
         await page.getByRole('button', { name: 'Cancel order' }).click();
