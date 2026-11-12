@@ -22,8 +22,11 @@ final readonly class GetOrder
             'shippingOption',
             'payment',
             'events',
-            'fulfillments.items.orderItem:id,product_name,variation_label',
+            'fulfillments.items.orderItem.variation',
+            'fulfillments.items.orderItem.product.images',
             'items.product.images',
+            'items.variation',
+            'items.fulfillmentItems',
             'items.review.photos',
         ]);
 

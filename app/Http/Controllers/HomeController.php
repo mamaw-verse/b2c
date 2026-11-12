@@ -25,6 +25,8 @@ final class HomeController
             'products' => Inertia::scroll(fn () => $feed->handle()),
             'vouchers' => $vouchers->handle(3),
             'canBecomeSeller' => $request->user()?->isSeller() === false,
+            'halalCertificationUrl' => config('services.halal_certification.url'),
+            'b2bUrl' => config('services.b2b.url'),
         ]);
     }
 }

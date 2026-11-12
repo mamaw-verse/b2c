@@ -6,6 +6,7 @@ namespace App\Actions\Seller;
 
 use App\Models\Fulfillment;
 use App\Models\OrderEvent;
+use App\Support\CourierTracking;
 use Illuminate\Support\Facades\DB;
 
 final readonly class UpdateFulfillmentTracking
@@ -26,6 +27,7 @@ final readonly class UpdateFulfillmentTracking
                     'fulfillment_id' => $fulfillment->id,
                     'courier_name' => $fulfillment->courier_name,
                     'tracking_number' => $fulfillment->tracking_number,
+                    'tracking_url' => CourierTracking::resolve($fulfillment->courier_name, $fulfillment->tracking_number, $fulfillment->tracking_url),
                 ],
             ]);
 

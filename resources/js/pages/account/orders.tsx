@@ -1,76 +1,38 @@
-import { Head, router } from '@inertiajs/react';
-import { Package } from 'lucide-react';
-import { OrderCard, type OrderData } from '@/components/order-card';
-import { OrderStatusTabs } from '@/components/order-status-tabs';
-import { EmptyState } from '@/components/ui/empty-state';
+import { Head } from '@inertiajs/react';
+import { OrdersTable, type OrderRow } from '@/components/orders-table';
+import { show as orderShow } from '@/routes/orders';
 
-type PaginatedOrders = {
-    data: any[];
-    current_page: number;
-    last_page: number;
-    next_page_url?: string | null;
+type Order = {
+    id: string;
+    status_label: string;
+    status_badge_variant: 'neutral' | 'info' | 'warning' | 'success' | 'danger';
+    total: number;
+    created_at: string;
+    items?: { qty: number }[];
 };
 
 type OrdersPageProps = {
-    status?: string | null;
-    counts?: Record<string, number>;
-    orders: PaginatedOrders;
+    orders: {
+        data: Order[];
+        current_page: number;
+        last_page: number;
+    };
 };
 
-export default function Orders({ status, counts, orders }: OrdersPageProps) {
-    const handleStatusSelect = (tabKey: string | null) => {
-        router.get('/account/orders', tabKey ? { status: tabKey } : {}, {
-            preserveState: true,
-            preserveScroll: true,
-        });
-    };
-
-    const handleReceive = (orderId: string) => {
-        if (
-            confirm(
-                'Confirm that you have received this order in good condition?',
-            )
-        ) {
-            router.put(
-                `/account/orders/${orderId}/received`,
-                {},
-                {
-                    preserveScroll: true,
-                },
-            );
-        }
-    };
-
-    const formattedOrders: OrderData[] = orders.data.map((order) => {
-        const latestEvent = order.events?.[0];
-
-        return {
-            id: order.id,
-            status: order.status,
-            status_label: order.status_label,
-            status_badge_variant: order.status_badge_variant,
-            shop: order.shop
-                ? {
-                      name: order.shop.name,
-                      slug: order.shop.slug,
-                  }
-                : null,
-            tracking_note: latestEvent ? latestEvent.title : null,
-            total: Number(order.total),
-            created_at: order.created_at,
-            items: (order.items || []).map((item: any) => ({
-                id: item.id,
-                product_name: item.product_name,
-                variation_label: item.variation_label,
-                unit_price: Number(item.unit_price),
-                qty: Number(item.qty),
-                subtotal: Number(item.subtotal),
-                image_url: item.product?.images?.[0]?.url,
-                product_slug: item.product?.slug,
-                reviewed: Boolean(item.review),
-            })),
-        };
-    });
+export default function Orders({ orders }: OrdersPageProps) {
+    const rows: OrderRow[] = orders.data.map((order) => ({
+        id: order.id,
+        raw_id: order.id,
+        status: order.status_label,
+        status_variant: order.status_badge_variant,
+        items: (order.items ?? []).reduce(
+            (sum, item) => sum + (item.qty || 0),
+            0,
+        ),
+        total: Number(order.total),
+        created_at: order.created_at,
+        detail_url: orderShow({ order: order.id }).url,
+    }));
 
     return (
         <>
@@ -84,33 +46,11 @@ export default function Orders({ status, counts, orders }: OrdersPageProps) {
                     </p>
                 </header>
 
-                <div className="rounded-panel border border-border bg-surface">
-                    <OrderStatusTabs
-                        selected={status ?? null}
-                        onSelect={handleStatusSelect}
-                        counts={counts}
-                    />
-
-                    <div className="p-4 md:p-6">
-                        {formattedOrders.length === 0 ? (
-                            <EmptyState
-                                icon={Package}
-                                title="No orders found"
-                                text="When you place orders, they will appear here with tracking updates."
-                            />
-                        ) : (
-                            <div className="grid gap-4">
-                                {formattedOrders.map((order) => (
-                                    <OrderCard
-                                        key={order.id}
-                                        order={order}
-                                        onReceive={handleReceive}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <OrdersTable
+                    orders={rows}
+                    variant="buyer"
+                    emptyText="When you place orders, they will appear here with tracking updates."
+                />
             </div>
         </>
     );

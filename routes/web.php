@@ -23,6 +23,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopFollowController;
+use App\Http\Controllers\WhyChooseUsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -30,6 +31,7 @@ Route::get('search', [SearchController::class, 'index'])->name('search');
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('shops/{shop:slug}', [ShopController::class, 'show'])->name('shops.show');
+Route::get('why-choose-us', WhyChooseUsController::class)->name('why-choose-us');
 Route::get('pages/{page}', [App\Http\Controllers\ContentPageController::class, 'show'])->name('pages.show');
 Route::get('seller/terms', App\Http\Controllers\Seller\SellerTermsController::class)->name('seller.terms');
 
@@ -93,9 +95,11 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::get('dashboard', App\Http\Controllers\Seller\DashboardController::class)->name('dashboard');
         Route::resource('products', App\Http\Controllers\Seller\ProductController::class)->names('products');
         Route::resource('orders', App\Http\Controllers\Seller\OrderController::class)->only(['index', 'show'])->names('orders');
+        Route::post('orders/{order}/return', [App\Http\Controllers\Seller\OrderReturnController::class, 'store'])->name('orders.return.store');
         Route::post('orders/{order}/chat', [App\Http\Controllers\Seller\OrderChatController::class, 'store'])->name('orders.chat.store');
         Route::resource('orders.fulfillments', App\Http\Controllers\Seller\FulfillmentController::class)->only(['store', 'update'])->names('orders.fulfillments');
         Route::get('customers', [App\Http\Controllers\Seller\CustomerController::class, 'index'])->name('customers.index');
+        Route::get('customers/{customer}', [App\Http\Controllers\Seller\CustomerController::class, 'show'])->name('customers.show');
         Route::get('finance', [App\Http\Controllers\Seller\FinanceController::class, 'index'])->name('finance.index');
         Route::resource('vouchers', App\Http\Controllers\Seller\VoucherController::class)->only(['index', 'store', 'update', 'destroy'])->names('vouchers');
         Route::post('payouts', [App\Http\Controllers\Seller\PayoutController::class, 'store'])->name('payouts.store');

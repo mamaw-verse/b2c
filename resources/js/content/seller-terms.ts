@@ -1,5 +1,5 @@
 /**
- * Draft Seller Terms for Barakah Market.
+ * Draft Seller Terms for HalalBenta.
  *
  * This is the single source of truth for the terms text rendered at
  * /seller/terms. It is a DRAFT pending product-owner and legal review —
@@ -44,7 +44,7 @@ export const termsContent = {
             id: 'halal-commitments',
             title: '3. Halal commitments',
             paragraphs: [
-                'Barakah Market is a halal-focused marketplace. As a seller you commit to the following:',
+                'HalalBenta is a halal-focused marketplace. As a seller you commit to the following:',
             ],
             items: [
                 'List only halal-certified or halal-permissible products.',

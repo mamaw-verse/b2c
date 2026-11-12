@@ -37,6 +37,14 @@ export default function Shop({
         router.post('/account/chat', { shop_id: shop.id });
     };
 
+    const handleReport = () => {
+        if (!auth.user) {
+            router.visit(login().url);
+            return;
+        }
+        setReportOpen(true);
+    };
+
     const handleFollow = () => {
         if (!auth.user) {
             router.visit(login().url);
@@ -102,7 +110,7 @@ export default function Shop({
                         onFollow={canInteract ? handleFollow : undefined}
                         following={shop.is_following}
                         onChat={canInteract ? handleChat : undefined}
-                        onReport={() => setReportOpen(true)}
+                        onReport={handleReport}
                     />
                 </div>
                 <div className="bleed-x mt-4 bg-surface py-4 md:mx-0 md:mt-6 md:rounded-panel md:border md:border-border md:px-4">

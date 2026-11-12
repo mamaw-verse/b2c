@@ -8,3 +8,12 @@ test('the configured brand renders as a data-brand attribute', function () {
     $response->assertOk();
     $response->assertSee('data-brand="'.config('app.brand').'"', false);
 });
+
+test('app name is configured as HalalBenta and shared with inertia', function () {
+    expect(config('app.name'))->toBe('HalalBenta');
+
+    $response = $this->get(route('login'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->where('name', 'HalalBenta'));
+});

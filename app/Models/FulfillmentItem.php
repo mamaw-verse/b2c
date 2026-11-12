@@ -23,6 +23,16 @@ final class FulfillmentItem extends Model
 {
     use HasUlids;
 
+    /** @var list<string> */
+    protected $appends = [
+        'unit_price',
+        'variation',
+        'thumbnail_icon',
+        'slug',
+        'sku',
+        'name',
+    ];
+
     /** @return BelongsTo<Fulfillment, $this> */
     public function fulfillment(): BelongsTo
     {
@@ -33,6 +43,37 @@ final class FulfillmentItem extends Model
     public function orderItem(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    public function getNameAttribute(): string
+    {
+        return $this->orderItem?->product_name ?? $this->orderItem?->product?->name ?? 'Item';
+    }
+
+    public function getUnitPriceAttribute(): int
+    {
+        return $this->orderItem?->unit_price ?? 0;
+    }
+
+    public function getVariationAttribute(): ?string
+    {
+        return $this->orderItem?->variation_label
+            ?? ($this->orderItem?->variation ? mb_trim(($this->orderItem->variation->option1_value ?? '').' '.($this->orderItem->variation->option2_value ?? '')) : null);
+    }
+
+    public function getThumbnailIconAttribute(): string
+    {
+        return $this->orderItem?->product?->images->first()?->icon ?? 'package';
+    }
+
+    public function getSlugAttribute(): ?string
+    {
+        return $this->orderItem?->product?->slug;
+    }
+
+    public function getSkuAttribute(): ?string
+    {
+        return $this->orderItem?->variation?->sku;
     }
 
     protected function casts(): array

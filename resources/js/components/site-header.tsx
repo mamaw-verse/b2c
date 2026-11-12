@@ -1,11 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    Bell,
-    MessageCircle,
-    ShoppingCart,
-    Store,
-} from 'lucide-react';
+import { ArrowLeft, Bell, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { AccountUserMenu } from '@/components/account-user-menu';
 import { NameAvatar } from '@/components/name-avatar';
@@ -79,13 +73,23 @@ export function SiteHeader({
             data-edge="start"
             className="flex min-h-touch min-w-touch shrink-0 items-center gap-2 text-h4 text-primary-text max-md:hidden"
         >
-            <span
+            <img
+                src="/images/brand/logo.png"
+                alt={name}
+                className="hidden h-8 w-auto object-contain lg:block dark:hidden"
+            />
+            <img
+                src="/images/brand/logo-dark.png"
+                alt={name}
+                className="hidden h-8 w-auto object-contain dark:lg:block"
+            />
+            <img
+                src="/images/brand/icon.png"
+                alt=""
                 aria-hidden="true"
-                className="grid size-8 place-items-center rounded-tile bg-primary text-primary-foreground"
-            >
-                <Store className="size-5" />
-            </span>
-            <span className="hidden lg:inline">{name}</span>
+                className="size-8 object-contain lg:hidden"
+            />
+            <span className="sr-only lg:hidden">{name}</span>
         </Link>
     );
 

@@ -35,6 +35,9 @@ final class OrderItem extends Model
     /** @use HasFactory<OrderItemFactory> */
     use HasFactory, HasUlids;
 
+    /** @var list<string> */
+    protected $appends = ['remaining'];
+
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {
@@ -61,7 +64,16 @@ final class OrderItem extends Model
 
     public function remainingQuantity(): int
     {
-        return $this->qty - (int) $this->fulfillmentItems()->sum('quantity');
+        $shipped = $this->relationLoaded('fulfillmentItems')
+            ? (int) $this->fulfillmentItems->sum('quantity')
+            : (int) $this->fulfillmentItems()->sum('quantity');
+
+        return max(0, $this->qty - $shipped);
+    }
+
+    public function getRemainingAttribute(): int
+    {
+        return $this->remainingQuantity();
     }
 
     /** @return HasOne<Review, $this> */

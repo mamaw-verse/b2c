@@ -37,4 +37,12 @@ return [
         ],
     ],
 
+    'halal_certification' => [
+        'url' => env('HALAL_CERTIFICATION_URL'),
+    ],
+
+    'b2b' => [
+        'url' => env('B2B_URL'),
+    ],
+
 ];

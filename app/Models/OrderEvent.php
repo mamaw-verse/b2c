@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\CourierTracking;
 use Database\Factories\OrderEventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -27,10 +28,27 @@ final class OrderEvent extends Model
     /** @use HasFactory<OrderEventFactory> */
     use HasFactory, HasUlids;
 
+    /** @var list<string> */
+    protected $appends = ['tracking_url', 'tracking_number'];
+
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function getTrackingNumberAttribute(): ?string
+    {
+        return $this->metadata['tracking_number'] ?? null;
+    }
+
+    public function getTrackingUrlAttribute(): ?string
+    {
+        return CourierTracking::resolve(
+            $this->metadata['courier_name'] ?? null,
+            $this->metadata['tracking_number'] ?? null,
+            $this->metadata['tracking_url'] ?? null,
+        );
     }
 
     protected function casts(): array

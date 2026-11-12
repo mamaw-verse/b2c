@@ -20,7 +20,9 @@ test('home renders the storefront with categories and products', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('home')
             ->has('categories')
-            ->has('products.data'));
+            ->has('products.data')
+            ->has('halalCertificationUrl')
+            ->has('b2bUrl'));
 });
 
 test('search returns matching products and hides non-buyer statuses', function () {

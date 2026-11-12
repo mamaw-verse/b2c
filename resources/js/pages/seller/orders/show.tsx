@@ -1,12 +1,13 @@
-import { Form, Head, Link, useForm } from '@inertiajs/react';
+import { Form, Head, Link, router, useForm } from '@inertiajs/react';
 import { MessageCircle, Printer, Truck } from 'lucide-react';
 import { useState } from 'react';
-import { DsIcon } from '@/components/ds-icon';
+import { FulfillmentCard } from '@/components/fulfillment-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
+import { TextArea } from '@/components/ui/textarea';
 import { formatDateTime, formatPeso } from '@/lib/format';
 import { index as ordersIndex } from '@/routes/seller/orders';
 import { store as storeChat } from '@/routes/seller/orders/chat';
@@ -14,11 +15,14 @@ import {
     store as storeFulfillment,
     update as updateFulfillment,
 } from '@/routes/seller/orders/fulfillments';
+import { store as storeReturn } from '@/routes/seller/orders/return';
 
 type OrderItem = {
     id: string;
     name: string;
+    slug?: string | null;
     variation?: string | null;
+    sku?: string | null;
     quantity: number;
     price: number;
     subtotal: number;
@@ -35,13 +39,23 @@ type Fulfillment = {
     status: string;
     shipped_at: string;
     delivered_at?: string | null;
-    items: { order_item_id: string; name: string; quantity: number }[];
+    items: {
+        order_item_id: string;
+        name: string;
+        quantity: number;
+        unit_price?: number;
+        variation?: string | null;
+        thumbnail_icon?: string | null;
+        slug?: string | null;
+        sku?: string | null;
+    }[];
 };
 
 type OrderDetail = {
     id: string;
     reference: string;
     raw_id: string;
+    location?: string | null;
     status: string;
     status_raw: string;
     status_variant: 'neutral' | 'info' | 'warning' | 'success' | 'danger';
@@ -79,12 +93,18 @@ type OrderDetail = {
         time?: string | null;
         courier_name?: string | null;
         tracking_number?: string | null;
+        tracking_url?: string | null;
         state?: string | null;
     }[];
     fulfillment_status: string;
     fulfillments: Fulfillment[];
     chat_url: string | null;
     can_ship: boolean;
+    can_resolve_return: boolean;
+    return_request: {
+        reason: string | null;
+        requested_at: string | null;
+    } | null;
 };
 
 type PageProps = {
@@ -94,6 +114,24 @@ type PageProps = {
 export default function SellerOrderShow({ order }: PageProps) {
     const [shipModalOpen, setShipModalOpen] = useState(false);
     const [editing, setEditing] = useState<Fulfillment | null>(null);
+    const [declineModalOpen, setDeclineModalOpen] = useState(false);
+    const [declineNote, setDeclineNote] = useState('');
+    const [resolveProcessing, setResolveProcessing] = useState(false);
+
+    const unfulfilledItems = order.items
+        .filter((item) => item.remaining > 0)
+        .map((item) => ({
+            name: item.name,
+            variation: item.variation,
+            sku: item.sku,
+            thumbnail_icon: item.thumbnail_icon,
+            unit_price: item.price,
+            quantity: item.remaining,
+        }));
+    const totalRemainingQty = unfulfilledItems.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+    );
     const shipForm = useForm({
         courier_name: '',
         tracking_number: '',
@@ -117,6 +155,32 @@ export default function SellerOrderShow({ order }: PageProps) {
                 shipForm.reset();
             },
         });
+    };
+
+    const handleApproveReturn = () => {
+        if (!confirm('Approve this refund request?')) return;
+        setResolveProcessing(true);
+        router.post(
+            storeReturn({ order: order.raw_id }).url,
+            { decision: 'approve' },
+            { onFinish: () => setResolveProcessing(false) },
+        );
+    };
+
+    const handleDeclineReturn = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!declineNote.trim()) return;
+        setResolveProcessing(true);
+        router.post(
+            storeReturn({ order: order.raw_id }).url,
+            { decision: 'reject', note: declineNote },
+            {
+                onFinish: () => {
+                    setResolveProcessing(false);
+                    setDeclineModalOpen(false);
+                },
+            },
+        );
     };
 
     return (
@@ -149,51 +213,133 @@ export default function SellerOrderShow({ order }: PageProps) {
                         </Badge>
                     </div>
 
-                    {/* Items */}
-                    <section className="panel p-4 md:p-6">
-                        <h2 className="mb-4 text-h3">Items</h2>
-                        <ul className="grid gap-4">
-                            {order.items.map((item) => (
-                                <li
-                                    key={item.id}
-                                    className="flex items-center gap-3"
-                                >
-                                    <span className="bg-surface-raised grid size-12 shrink-0 place-items-center rounded-tile text-muted-foreground">
-                                        <DsIcon
-                                            name={
-                                                item.thumbnail_icon ?? 'package'
-                                            }
-                                            className="size-5"
+                    {/* Unfulfilled Card */}
+                    {totalRemainingQty > 0 && (
+                        <FulfillmentCard
+                            title={`Unfulfilled (${totalRemainingQty})`}
+                            badge={{ label: 'Unfulfilled', tone: 'yellow' }}
+                            location={order.location}
+                            lines={unfulfilledItems}
+                            footer={
+                                order.can_ship ? (
+                                    <Button
+                                        onClick={() => setShipModalOpen(true)}
+                                    >
+                                        <Truck
+                                            className="size-4"
+                                            aria-hidden="true"
                                         />
-                                    </span>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate text-label">
-                                            {item.name}
-                                        </p>
-                                        {item.variation && (
-                                            <p className="text-body-sm text-muted-foreground">
-                                                {item.variation}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="text-end">
-                                        <p className="text-label">
-                                            {formatPeso(item.price)}
-                                        </p>
-                                        <p className="text-body-sm text-muted-foreground">
-                                            × {item.quantity}
-                                        </p>
-                                        {item.remaining < item.quantity && (
-                                            <p className="text-caption text-muted-foreground">
-                                                {item.quantity - item.remaining}{' '}
-                                                shipped
-                                            </p>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                                        Fulfill items
+                                    </Button>
+                                ) : null
+                            }
+                        />
+                    )}
 
+                    {order.can_resolve_return && order.return_request && (
+                        <section className="panel p-4 md:p-6">
+                            <h2 className="mb-3 text-h3">
+                                Return/refund request
+                            </h2>
+                            {order.return_request.reason && (
+                                <p className="mb-4 text-body text-muted-foreground">
+                                    <span className="font-medium text-foreground">
+                                        Buyer reason:
+                                    </span>{' '}
+                                    {order.return_request.reason}
+                                </p>
+                            )}
+                            {order.return_request.requested_at && (
+                                <p className="mb-4 text-body-sm text-muted-foreground">
+                                    Requested on{' '}
+                                    {formatDateTime(
+                                        order.return_request.requested_at,
+                                    )}
+                                </p>
+                            )}
+                            <div className="flex gap-3">
+                                <Button
+                                    onClick={handleApproveReturn}
+                                    disabled={resolveProcessing}
+                                >
+                                    Approve refund
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setDeclineModalOpen(true)}
+                                    disabled={resolveProcessing}
+                                >
+                                    Decline
+                                </Button>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Parcels */}
+                    {order.fulfillments.map((parcel, index) => (
+                        <FulfillmentCard
+                            key={parcel.id}
+                            title={`Parcel ${index + 1} · ${parcel.courier_name}`}
+                            badge={{
+                                label:
+                                    parcel.status === 'delivered'
+                                        ? 'Delivered'
+                                        : 'Shipped',
+                                tone:
+                                    parcel.status === 'delivered'
+                                        ? 'green'
+                                        : 'blue',
+                            }}
+                            tracking={{
+                                courier: parcel.courier_name,
+                                number: parcel.tracking_number,
+                                url: parcel.tracking_url,
+                                shipped_at: parcel.shipped_at,
+                                delivered_at: parcel.delivered_at,
+                            }}
+                            lines={parcel.items.map((line) => ({
+                                name: line.name,
+                                variation: line.variation,
+                                sku: line.sku,
+                                thumbnail_icon: line.thumbnail_icon,
+                                unit_price: line.unit_price ?? 0,
+                                quantity: line.quantity,
+                            }))}
+                            footer={
+                                parcel.status === 'shipped' ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setEditing(parcel)}
+                                    >
+                                        Edit tracking
+                                    </Button>
+                                ) : null
+                            }
+                            data-test="parcel"
+                        />
+                    ))}
+
+                    {/* Payment */}
+                    <section className="panel p-4 md:p-6">
+                        <h2 className="mb-3 text-h3">Payment</h2>
+                        <div className="flex justify-between text-body">
+                            <span className="text-muted-foreground">
+                                Method
+                            </span>
+                            <span>{order.payment.method}</span>
+                        </div>
+                        {order.payment.cod_collect_amount !== null && (
+                            <p className="mt-2 rounded-tile bg-surface-subtle p-2 text-body-sm">
+                                COD — collect{' '}
+                                <span className="font-bold">
+                                    {formatPeso(
+                                        order.payment.cod_collect_amount,
+                                    )}
+                                </span>{' '}
+                                from buyer
+                            </p>
+                        )}
                         <div className="mt-4 border-t border-border pt-4">
                             <div className="flex justify-between text-body">
                                 <span>Subtotal</span>
@@ -256,87 +402,6 @@ export default function SellerOrderShow({ order }: PageProps) {
                         </div>
                     </section>
 
-                    {order.fulfillments.length > 0 && (
-                        <section className="panel p-4 md:p-6">
-                            <h2 className="mb-4 text-h3">Parcels</h2>
-                            <ul className="grid gap-4">
-                                {order.fulfillments.map((parcel, index) => (
-                                    <li
-                                        key={parcel.id}
-                                        className="rounded-tile border border-border p-3"
-                                        data-test="parcel"
-                                    >
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <p className="text-label">
-                                                Parcel {index + 1} ·{' '}
-                                                {parcel.courier_name}
-                                            </p>
-                                            <Badge
-                                                variant={
-                                                    parcel.status ===
-                                                    'delivered'
-                                                        ? 'success'
-                                                        : 'info'
-                                                }
-                                            >
-                                                {parcel.status === 'delivered'
-                                                    ? 'Delivered'
-                                                    : 'Shipped'}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-body-sm text-muted-foreground">
-                                            Tracking {parcel.tracking_number} ·
-                                            shipped{' '}
-                                            {formatDateTime(parcel.shipped_at)}
-                                        </p>
-                                        <ul className="mt-2 text-body-sm">
-                                            {parcel.items.map((line) => (
-                                                <li key={line.order_item_id}>
-                                                    {line.name} ×{' '}
-                                                    {line.quantity}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        {parcel.status === 'shipped' && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="mt-2"
-                                                onClick={() =>
-                                                    setEditing(parcel)
-                                                }
-                                            >
-                                                Edit tracking
-                                            </Button>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    )}
-
-                    {/* Payment */}
-                    <section className="panel p-4 md:p-6">
-                        <h2 className="mb-3 text-h3">Payment</h2>
-                        <div className="flex justify-between text-body">
-                            <span className="text-muted-foreground">
-                                Method
-                            </span>
-                            <span>{order.payment.method}</span>
-                        </div>
-                        {order.payment.cod_collect_amount !== null && (
-                            <p className="mt-2 rounded-tile bg-surface-subtle p-2 text-body-sm">
-                                COD — collect{' '}
-                                <span className="font-bold">
-                                    {formatPeso(
-                                        order.payment.cod_collect_amount,
-                                    )}
-                                </span>{' '}
-                                from buyer
-                            </p>
-                        )}
-                    </section>
-
                     {/* Shipping address */}
                     <section className="panel p-4 md:p-6">
                         <h2 className="mb-3 text-h3">Shipping address</h2>
@@ -374,6 +439,23 @@ export default function SellerOrderShow({ order }: PageProps) {
                                             {event.time &&
                                                 formatDateTime(event.time)}
                                         </time>
+                                        {event.tracking_url ? (
+                                            <p className="mt-1">
+                                                <a
+                                                    href={event.tracking_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1 text-label text-halal hover:underline"
+                                                >
+                                                    Track parcel ↗
+                                                </a>
+                                            </p>
+                                        ) : event.tracking_number ? (
+                                            <p className="mt-1 text-body-sm text-muted-foreground">
+                                                Tracking:{' '}
+                                                {event.tracking_number}
+                                            </p>
+                                        ) : null}
                                     </li>
                                 ))}
                             </ol>
@@ -605,6 +687,40 @@ export default function SellerOrderShow({ order }: PageProps) {
                         )}
                     </Form>
                 )}
+            </Modal>
+
+            <Modal
+                open={declineModalOpen}
+                onOpenChange={(open) => !open && setDeclineModalOpen(false)}
+                title="Decline return/refund"
+            >
+                <form onSubmit={handleDeclineReturn} className="grid gap-4">
+                    <FormField label="Reason for declining" required>
+                        <TextArea
+                            value={declineNote}
+                            onChange={(e) => setDeclineNote(e.target.value)}
+                            maxLength={500}
+                            rows={4}
+                            placeholder="Explain why you are declining this request…"
+                        />
+                    </FormField>
+                    <div className="flex justify-end gap-3">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setDeclineModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="destructive"
+                            disabled={resolveProcessing || !declineNote.trim()}
+                        >
+                            Decline
+                        </Button>
+                    </div>
+                </form>
             </Modal>
         </>
     );

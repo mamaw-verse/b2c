@@ -1,4 +1,3 @@
-import { Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type BrandMarkProps = {
@@ -12,20 +11,34 @@ export function BrandMark({
     showName = true,
     className,
 }: BrandMarkProps) {
+    if (!showName) {
+        return (
+            <img
+                src="/images/brand/icon.png"
+                alt={name || 'Brand icon'}
+                className={cn('size-8 shrink-0 object-contain', className)}
+            />
+        );
+    }
+
     return (
         <span
             className={cn(
-                'flex items-center gap-2 text-primary-text',
+                'inline-flex items-center gap-2 text-primary-text',
                 className,
             )}
         >
-            <span
-                className="grid size-8 place-items-center rounded-tile bg-primary text-primary-foreground"
-                aria-hidden="true"
-            >
-                <Store className="size-5" />
-            </span>
-            {showName && <span className="text-h4">{name}</span>}
+            <img
+                src="/images/brand/logo.png"
+                alt={name}
+                className="h-8 w-auto object-contain dark:hidden"
+            />
+            <img
+                src="/images/brand/logo-dark.png"
+                alt={name}
+                className="hidden h-8 w-auto object-contain dark:block"
+            />
+            <span className="sr-only">{name}</span>
         </span>
     );
 }

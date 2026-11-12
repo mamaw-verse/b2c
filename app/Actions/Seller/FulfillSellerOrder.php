@@ -9,6 +9,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Notifications\OrderStatusNotification;
+use App\Support\CourierTracking;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -57,6 +58,7 @@ final readonly class FulfillSellerOrder
                     'fulfillment_id' => $fulfillment->id,
                     'courier_name' => $fulfillment->courier_name,
                     'tracking_number' => $fulfillment->tracking_number,
+                    'tracking_url' => CourierTracking::resolve($fulfillment->courier_name, $fulfillment->tracking_number, $fulfillment->tracking_url),
                 ],
             ]);
 

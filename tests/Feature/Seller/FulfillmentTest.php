@@ -106,5 +106,5 @@ test('customers list contains only the shops buyers', function () {
     Order::factory()->create(['shop_id' => Shop::factory()->create()->id]);
 
     $this->actingAs($this->seller)->get(route('seller.customers.index'))->assertOk()
-        ->assertInertia(fn ($page) => $page->component('seller/customers')->has('customers', 1)->missing('customers.0.email'));
+        ->assertInertia(fn ($page) => $page->component('seller/customers')->has('customers', 1)->where('customers.0.email', $this->order->user->email));
 });

@@ -6,6 +6,7 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { CategoryGrid } from '@/components/category-tile';
+import { HomeBenefits } from '@/components/home-benefits';
 import { ProductGrid } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
 import { VoucherCard } from '@/components/voucher-card';
@@ -28,11 +29,15 @@ export default function Home({
     products,
     vouchers,
     canBecomeSeller = false,
+    halalCertificationUrl,
+    b2bUrl,
 }: {
     categories: CategoryData[];
     products: CursorPage<ProductCardData>;
     vouchers: HomeVoucher[];
     canBecomeSeller?: boolean;
+    halalCertificationUrl?: string | null;
+    b2bUrl?: string | null;
 }) {
     const { marketplace: m, name, auth } = usePage().props;
     const trust: [LucideIcon, string, string][] = [
@@ -146,7 +151,7 @@ export default function Home({
                             {vouchers.map((v) => (
                                 <li
                                     key={v.title}
-                                    className="w-72 shrink-0 md:w-auto"
+                                    className="w-72 shrink-0 md:h-full md:w-auto"
                                 >
                                     <VoucherCard
                                         title={v.title}
@@ -159,6 +164,13 @@ export default function Home({
                         </ul>
                     </section>
                 )}
+
+                <HomeBenefits
+                    canBecomeSeller={canBecomeSeller}
+                    halalCertificationUrl={halalCertificationUrl}
+                    b2bUrl={b2bUrl}
+                />
+
                 <section aria-labelledby="home-grid-h" className="mt-6 md:mt-8">
                     <h2 id="home-grid-h" className="text-h3">
                         Daily discover

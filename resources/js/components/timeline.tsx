@@ -1,5 +1,5 @@
-import { Check, Truck } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Check, Copy, Truck } from 'lucide-react';
+import { type ReactNode, useState } from 'react';
 
 export type TimelineEventState = 'done' | 'current' | 'todo';
 
@@ -9,6 +9,8 @@ export type TimelineEvent = {
     time?: string | null;
     state?: TimelineEventState;
     icon?: ReactNode;
+    tracking_number?: string | null;
+    tracking_url?: string | null;
 };
 
 export type TimelineProps = {
@@ -16,6 +18,35 @@ export type TimelineProps = {
     label?: string;
     className?: string;
 };
+
+function TrackingCopyButton({ text }: { text: string }) {
+    const [copied, setCopied] = useState(false);
+
+    return (
+        <button
+            type="button"
+            onClick={() => {
+                void navigator.clipboard.writeText(text);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }}
+            className="inline-flex items-center gap-1 text-caption text-halal hover:underline"
+            aria-label="Copy tracking number"
+        >
+            {copied ? (
+                <>
+                    <Check className="size-3" />
+                    <span>Copied</span>
+                </>
+            ) : (
+                <>
+                    <Copy className="size-3" />
+                    <span>Copy</span>
+                </>
+            )}
+        </button>
+    );
+}
 
 export function Timeline({
     events,
@@ -95,6 +126,27 @@ export function Timeline({
                                     <time>{event.time}</time>
                                 </p>
                             )}
+                            {event.tracking_url ? (
+                                <p className="mt-1">
+                                    <a
+                                        href={event.tracking_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 text-label text-halal hover:underline"
+                                    >
+                                        <span>Track parcel ↗</span>
+                                    </a>
+                                </p>
+                            ) : event.tracking_number ? (
+                                <div className="mt-1 flex items-center gap-2 text-body-sm text-muted-foreground">
+                                    <span>
+                                        Tracking: {event.tracking_number}
+                                    </span>
+                                    <TrackingCopyButton
+                                        text={event.tracking_number}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                     </li>
                 );

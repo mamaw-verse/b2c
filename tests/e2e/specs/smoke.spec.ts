@@ -31,6 +31,27 @@ test.describe('public pages', () => {
         await shot(page, '01b-home-benefits');
     });
 
+    test('why choose us page renders full benefits view', async ({ page }) => {
+        await page.goto('/why-choose-us');
+        await expect(
+            page.getByRole('heading', {
+                name: 'Why Choose Our Marketplace?',
+                level: 1,
+            }),
+        ).toBeVisible();
+        for (const audience of [
+            'For Buyers',
+            'For Sellers',
+            'For Certification Applicants',
+            'For Businesses',
+        ]) {
+            await expect(
+                page.getByText(audience, { exact: true }),
+            ).toBeVisible();
+        }
+        await shot(page, '01c-why-choose-us-full');
+    });
+
     test('login page renders the form', async ({ page }) => {
         await page.goto('/login');
         await expect(page.locator('input[name="email"]')).toBeVisible();

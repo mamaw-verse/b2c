@@ -141,7 +141,9 @@ return [
             ['label' => 'Track order', 'href' => '/account/orders'],
             env('MARKETPLACE_SUPPORT_EMAIL') ? ['label' => 'Contact us', 'href' => 'mailto:'.env('MARKETPLACE_SUPPORT_EMAIL')] : null,
         ])),
-        'trust' => [],
+        'trust' => [
+            ['label' => 'Why choose us', 'href' => '/why-choose-us'],
+        ],
         'sell' => [
             ['label' => 'Sell on {brand}', 'href' => '/seller/dashboard'],
             ['label' => 'Seller centre', 'href' => '/seller/dashboard'],

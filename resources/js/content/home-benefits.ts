@@ -3,6 +3,7 @@ export type BenefitAudience = {
     title: string;
     eyebrow: string;
     headline: string;
+    summary: string;
     body: string;
     bullets: string[];
     cta: {
@@ -27,6 +28,8 @@ export const homeBenefitsContent: HomeBenefitsContent = {
             title: 'For Buyers',
             eyebrow: 'Shop with confidence',
             headline: 'Discover halal. Shop with peace of mind.',
+            summary:
+                'Escrow protection, secure checkout, and verified halal goods.',
             body: 'Enjoy a seamless shopping experience with access to halal-certified products and a marketplace designed to protect your purchases.',
             bullets: [
                 'Secure Payments – Shop confidently with secure payment transactions.',
@@ -43,6 +46,8 @@ export const homeBenefitsContent: HomeBenefitsContent = {
             title: 'For Sellers',
             eyebrow: 'Grow your business',
             headline: 'Bring your halal products to more customers.',
+            summary:
+                'Reach conscious shoppers, expand your store, and build trusted sales.',
             body: 'Reach a growing community of conscious consumers looking for trusted halal products. Showcase your offerings, build credibility, and grow your business through our marketplace.',
             bullets: [
                 'Expand your customer reach.',
@@ -60,6 +65,8 @@ export const homeBenefitsContent: HomeBenefitsContent = {
             title: 'For Certification Applicants',
             eyebrow: 'Get certified',
             headline: 'Take the next step toward halal certification.',
+            summary:
+                'Access official guidance, certification pathways, and market credibility.',
             body: 'Looking to have your products or business halal-certified? Connect with the right certification pathway and take the first step toward building consumer trust and expanding your market opportunities.',
             bullets: [
                 'Explore halal certification opportunities.',
@@ -78,6 +85,8 @@ export const homeBenefitsContent: HomeBenefitsContent = {
             eyebrow: 'B2B opportunities',
             headline:
                 'More than a marketplace. Your gateway to halal business opportunities.',
+            summary:
+                'Wholesale bulk purchasing and cross-border B2B halal trade.',
             body: 'Looking to source halal products or explore business partnerships? Discover our B2B platform, designed to connect businesses and unlock opportunities across the halal industry.',
             bullets: [
                 'Discover wholesale and bulk purchasing opportunities.',

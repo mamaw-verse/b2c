@@ -13,7 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('user can list their orders with status counts', function () {
+test('user can list their orders', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
@@ -35,25 +35,6 @@ test('user can list their orders with status counts', function () {
     $response->assertInertia(fn ($page) => $page
         ->component('account/orders')
         ->has('orders.data', 2)
-        ->where('counts.to_ship', 1)
-        ->where('counts.completed', 1)
-    );
-});
-
-test('user can filter orders by status', function () {
-    $user = User::factory()->create();
-    $shop = Shop::factory()->create();
-
-    Order::factory()->toShip()->create(['user_id' => $user->id, 'shop_id' => $shop->id]);
-    Order::factory()->completed()->create(['user_id' => $user->id, 'shop_id' => $shop->id]);
-
-    $response = $this->actingAs($user)->get(route('orders.index', ['status' => 'to_ship']));
-
-    $response->assertOk();
-    $response->assertInertia(fn ($page) => $page
-        ->component('account/orders')
-        ->has('orders.data', 1)
-        ->where('status', 'to_ship')
     );
 });
 
@@ -149,4 +130,25 @@ test('user can request return/refund for a completed order', function () {
         'title' => 'Return/refund requested',
         'detail' => 'Package arrived with damaged items.',
     ]);
+});
+
+test('tracking url resolves from courier templates or explicit url', function () {
+    $user = User::factory()->create();
+    $shop = Shop::factory()->create();
+    $order = Order::factory()->toReceive()->create(['user_id' => $user->id, 'shop_id' => $shop->id]);
+
+    $order->fulfillments()->create([
+        'courier_name' => 'J&T Express',
+        'tracking_number' => 'JT12345678',
+        'status' => 'shipped',
+        'shipped_at' => now(),
+    ]);
+
+    $response = $this->actingAs($user)->get(route('orders.show', $order));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('account/order')
+        ->where('order.fulfillments.0.tracking_url', 'https://www.jtexpress.ph/trajectoryQuery?bills=JT12345678')
+    );
 });

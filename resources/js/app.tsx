@@ -8,7 +8,7 @@ import PublicLayout from '@/layouts/public-layout';
 import SellerLayout from '@/layouts/seller-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'HalalBenta';
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

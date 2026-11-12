@@ -1,10 +1,12 @@
 import { Head, Link } from '@inertiajs/react';
 import { formatDateTime, formatPeso } from '@/lib/format';
+import { show as customerShow } from '@/routes/seller/customers';
 import { store as storeChat } from '@/routes/seller/orders/chat';
 
 type Customer = {
     id: string;
     name: string;
+    email: string;
     orders_count: number;
     total_spent: number;
     last_order_at: string;
@@ -34,10 +36,20 @@ export default function SellerCustomers({
                                 data-test="customer-row"
                             >
                                 <div>
-                                    <p className="text-label">
+                                    <Link
+                                        href={
+                                            customerShow({
+                                                customer: customer.id,
+                                            }).url
+                                        }
+                                        className="text-label text-foreground hover:underline"
+                                    >
                                         {customer.name}
-                                    </p>
+                                    </Link>
                                     <p className="text-body-sm text-muted-foreground">
+                                        {customer.email}
+                                    </p>
+                                    <p className="mt-1 text-body-sm text-muted-foreground">
                                         {customer.orders_count} orders ·{' '}
                                         {formatPeso(customer.total_spent)} spent
                                         · last order{' '}

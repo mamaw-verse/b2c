@@ -38,7 +38,7 @@ export function VoucherCard({
     return (
         <div
             className={cn(
-                'flex overflow-hidden rounded-card border bg-surface',
+                'flex h-full overflow-hidden rounded-card border bg-surface',
                 state === 'unavailable'
                     ? 'border-border'
                     : 'border-border-outline',

@@ -10,6 +10,7 @@ import {
     Truck,
 } from 'lucide-react';
 import { useState } from 'react';
+import { FulfillmentCard } from '@/components/fulfillment-card';
 import { Media } from '@/components/media';
 import { PriceBlock } from '@/components/price-block';
 import { Timeline, type TimelineEvent } from '@/components/timeline';
@@ -79,6 +80,8 @@ type OrderDetailPageProps = {
             title: string;
             detail?: string | null;
             location?: string | null;
+            tracking_number?: string | null;
+            tracking_url?: string | null;
             created_at: string;
         }[];
         items: {
@@ -100,9 +103,16 @@ type OrderDetailPageProps = {
             } | null;
         }[];
     };
+    return_outcome?: {
+        status: 'approved' | 'declined';
+        note?: string | null;
+    } | null;
 };
 
-export default function OrderDetail({ order }: OrderDetailPageProps) {
+export default function OrderDetail({
+    order,
+    return_outcome,
+}: OrderDetailPageProps) {
     const [returnModalOpen, setReturnModalOpen] = useState(false);
     const [returnReason, setReturnReason] = useState('');
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -166,6 +176,8 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                       evt.detail ||
                       (evt.location ? `Location: ${evt.location}` : null),
                   time: formatDateTime(evt.created_at),
+                  tracking_number: evt.tracking_number,
+                  tracking_url: evt.tracking_url,
                   state: idx === 0 ? 'current' : 'done',
               }))
             : [
@@ -236,8 +248,26 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                             className="mr-1.5 inline size-4 align-[-0.15em]"
                             aria-hidden="true"
                         />
-                        Return/refund requested. Our team will review your
-                        request.
+                        Return/refund requested. Awaiting seller review.
+                    </div>
+                ) : order.status === 'refunded' ? (
+                    <div className="rounded-panel border border-success bg-success-soft p-3 text-body-sm text-success-text">
+                        <CheckCircle2
+                            className="mr-1.5 inline size-4 align-[-0.15em]"
+                            aria-hidden="true"
+                        />
+                        Your refund has been approved.
+                    </div>
+                ) : return_outcome?.status === 'declined' ? (
+                    <div className="rounded-panel border border-danger bg-danger-soft p-3 text-body-sm text-danger-text">
+                        <AlertTriangle
+                            className="mr-1.5 inline size-4 align-[-0.15em]"
+                            aria-hidden="true"
+                        />
+                        Return/refund declined.
+                        {return_outcome.note && (
+                            <> Reason: {return_outcome.note}</>
+                        )}
                     </div>
                 ) : (
                     <div className="rounded-panel border border-info bg-info-soft p-3 text-body-sm text-info-text">
@@ -523,72 +553,57 @@ export default function OrderDetail({ order }: OrderDetailPageProps) {
                         </section>
 
                         {order.fulfillments &&
-                            order.fulfillments.length > 0 && (
-                                <section className="panel p-4 md:p-6">
-                                    <h2 className="mb-3 text-h3">Parcels</h2>
-                                    <ul className="grid gap-3">
-                                        {order.fulfillments.map(
-                                            (parcel, index) => (
-                                                <li
-                                                    key={parcel.id}
-                                                    className="rounded-tile border border-border p-3"
-                                                    data-test="parcel"
-                                                >
-                                                    <p className="text-label">
-                                                        Parcel {index + 1} ·{' '}
-                                                        {parcel.courier_name}
-                                                    </p>
-                                                    <p className="text-body-sm text-muted-foreground">
-                                                        {parcel.tracking_url ? (
-                                                            <a
-                                                                href={
-                                                                    parcel.tracking_url
-                                                                }
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="underline"
-                                                            >
-                                                                {
-                                                                    parcel.tracking_number
-                                                                }
-                                                            </a>
-                                                        ) : (
-                                                            parcel.tracking_number
-                                                        )}{' '}
-                                                        · shipped{' '}
-                                                        {formatDateTime(
-                                                            parcel.shipped_at,
-                                                        )}
-                                                        {parcel.delivered_at &&
-                                                            ` · delivered ${formatDateTime(parcel.delivered_at)}`}
-                                                    </p>
-                                                    <ul className="mt-2 text-body-sm">
-                                                        {parcel.items.map(
-                                                            (line) => (
-                                                                <li
-                                                                    key={
-                                                                        line.id
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        line
-                                                                            .order_item
-                                                                            ?.product_name
-                                                                    }{' '}
-                                                                    ×{' '}
-                                                                    {
-                                                                        line.quantity
-                                                                    }
-                                                                </li>
-                                                            ),
-                                                        )}
-                                                    </ul>
-                                                </li>
-                                            ),
-                                        )}
-                                    </ul>
-                                </section>
-                            )}
+                            order.fulfillments.length > 0 &&
+                            order.fulfillments.map((parcel, index) => (
+                                <FulfillmentCard
+                                    key={parcel.id}
+                                    title={`Parcel ${index + 1} · ${parcel.courier_name}`}
+                                    badge={{
+                                        label:
+                                            parcel.status === 'delivered'
+                                                ? 'Delivered'
+                                                : 'Shipped',
+                                        tone:
+                                            parcel.status === 'delivered'
+                                                ? 'green'
+                                                : 'blue',
+                                    }}
+                                    tracking={{
+                                        courier: parcel.courier_name,
+                                        number: parcel.tracking_number,
+                                        url: parcel.tracking_url,
+                                        shipped_at: parcel.shipped_at,
+                                        delivered_at: parcel.delivered_at,
+                                    }}
+                                    lines={parcel.items.map((line) => ({
+                                        name:
+                                            line.order_item?.product_name ??
+                                            'Item',
+                                        variation:
+                                            (line as any).variation ??
+                                            line.order_item?.product_name,
+                                        sku: (line as any).sku,
+                                        thumbnail_icon:
+                                            (line as any).thumbnail_icon ??
+                                            'package',
+                                        thumbnail: (line as any).thumbnail,
+                                        unit_price:
+                                            (line as any).unit_price ?? 0,
+                                        quantity: line.quantity,
+                                    }))}
+                                    footer={
+                                        isToReceive ? (
+                                            <Button
+                                                size="sm"
+                                                onClick={handleMarkReceived}
+                                            >
+                                                Confirm received
+                                            </Button>
+                                        ) : null
+                                    }
+                                    data-test="parcel"
+                                />
+                            ))}
 
                         {/* Action buttons */}
                         <div className="flex flex-wrap gap-2">

@@ -2,6 +2,7 @@ import { Head, Link, router, setLayoutProps, usePage } from '@inertiajs/react';
 import { ChevronRight, Flag, MessageCircle, Store } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Breadcrumb } from '@/components/breadcrumb';
 import { Carousel } from '@/components/carousel';
 import { ColdChainNote } from '@/components/cold-chain-note';
 import { DsIcon } from '@/components/ds-icon';
@@ -19,8 +20,10 @@ import { ShopHeader } from '@/components/shop-header';
 import { SoldCount } from '@/components/sold-count';
 import { StickyActionBar } from '@/components/sticky-action-bar';
 import { Button } from '@/components/ui/button';
+import { Accordion } from '@/components/ui/accordion';
 import { VariationPicker } from '@/components/variation-picker';
-import { login } from '@/routes';
+import { home, login } from '@/routes';
+import { show as categoryShow } from '@/routes/categories';
 import { show as shopShow } from '@/routes/shops';
 import type { ProductCardData, ProductDetail } from '@/types/catalogue';
 
@@ -43,6 +46,13 @@ export default function Product({
     const [reportOpen, setReportOpen] = useState(false);
     const [qty, setQty] = useState(1);
 
+    const handleReportClick = () => {
+        if (!auth.user) {
+            router.visit(login().url);
+            return;
+        }
+        setReportOpen(true);
+    };
     const handleChatClick = () => {
         if (!auth.user) {
             router.visit(login().url);
@@ -123,7 +133,7 @@ export default function Product({
         <>
             <Head title={p.name} />
             <div>
-                <div className="md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-8 md:pt-6">
+                <div className="md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-10 md:pt-6">
                     <div>
                         <Carousel
                             slides={p.images.map((img, i) => ({
@@ -133,10 +143,19 @@ export default function Product({
                             }))}
                         />
                     </div>
-                    <div className="grid content-start gap-4 py-4 md:py-0">
+                    <div className="grid content-start gap-5 pt-4 md:gap-6 md:pt-0">
                         <div>
-                            <h1 className="text-h2">{p.name}</h1>
-                            <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm">
+                            <Breadcrumb
+                                items={[
+                                    { label: 'Home', href: home().url },
+                                    {
+                                        label: p.category.name,
+                                        href: categoryShow.url(p.category.slug),
+                                    },
+                                ]}
+                            />
+                            <h1 className="mt-2 text-h1">{p.name}</h1>
+                            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm">
                                 {p.review_count > 0 ? (
                                     <>
                                         <Rating
@@ -151,7 +170,10 @@ export default function Product({
                                                 ? '1 rating'
                                                 : `${p.review_count} ratings`}
                                         </a>
-                                        <span className="text-muted-foreground">
+                                        <span
+                                            aria-hidden="true"
+                                            className="text-muted-foreground"
+                                        >
                                             ·
                                         </span>
                                     </>
@@ -165,23 +187,12 @@ export default function Product({
                                         <SoldCount count={p.sold_count} />
                                     </span>
                                 )}
-                                <button
-                                    type="button"
-                                    onClick={() => setReportOpen(true)}
-                                    className="ml-auto inline-flex min-h-touch items-center gap-1 text-muted-foreground hover:text-foreground"
-                                >
-                                    <Flag
-                                        aria-hidden="true"
-                                        className="size-4"
-                                    />
-                                    Report
-                                </button>
                             </p>
                         </div>
                         {p.halal_status === 'certified' && (
                             <HalalFacts valid={certValid} frozen={p.frozen} />
                         )}
-                        <div className="rounded-panel bg-surface-cta p-3 md:p-4">
+                        <div className="rounded-panel bg-surface-cta p-4">
                             <PriceBlock
                                 price={p.price}
                                 was={p.was_price}
@@ -189,14 +200,33 @@ export default function Product({
                             />
                         </div>
                         {p.frozen && <ColdChainNote />}
-                        <KeyValueList
-                            rows={[
-                                [
-                                    'Shipping',
-                                    `${p.free_shipping ? 'Free shipping' : 'Shipping calculated at checkout'} · ships from ${p.ships_from}`,
-                                ],
-                            ]}
-                        />
+                        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm">
+                            <span
+                                className={
+                                    p.in_stock
+                                        ? 'font-bold text-success-text'
+                                        : 'text-muted-foreground'
+                                }
+                            >
+                                {p.in_stock
+                                    ? p.stock <= 5
+                                        ? `Only ${p.stock} left`
+                                        : 'In stock'
+                                    : 'Out of stock'}
+                            </span>
+                            <span
+                                aria-hidden="true"
+                                className="text-muted-foreground"
+                            >
+                                ·
+                            </span>
+                            <span className="text-muted-foreground">
+                                {p.free_shipping
+                                    ? 'Free shipping'
+                                    : 'Shipping calculated at checkout'}{' '}
+                                · ships from {p.ships_from}
+                            </span>
+                        </p>
                         {p.variations.length > 0 && (
                             <button
                                 type="button"
@@ -217,7 +247,7 @@ export default function Product({
                         )}
                         {p.in_stock && (
                             <div className="flex items-center gap-3">
-                                <span className="text-body text-muted-foreground">
+                                <span className="text-label text-foreground">
                                     Quantity
                                 </span>
                                 <QuantityStepper
@@ -288,6 +318,14 @@ export default function Product({
                                 </>
                             )}
                         </StickyActionBar>
+                        <button
+                            type="button"
+                            onClick={handleReportClick}
+                            className="inline-flex min-h-touch items-center gap-1 self-start text-body-sm text-muted-foreground hover:text-foreground"
+                        >
+                            <Flag aria-hidden="true" className="size-4" />
+                            Report this product
+                        </button>
                     </div>
                 </div>
                 <div className="mt-2 md:mt-6">
@@ -350,7 +388,7 @@ export default function Product({
                                         Something wrong with this claim?{' '}
                                         <button
                                             type="button"
-                                            onClick={() => setReportOpen(true)}
+                                            onClick={handleReportClick}
                                             className="font-bold text-primary-text underline underline-offset-2"
                                         >
                                             Report a concern
@@ -366,25 +404,44 @@ export default function Product({
                     <h2 id="pd-det" className="text-h3">
                         Product details
                     </h2>
-                    <div className="card mt-3 p-4">
-                        <KeyValueList
-                            cols={2}
-                            rows={[
-                                ['Category', p.category.name],
-                                [
-                                    'Stock',
-                                    p.in_stock
-                                        ? `${p.stock} units`
-                                        : 'Out of stock',
-                                ],
-                                ['Ships from', p.ships_from],
-                                ['Sold by', p.shop.name],
-                            ]}
-                        />
-                        {p.description && (
-                            <p className="mt-4 text-body">{p.description}</p>
-                        )}
-                    </div>
+                    <Accordion
+                        name="pd-details"
+                        className="mt-3 overflow-hidden"
+                        items={[
+                            ...(p.description
+                                ? [
+                                      {
+                                          title: 'Description',
+                                          open: true,
+                                          content: (
+                                              <p className="whitespace-pre-line text-foreground">
+                                                  {p.description}
+                                              </p>
+                                          ),
+                                      },
+                                  ]
+                                : []),
+                            {
+                                title: 'Specifications',
+                                content: (
+                                    <KeyValueList
+                                        cols={2}
+                                        rows={[
+                                            ['Category', p.category.name],
+                                            [
+                                                'Stock',
+                                                p.in_stock
+                                                    ? `${p.stock} units`
+                                                    : 'Out of stock',
+                                            ],
+                                            ['Ships from', p.ships_from],
+                                            ['Sold by', p.shop.name],
+                                        ]}
+                                    />
+                                ),
+                            },
+                        ]}
+                    />
                 </section>
                 <section
                     id="pd-rev"

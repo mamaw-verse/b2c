@@ -12,7 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 final readonly class ListSellerOrders
 {
     /**
-     * @param  array{status?: string|null, search?: string|null}  $filters
+     * @param  array{search?: string|null}  $filters
      * @return LengthAwarePaginator<int, covariant array<string, mixed>>
      */
     public function handle(Shop $shop, array $filters = []): LengthAwarePaginator
@@ -20,13 +20,6 @@ final readonly class ListSellerOrders
         $query = $shop->orders()
             ->with(['items.product.images', 'user', 'shippingOption'])
             ->latest();
-
-        if (! empty($filters['status']) && $filters['status'] !== 'all') {
-            $statusEnum = OrderStatus::tryFrom($filters['status']);
-            if ($statusEnum) {
-                $query->where('status', $statusEnum);
-            }
-        }
 
         if (! empty($filters['search'])) {
             $search = '%'.$filters['search'].'%';
@@ -52,23 +45,5 @@ final readonly class ListSellerOrders
             'thumbnail_icon' => $order->items->first()?->product?->images?->first()->icon ?? 'package',
             'created_at' => $order->created_at?->toISOString(),
         ]);
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    public function counts(Shop $shop): array
-    {
-        $rows = $shop->orders()
-            ->selectRaw('status, count(*) as cnt')
-            ->groupBy('status')
-            ->pluck('cnt', 'status');
-
-        $counts = [];
-        foreach (OrderStatus::cases() as $case) {
-            $counts[$case->value] = (int) ($rows[$case->value] ?? 0);
-        }
-
-        return $counts;
     }
 }

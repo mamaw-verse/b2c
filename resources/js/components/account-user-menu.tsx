@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
+import { ChevronsUpDown, LogOut, Settings, ShoppingBag } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     DropdownMenu,
@@ -13,15 +13,22 @@ import {
 import { WorkspaceSwitcherMenuItems } from '@/components/workspace-switcher';
 import { useInitials } from '@/hooks/use-initials';
 import { logout } from '@/routes';
+import { index as ordersIndex } from '@/routes/orders';
 import { edit } from '@/routes/profile';
+import type { SharedWorkspace } from '@/types/navigation';
 
 export function AccountUserMenu() {
-    const { auth } = usePage().props;
+    const { auth, workspaces } = usePage<{
+        workspaces?: SharedWorkspace[];
+    }>().props;
     const initials = useInitials();
 
     if (!auth.user) {
         return null;
     }
+
+    const allowed = new Set((workspaces ?? []).map((w) => w.key));
+    const isAdminOnly = allowed.has('admin') && !allowed.has('buyer');
 
     return (
         <DropdownMenu>
@@ -42,6 +49,14 @@ export function AccountUserMenu() {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <WorkspaceSwitcherMenuItems />
+                    {!isAdminOnly && (
+                        <DropdownMenuItem asChild>
+                            <Link href={ordersIndex().url}>
+                                <ShoppingBag aria-hidden="true" />
+                                My Purchases
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>

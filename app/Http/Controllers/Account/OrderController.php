@@ -17,12 +17,9 @@ final class OrderController
     public function index(ListOrdersRequest $request, GetOrders $action): Response
     {
         $user = $request->user();
-        $status = $request->status();
 
         return Inertia::render('account/orders', [
-            'status' => $status?->value,
-            'counts' => $action->counts($user),
-            'orders' => Inertia::scroll($action->handle($user, $status)),
+            'orders' => $action->handle($user),
         ]);
     }
 
@@ -31,8 +28,24 @@ final class OrderController
         $user = $request->user();
         $result = $action->handle($user, $order);
 
+        if ($result instanceof \Illuminate\Auth\Access\Response) {
+            abort(404);
+        }
+
+        $returnOutcome = null;
+        if ($result->status->value === 'refunded') {
+            $event = $result->events->where('title', 'Refund approved')->sortByDesc('created_at')->first();
+            $returnOutcome = ['status' => 'approved', 'note' => $event?->detail];
+        } elseif ($result->status->value === 'completed') {
+            $event = $result->events->where('title', 'Return/refund declined')->sortByDesc('created_at')->first();
+            if ($event) {
+                $returnOutcome = ['status' => 'declined', 'note' => $event->detail];
+            }
+        }
+
         return Inertia::render('account/order', [
             'order' => $result,
+            'return_outcome' => $returnOutcome,
         ]);
     }
 }

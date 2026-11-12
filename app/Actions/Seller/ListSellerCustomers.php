@@ -19,13 +19,14 @@ final readonly class ListSellerCustomers
         return Order::query()
             ->where('shop_id', $shop->id)
             ->where('status', '!=', OrderStatus::Cancelled)
-            ->with('user:id,name')
+            ->with('user:id,name,email')
             ->latest()
             ->get()
             ->groupBy('user_id')
             ->map(fn (Collection $orders) => [
                 'id' => $orders->first()->user_id,
                 'name' => $orders->first()->user->name,
+                'email' => $orders->first()->user->email,
                 'orders_count' => $orders->count(),
                 'total_spent' => $orders->where('status', OrderStatus::Completed)->sum('total'),
                 'last_order_at' => $orders->first()->created_at?->toISOString(),

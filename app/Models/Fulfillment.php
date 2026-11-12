@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\CourierTracking;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,11 @@ final class Fulfillment extends Model
     public function items(): HasMany
     {
         return $this->hasMany(FulfillmentItem::class);
+    }
+
+    public function getTrackingUrlAttribute(?string $value): ?string
+    {
+        return CourierTracking::resolve($this->courier_name, $this->tracking_number, $value);
     }
 
     protected function casts(): array

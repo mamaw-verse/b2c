@@ -26,7 +26,6 @@ final class ListSellerOrdersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', 'string', 'max:50'],
             'search' => ['nullable', 'string', 'max:100'],
         ];
     }

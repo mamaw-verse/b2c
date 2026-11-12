@@ -21,8 +21,7 @@ final class OrderController
 
         return Inertia::render('seller/orders/index', [
             'orders' => $orders,
-            'counts' => $action->counts($shop),
-            'filters' => $request->only('status', 'search'),
+            'filters' => $request->only('search'),
         ]);
     }
 

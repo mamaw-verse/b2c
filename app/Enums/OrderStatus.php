@@ -13,6 +13,7 @@ enum OrderStatus: string
     case Completed = 'completed';
     case Cancelled = 'cancelled';
     case ReturnRefund = 'return_refund';
+    case Refunded = 'refunded';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum OrderStatus: string
             self::Completed => 'Completed',
             self::Cancelled => 'Cancelled',
             self::ReturnRefund => 'Return/Refund',
+            self::Refunded => 'Refunded',
         };
     }
 
@@ -36,6 +38,7 @@ enum OrderStatus: string
             self::Completed => 'success',
             self::Cancelled => 'neutral',
             self::ReturnRefund => 'danger',
+            self::Refunded => 'neutral',
         };
     }
 
