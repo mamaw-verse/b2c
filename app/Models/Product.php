@@ -76,6 +76,11 @@ final class Product extends Model
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
     }
 
+    public function thumbnailUrl(): ?string
+    {
+        return $this->images->firstWhere('url', '!=', '')?->url;
+    }
+
     /** @return HasMany<Review, $this> */
     public function reviews(): HasMany
     {
@@ -145,6 +150,7 @@ final class Product extends Model
                 'option1_value' => $v->option1_value,
                 'option2_value' => $v->option2_value,
                 'price' => $v->price,
+                'was_price' => $v->was_price,
                 'stock' => $v->stock,
             ])->all(),
             'certification' => $this->halalCertification ? [

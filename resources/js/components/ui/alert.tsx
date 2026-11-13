@@ -17,6 +17,7 @@ type BannerProps = ComponentProps<'div'> & {
     action?: ReactNode;
     icon?: ReactNode;
     live?: boolean;
+    prominent?: boolean;
     children?: ReactNode;
 };
 
@@ -26,18 +27,30 @@ function Banner({
     action,
     icon,
     live = false,
+    prominent = false,
     className,
     children,
     ...props
 }: BannerProps) {
     const [tileClasses, DefaultIcon] = tones[tone];
     const assertive = tone === 'danger' || tone === 'destructive';
+    const prominentTone =
+        tone === 'warning'
+            ? 'border-l-warning bg-warning-soft'
+            : 'border-l-danger bg-danger-soft';
+    let role: 'alert' | 'status' | undefined;
+    if (prominent || (live && assertive)) {
+        role = 'alert';
+    } else if (live) {
+        role = 'status';
+    }
 
     return (
         <div
-            role={live ? (assertive ? 'alert' : 'status') : undefined}
+            role={role}
             className={cn(
                 'flex flex-col gap-3 rounded-panel border border-border bg-surface p-3 md:flex-row md:items-center md:gap-4 md:p-4',
+                prominent && `border-l-4 ${prominentTone} p-4 md:p-5`,
                 children && 'md:items-start',
                 className,
             )}
@@ -45,14 +58,29 @@ function Banner({
         >
             <div
                 className={cn(
-                    'grid size-9 shrink-0 place-items-center rounded-tile',
+                    'grid shrink-0 place-items-center rounded-tile',
+                    prominent ? 'size-12' : 'size-9',
                     tileClasses,
                 )}
             >
-                {icon ?? <DefaultIcon className="size-5" aria-hidden="true" />}
+                {icon ?? (
+                    <DefaultIcon
+                        className={prominent ? 'size-6' : 'size-5'}
+                        aria-hidden="true"
+                    />
+                )}
             </div>
             <div className="grid min-w-0 flex-1 gap-0.5">
-                {title && <p className="text-label text-foreground">{title}</p>}
+                {title && (
+                    <p
+                        className={cn(
+                            'text-foreground',
+                            prominent ? 'text-h3 font-semibold' : 'text-label',
+                        )}
+                    >
+                        {title}
+                    </p>
+                )}
                 {children && (
                     <div className="text-body-sm text-muted-foreground">
                         {children}

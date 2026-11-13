@@ -13,9 +13,11 @@ import SellerTermsController from '@/actions/App/Http/Controllers/Seller/SellerT
 import { store as storeRegistration } from '@/routes/seller/register';
 
 type ExistingCertificate = {
+    id: string;
     certifying_body: string;
     certificate_number: string;
     valid_until: string;
+    document_url: string | null;
 };
 
 type ExistingApplication = {
@@ -26,6 +28,13 @@ type ExistingApplication = {
     city: string | null;
     state: string | null;
     postal_code: string | null;
+    region_code: string | null;
+    province_code: string | null;
+    city_code: string | null;
+    barangay_code: string | null;
+    logo_url: string | null;
+    business_permit_url: string | null;
+    halal_only: boolean;
     certificates: ExistingCertificate[];
     rejection_reason: string | null;
     terms_version: string | null;
@@ -34,6 +43,8 @@ type ExistingApplication = {
 };
 
 type CertificateDraft = {
+    id: string | null;
+    document_url: string | null;
     certifying_body: string;
     certificate_number: string;
     valid_until: string;
@@ -49,6 +60,8 @@ type PsgcItem = {
 const DESCRIPTION_MAX = 1000;
 
 const emptyCertificate = (): CertificateDraft => ({
+    id: null,
+    document_url: null,
     certifying_body: '',
     certificate_number: '',
     valid_until: '',
@@ -70,6 +83,10 @@ const FIELD_META: Record<string, { label: string; target: string }> = {
     city: { label: 'City / Municipality', target: 'f-city' },
     state: { label: 'Province', target: 'f-province' },
     postal_code: { label: 'Postal code', target: 'f-postal' },
+    region_code: { label: 'Region', target: 'f-region' },
+    province_code: { label: 'Province', target: 'f-province' },
+    city_code: { label: 'City / Municipality', target: 'f-city' },
+    barangay_code: { label: 'Barangay', target: 'f-barangay' },
     business_permit: { label: 'Business permit', target: 'f-permit' },
     certificates: { label: 'Certificates', target: 'f-certificates' },
     agreed_to_terms: { label: 'Seller terms', target: 'f-terms' },
@@ -155,10 +172,16 @@ export default function SellerRegister({
     const [logo, setLogo] = useState<File | null>(null);
     const [businessPermit, setBusinessPermit] = useState<File | null>(null);
 
-    const [regionCode, setRegionCode] = useState('');
-    const [provinceCode, setProvinceCode] = useState('');
-    const [cityCode, setCityCode] = useState('');
-    const [barangayCode, setBarangayCode] = useState('');
+    const [regionCode, setRegionCode] = useState(
+        application?.region_code ?? '',
+    );
+    const [provinceCode, setProvinceCode] = useState(
+        application?.province_code ?? '',
+    );
+    const [cityCode, setCityCode] = useState(application?.city_code ?? '');
+    const [barangayCode, setBarangayCode] = useState(
+        application?.barangay_code ?? '',
+    );
     const [street, setStreet] = useState(application?.address_line ?? '');
     const [postalCode, setPostalCode] = useState(
         application?.postal_code ?? '',
@@ -180,10 +203,22 @@ export default function SellerRegister({
     );
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [confirmedAccuracy, setConfirmedAccuracy] = useState(false);
-    const [halalOnly, setHalalOnly] = useState(false);
+    const [halalOnly, setHalalOnly] = useState(
+        application?.halal_only ?? false,
+    );
+    const statusBannerRef = useRef<HTMLDivElement>(null);
     const [clientErrors, setClientErrors] = useState<Record<string, string>>(
         {},
     );
+
+    useEffect(() => {
+        if (
+            application?.status === 'changes_requested' ||
+            application?.status === 'rejected'
+        ) {
+            statusBannerRef.current?.scrollIntoView({ block: 'center' });
+        }
+    }, [application?.status]);
 
     const clearClientError = (key: string) =>
         setClientErrors((current) => {
@@ -224,7 +259,7 @@ export default function SellerRegister({
         if (!postalCode.trim()) {
             missing.postal_code = 'Enter your postal code.';
         }
-        if (!businessPermit) {
+        if (!businessPermit && !application?.business_permit_url) {
             missing.business_permit = 'Upload your business permit.';
         }
         certificates.forEach((certificate, index) => {
@@ -240,7 +275,7 @@ export default function SellerRegister({
                 missing[`certificates.${index}.valid_until`] =
                     'Enter the expiry date.';
             }
-            if (!certificate.document) {
+            if (!certificate.document && !certificate.document_url) {
                 missing[`certificates.${index}.document`] =
                     'Upload the certificate document.';
             }
@@ -511,16 +546,25 @@ export default function SellerRegister({
                     </div>
 
                     {application?.status === 'rejected' && (
-                        <div className="mb-8">
+                        <div
+                            ref={statusBannerRef}
+                            className="mb-8 scroll-mt-24"
+                        >
                             <Banner
                                 tone="danger"
                                 live
+                                prominent
                                 title="Your previous application was rejected"
                             >
                                 {application.rejection_reason && (
-                                    <p>
-                                        Reason: {application.rejection_reason}
-                                    </p>
+                                    <div className="mt-3 rounded-panel border border-danger/30 bg-surface/80 p-3">
+                                        <p className="mb-1 text-label text-foreground">
+                                            Admin's note
+                                        </p>
+                                        <blockquote className="border-l-2 border-danger/50 pl-3 text-body-sm text-foreground">
+                                            {application.rejection_reason}
+                                        </blockquote>
+                                    </div>
                                 )}
                                 <p className="mt-1">
                                     Update your details and submit a new
@@ -532,17 +576,25 @@ export default function SellerRegister({
                     )}
 
                     {application?.status === 'changes_requested' && (
-                        <div className="mb-8">
+                        <div
+                            ref={statusBannerRef}
+                            className="mb-8 scroll-mt-24"
+                        >
                             <Banner
                                 tone="warning"
                                 live
+                                prominent
                                 title="Changes were requested on your application"
                             >
                                 {application.rejection_reason && (
-                                    <p>
-                                        Requested changes:{' '}
-                                        {application.rejection_reason}
-                                    </p>
+                                    <div className="mt-3 rounded-panel border border-warning/40 bg-surface/80 p-3">
+                                        <p className="mb-1 text-label text-foreground">
+                                            Admin's note
+                                        </p>
+                                        <blockquote className="border-l-2 border-warning pl-3 text-body-sm text-foreground">
+                                            {application.rejection_reason}
+                                        </blockquote>
+                                    </div>
                                 )}
                                 <p className="mt-1">
                                     Update your details and resubmit below. Your
@@ -564,13 +616,21 @@ export default function SellerRegister({
                             description: description,
                             logo: logo,
                             business_permit: businessPermit,
-                            address_line: [street, barangayName]
-                                .filter(Boolean)
-                                .join(', '),
-                            city: cityName,
-                            state: provinceName,
+                            address_line:
+                                application?.address_line === street
+                                    ? street
+                                    : [street, barangayName]
+                                          .filter(Boolean)
+                                          .join(', '),
+                            city: cityName || application?.city || '',
+                            state: provinceName || application?.state || '',
                             postal_code: postalCode,
+                            region_code: regionCode,
+                            province_code: provinceCode,
+                            city_code: cityCode,
+                            barangay_code: barangayCode,
                             certificates: certificates.map((certificate) => ({
+                                id: certificate.id,
                                 certifying_body: certificate.certifying_body,
                                 certificate_number:
                                     certificate.certificate_number,
@@ -616,6 +676,8 @@ export default function SellerRegister({
                                             value={logo}
                                             onChange={setLogo}
                                             error={errors.logo}
+                                            existingUrl={application?.logo_url}
+                                            existingLabel="Shop logo"
                                             optional
                                             helper="Shown on your shop page."
                                         />
@@ -704,7 +766,10 @@ export default function SellerRegister({
                                                 }))}
                                                 value={regionCode}
                                                 placeholder="Select region"
-                                                error={errors.region}
+                                                error={
+                                                    errors.region_code ??
+                                                    errors.region
+                                                }
                                                 onChange={(code) => {
                                                     setRegionCode(code);
                                                     setProvinceCode('');
@@ -733,7 +798,10 @@ export default function SellerRegister({
                                                     setBarangayCode('');
                                                     clearClientError('state');
                                                 }}
-                                                error={errors.state}
+                                                error={
+                                                    errors.province_code ??
+                                                    errors.state
+                                                }
                                             />
                                             <Combobox
                                                 id="f-city"
@@ -767,7 +835,10 @@ export default function SellerRegister({
                                                         setPostalLocked(false);
                                                     }
                                                 }}
-                                                error={errors.city}
+                                                error={
+                                                    errors.city_code ??
+                                                    errors.city
+                                                }
                                             />
                                             <Combobox
                                                 id="f-barangay"
@@ -789,7 +860,10 @@ export default function SellerRegister({
                                                         'barangay',
                                                     );
                                                 }}
-                                                error={errors.barangay}
+                                                error={
+                                                    errors.barangay_code ??
+                                                    errors.barangay
+                                                }
                                             />
                                             <FormField
                                                 id="f-postal"
@@ -846,6 +920,10 @@ export default function SellerRegister({
                                             value={businessPermit}
                                             onChange={setBusinessPermit}
                                             error={errors.business_permit}
+                                            existingUrl={
+                                                application?.business_permit_url
+                                            }
+                                            existingLabel="Business permit"
                                             helper="DTI business name registration or mayor's permit."
                                         />
 
@@ -1016,6 +1094,10 @@ export default function SellerRegister({
                                                                 value={
                                                                     certificate.document
                                                                 }
+                                                                existingUrl={
+                                                                    certificate.document_url
+                                                                }
+                                                                existingLabel="Certificate document"
                                                                 onChange={(
                                                                     file,
                                                                 ) =>

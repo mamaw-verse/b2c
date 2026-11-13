@@ -61,6 +61,8 @@ export function ModerationDetailPane({
     processing = false,
 }: ModerationDetailPaneProps) {
     const isHalal = item.type === 'halal' || item.type === 'expiry';
+    const title =
+        item.type === 'shop_application' ? 'Shop application' : item.title;
     const isResolved =
         item.state === 'resolved' ||
         item.state === 'hidden' ||
@@ -93,9 +95,9 @@ export function ModerationDetailPane({
                         <h2
                             id={`mdp-title-${item.id}`}
                             className="truncate text-h4"
-                            title={item.title}
+                            title={title}
                         >
-                            {item.title}
+                            {title}
                         </h2>
                     </div>
                     <StatusPill state={item.state} />

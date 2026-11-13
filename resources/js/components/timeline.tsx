@@ -11,6 +11,7 @@ export type TimelineEvent = {
     icon?: ReactNode;
     tracking_number?: string | null;
     tracking_url?: string | null;
+    help_url?: string | null;
 };
 
 export type TimelineProps = {
@@ -126,6 +127,14 @@ export function Timeline({
                                     <time>{event.time}</time>
                                 </p>
                             )}
+                            {event.help_url && (
+                                <Link
+                                    href={event.help_url}
+                                    className="mt-1 inline-flex text-caption font-medium text-primary-text hover:underline"
+                                >
+                                    How refunds work
+                                </Link>
+                            )}
                             {event.tracking_url ? (
                                 <p className="mt-1">
                                     <a
@@ -154,3 +163,4 @@ export function Timeline({
         </ol>
     );
 }
+import { Link } from '@inertiajs/react';

@@ -47,23 +47,23 @@ final class FulfillmentItem extends Model
 
     public function getNameAttribute(): string
     {
-        return $this->orderItem?->product_name ?? $this->orderItem?->product?->name ?? 'Item';
+        return $this->orderItem->product_name ?? $this->orderItem->product->name ?? 'Item';
     }
 
     public function getUnitPriceAttribute(): int
     {
-        return $this->orderItem?->unit_price ?? 0;
+        return $this->orderItem->unit_price ?? 0;
     }
 
     public function getVariationAttribute(): ?string
     {
-        return $this->orderItem?->variation_label
-            ?? ($this->orderItem?->variation ? mb_trim(($this->orderItem->variation->option1_value ?? '').' '.($this->orderItem->variation->option2_value ?? '')) : null);
+        return $this->orderItem->variation_label
+            ?? ($this->orderItem->variation ? mb_trim(($this->orderItem->variation->option1_value ?? '').' '.($this->orderItem->variation->option2_value ?? '')) : null);
     }
 
     public function getThumbnailIconAttribute(): string
     {
-        return $this->orderItem?->product?->images->first()?->icon ?? 'package';
+        return $this->orderItem->product->images->first()->icon ?? 'package';
     }
 
     public function getSlugAttribute(): ?string

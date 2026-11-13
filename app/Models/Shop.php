@@ -43,6 +43,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $city
  * @property string|null $state
  * @property string|null $postal_code
+ * @property string|null $region_code
+ * @property string|null $province_code
+ * @property string|null $city_code
+ * @property string|null $barangay_code
  * @property string|null $business_permit_url
  * @property string|null $payout_method
  * @property string|null $payout_account_name
@@ -53,7 +57,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by', 'address_line', 'city', 'state', 'postal_code', 'business_permit_url', 'payout_method', 'payout_account_name', 'payout_account_number', 'agreed_to_terms', 'terms_version', 'terms_accepted_at'])]
+#[Fillable(['user_id', 'name', 'slug', 'location', 'rating', 'followers_count', 'chat_response_rate', 'verification', 'halal_only', 'description', 'logo_url', 'banner_url', 'vacation_mode', 'auto_reply', 'shipping_channels', 'suspended', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by', 'address_line', 'city', 'state', 'postal_code', 'region_code', 'province_code', 'city_code', 'barangay_code', 'business_permit_url', 'payout_method', 'payout_account_name', 'payout_account_number', 'agreed_to_terms', 'terms_version', 'terms_accepted_at'])]
 final class Shop extends Model
 {
     /** @use HasFactory<ShopFactory> */

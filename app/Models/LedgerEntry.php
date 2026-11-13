@@ -23,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['shop_id', 'order_id', 'payout_id', 'type', 'amount', 'available_at', 'metadata'])]
+#[Fillable(['shop_id', 'order_id', 'order_refund_id', 'payout_id', 'type', 'amount', 'available_at', 'metadata'])]
 final class LedgerEntry extends Model
 {
     use HasUlids;
@@ -38,6 +38,12 @@ final class LedgerEntry extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /** @return BelongsTo<OrderRefund, $this> */
+    public function orderRefund(): BelongsTo
+    {
+        return $this->belongsTo(OrderRefund::class);
     }
 
     protected function casts(): array

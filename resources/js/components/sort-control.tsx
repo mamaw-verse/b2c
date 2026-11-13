@@ -14,19 +14,21 @@ export function SortControl({
     value,
     onChange,
     className,
+    options = SORT_OPTIONS,
 }: {
     value: string;
-    onChange: (sort: SortKey) => void;
+    onChange: (sort: string) => void;
     className?: string;
+    options?: { value: string; label: string }[];
 }) {
     return (
         <Select
             aria-label="Sort by"
             value={value}
-            onChange={(e) => onChange(e.target.value as SortKey)}
+            onChange={(e) => onChange(e.target.value)}
             className={className}
         >
-            {SORT_OPTIONS.map((o) => (
+            {options.map((o) => (
                 <option key={o.value} value={o.value}>
                     {o.label}
                 </option>

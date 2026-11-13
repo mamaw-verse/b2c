@@ -19,6 +19,7 @@ type SearchInputProps = {
     recent?: string;
     size?: 'md' | 'lg';
     className?: string;
+    onSearch?: (query: string) => void;
 };
 
 /** Search combobox: suggestions listbox, arrow-key navigation, Enter searches. */
@@ -31,6 +32,7 @@ export function SearchInput({
     recent,
     size = 'md',
     className,
+    onSearch,
 }: SearchInputProps) {
     const generatedId = useId();
     const inputId = id ?? `${generatedId}-q`;
@@ -49,7 +51,11 @@ export function SearchInput({
 
     const submit = (q: string) => {
         setOpen(false);
-        router.get(search({ query: { q } }).url);
+        if (onSearch) {
+            onSearch(q);
+        } else {
+            router.get(search({ query: { q } }).url);
+        }
     };
 
     const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {

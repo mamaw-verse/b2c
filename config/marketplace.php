@@ -51,6 +51,9 @@ return [
             'sections' => [
                 ['heading' => 'Return window', 'body' => 'You can request a return within '.env('MARKETPLACE_RETURN_WINDOW_DAYS', 7).' days after your order is completed.'],
                 ['heading' => 'How to request', 'body' => 'Open the order under My purchases and choose Return/Refund. The seller reviews your request and a moderator steps in if it is disputed.'],
+                ['heading' => 'Partial refunds', 'body' => 'Choose the item quantities you want reviewed. The seller may approve a partial refund for selected quantities or a full refund for all remaining items. Approved amounts reflect your share of any order voucher discount.'],
+                ['heading' => 'Review timeline', 'body' => 'The order timeline records when you submit a request, when the seller reviews it, and the amount approved. A declined request includes the seller’s reason.'],
+                ['heading' => 'Disputes', 'body' => 'If you disagree with the seller’s decision, contact support with your order number and the details of your request so our team can review the case.'],
             ],
         ],
         'about' => [
@@ -128,6 +131,7 @@ return [
 
     'footer' => [
         'shop' => [
+            ['label' => 'Sellers', 'href' => '/sellers'],
             ['label' => 'Halal Food', 'href' => '/categories/halal-food'],
             ['label' => 'Meat & Seafood', 'href' => '/categories/meat-seafood'],
             ['label' => 'Dates & Sweets', 'href' => '/categories/dates-sweets'],
@@ -145,7 +149,7 @@ return [
             ['label' => 'Why choose us', 'href' => '/why-choose-us'],
         ],
         'sell' => [
-            ['label' => 'Sell on {brand}', 'href' => '/seller/dashboard'],
+            ['label' => 'Start selling', 'href' => '/seller/dashboard'],
             ['label' => 'Seller centre', 'href' => '/seller/dashboard'],
         ],
         'company' => array_values(array_filter([

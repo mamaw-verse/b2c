@@ -29,6 +29,7 @@ type RecentOrder = {
     urgent?: boolean;
     pay: string;
     thumbnail_icon: string;
+    thumbnail?: string | null;
     detail_url: string;
 };
 
@@ -183,6 +184,7 @@ export default function SellerDashboard({
                                         urgent={order.urgent}
                                         pay={order.pay}
                                         thumbnailIcon={order.thumbnail_icon}
+                                        thumbnail={order.thumbnail}
                                         detailUrl={order.detail_url}
                                     />
                                 ))}

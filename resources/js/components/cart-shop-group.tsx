@@ -25,6 +25,7 @@ type CartShopGroupProps = {
     onSelectAll?: (selected: boolean) => void;
     onSelectItem?: (itemId: string, selected: boolean) => void;
     onQtyItem?: (itemId: string, qty: number) => void;
+    onVariationItem?: (itemId: string) => void;
     onRemoveItem?: (itemId: string) => void;
     onVoucherClick?: () => void;
     className?: string;
@@ -35,6 +36,7 @@ export function CartShopGroup({
     onSelectAll,
     onSelectItem,
     onQtyItem,
+    onVariationItem,
     onRemoveItem,
     onVoucherClick,
     className,
@@ -122,6 +124,7 @@ export function CartShopGroup({
                         item={item}
                         onSelect={(sel) => onSelectItem?.(item.id, sel)}
                         onQty={(q) => onQtyItem?.(item.id, q)}
+                        onVariation={() => onVariationItem?.(item.id)}
                         onRemove={() => onRemoveItem?.(item.id)}
                     />
                 ))}

@@ -17,6 +17,8 @@ export type FileFieldProps = {
     optional?: boolean;
     disabled?: boolean;
     helper?: ReactNode;
+    existingUrl?: string | null;
+    existingLabel?: string;
     /** Button text in the empty state. */
     addLabel?: string;
 };
@@ -42,6 +44,8 @@ export function FileField({
     optional = false,
     disabled = false,
     helper,
+    existingUrl = null,
+    existingLabel,
     addLabel,
 }: FileFieldProps) {
     const generatedId = useId();
@@ -81,6 +85,9 @@ export function FileField({
         .join(' ');
 
     const isPdf = value?.type === 'application/pdf';
+    const currentFileLabel = existingLabel
+        ? `Current file: ${existingLabel}`
+        : 'Current file';
 
     return (
         <div className="grid gap-1.5" data-file-field={id}>
@@ -96,38 +103,71 @@ export function FileField({
             {variant === 'avatar' ? (
                 <div className="flex items-center gap-4">
                     {value === null ? (
-                        <button
-                            type="button"
-                            id={id}
-                            disabled={disabled}
-                            onClick={() => inputRef.current?.click()}
-                            onDragOver={(e) => {
-                                e.preventDefault();
-                                if (!disabled) {
-                                    setIsDraggingOver(true);
-                                }
-                            }}
-                            onDragLeave={(e) => {
-                                e.preventDefault();
-                                setIsDraggingOver(false);
-                            }}
-                            onDrop={handleDrop}
-                            aria-describedby={describedBy || undefined}
-                            aria-invalid={error ? true : undefined}
-                            className={cn(
-                                'focus-ring grid size-24 shrink-0 cursor-pointer place-items-center gap-1 rounded-tile border-2 border-dashed p-2 text-center transition-colors',
-                                isDraggingOver
-                                    ? 'border-primary bg-primary-soft text-primary-text'
-                                    : 'border-border-control bg-surface text-primary-text hover:bg-primary-soft',
-                                error && 'border-danger',
-                                disabled && 'cursor-not-allowed opacity-50',
-                            )}
-                        >
-                            <Upload className="size-5" aria-hidden="true" />
-                            <span className="text-caption font-bold">
-                                {addLabel ?? 'Add logo'}
-                            </span>
-                        </button>
+                        existingUrl ? (
+                            <>
+                                <img
+                                    src={existingUrl}
+                                    alt=""
+                                    className="size-24 shrink-0 rounded-tile border border-border object-cover"
+                                />
+                                <div className="grid gap-1">
+                                    <p className="text-body-sm text-foreground">
+                                        {currentFileLabel}
+                                    </p>
+                                    <a
+                                        href={existingUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="min-h-touch text-body-sm font-bold text-primary-text underline decoration-1 underline-offset-2"
+                                    >
+                                        View file
+                                    </a>
+                                    <button
+                                        type="button"
+                                        className="min-h-touch text-left text-body-sm font-bold text-primary-text underline decoration-1 underline-offset-2"
+                                        onClick={() =>
+                                            inputRef.current?.click()
+                                        }
+                                        disabled={disabled}
+                                    >
+                                        Replace
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <button
+                                type="button"
+                                id={id}
+                                disabled={disabled}
+                                onClick={() => inputRef.current?.click()}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    if (!disabled) {
+                                        setIsDraggingOver(true);
+                                    }
+                                }}
+                                onDragLeave={(e) => {
+                                    e.preventDefault();
+                                    setIsDraggingOver(false);
+                                }}
+                                onDrop={handleDrop}
+                                aria-describedby={describedBy || undefined}
+                                aria-invalid={error ? true : undefined}
+                                className={cn(
+                                    'focus-ring grid size-24 shrink-0 cursor-pointer place-items-center gap-1 rounded-tile border-2 border-dashed p-2 text-center transition-colors',
+                                    isDraggingOver
+                                        ? 'border-primary bg-primary-soft text-primary-text'
+                                        : 'border-border-control bg-surface text-primary-text hover:bg-primary-soft',
+                                    error && 'border-danger',
+                                    disabled && 'cursor-not-allowed opacity-50',
+                                )}
+                            >
+                                <Upload className="size-5" aria-hidden="true" />
+                                <span className="text-caption font-bold">
+                                    {addLabel ?? 'Add logo'}
+                                </span>
+                            </button>
+                        )
                     ) : (
                         <>
                             {previewUrl && (
@@ -164,6 +204,33 @@ export function FileField({
                         {acceptLabel} · up to {maxSizeMb} MB
                         {helper ? <> {helper}</> : null}
                     </p>
+                </div>
+            ) : value === null && existingUrl ? (
+                <div className="flex items-center gap-3 rounded-field border border-border bg-surface p-3">
+                    <span className="grid size-12 shrink-0 place-items-center rounded-tile bg-surface-muted text-muted-foreground">
+                        <FileText className="size-6" aria-hidden="true" />
+                    </span>
+                    <div className="grid min-w-0 flex-1">
+                        <p className="text-body font-bold text-foreground">
+                            {currentFileLabel}
+                        </p>
+                        <a
+                            href={existingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-body-sm font-bold text-primary-text underline decoration-1 underline-offset-2"
+                        >
+                            View file
+                        </a>
+                    </div>
+                    <button
+                        type="button"
+                        className="min-h-touch shrink-0 text-body-sm font-bold text-primary-text underline decoration-1 underline-offset-2"
+                        onClick={() => inputRef.current?.click()}
+                        disabled={disabled}
+                    >
+                        Replace
+                    </button>
                 </div>
             ) : value === null ? (
                 <button

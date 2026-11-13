@@ -12,6 +12,7 @@ export type OrderRow = {
     total: number;
     created_at: string;
     detail_url: string;
+    thumbnail?: string | null;
     // seller variant extras
     buyer?: string;
     pay?: string;
@@ -77,7 +78,16 @@ export function OrdersTable({
                     {orders.map((order) => (
                         <tr key={order.id} className="hover:bg-surface-subtle">
                             <td className="px-4 py-3 font-mono text-body-sm">
-                                {order.id}
+                                <span className="flex items-center gap-2">
+                                    {order.thumbnail && (
+                                        <img
+                                            src={order.thumbnail}
+                                            alt=""
+                                            className="size-10 rounded-tile object-cover"
+                                        />
+                                    )}
+                                    {order.id}
+                                </span>
                             </td>
                             <td className="px-4 py-3 text-body-sm text-muted-foreground">
                                 {formatDate(order.created_at)}

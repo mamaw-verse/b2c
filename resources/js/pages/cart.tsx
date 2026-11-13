@@ -1,12 +1,14 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ShoppingBag, Ticket } from 'lucide-react';
 import { useState } from 'react';
+import type { CartItemData } from '@/components/cart-item';
 import {
     CartShopGroup,
     type CartShopGroupData,
 } from '@/components/cart-shop-group';
 import { OrderSummary } from '@/components/order-summary';
 import { EmptyState } from '@/components/ui/empty-state';
+import { VariationPicker } from '@/components/variation-picker';
 import { VoucherPicker, type VoucherItem } from '@/components/voucher-picker';
 import { formatPeso } from '@/lib/format';
 import { show as checkout } from '@/routes/checkout';
@@ -25,6 +27,7 @@ export default function Cart({
     platformVouchers,
 }: CartPageProps) {
     const [voucherPickerOpen, setVoucherPickerOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<CartItemData | null>(null);
     const [selectedVouchers, setSelectedVouchers] = useState<
         Record<string, string | null>
     >({
@@ -85,6 +88,40 @@ export default function Cart({
             preserveScroll: true,
             preserveState: true,
         });
+    };
+
+    const handleVariationItem = (itemId: string) => {
+        const item = allItems.find((i) => i.id === itemId);
+        if (item && item.variations && item.variations.length > 0) {
+            setEditingItem(item);
+        }
+    };
+
+    const handleConfirmVariation = (selection: {
+        option1: string;
+        option2: string | null;
+        variation?: { id: string } | null;
+    }) => {
+        if (!editingItem) return;
+
+        const variation =
+            selection.variation ??
+            editingItem.variations?.find(
+                (v) =>
+                    v.option1_value === selection.option1 &&
+                    (v.option2_value ?? null) === (selection.option2 ?? null),
+            );
+
+        if (!variation) return;
+
+        router.put(
+            `/cart/${editingItem.id}`,
+            { product_variation_id: variation.id },
+            {
+                preserveScroll: true,
+                onSuccess: () => setEditingItem(null),
+            },
+        );
     };
 
     const handleApplyVoucherCode = async (code: string) => {
@@ -198,6 +235,7 @@ export default function Cart({
                                     }
                                     onSelectItem={handleSelectItem}
                                     onQtyItem={handleQtyChange}
+                                    onVariationItem={handleVariationItem}
                                     onRemoveItem={handleRemoveItem}
                                     onVoucherClick={() =>
                                         setVoucherPickerOpen(true)
@@ -286,6 +324,31 @@ export default function Cart({
                 }
                 onApplyCode={handleApplyVoucherCode}
             />
+
+            {editingItem && (
+                <VariationPicker
+                    key={editingItem.id}
+                    open={Boolean(editingItem)}
+                    onOpenChange={(open) => {
+                        if (!open) setEditingItem(null);
+                    }}
+                    mode="edit"
+                    initial={{
+                        option1: editingItem.variation?.option1_value,
+                        option2: editingItem.variation?.option2_value,
+                    }}
+                    confirmLabel="Update"
+                    product={{
+                        ...editingItem,
+                        price: editingItem.unit_price,
+                        icon: editingItem.icon ?? 'package',
+                        option1_name: editingItem.option1_name ?? null,
+                        option2_name: editingItem.option2_name ?? null,
+                        variations: editingItem.variations ?? [],
+                    }}
+                    onConfirm={handleConfirmVariation}
+                />
+            )}
         </>
     );
 }

@@ -6,7 +6,11 @@ use App\Enums\ModerationItemType;
 use App\Enums\ModerationReason;
 use App\Enums\ModerationState;
 use App\Enums\ShopStatus;
+use App\Models\Barangay;
+use App\Models\City;
 use App\Models\ModerationQueueItem;
+use App\Models\Province;
+use App\Models\Region;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,6 +26,19 @@ uses(RefreshDatabase::class);
  */
 function validApplicationPayload(array $overrides = []): array
 {
+    $region = Region::factory()->create();
+    $province = Province::factory()->create([
+        'name' => 'Zamboanga del Sur',
+        'region_code' => $region->code,
+    ]);
+    $city = City::factory()->create([
+        'name' => 'Zamboanga City',
+        'province_code' => $province->code,
+    ]);
+    $barangay = Barangay::factory()->create([
+        'city_code' => $city->code,
+    ]);
+
     return array_merge([
         'logo' => UploadedFile::fake()->image('logo.png'),
         'shop_name' => 'Sitti\'s Halal Kitchen',
@@ -30,6 +47,10 @@ function validApplicationPayload(array $overrides = []): array
         'city' => 'Zamboanga City',
         'state' => 'Zamboanga del Sur',
         'postal_code' => '7000',
+        'region_code' => $region->code,
+        'province_code' => $province->code,
+        'city_code' => $city->code,
+        'barangay_code' => $barangay->code,
         'business_permit' => UploadedFile::fake()->create('permit.pdf', 100, 'application/pdf'),
         'certificates' => [
             [
@@ -74,9 +95,10 @@ test('buyer can submit a shop application which enters the moderation queue', fu
     Storage::fake('public');
 
     $buyer = User::factory()->create(['role' => 'buyer']);
+    $payload = validApplicationPayload();
 
     $response = $this->actingAs($buyer)
-        ->post(route('seller.register.store'), validApplicationPayload());
+        ->post(route('seller.register.store'), $payload);
 
     $response->assertRedirect(route('seller.register'));
 
@@ -95,6 +117,10 @@ test('buyer can submit a shop application which enters the moderation queue', fu
         ->and($shop->city)->toBe('Zamboanga City')
         ->and($shop->state)->toBe('Zamboanga del Sur')
         ->and($shop->postal_code)->toBe('7000')
+        ->and($shop->region_code)->toBe($payload['region_code'])
+        ->and($shop->province_code)->toBe($payload['province_code'])
+        ->and($shop->city_code)->toBe($payload['city_code'])
+        ->and($shop->barangay_code)->toBe($payload['barangay_code'])
         ->and($shop->location)->toBe('Zamboanga City')
         ->and($buyer->isSeller())->toBeFalse();
 
@@ -146,7 +172,12 @@ test('buyer with a pending application sees its status and cannot resubmit', fun
 
 test('admin sees a shop application in the moderation queue with a preview', function () {
     $admin = User::factory()->create(['role' => 'admin']);
-    $shop = Shop::factory()->pending()->create(['user_id' => User::factory()]);
+    $shop = Shop::factory()->pending()->create([
+        'user_id' => User::factory(),
+        'halal_only' => true,
+        'terms_version' => '2026.1',
+        'terms_accepted_at' => now(),
+    ]);
     $shop->halalCertifications()->create([
         'certifying_body' => 'IDCP',
         'number' => 'HC-2026-00001',
@@ -176,6 +207,10 @@ test('admin sees a shop application in the moderation queue with a preview', fun
             ->component('admin/moderation/show')
             ->where('preview.kind', 'shop_application')
             ->where('preview.snapshot.shop_name', $shop->name)
+            ->where('preview.snapshot.halal_only', true)
+            ->where('preview.snapshot.terms_version', '2026.1')
+            ->where('preview.snapshot.terms_accepted_at', $shop->terms_accepted_at?->toISOString())
+            ->where('preview.snapshot.submitted_at', $shop->submitted_at?->toISOString())
             ->has('preview.snapshot.certificates', 1)
             ->where('preview.snapshot.certificates.0.certifying_body', 'IDCP')
         );
@@ -337,6 +372,174 @@ test('applicant with requested changes can resubmit their application in place',
     expect($existingItem->state)->toBe(ModerationState::Pending)
         ->and($existingItem->reason_code)->toBeNull()
         ->and($existingItem->decision_reason)->toBeNull();
+});
+
+test('applicant can resubmit without uploading saved documents again', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $payload = validApplicationPayload();
+    $logoPath = 'shop-documents/saved-logo.png';
+    $permitPath = 'shop-documents/saved-permit.pdf';
+    $certificatePath = 'shop-documents/certificates/saved-certificate.pdf';
+    Storage::disk('public')->put($logoPath, 'logo');
+    Storage::disk('public')->put($permitPath, 'permit');
+    Storage::disk('public')->put($certificatePath, 'certificate');
+    $validUntil = now()->addYear()->toDateString();
+
+    $shop = Shop::factory()->rejected()->create([
+        'user_id' => $user->id,
+        'logo_url' => Storage::disk('public')->url($logoPath),
+        'business_permit_url' => Storage::disk('public')->url($permitPath),
+        'region_code' => $payload['region_code'],
+        'province_code' => $payload['province_code'],
+        'city_code' => $payload['city_code'],
+        'barangay_code' => $payload['barangay_code'],
+        'halal_only' => true,
+    ]);
+    $certificate = $shop->halalCertifications()->create([
+        'certifying_body' => 'Saved Authority',
+        'number' => 'SAVED-1',
+        'valid_until' => $validUntil,
+        'document_path' => $certificatePath,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('seller.register'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('application.logo_url', Storage::disk('public')->url($logoPath))
+            ->where('application.business_permit_url', Storage::disk('public')->url($permitPath))
+            ->where('application.halal_only', true)
+            ->where('application.region_code', $payload['region_code'])
+            ->where('application.province_code', $payload['province_code'])
+            ->where('application.city_code', $payload['city_code'])
+            ->where('application.barangay_code', $payload['barangay_code'])
+            ->where('application.certificates.0.id', $certificate->id)
+            ->where('application.certificates.0.document_url', Storage::disk('public')->url($certificatePath))
+        );
+
+    $payload['logo'] = null;
+    $payload['business_permit'] = null;
+    $payload['certificates'] = [[
+        'id' => $certificate->id,
+        'certifying_body' => 'Saved Authority',
+        'certificate_number' => 'SAVED-1',
+        'valid_until' => $validUntil,
+        'document' => null,
+    ]];
+
+    $this->actingAs($user)
+        ->post(route('seller.register.store'), $payload)
+        ->assertRedirect(route('seller.register'));
+
+    expect($shop->refresh()->logo_url)->toBe(Storage::disk('public')->url($logoPath))
+        ->and($shop->business_permit_url)->toBe(Storage::disk('public')->url($permitPath))
+        ->and($shop->halal_only)->toBeTrue()
+        ->and($shop->region_code)->toBe($payload['region_code'])
+        ->and($shop->halalCertifications()->sole()->id)->toBe($certificate->id)
+        ->and($shop->halalCertifications()->sole()->document_path)->toBe($certificatePath);
+
+    Storage::disk('public')->assertExists($logoPath);
+    Storage::disk('public')->assertExists($permitPath);
+    Storage::disk('public')->assertExists($certificatePath);
+});
+
+test('applicant can replace certificates and remove omitted certificates on resubmission', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $payload = validApplicationPayload();
+    $shop = Shop::factory()->changesRequested()->create([
+        'user_id' => $user->id,
+        'region_code' => $payload['region_code'],
+        'province_code' => $payload['province_code'],
+        'city_code' => $payload['city_code'],
+        'barangay_code' => $payload['barangay_code'],
+        'business_permit_url' => '/storage/shop-documents/saved-permit.pdf',
+    ]);
+    $keptCertificate = $shop->halalCertifications()->create([
+        'certifying_body' => 'Old Authority',
+        'number' => 'OLD-1',
+        'valid_until' => now()->addYear()->toDateString(),
+        'document_path' => 'shop-documents/certificates/old-kept.pdf',
+    ]);
+    $removedCertificate = $shop->halalCertifications()->create([
+        'certifying_body' => 'Removed Authority',
+        'number' => 'OLD-2',
+        'valid_until' => now()->addYear()->toDateString(),
+        'document_path' => 'shop-documents/certificates/old-removed.pdf',
+    ]);
+
+    $payload['logo'] = null;
+    $payload['business_permit'] = null;
+    $payload['certificates'] = [
+        [
+            'id' => $keptCertificate->id,
+            'certifying_body' => 'Updated Authority',
+            'certificate_number' => 'UPDATED-1',
+            'valid_until' => now()->addYears(2)->toDateString(),
+            'document' => UploadedFile::fake()->create('replacement.pdf', 100, 'application/pdf'),
+        ],
+        [
+            'certifying_body' => 'New Authority',
+            'certificate_number' => 'NEW-1',
+            'valid_until' => now()->addYears(2)->toDateString(),
+            'document' => UploadedFile::fake()->create('new-certificate.pdf', 100, 'application/pdf'),
+        ],
+    ];
+
+    $this->actingAs($user)
+        ->post(route('seller.register.store'), $payload)
+        ->assertRedirect(route('seller.register'));
+
+    expect($shop->halalCertifications()->count())->toBe(2)
+        ->and($keptCertificate->refresh()->number)->toBe('UPDATED-1')
+        ->and($keptCertificate->document_path)->not->toBe('shop-documents/certificates/old-kept.pdf')
+        ->and($shop->halalCertifications()->where('number', 'NEW-1')->exists())->toBeTrue();
+
+    $this->assertModelMissing($removedCertificate);
+    Storage::disk('public')->assertExists($keptCertificate->document_path);
+    Storage::disk('public')->assertExists($shop->halalCertifications()->where('number', 'NEW-1')->value('document_path'));
+});
+
+test('applicant cannot submit another shop certificate id', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $payload = validApplicationPayload();
+    $shop = Shop::factory()->changesRequested()->create([
+        'user_id' => $user->id,
+        'business_permit_url' => '/storage/shop-documents/saved-permit.pdf',
+    ]);
+    $ownCertificate = $shop->halalCertifications()->create([
+        'certifying_body' => 'Own Authority',
+        'number' => 'OWN-1',
+        'valid_until' => now()->addYear()->toDateString(),
+    ]);
+    $otherShop = Shop::factory()->create();
+    $otherCertificate = $otherShop->halalCertifications()->create([
+        'certifying_body' => 'Other Authority',
+        'number' => 'OTHER-1',
+        'valid_until' => now()->addYear()->toDateString(),
+    ]);
+
+    $payload['logo'] = null;
+    $payload['business_permit'] = null;
+    $payload['certificates'] = [[
+        'id' => $otherCertificate->id,
+        'certifying_body' => 'Other Authority',
+        'certificate_number' => 'OTHER-1',
+        'valid_until' => now()->addYear()->toDateString(),
+        'document' => null,
+    ]];
+
+    $this->actingAs($user)
+        ->post(route('seller.register.store'), $payload)
+        ->assertSessionHasErrors('certificates.0.id');
+
+    expect($ownCertificate->refresh()->number)->toBe('OWN-1')
+        ->and($otherCertificate->refresh()->number)->toBe('OTHER-1');
 });
 
 test('submission fails without agreeing to the seller terms', function () {

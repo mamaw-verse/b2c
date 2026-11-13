@@ -30,10 +30,16 @@ final readonly class SubmitShopApplication
             'city' => $data['city'],
             'state' => $data['state'],
             'postal_code' => $data['postal_code'],
+            'region_code' => $data['region_code'],
+            'province_code' => $data['province_code'],
+            'city_code' => $data['city_code'],
+            'barangay_code' => $data['barangay_code'],
             'description' => $data['description'],
             'logo_url' => isset($data['logo']) ? $this->storeDocument($data['logo']) : $user->shop?->logo_url,
             'halal_only' => (bool) ($data['halal_only'] ?? false),
-            'business_permit_url' => $this->storeDocument($data['business_permit']),
+            'business_permit_url' => isset($data['business_permit'])
+                ? $this->storeDocument($data['business_permit'])
+                : $user->shop?->business_permit_url,
             'status' => ShopStatus::Pending,
             'agreed_to_terms' => true,
             'terms_version' => config('marketplace.seller_terms.version'),
@@ -51,18 +57,43 @@ final readonly class SubmitShopApplication
                 // Re-application after rejection: resubmit in place, keep the slug stable.
                 unset($attributes['slug']);
                 $shop->update($attributes);
-                $shop->halalCertifications()->delete();
             } else {
                 $shop = $user->shop()->create($attributes);
             }
 
-            foreach ($data['certificates'] as $certificate) {
-                $shop->halalCertifications()->create([
+            $certificates = (array) $data['certificates'];
+
+            $certificateIds = collect($certificates)
+                ->pluck('id')
+                ->filter()
+                ->all();
+
+            $shop->halalCertifications()->whereNotIn('id', $certificateIds)->delete();
+
+            foreach ($certificates as $certificate) {
+                $certificateAttributes = [
                     'certifying_body' => $certificate['certifying_body'],
                     'number' => $certificate['certificate_number'],
                     'valid_until' => $certificate['valid_until'],
-                    'document_path' => $certificate['document']->store('shop-documents/certificates', 'public'),
-                ]);
+                ];
+
+                if (isset($certificate['id'])) {
+                    if (isset($certificate['document'])) {
+                        $certificateAttributes['document_path'] = $certificate['document']
+                            ->store('shop-documents/certificates', 'public');
+                    }
+
+                    $shop->halalCertifications()
+                        ->whereKey($certificate['id'])
+                        ->update($certificateAttributes);
+
+                    continue;
+                }
+
+                $certificateAttributes['document_path'] = $certificate['document']
+                    ->store('shop-documents/certificates', 'public');
+
+                $shop->halalCertifications()->create($certificateAttributes);
             }
 
             ModerationQueueItem::query()

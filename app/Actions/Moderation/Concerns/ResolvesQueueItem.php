@@ -16,6 +16,7 @@ use App\Models\Report;
 use App\Models\Review;
 use App\Models\Shop;
 use App\Models\User;
+use App\Notifications\ShopApplicationReviewedNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -68,12 +69,7 @@ trait ResolvesQueueItem
             $action === 'suspended' && $target instanceof Product => $target->update(['hidden' => true, 'published' => false]),
             in_array($action, ['hidden', 'request_changes', 'request_certificate'], true) && $target instanceof Shop && $target->status === ShopStatus::Pending => $this->requestShopRevision($target, $reason, $admin),
             $action === 'approved' && $target instanceof Shop && $target->status === ShopStatus::Pending => $this->approveShopApplication($target, $admin),
-            $action === 'rejected' && $target instanceof Shop && $target->status === ShopStatus::Pending => $target->update([
-                'status' => ShopStatus::Rejected,
-                'rejection_reason' => $reason,
-                'reviewed_at' => now(),
-                'reviewed_by' => $admin->id,
-            ]),
+            $action === 'rejected' && $target instanceof Shop && $target->status === ShopStatus::Pending => $this->rejectShopApplication($target, $reason, $admin),
             $action === 'approved' && $target instanceof Product => $this->approveCertifiedProduct($target),
             $action === 'rejected' && $target instanceof Product && $target->halal_status === HalalStatus::Review => $target->update(['halal_status' => HalalStatus::Missing]),
             $target instanceof Report => $this->resolveReport($target, $action, $reason, $admin),
@@ -120,6 +116,20 @@ trait ResolvesQueueItem
             'reviewed_at' => now(),
             'reviewed_by' => $admin->id,
         ]);
+
+        DB::afterCommit(fn () => $shop->owner?->notify(new ShopApplicationReviewedNotification($shop, 'changes_requested', $reason)));
+    }
+
+    private function rejectShopApplication(Shop $shop, string $reason, User $admin): void
+    {
+        $shop->update([
+            'status' => ShopStatus::Rejected,
+            'rejection_reason' => $reason,
+            'reviewed_at' => now(),
+            'reviewed_by' => $admin->id,
+        ]);
+
+        DB::afterCommit(fn () => $shop->owner?->notify(new ShopApplicationReviewedNotification($shop, 'rejected', $reason)));
     }
 
     private function approveShopApplication(Shop $shop, User $admin): void

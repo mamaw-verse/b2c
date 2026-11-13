@@ -38,6 +38,9 @@ final class CreateShopRegistrationRequest extends FormRequest
             return [];
         }
 
+        $shop = $this->user()->shop;
+        $hasBusinessPermit = filled($shop?->business_permit_url);
+
         return [
             'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'shop_name' => ['required', 'string', 'max:120', Rule::unique('shops', 'name')->ignore($this->user()->shop)],
@@ -46,12 +49,23 @@ final class CreateShopRegistrationRequest extends FormRequest
             'city' => ['required', 'string', 'max:120'],
             'state' => ['required', 'string', 'max:120'],
             'postal_code' => ['required', 'string', 'max:10'],
-            'business_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'region_code' => ['required', 'string', 'exists:regions,code'],
+            'province_code' => ['required', 'string', 'exists:provinces,code'],
+            'city_code' => ['required', 'string', 'exists:cities,code'],
+            'barangay_code' => ['required', 'string', 'exists:barangays,code'],
+            'business_permit' => [$hasBusinessPermit ? 'nullable' : 'required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'certificates' => ['required', 'array', 'min:1'],
+            'certificates.*.id' => [
+                'nullable',
+                'string',
+                Rule::exists('halal_certifications', 'id')
+                    ->where('certifiable_type', $shop?->getMorphClass())
+                    ->where('certifiable_id', $shop?->getKey()),
+            ],
             'certificates.*.certifying_body' => ['required', 'string', 'max:255'],
             'certificates.*.certificate_number' => ['required', 'string', 'max:100'],
             'certificates.*.valid_until' => ['required', 'date', 'after_or_equal:today'],
-            'certificates.*.document' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'certificates.*.document' => ['nullable', 'required_without:certificates.*.id', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'agreed_to_terms' => ['accepted'],
             'halal_only' => ['boolean'],
         ];
@@ -65,7 +79,8 @@ final class CreateShopRegistrationRequest extends FormRequest
         return array_merge(
             $this->only([
                 'shop_name', 'description', 'address_line', 'city', 'state',
-                'postal_code', 'halal_only',
+                'postal_code', 'region_code', 'province_code', 'city_code',
+                'barangay_code', 'halal_only',
             ]),
             [
                 'logo' => $this->file('logo'),

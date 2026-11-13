@@ -72,6 +72,7 @@ final class HandleInertiaRequests extends Middleware
                 'suspended' => (bool) $shop->suspended,
                 'shop_name' => $shop->name,
                 'shop_id' => $shop->id,
+                'shop_slug' => $shop->slug,
             ],
             // Pending + flagged moderation items, shared on every page so the
             // admin sidebar badge stays visible outside the admin pages too.

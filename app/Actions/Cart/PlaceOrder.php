@@ -20,6 +20,7 @@ use App\Models\ProductVariation;
 use App\Models\ShippingOption;
 use App\Models\User;
 use App\Models\Voucher;
+use App\Notifications\SellerOrderNotification;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -195,6 +196,8 @@ final readonly class PlaceOrder
                     'Order placed',
                     "Order #{$order->id} placed. Total ".Money::format($total),
                 ));
+
+                DB::afterCommit(fn () => $order->shop->owner?->notify(new SellerOrderNotification($order, 'created')));
 
                 $createdOrders[] = $order;
             }

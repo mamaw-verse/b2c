@@ -11,6 +11,7 @@ use App\Models\ModerationEvent;
 use App\Models\ModerationQueueItem;
 use App\Models\Shop;
 use App\Models\User;
+use App\Notifications\ShopApplicationReviewedNotification;
 use Illuminate\Support\Facades\DB;
 
 final readonly class RequestModerationChanges
@@ -40,6 +41,8 @@ final readonly class RequestModerationChanges
                     'reviewed_at' => now(),
                     'reviewed_by' => $admin->id,
                 ]);
+
+                DB::afterCommit(fn () => $item->target->owner?->notify(new ShopApplicationReviewedNotification($item->target, 'changes_requested', $reason)));
             }
 
             $this->audit->handle($admin, 'moderation.'.$kind, $item, ['reason' => $reason], $ip);

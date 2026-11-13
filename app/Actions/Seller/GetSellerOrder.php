@@ -18,7 +18,7 @@ final readonly class GetSellerOrder
      */
     public function handle(Shop $shop, Order $order): array
     {
-        $order->load(['items.product.images', 'items.variation', 'user', 'address', 'shippingOption', 'events', 'fulfillments.items']);
+        $order->load(['items.product.images', 'items.variation', 'items.refundItems', 'refunds.items.orderItem', 'user', 'address', 'shippingOption', 'events', 'fulfillments.items']);
 
         return [
             'id' => $order->referenceNumber(),
@@ -27,12 +27,16 @@ final readonly class GetSellerOrder
             'status' => $order->status->label(),
             'status_raw' => $order->status->value,
             'status_variant' => $order->status->badgeVariant(),
+            'subtotal' => $order->subtotal,
+            'voucher_discount' => $order->voucher_discount,
             'location' => $shop->location ?? $shop->city,
             'created_at' => $order->created_at?->toISOString(),
             'buyer' => [
                 'id' => $order->user->id,
                 'name' => $order->user->name,
                 'email' => $order->user->email,
+                'phone' => $order->address?->phone,
+                'orders_count' => $order->user->orders()->where('shop_id', $shop->id)->where('status', '!=', OrderStatus::Cancelled)->count(),
             ],
             'shipping_address' => [
                 'recipient_name' => $order->address?->name,
@@ -63,6 +67,7 @@ final readonly class GetSellerOrder
                 'quantity' => $item->qty,
                 'subtotal' => $item->subtotal,
                 'thumbnail_icon' => $item->product?->images->first()->icon ?? 'package',
+                'thumbnail' => $item->product?->thumbnailUrl(),
                 'frozen' => $item->product->frozen ?? false,
                 'remaining' => $item->remainingQuantity(),
             ]),
@@ -77,6 +82,7 @@ final readonly class GetSellerOrder
                     $e->metadata['tracking_number'] ?? null,
                     $e->metadata['tracking_url'] ?? null,
                 ),
+                'help_url' => $e->help_url,
                 'state' => 'done',
             ]),
             'fulfillment_status' => $order->fulfillment_status->value,
@@ -97,12 +103,13 @@ final readonly class GetSellerOrder
 
                     return [
                         'order_item_id' => $line->order_item_id,
-                        'name' => $orderItem?->product_name ?? $orderItem?->product?->name ?? 'Item',
+                        'name' => $orderItem->product_name ?? $orderItem->product->name ?? 'Item',
                         'slug' => $orderItem?->product?->slug,
-                        'variation' => $orderItem?->variation_label ?? ($orderItem?->variation ? mb_trim(($orderItem->variation->option1_value ?? '').' '.($orderItem->variation->option2_value ?? '')) : null),
-                        'sku' => $orderItem?->variation?->sku,
-                        'thumbnail_icon' => $orderItem?->product?->images->first()?->icon ?? 'package',
-                        'unit_price' => $orderItem?->unit_price ?? 0,
+                        'variation' => $orderItem->variation_label ?? ($orderItem->variation ? mb_trim(($orderItem->variation->option1_value ?? '').' '.($orderItem->variation->option2_value ?? '')) : null),
+                        'sku' => $orderItem->variation?->sku,
+                        'thumbnail_icon' => $orderItem->product->images->first()->icon ?? 'package',
+                        'thumbnail' => $orderItem->product->thumbnailUrl(),
+                        'unit_price' => $orderItem->unit_price ?? 0,
                         'quantity' => $line->quantity,
                     ];
                 }),
@@ -119,6 +126,21 @@ final readonly class GetSellerOrder
                     return $event ? [
                         'reason' => $event->detail,
                         'requested_at' => $event->created_at?->toISOString(),
+                        'items' => $order->items->map(function ($item) use ($event): array {
+                            $remaining = max(0, $item->qty - $item->refundedUnits());
+                            $requestedItems = $event->metadata['items'] ?? [];
+                            $requested = is_array($requestedItems) ? collect($requestedItems)->firstWhere('order_item_id', $item->id) : null;
+
+                            return [
+                                'order_item_id' => $item->id,
+                                'name' => $item->product_name,
+                                'qty_available' => $remaining,
+                                'qty_requested' => $requested['qty'] ?? $remaining,
+                                'unit_price' => $item->unit_price,
+                            ];
+                        })->filter(fn (array $item): bool => $item['qty_available'] > 0)->values(),
+                        'refunded_gross' => $order->refunds->sum(fn ($refund) => $refund->items->sum(fn ($item) => $item->orderItem->unit_price * $item->qty)),
+                        'refunded_net' => $order->refunds->sum('amount'),
                     ] : null;
                 })()
                 : null,

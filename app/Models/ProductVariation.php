@@ -18,13 +18,14 @@ use Illuminate\Support\Carbon;
  * @property string $option1_value
  * @property string|null $option2_value
  * @property int|null $price
+ * @property int|null $was_price
  * @property int $stock
  * @property string|null $sku
  * @property int $sort_order
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['product_id', 'option1_value', 'option2_value', 'price', 'stock', 'sku', 'sort_order'])]
+#[Fillable(['product_id', 'option1_value', 'option2_value', 'price', 'was_price', 'stock', 'sku', 'sort_order'])]
 final class ProductVariation extends Model
 {
     /** @use HasFactory<ProductVariationFactory> */

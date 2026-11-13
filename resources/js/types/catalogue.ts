@@ -60,6 +60,7 @@ export type ProductVariation = {
     option1_value: string;
     option2_value: string | null;
     price: number | null;
+    was_price?: number | null;
     stock: number;
 };
 

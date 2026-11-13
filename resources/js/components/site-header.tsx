@@ -12,6 +12,7 @@ import { index as chatIndex } from '@/routes/chat';
 import { login } from '@/routes';
 import { index as notificationsIndex } from '@/routes/notifications';
 import { show as categoryShow } from '@/routes/categories';
+import { index as sellersIndex } from '@/routes/shops';
 
 /** One style for every link in the category nav: constant weight (no layout
    shift), brand hover pill, bottom-bar indicator when current, and the shared
@@ -222,6 +223,14 @@ export function SiteHeader({
                 >
                     <div className="page h-full">
                         <ul className="-mx-3 flex h-full [scrollbar-width:none] items-stretch gap-1 overflow-x-auto max-lg:[mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] max-lg:[-webkit-mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)]">
+                            <li className="flex">
+                                <Link
+                                    href={sellersIndex().url}
+                                    className={navLink(path === '/sellers')}
+                                >
+                                    Sellers
+                                </Link>
+                            </li>
                             {navCategories.map((c, i) => {
                                 const active =
                                     activeSlug === c.slug ||
@@ -257,7 +266,7 @@ export function SiteHeader({
                                             href={marketplace.nav.sell}
                                             className={navLink(false)}
                                         >
-                                            Sell on {name}
+                                            Start selling
                                         </a>
                                     )}
                                     {marketplace?.nav.help && (

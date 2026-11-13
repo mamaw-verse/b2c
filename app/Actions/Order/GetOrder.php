@@ -27,6 +27,7 @@ final readonly class GetOrder
             'items.product.images',
             'items.variation',
             'items.fulfillmentItems',
+            'items.refundItems',
             'items.review.photos',
         ]);
 

@@ -11,14 +11,20 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ShippingOption;
 use App\Models\User;
+use App\Notifications\SellerOrderNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
 test('places order and decrements stock and clears selected cart items', function () {
+    Notification::fake();
+
     $user = User::factory()->create();
-    $product = Product::factory()->certified()->create(['price' => 50000, 'stock' => 10]);
+    $seller = User::factory()->create();
+    $shop = App\Models\Shop::factory()->create(['user_id' => $seller->id]);
+    $product = Product::factory()->certified()->create(['shop_id' => $shop->id, 'price' => 50000, 'stock' => 10]);
     $address = Address::factory()->create(['user_id' => $user->id]);
     $shippingOption = ShippingOption::factory()->create(['fee' => 8000]);
 
@@ -51,6 +57,10 @@ test('places order and decrements stock and clears selected cart items', functio
         'status' => PaymentStatus::Pending->value,
         'amount' => 160000,
     ]);
+
+    Notification::assertSentTo($seller, SellerOrderNotification::class, fn (SellerOrderNotification $notification): bool => $notification->event === 'created'
+        && $notification->toArray($seller)['workspace'] === 'seller'
+        && $notification->toArray($seller)['url'] === route('seller.orders.show', $order));
 });
 
 test('out of stock throws validation exception', function () {

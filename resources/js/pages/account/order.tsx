@@ -71,7 +71,10 @@ type OrderDetailPageProps = {
             items: {
                 id: string;
                 quantity: number;
-                order_item?: { product_name: string } | null;
+                order_item?: {
+                    product_name: string;
+                    product?: { images?: { url: string }[] } | null;
+                } | null;
             }[];
         }[];
         fulfillment_status?: string;
@@ -82,6 +85,7 @@ type OrderDetailPageProps = {
             location?: string | null;
             tracking_number?: string | null;
             tracking_url?: string | null;
+            help_url?: string | null;
             created_at: string;
         }[];
         items: {
@@ -90,6 +94,7 @@ type OrderDetailPageProps = {
             variation_label?: string | null;
             unit_price: number;
             qty: number;
+            refunded_quantity: number;
             subtotal: number;
             product?: {
                 id: string;
@@ -115,6 +120,14 @@ export default function OrderDetail({
 }: OrderDetailPageProps) {
     const [returnModalOpen, setReturnModalOpen] = useState(false);
     const [returnReason, setReturnReason] = useState('');
+    const [returnItems, setReturnItems] = useState<Record<string, number>>(
+        Object.fromEntries(
+            order.items.map((item) => [
+                item.id,
+                item.qty - item.refunded_quantity,
+            ]),
+        ),
+    );
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
 
@@ -157,6 +170,12 @@ export default function OrderDetail({
             `/account/orders/${order.id}/return`,
             {
                 reason: returnReason,
+                items: order.items
+                    .filter((item) => (returnItems[item.id] ?? 0) > 0)
+                    .map((item) => ({
+                        order_item_id: item.id,
+                        qty: returnItems[item.id],
+                    })),
             },
             {
                 onFinish: () => {
@@ -178,6 +197,7 @@ export default function OrderDetail({
                   time: formatDateTime(evt.created_at),
                   tracking_number: evt.tracking_number,
                   tracking_url: evt.tracking_url,
+                  help_url: evt.help_url,
                   state: idx === 0 ? 'current' : 'done',
               }))
             : [
@@ -586,21 +606,14 @@ export default function OrderDetail({
                                         thumbnail_icon:
                                             (line as any).thumbnail_icon ??
                                             'package',
-                                        thumbnail: (line as any).thumbnail,
+                                        thumbnail:
+                                            line.order_item?.product?.images?.find(
+                                                (image) => image.url,
+                                            )?.url ?? null,
                                         unit_price:
                                             (line as any).unit_price ?? 0,
                                         quantity: line.quantity,
                                     }))}
-                                    footer={
-                                        isToReceive ? (
-                                            <Button
-                                                size="sm"
-                                                onClick={handleMarkReceived}
-                                            >
-                                                Confirm received
-                                            </Button>
-                                        ) : null
-                                    }
                                     data-test="parcel"
                                 />
                             ))}
@@ -688,6 +701,72 @@ export default function OrderDetail({
                         Please state the reason why you are requesting a return
                         or refund for this order.
                     </p>
+                    <fieldset className="grid gap-2">
+                        <legend className="text-label font-semibold">
+                            Items and quantities
+                        </legend>
+                        {order.items
+                            .filter((item) => item.qty > item.refunded_quantity)
+                            .map((item) => {
+                                const available =
+                                    item.qty - item.refunded_quantity;
+                                const selected =
+                                    (returnItems[item.id] ?? 0) > 0;
+
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className="flex items-center gap-3 rounded-tile border border-border p-3"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selected}
+                                            aria-label={`Request refund for ${item.product_name}`}
+                                            onChange={(event) =>
+                                                setReturnItems((current) => ({
+                                                    ...current,
+                                                    [item.id]: event.target
+                                                        .checked
+                                                        ? available
+                                                        : 0,
+                                                }))
+                                            }
+                                        />
+                                        <span className="min-w-0 flex-1 text-body-sm">
+                                            {item.product_name}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={available}
+                                            value={
+                                                selected
+                                                    ? returnItems[item.id]
+                                                    : 0
+                                            }
+                                            disabled={!selected}
+                                            aria-label={`Quantity of ${item.product_name}`}
+                                            className="input w-20"
+                                            onChange={(event) =>
+                                                setReturnItems((current) => ({
+                                                    ...current,
+                                                    [item.id]: Math.min(
+                                                        available,
+                                                        Math.max(
+                                                            0,
+                                                            Number(
+                                                                event.target
+                                                                    .value,
+                                                            ),
+                                                        ),
+                                                    ),
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                );
+                            })}
+                    </fieldset>
                     <TextArea
                         rows={4}
                         value={returnReason}
@@ -709,7 +788,13 @@ export default function OrderDetail({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={processing || !returnReason.trim()}
+                            disabled={
+                                processing ||
+                                !returnReason.trim() ||
+                                Object.values(returnItems).every(
+                                    (qty) => qty <= 0,
+                                )
+                            }
                         >
                             {processing ? 'Submitting...' : 'Submit request'}
                         </Button>

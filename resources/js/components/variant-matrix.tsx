@@ -8,6 +8,7 @@ export interface VariationItem {
     option1_value: string;
     option2_value?: string | null;
     price: number;
+    sale_price?: number | null;
     stock: number;
     sku?: string | null;
 }
@@ -43,6 +44,7 @@ export function VariantMatrix({
 }: VariantMatrixProps) {
     const id = useId();
     const [applyPrice, setApplyPrice] = useState<string>('');
+    const [applySalePrice, setApplySalePrice] = useState<string>('');
     const [applyStock, setApplyStock] = useState<string>('');
     const [newVal1, setNewVal1] = useState('');
     const [newVal2, setNewVal2] = useState('');
@@ -50,12 +52,19 @@ export function VariantMatrix({
     const [showAddVal2, setShowAddVal2] = useState(false);
 
     const handleApplyAll = () => {
-        if (!applyPrice && !applyStock) return;
+        if (!applyPrice && !applySalePrice && !applyStock) return;
 
         const updated = variations.map((v) => ({
             ...v,
             ...(applyPrice !== ''
                 ? { price: parseFloat(applyPrice) || 0 }
+                : {}),
+            ...(applySalePrice !== ''
+                ? {
+                      sale_price: applySalePrice
+                          ? parseFloat(applySalePrice)
+                          : null,
+                  }
                 : {}),
             ...(applyStock !== ''
                 ? { stock: parseInt(applyStock, 10) || 0 }
@@ -66,7 +75,7 @@ export function VariantMatrix({
 
     const handleCellChange = (
         index: number,
-        field: 'price' | 'stock' | 'sku',
+        field: 'price' | 'sale_price' | 'stock' | 'sku',
         value: string,
     ) => {
         const updated = [...variations];
@@ -74,6 +83,11 @@ export function VariantMatrix({
             updated[index] = {
                 ...updated[index],
                 price: parseFloat(value) || 0,
+            };
+        } else if (field === 'sale_price') {
+            updated[index] = {
+                ...updated[index],
+                sale_price: value === '' ? null : parseFloat(value) || 0,
             };
         } else if (field === 'stock') {
             updated[index] = {
@@ -273,7 +287,7 @@ export function VariantMatrix({
                 <p className="w-full text-label">Apply to all</p>
                 <div className="min-w-28 flex-1">
                     <label className="sr-only" htmlFor={`${id}-price-all`}>
-                        Price for all variations
+                        Regular price for all variations
                     </label>
                     <div className="relative">
                         <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
@@ -285,7 +299,26 @@ export function VariantMatrix({
                             type="number"
                             value={applyPrice}
                             onChange={(e) => setApplyPrice(e.target.value)}
-                            placeholder="Price"
+                            placeholder="Regular price"
+                            className="field tabular pl-7"
+                        />
+                    </div>
+                </div>
+                <div className="min-w-28 flex-1">
+                    <label className="sr-only" htmlFor={`${id}-sale-price-all`}>
+                        Sale price for all variations
+                    </label>
+                    <div className="relative">
+                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                            ₱
+                        </span>
+                        <input
+                            id={`${id}-sale-price-all`}
+                            inputMode="numeric"
+                            type="number"
+                            value={applySalePrice}
+                            onChange={(e) => setApplySalePrice(e.target.value)}
+                            placeholder="Sale price (opt)"
                             className="field tabular pl-7"
                         />
                     </div>
@@ -354,7 +387,13 @@ export function VariantMatrix({
                                         scope="col"
                                         className="w-36 px-3 py-2 text-left text-th text-muted-foreground uppercase"
                                     >
-                                        Price
+                                        Regular price
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="w-36 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        Sale price
                                     </th>
                                     <th
                                         scope="col"
@@ -389,7 +428,7 @@ export function VariantMatrix({
                                                 className="sr-only"
                                                 htmlFor={`${id}-p-${i}`}
                                             >
-                                                Price, {v.option1_value}{' '}
+                                                Regular price, {v.option1_value}{' '}
                                                 {v.option2_value}
                                             </label>
                                             <div className="relative">
@@ -408,6 +447,35 @@ export function VariantMatrix({
                                                             e.target.value,
                                                         )
                                                     }
+                                                    className="field tabular pl-7"
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="w-36 px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-sp-${i}`}
+                                            >
+                                                Sale price, {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <div className="relative">
+                                                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                                                    ₱
+                                                </span>
+                                                <input
+                                                    id={`${id}-sp-${i}`}
+                                                    type="number"
+                                                    inputMode="numeric"
+                                                    value={v.sale_price ?? ''}
+                                                    onChange={(e) =>
+                                                        handleCellChange(
+                                                            i,
+                                                            'sale_price',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Optional"
                                                     className="field tabular pl-7"
                                                 />
                                             </div>
@@ -482,7 +550,7 @@ export function VariantMatrix({
                                             className="text-body-sm text-muted-foreground"
                                             aria-hidden="true"
                                         >
-                                            Price
+                                            Regular price
                                         </span>
                                         <div className="relative">
                                             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
@@ -500,7 +568,35 @@ export function VariantMatrix({
                                                     )
                                                 }
                                                 className="field tabular pl-7"
-                                                aria-label={`Price, ${v.option1_value} ${v.option2_value ?? ''}`}
+                                                aria-label={`Regular price, ${v.option1_value} ${v.option2_value ?? ''}`}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <span
+                                            className="text-body-sm text-muted-foreground"
+                                            aria-hidden="true"
+                                        >
+                                            Sale price (opt)
+                                        </span>
+                                        <div className="relative">
+                                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                                                ₱
+                                            </span>
+                                            <input
+                                                type="number"
+                                                inputMode="numeric"
+                                                value={v.sale_price ?? ''}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'sale_price',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Optional"
+                                                className="field tabular pl-7"
+                                                aria-label={`Sale price, ${v.option1_value} ${v.option2_value ?? ''}`}
                                             />
                                         </div>
                                     </div>

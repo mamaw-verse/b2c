@@ -25,7 +25,11 @@ import { VariationPicker } from '@/components/variation-picker';
 import { home, login } from '@/routes';
 import { show as categoryShow } from '@/routes/categories';
 import { show as shopShow } from '@/routes/shops';
-import type { ProductCardData, ProductDetail } from '@/types/catalogue';
+import type {
+    ProductCardData,
+    ProductDetail,
+    ProductVariation,
+} from '@/types/catalogue';
 
 export default function Product({
     product: p,
@@ -63,10 +67,23 @@ export default function Product({
             product_id: p.id,
         });
     };
-    const firstVariation = p.variations[0];
-    const variationLabel = firstVariation
-        ? `${firstVariation.option1_value}${firstVariation.option2_value ? ` · ${firstVariation.option2_value}` : ''}`
+    const [selectedVariation, setSelectedVariation] =
+        useState<ProductVariation | null>(
+            () =>
+                p.variations.find((v) => v.stock > 0) ??
+                p.variations[0] ??
+                null,
+        );
+    const currentVariation = selectedVariation ?? p.variations[0] ?? null;
+    const variationLabel = currentVariation
+        ? `${currentVariation.option1_value}${currentVariation.option2_value ? ` · ${currentVariation.option2_value}` : ''}`
         : 'Default';
+    const currentPrice = currentVariation?.price ?? p.price;
+    const currentWasPrice = currentVariation
+        ? (currentVariation.was_price ?? p.was_price)
+        : p.was_price;
+    const currentStock = currentVariation ? currentVariation.stock : p.stock;
+    const inStock = currentStock > 0;
     const cert = p.certification;
     const certValid = cert
         ? new Date(cert.valid_until).toLocaleDateString('en-PH', {
@@ -111,8 +128,9 @@ export default function Product({
         );
     };
 
+    const hasVariations = p.variations.length > 0;
     const buyAction = (buyNow: boolean) => {
-        if (p.option1_name) {
+        if (hasVariations) {
             setPickerOpen(true);
         } else {
             addToCart(null, qty, buyNow);
@@ -194,8 +212,8 @@ export default function Product({
                         )}
                         <div className="rounded-panel bg-surface-cta p-4">
                             <PriceBlock
-                                price={p.price}
-                                was={p.was_price}
+                                price={currentPrice}
+                                was={currentWasPrice}
                                 size="lg"
                             />
                         </div>
@@ -203,14 +221,14 @@ export default function Product({
                         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm">
                             <span
                                 className={
-                                    p.in_stock
+                                    inStock
                                         ? 'font-bold text-success-text'
                                         : 'text-muted-foreground'
                                 }
                             >
-                                {p.in_stock
-                                    ? p.stock <= 5
-                                        ? `Only ${p.stock} left`
+                                {inStock
+                                    ? currentStock <= 5
+                                        ? `Only ${currentStock} left`
                                         : 'In stock'
                                     : 'Out of stock'}
                             </span>
@@ -245,7 +263,7 @@ export default function Product({
                                 />
                             </button>
                         )}
-                        {p.in_stock && (
+                        {inStock && (
                             <div className="flex items-center gap-3">
                                 <span className="text-label text-foreground">
                                     Quantity
@@ -253,7 +271,7 @@ export default function Product({
                                 <QuantityStepper
                                     value={qty}
                                     min={1}
-                                    max={Math.max(p.stock, 1)}
+                                    max={Math.max(currentStock, 1)}
                                     onChange={setQty}
                                 />
                             </div>
@@ -301,7 +319,7 @@ export default function Product({
                                         icon={<DsIcon name="shopping-cart" />}
                                         className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-8 max-[399px]:[&>svg]:hidden"
                                         onClick={() => buyAction(false)}
-                                        disabled={!p.in_stock}
+                                        disabled={!inStock}
                                     >
                                         Add to cart
                                     </Button>
@@ -309,11 +327,9 @@ export default function Product({
                                         size="lg"
                                         className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-10"
                                         onClick={() => buyAction(true)}
-                                        disabled={!p.in_stock}
+                                        disabled={!inStock}
                                     >
-                                        {p.in_stock
-                                            ? 'Buy now'
-                                            : 'Out of stock'}
+                                        {inStock ? 'Buy now' : 'Out of stock'}
                                     </Button>
                                 </>
                             )}
@@ -329,7 +345,10 @@ export default function Product({
                     </div>
                 </div>
                 <div className="mt-2 md:mt-6">
-                    <ShopHeader shop={p.shop} />
+                    <ShopHeader
+                        shop={p.shop}
+                        profileHref={shopShow(p.shop.slug).url}
+                    />
                 </div>
                 <section aria-labelledby="pd-halal" className="mt-6 md:mt-8">
                     <h2 id="pd-halal" className="text-h3">
@@ -508,8 +527,10 @@ export default function Product({
                         p.variations.find(
                             (v) =>
                                 v.option1_value === selection.option1 &&
-                                v.option2_value === selection.option2,
+                                (v.option2_value ?? null) ===
+                                    (selection.option2 ?? null),
                         ) ?? null;
+                    setSelectedVariation(variation);
                     setPickerOpen(false);
                     addToCart(
                         variation?.id ?? null,

@@ -2,7 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
-import { DsIcon } from '@/components/ds-icon';
+import { Media } from '@/components/media';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ type Product = {
     published: boolean;
     certifier: string | null;
     variations_count: number;
+    image_url?: string | null;
     icon: string;
 };
 
@@ -64,9 +65,9 @@ export default function SellerProductsIndex({
             label: 'Product',
             render: (p) => (
                 <div className="flex items-center gap-3">
-                    <span className="bg-surface-raised grid size-10 shrink-0 place-items-center rounded-tile text-muted-foreground">
-                        <DsIcon name={p.icon} className="size-5" />
-                    </span>
+                    <div className="size-10 shrink-0 overflow-hidden rounded-tile">
+                        <Media src={p.image_url} icon={p.icon} label={p.name} />
+                    </div>
                     <span className="truncate text-label">{p.name}</span>
                 </div>
             ),

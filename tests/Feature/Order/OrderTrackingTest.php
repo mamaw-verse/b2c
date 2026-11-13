@@ -9,7 +9,9 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
+use App\Notifications\SellerOrderNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
@@ -100,8 +102,12 @@ test('user cannot cancel an order in to_receive or completed status', function (
 });
 
 test('user can mark an order in to_receive as received', function () {
+    Notification::fake();
+
     $user = User::factory()->create();
-    $order = Order::factory()->toReceive()->create(['user_id' => $user->id]);
+    $seller = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $seller->id]);
+    $order = Order::factory()->toReceive()->create(['user_id' => $user->id, 'shop_id' => $shop->id]);
 
     $this->actingAs($user)
         ->put(route('orders.received', $order))
@@ -112,15 +118,20 @@ test('user can mark an order in to_receive as received', function () {
         'order_id' => $order->id,
         'title' => 'Order received',
     ]);
+
+    Notification::assertSentTo($seller, SellerOrderNotification::class, fn (SellerOrderNotification $notification): bool => $notification->event === 'received');
 });
 
 test('user can request return/refund for a completed order', function () {
     $user = User::factory()->create();
     $order = Order::factory()->completed()->create(['user_id' => $user->id]);
+    $product = Product::factory()->create(['shop_id' => $order->shop_id]);
+    $item = OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id, 'qty' => 2]);
 
     $this->actingAs($user)
         ->post(route('orders.return', $order), [
             'reason' => 'Package arrived with damaged items.',
+            'items' => [['order_item_id' => $item->id, 'qty' => 1]],
         ])
         ->assertRedirect(route('orders.show', $order));
 
@@ -129,6 +140,9 @@ test('user can request return/refund for a completed order', function () {
         'order_id' => $order->id,
         'title' => 'Return/refund requested',
         'detail' => 'Package arrived with damaged items.',
+    ]);
+    expect($order->events()->latest()->first()->metadata['items'])->toBe([
+        ['order_item_id' => $item->id, 'qty' => 1],
     ]);
 });
 

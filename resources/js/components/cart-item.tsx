@@ -4,7 +4,7 @@ import { Media } from '@/components/media';
 import { PriceBlock } from '@/components/price-block';
 import { QuantityStepper } from '@/components/quantity-stepper';
 import { cn } from '@/lib/utils';
-import type { HalalStatus } from '@/types/catalogue';
+import type { HalalStatus, ProductVariation } from '@/types/catalogue';
 
 export type CartItemData = {
     id: string;
@@ -16,8 +16,13 @@ export type CartItemData = {
     halal_status?: string;
     certifier?: string | null;
     frozen?: boolean;
+    option1_name?: string | null;
+    option2_name?: string | null;
+    variations?: ProductVariation[];
     variation?: {
         id: string;
+        option1_value?: string;
+        option2_value?: string | null;
         label: string;
     } | null;
     qty: number;

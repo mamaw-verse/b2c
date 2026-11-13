@@ -176,6 +176,7 @@ final readonly class GetSellerDashboard
                 'urgent' => $order->created_at?->isToday() === true,
                 'pay' => mb_strtoupper($order->payment_method->value),
                 'thumbnail_icon' => $order->items->first()?->product?->images?->first()->icon ?? 'package',
+                'thumbnail' => $order->items->first()?->product?->thumbnailUrl(),
                 'detail_url' => route('seller.orders.show', $order),
             ]);
 

@@ -15,7 +15,9 @@ use App\Models\Report;
 use App\Models\Review;
 use App\Models\Shop;
 use App\Models\User;
+use App\Notifications\ShopApplicationReviewedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
@@ -203,6 +205,8 @@ test('admin decision on a report target updates report status and side-effects r
 });
 
 test('admin can request changes on a shop application, moving item to flagged and shop to changes_requested', function () {
+    Notification::fake();
+
     $admin = User::factory()->create(['role' => 'admin']);
     $applicant = User::factory()->create();
     $shop = Shop::factory()->pending()->create(['user_id' => $applicant->id]);
@@ -236,6 +240,34 @@ test('admin can request changes on a shop application, moving item to flagged an
     $event = ModerationEvent::where('moderation_queue_item_id', $item->id)->sole();
     expect($event->action)->toBe('changes_requested')
         ->and($event->reason)->toBe('Please provide a clearer business permit.');
+
+    Notification::assertSentTo($applicant, ShopApplicationReviewedNotification::class, fn (ShopApplicationReviewedNotification $notification): bool => $notification->outcome === 'changes_requested'
+        && $notification->reason === 'Please provide a clearer business permit.'
+        && $notification->toArray($applicant)['workspace'] === 'buyer');
+});
+
+test('admin rejection notifies the shop applicant', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $applicant = User::factory()->create();
+    $shop = Shop::factory()->pending()->create(['user_id' => $applicant->id]);
+    $item = ModerationQueueItem::factory()->create([
+        'target_type' => $shop->getMorphClass(),
+        'target_id' => $shop->id,
+        'type' => ModerationItemType::ShopApplication->value,
+        'state' => ModerationState::Pending->value,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.moderation.decisions.store', $item), [
+            'action' => 'rejected',
+            'reason' => 'The business permit could not be verified.',
+        ])
+        ->assertRedirect(route('admin.moderation.index'));
+
+    Notification::assertSentTo($applicant, ShopApplicationReviewedNotification::class, fn (ShopApplicationReviewedNotification $notification): bool => $notification->outcome === 'rejected'
+        && $notification->reason === 'The business permit could not be verified.');
 });
 
 test('admin can request certificate on a shop application, moving item to flagged and shop to changes_requested', function () {

@@ -1,20 +1,21 @@
 import { Link, usePage } from '@inertiajs/react';
+import { ExternalLink } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 import WorkspaceShell from '@/layouts/workspace-shell';
+import { Button } from '@/components/ui/button';
+import { show as shopShow } from '@/routes/shops';
 import type { AppLayoutProps } from '@/types';
 
 type SellerLayoutProps = {
     title?: string;
     unreadOrders?: number;
-    shop?: { name: string; slug: string; logo_url?: string | null };
 };
 
 export default function SellerLayout({
     children,
     unreadOrders = 0,
-    shop,
 }: PropsWithChildren<SellerLayoutProps>) {
-    const { unreadCounts } = usePage<AppLayoutProps>().props;
+    const { unreadCounts, seller } = usePage<AppLayoutProps>().props;
 
     return (
         <WorkspaceShell
@@ -24,13 +25,20 @@ export default function SellerLayout({
                 chat: unreadCounts?.chat ?? 0,
             }}
             headerExtra={
-                shop ? (
-                    <Link
-                        href={`/shops/${shop.slug}`}
-                        className="btn btn-ghost hidden text-label lg:inline-flex"
-                    >
-                        View shop
-                    </Link>
+                seller?.status === 'approved' && !seller.suspended ? (
+                    <Button asChild variant="outline" size="sm">
+                        <Link
+                            href={shopShow(seller.shop_slug).url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            View shop
+                            <ExternalLink
+                                aria-hidden="true"
+                                className="size-4"
+                            />
+                        </Link>
+                    </Button>
                 ) : undefined
             }
         >

@@ -8,12 +8,14 @@ import type { ShopData } from '@/types/catalogue';
 
 export function ShopHeader({
     shop: s,
+    profileHref,
     onChat,
     onReport,
     onFollow,
     following = false,
 }: {
     shop: ShopData;
+    profileHref?: string;
     onChat?: () => void;
     onReport?: () => void;
     onFollow?: () => void;
@@ -25,6 +27,15 @@ export function ShopHeader({
         ['Products', s.products_count ?? '—'],
         ['Chat reply', s.chat_response_rate ? `${s.chat_response_rate}%` : '—'],
     ];
+    const logo = s.logo_url ? (
+        <img
+            src={s.logo_url}
+            alt={s.name}
+            className="size-full object-contain p-1"
+        />
+    ) : (
+        <NameAvatar name={s.name} size="xl" shape="tile" label={false} />
+    );
 
     return (
         <section
@@ -47,28 +58,34 @@ export function ShopHeader({
                 />
             )}
             <div className="grid gap-3 p-4 md:flex md:items-end md:gap-5">
-                <span className="grid size-16 place-items-center overflow-hidden rounded-tile border-4 border-surface bg-surface shadow-xs md:size-20">
-                    {s.logo_url ? (
-                        <img
-                            src={s.logo_url}
-                            alt={s.name}
-                            className="size-full object-contain p-1"
-                        />
-                    ) : (
-                        <NameAvatar
-                            name={s.name}
-                            size="xl"
-                            shape="tile"
-                            label={false}
-                        />
-                    )}
-                </span>
+                {profileHref ? (
+                    <Link
+                        href={profileHref}
+                        aria-label={`View ${s.name} shop`}
+                        className="focus-inset grid size-16 place-items-center overflow-hidden rounded-tile border-4 border-surface bg-surface shadow-xs md:size-20"
+                    >
+                        {logo}
+                    </Link>
+                ) : (
+                    <span className="grid size-16 place-items-center overflow-hidden rounded-tile border-4 border-surface bg-surface shadow-xs md:size-20">
+                        {logo}
+                    </span>
+                )}
                 <div className="min-w-0 flex-1 md:pb-1">
                     <h1
                         id="shop-name"
                         className="flex flex-wrap items-center gap-2 text-h2"
                     >
-                        {s.name}
+                        {profileHref ? (
+                            <Link
+                                href={profileHref}
+                                className="focus-ring rounded-sm underline-offset-4 hover:underline"
+                            >
+                                {s.name}
+                            </Link>
+                        ) : (
+                            s.name
+                        )}
                         {s.verification === 'official' && (
                             <VerifiedBadge label="Official" tone="solid" />
                         )}
@@ -88,6 +105,15 @@ export function ShopHeader({
                     </p>
                 </div>
                 <div className="flex gap-2 md:pb-1">
+                    {profileHref && (
+                        <Button
+                            variant="outline"
+                            asChild
+                            className="flex-1 md:flex-none"
+                        >
+                            <Link href={profileHref}>View shop</Link>
+                        </Button>
+                    )}
                     {onFollow && (
                         <Button
                             variant={following ? 'neutral' : 'default'}
@@ -138,3 +164,4 @@ export function ShopHeader({
         </section>
     );
 }
+import { Link } from '@inertiajs/react';

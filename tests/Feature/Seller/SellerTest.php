@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ShippingOption;
 use App\Models\Shop;
 use App\Models\User;
@@ -344,6 +345,7 @@ test('seller can list and view their orders', function () {
     ]);
 
     $product = Product::factory()->create(['shop_id' => $this->shop->id, 'category_id' => $this->category->id]);
+    ProductImage::factory()->create(['product_id' => $product->id, 'url' => 'https://cdn.example.test/item.jpg']);
 
     OrderItem::factory()->create([
         'order_id' => $order->id,
@@ -369,6 +371,9 @@ test('seller can list and view their orders', function () {
             ->component('seller/orders/show')
             ->where('order.status_raw', 'to_ship')
             ->where('order.can_ship', true)
+            ->where('order.buyer.orders_count', 1)
+            ->where('order.buyer.phone', $address->phone)
+            ->where('order.items.0.thumbnail', 'https://cdn.example.test/item.jpg')
         );
 });
 

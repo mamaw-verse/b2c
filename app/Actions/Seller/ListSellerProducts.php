@@ -54,6 +54,7 @@ final readonly class ListSellerProducts
             'halal_status' => $p->halal_status->value,
             'certifier' => $p->halalCertification?->certifying_body,
             'variations_count' => $p->variations_count,
+            'image_url' => $p->images->firstWhere('url', '!=', '')?->url,
             'icon' => $p->images->first()->icon ?? 'package',
         ]);
     }

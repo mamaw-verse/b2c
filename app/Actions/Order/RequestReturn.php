@@ -12,7 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class RequestReturn
 {
-    public function handle(User $user, Order $order, string $reason): void
+    /** @param array<int, array{order_item_id: string, qty: int}> $items */
+    public function handle(User $user, Order $order, string $reason, array $items = []): void
     {
         if ($order->user_id !== $user->id) {
             throw ValidationException::withMessages(['order' => 'Order not found.']);
@@ -28,6 +29,7 @@ final readonly class RequestReturn
             'order_id' => $order->id,
             'title' => 'Return/refund requested',
             'detail' => $reason,
+            'metadata' => ['items' => $items],
         ]);
     }
 }

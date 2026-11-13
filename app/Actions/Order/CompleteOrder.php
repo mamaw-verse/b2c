@@ -9,6 +9,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Notifications\OrderStatusNotification;
+use App\Notifications\SellerOrderNotification;
 use Illuminate\Support\Facades\DB;
 
 final readonly class CompleteOrder
@@ -30,6 +31,8 @@ final readonly class CompleteOrder
             OrderEvent::create(['order_id' => $order->id, 'title' => $title, 'detail' => $detail]);
 
             $this->ledger->handle($order);
+
+            DB::afterCommit(fn () => $order->shop->owner?->notify(new SellerOrderNotification($order, 'completed')));
 
             $order->user->notify(new OrderStatusNotification(
                 $order,

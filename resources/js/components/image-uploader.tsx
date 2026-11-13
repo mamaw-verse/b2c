@@ -16,6 +16,8 @@ export type ImageUploadItem = {
 export type ImageUploaderProps = {
     files: File[];
     onChange: (files: File[]) => void;
+    existing?: { id: string; url: string }[];
+    onRemoveExisting?: (id: string) => void;
     max?: number;
     label?: string;
     accept?: string;
@@ -29,6 +31,8 @@ export type ImageUploaderProps = {
 export function ImageUploader({
     files,
     onChange,
+    existing = [],
+    onRemoveExisting,
     max = 5,
     label = 'Add photos',
     accept = 'image/*',
@@ -56,9 +60,11 @@ export function ImageUploader({
         });
     }, [files, maxSizeMb]);
 
+    const totalCount = existing.length + files.length;
+
     const handleAddFiles = (newFiles: FileList | null) => {
         if (!newFiles || newFiles.length === 0) return;
-        const availableSlots = max - files.length;
+        const availableSlots = max - totalCount;
         if (availableSlots <= 0) return;
 
         const filesToAdd = Array.from(newFiles).slice(0, availableSlots);
@@ -96,7 +102,7 @@ export function ImageUploader({
     const handleDragOver = (e: DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!disabled && files.length < max) {
+        if (!disabled && totalCount < max) {
             setIsDraggingOver(true);
         }
     };
@@ -111,12 +117,12 @@ export function ImageUploader({
         e.preventDefault();
         e.stopPropagation();
         setIsDraggingOver(false);
-        if (!disabled && files.length < max && e.dataTransfer.files) {
+        if (!disabled && totalCount < max && e.dataTransfer.files) {
             handleAddFiles(e.dataTransfer.files);
         }
     };
 
-    const canAddMore = files.length < max && !disabled;
+    const canAddMore = totalCount < max && !disabled;
 
     return (
         <div
@@ -134,7 +140,7 @@ export function ImageUploader({
                     {label}
                 </p>
                 <p className="tabular text-body-sm text-muted-foreground">
-                    {files.length} / {max}
+                    {totalCount} / {max}
                 </p>
             </div>
 
@@ -143,6 +149,28 @@ export function ImageUploader({
                 data-ds-tiles
                 aria-labelledby={`${prefix}-label`}
             >
+                {existing.map((item, index) => (
+                    <li key={`existing-${item.id}`} className="relative">
+                        <div className="relative aspect-square overflow-hidden rounded-tile border border-border bg-surface-muted">
+                            <img
+                                src={item.url}
+                                alt={`Product image ${index + 1}`}
+                                className="size-full object-cover"
+                            />
+                        </div>
+                        {onRemoveExisting && (
+                            <button
+                                type="button"
+                                onClick={() => onRemoveExisting(item.id)}
+                                className="btn btn-icon btn-neutral btn-sm absolute top-0 right-0 rounded-full border-transparent text-danger-text shadow-popover"
+                                data-ds-remove
+                                aria-label={`Remove image ${index + 1}`}
+                            >
+                                <X className="size-4" aria-hidden="true" />
+                            </button>
+                        )}
+                    </li>
+                ))}
                 {previews.map((item, index) => (
                     <li
                         key={`${item.file.name}-${index}`}

@@ -2,6 +2,7 @@ import { Flag } from 'lucide-react';
 import { HalalBadge } from '@/components/halal-badge';
 import { Rating } from '@/components/rating';
 import { PriceBlock } from '@/components/price-block';
+import { StatusPill } from '@/components/status-pill';
 import type { HalalStatus } from '@/types/catalogue';
 
 export type ProductSnapshot = {
@@ -48,8 +49,8 @@ export type ShopCertificateSnapshot = {
     certifying_body?: string;
     number?: string;
     valid_until?: string;
-    status?: string;
-    document_url?: string;
+    status?: 'certified' | 'expiring' | 'expired';
+    document_url?: string | null;
 };
 
 export type ShopApplicationSnapshot = {
@@ -60,6 +61,7 @@ export type ShopApplicationSnapshot = {
     city?: string;
     state?: string;
     postal_code?: string;
+    halal_only?: boolean;
     business_permit_url?: string;
     certificates?: ShopCertificateSnapshot[];
     applicant_name?: string;
@@ -237,79 +239,129 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
             .filter(Boolean)
             .join(', ');
         const documents = [
-            { label: 'Business permit', url: data.business_permit_url },
+            {
+                type: 'permit' as const,
+                label: 'Business permit',
+                url: data.business_permit_url,
+            },
             ...(data.certificates ?? []).map((certificate, i) => ({
+                type: 'certificate' as const,
+                certificate,
                 label: certificate.certifying_body ?? `Certificate ${i + 1}`,
                 url: certificate.document_url,
             })),
-        ].filter((d) => d.url);
+        ];
         return (
             <div className="grid gap-3">
-                <div className="grid content-start gap-2">
+                {data.flag_notice && (
+                    <div className="flex items-start gap-2 rounded-tile bg-mod-flagged-bg p-3 text-body-sm text-mod-flagged">
+                        <Flag
+                            aria-hidden="true"
+                            className="mt-0.5 size-4 shrink-0"
+                        />
+                        <p>{data.flag_notice}</p>
+                    </div>
+                )}
+
+                <section
+                    className="grid gap-3"
+                    aria-labelledby="shop-applicant"
+                >
+                    <h3
+                        id="shop-applicant"
+                        className="text-label text-foreground"
+                    >
+                        Applicant
+                    </h3>
                     <div className="flex items-center gap-3">
                         {data.logo_url && (
                             <img
                                 src={data.logo_url}
                                 alt={`${data.shop_name} logo`}
-                                className="size-12 shrink-0 rounded-tile border border-border object-cover"
+                                className="size-14 shrink-0 rounded-tile border border-border object-cover"
                             />
                         )}
-                        <p className="text-h4">{data.shop_name}</p>
+                        <div className="grid gap-0.5">
+                            <p className="text-h4">{data.shop_name}</p>
+                            {data.applicant_name && (
+                                <p className="text-body-sm text-foreground">
+                                    {data.applicant_name}
+                                </p>
+                            )}
+                            {data.applicant_email && (
+                                <p className="text-body-sm text-muted-foreground">
+                                    {data.applicant_email}
+                                </p>
+                            )}
+                        </div>
                     </div>
-                    {(data.applicant_name || data.applicant_email) && (
+                    {data.submitted_at && (
                         <p className="text-body-sm text-muted-foreground">
-                            Applicant:{' '}
-                            <span className="font-bold text-foreground">
-                                {data.applicant_name}
-                            </span>
-                            {data.applicant_email &&
-                                ` · ${data.applicant_email}`}
+                            Submitted{' '}
+                            <time>
+                                {new Date(data.submitted_at).toLocaleString(
+                                    'en-PH',
+                                    {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                    },
+                                )}
+                            </time>
                         </p>
                     )}
-                    {data.flag_notice && (
-                        <p className="rounded-tile bg-mod-flagged-bg p-2 text-body-sm text-mod-flagged">
-                            {data.flag_notice}
-                        </p>
-                    )}
-                    {data.description && (
-                        <p className="text-body">{data.description}</p>
-                    )}
-                    <dl className="grid gap-1 text-body-sm">
+                </section>
+
+                <section className="grid gap-3" aria-labelledby="shop-details">
+                    <h3
+                        id="shop-details"
+                        className="text-label text-foreground"
+                    >
+                        Shop details
+                    </h3>
+                    <dl className="grid gap-2 text-body-sm">
+                        {data.description && (
+                            <div className="grid grid-cols-[minmax(7rem,35%)_1fr] gap-3">
+                                <dt className="text-muted-foreground">
+                                    Description
+                                </dt>
+                                <dd className="whitespace-pre-wrap text-foreground">
+                                    {data.description}
+                                </dd>
+                            </div>
+                        )}
                         {address && (
-                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                            <div className="grid grid-cols-[minmax(7rem,35%)_1fr] gap-3">
                                 <dt className="text-muted-foreground">
                                     Address
                                 </dt>
                                 <dd className="text-foreground">{address}</dd>
                             </div>
                         )}
-                        {data.submitted_at && (
-                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                        {data.halal_only !== undefined && (
+                            <div className="grid grid-cols-[minmax(7rem,35%)_1fr] gap-3">
                                 <dt className="text-muted-foreground">
-                                    Submitted
+                                    Halal-only
                                 </dt>
                                 <dd className="text-foreground">
-                                    {new Date(
-                                        data.submitted_at,
-                                    ).toLocaleDateString('en-PH', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                    })}
+                                    {data.halal_only ? 'Yes' : 'No'}
                                 </dd>
                             </div>
                         )}
-                        {data.terms_version && (
-                            <div className="grid grid-cols-[7rem_1fr] gap-3">
+                        {(data.terms_version || data.terms_accepted_at) && (
+                            <div className="grid grid-cols-[minmax(7rem,35%)_1fr] gap-3">
                                 <dt className="text-muted-foreground">
                                     Seller terms
                                 </dt>
                                 <dd className="text-foreground">
-                                    v{data.terms_version}
+                                    {data.terms_version
+                                        ? `Version ${data.terms_version}`
+                                        : 'Accepted'}
                                     {data.terms_accepted_at && (
                                         <>
-                                            {' '}
-                                            · accepted{' '}
+                                            {' · '}
                                             {new Date(
                                                 data.terms_accepted_at,
                                             ).toLocaleDateString('en-PH', {
@@ -323,93 +375,83 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                             </div>
                         )}
                     </dl>
-                </div>
-                {(data.certificates ?? []).length > 0 && (
-                    <ul
-                        className="grid gap-1 text-body-sm"
-                        aria-label="Certificates"
+                </section>
+
+                <section
+                    className="grid gap-3"
+                    aria-labelledby="shop-documents"
+                >
+                    <h3
+                        id="shop-documents"
+                        className="text-label text-foreground"
                     >
-                        {data.certificates!.map((certificate, i) => (
-                            <li
-                                key={i}
-                                className="flex flex-wrap items-center gap-x-2 gap-y-0.5"
-                            >
-                                <span className="font-bold text-foreground">
-                                    {certificate.certifying_body ??
-                                        `Certificate ${i + 1}`}
-                                </span>
-                                {certificate.number && (
-                                    <span className="text-muted-foreground">
-                                        · {certificate.number}
-                                    </span>
-                                )}
-                                {certificate.valid_until && (
-                                    <span className="text-muted-foreground">
-                                        · expires{' '}
-                                        {new Date(
-                                            certificate.valid_until,
-                                        ).toLocaleDateString('en-PH', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                        })}
-                                    </span>
-                                )}
-                                {certificate.status && (
-                                    <span
-                                        className={`rounded-badge px-2 py-0.5 text-caption font-bold ${
-                                            certificate.status === 'expired'
-                                                ? 'bg-danger-soft text-danger-text'
-                                                : certificate.status ===
-                                                    'expiring'
-                                                  ? 'bg-mod-flagged-bg text-mod-flagged'
-                                                  : 'bg-halal-soft text-halal'
-                                        }`}
-                                    >
-                                        {certificate.status}
-                                    </span>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                {documents.length > 0 && (
+                        Documents
+                    </h3>
                     <ul
-                        className="flex flex-wrap gap-2"
+                        className="grid gap-2"
                         aria-label="Application documents"
                     >
-                        {documents.map((doc) => (
+                        {documents.map((document, index) => (
                             <li
-                                key={doc.label}
-                                className="w-24 shrink-0 overflow-hidden rounded-tile"
+                                key={`${document.type}-${index}`}
+                                className="grid gap-2 rounded-field border border-border bg-surface p-3"
                             >
-                                {doc.url!.toLowerCase().endsWith('.pdf') ? (
-                                    <a
-                                        href={doc.url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="grid aspect-square place-items-center border border-border bg-surface-muted p-2 text-center text-caption font-bold text-primary-text underline"
-                                    >
-                                        {doc.label} (PDF)
-                                    </a>
-                                ) : (
-                                    <a
-                                        href={doc.url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title={doc.label}
-                                    >
-                                        <img
-                                            src={doc.url}
-                                            alt={doc.label}
-                                            className="aspect-square size-full object-cover"
-                                        />
-                                    </a>
-                                )}
+                                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                    <p className="font-bold text-foreground">
+                                        {document.type === 'certificate'
+                                            ? `${document.label}${document.certificate?.number ? ` · No. ${document.certificate.number}` : ''}`
+                                            : document.label}
+                                    </p>
+                                    {document.url ? (
+                                        <a
+                                            href={document.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-body-sm font-bold text-primary-text underline decoration-1 underline-offset-2"
+                                        >
+                                            {document.type === 'permit'
+                                                ? 'View'
+                                                : 'View file'}
+                                        </a>
+                                    ) : (
+                                        <span className="text-body-sm text-muted-foreground">
+                                            No file provided
+                                        </span>
+                                    )}
+                                </div>
+                                {document.type === 'certificate' &&
+                                    document.certificate?.valid_until && (
+                                        <div className="flex flex-wrap items-center gap-2 text-body-sm text-muted-foreground">
+                                            <span>
+                                                Valid until{' '}
+                                                {new Date(
+                                                    document.certificate
+                                                        .valid_until,
+                                                ).toLocaleDateString('en-PH', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                })}
+                                            </span>
+                                            {document.certificate.status && (
+                                                <StatusPill
+                                                    state={
+                                                        document.certificate
+                                                            .status
+                                                    }
+                                                />
+                                            )}
+                                        </div>
+                                    )}
                             </li>
                         ))}
+                        {documents.length === 0 && (
+                            <li className="text-body-sm text-muted-foreground">
+                                No documents provided.
+                            </li>
+                        )}
                     </ul>
-                )}
+                </section>
             </div>
         );
     }

@@ -20,6 +20,8 @@ type ProductData = {
     category_id: number | null;
     description: string;
     price: number | null;
+    sale_price?: number | null;
+    was_price?: number | null;
     stock: number | null;
     weight: number | null;
     length: number | null;
@@ -32,6 +34,7 @@ type ProductData = {
     option1_values: string[];
     option2_name: string;
     option2_values: string[];
+    images?: { id: string; url: string; name: string; icon: string }[];
 };
 
 type PageProps = {
@@ -44,6 +47,14 @@ export default function SellerProductForm({ product, categories }: PageProps) {
     const [name, setName] = useState(product?.name ?? '');
     const [description, setDescription] = useState(product?.description ?? '');
     const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [existingImages, setExistingImages] = useState<
+        { id: string; url: string }[]
+    >(
+        () =>
+            product?.images
+                ?.filter((img) => !!img.url)
+                .map((img) => ({ id: img.id, url: img.url })) ?? [],
+    );
     const [hasVariations, setHasVariations] = useState(
         product?.has_variations ?? (product?.variations?.length ?? 0) > 0,
     );
@@ -89,6 +100,7 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                         option1_value: a,
                         option2_value: b,
                         price: 0,
+                        sale_price: null,
                         stock: 0,
                         sku: null,
                     }
@@ -109,6 +121,13 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                 action={action.url}
                 method={isEditing ? 'put' : 'post'}
                 encType="multipart/form-data"
+                transform={(data) => ({
+                    ...data,
+                    images: imageFiles,
+                    keep_image_ids: existingImages.map((img) => img.id),
+                    option1_name: hasVariations ? option1Name : null,
+                    option2_name: hasVariations ? option2Name || null : null,
+                })}
             >
                 {({ errors, processing }) => (
                     <div className="mx-auto max-w-4xl p-gutter py-8 pb-28 lg:pb-8">
@@ -194,6 +213,12 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                 <ImageUploader
                                     files={imageFiles}
                                     onChange={setImageFiles}
+                                    existing={existingImages}
+                                    onRemoveExisting={(id) =>
+                                        setExistingImages((prev) =>
+                                            prev.filter((img) => img.id !== id),
+                                        )
+                                    }
                                     max={9}
                                     label="Add product photos"
                                 />
@@ -208,19 +233,36 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                     {!hasVariations && (
                                         <>
                                             <FormField
-                                                label="Price (₱)"
+                                                label="Regular price (₱)"
                                                 error={errors.price}
                                                 required
                                             >
                                                 <Input
                                                     type="number"
                                                     name="price"
-                                                    min="0"
+                                                    min="1"
                                                     step="0.01"
                                                     defaultValue={
                                                         product?.price ??
                                                         product?.variations?.[0]
                                                             ?.price ??
+                                                        ''
+                                                    }
+                                                />
+                                            </FormField>
+                                            <FormField
+                                                label="Sale price (₱, optional)"
+                                                error={errors.sale_price}
+                                            >
+                                                <Input
+                                                    type="number"
+                                                    name="sale_price"
+                                                    min="1"
+                                                    step="0.01"
+                                                    defaultValue={
+                                                        product?.sale_price ??
+                                                        product?.variations?.[0]
+                                                            ?.sale_price ??
                                                         ''
                                                     }
                                                 />
@@ -271,6 +313,7 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                             <div className="mb-3 grid gap-3 sm:grid-cols-2">
                                                 <FormField label="Option 1 name">
                                                     <Input
+                                                        name="option1_name"
                                                         value={option1Name}
                                                         onChange={(e) =>
                                                             setOption1Name(
@@ -282,6 +325,7 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                                 </FormField>
                                                 <FormField label="Option 2 name (optional)">
                                                     <Input
+                                                        name="option2_name"
                                                         value={option2Name}
                                                         onChange={(e) => {
                                                             const next =
@@ -406,6 +450,16 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                                         name={`variations[${i}][price]`}
                                                         value={v.price}
                                                     />
+                                                    {v.sale_price != null &&
+                                                        v.sale_price > 0 && (
+                                                            <input
+                                                                type="hidden"
+                                                                name={`variations[${i}][sale_price]`}
+                                                                value={
+                                                                    v.sale_price
+                                                                }
+                                                            />
+                                                        )}
                                                     <input
                                                         type="hidden"
                                                         name={`variations[${i}][stock]`}

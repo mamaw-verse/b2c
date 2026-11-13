@@ -43,6 +43,7 @@ final readonly class ListSellerOrders
             'pay' => mb_strtoupper($order->payment_method->value),
             'shipping_name' => $order->shippingOption->name,
             'thumbnail_icon' => $order->items->first()?->product?->images?->first()->icon ?? 'package',
+            'thumbnail' => $order->items->first()?->product?->thumbnailUrl(),
             'created_at' => $order->created_at?->toISOString(),
         ]);
     }

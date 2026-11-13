@@ -1,4 +1,12 @@
-import { Ban, CheckCircle, Clock, EyeOff, Flag } from 'lucide-react';
+import {
+    Ban,
+    CalendarClock,
+    CheckCircle,
+    CircleAlert,
+    Clock,
+    EyeOff,
+    Flag,
+} from 'lucide-react';
 
 export type ModerationState =
     | 'pending'
@@ -7,8 +15,11 @@ export type ModerationState =
     | 'suspended'
     | 'resolved';
 
+type CertificateState = 'certified' | 'expiring' | 'expired';
+type StatusState = ModerationState | CertificateState;
+
 const STATE_CONFIG: Record<
-    ModerationState,
+    StatusState,
     { label: string; icon: React.ElementType; className: string }
 > = {
     pending: {
@@ -36,13 +47,28 @@ const STATE_CONFIG: Record<
         icon: CheckCircle,
         className: 'bg-mod-resolved-bg text-mod-resolved',
     },
+    certified: {
+        label: 'Certified',
+        icon: CheckCircle,
+        className: 'bg-halal-soft text-halal',
+    },
+    expiring: {
+        label: 'Expiring',
+        icon: CalendarClock,
+        className: 'bg-mod-flagged-bg text-mod-flagged',
+    },
+    expired: {
+        label: 'Expired',
+        icon: CircleAlert,
+        className: 'bg-danger-soft text-danger-text',
+    },
 };
 
 export function StatusPill({
     state,
     label,
 }: {
-    state: ModerationState;
+    state: StatusState;
     label?: string;
 }) {
     const config = STATE_CONFIG[state] ?? STATE_CONFIG.pending;

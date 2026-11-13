@@ -26,6 +26,8 @@ use Illuminate\Support\Carbon;
  * @property int $subtotal
  * @property int $commission_bps
  * @property int $commission_amount
+ * @property-read int $remaining
+ * @property-read int $refunded_quantity
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -36,7 +38,7 @@ final class OrderItem extends Model
     use HasFactory, HasUlids;
 
     /** @var list<string> */
-    protected $appends = ['remaining'];
+    protected $appends = ['remaining', 'refunded_quantity'];
 
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
@@ -60,6 +62,24 @@ final class OrderItem extends Model
     public function fulfillmentItems(): HasMany
     {
         return $this->hasMany(FulfillmentItem::class);
+    }
+
+    /** @return HasMany<OrderRefundItem, $this> */
+    public function refundItems(): HasMany
+    {
+        return $this->hasMany(OrderRefundItem::class);
+    }
+
+    public function refundedUnits(): int
+    {
+        return $this->relationLoaded('refundItems')
+            ? (int) $this->refundItems->sum('qty')
+            : (int) $this->refundItems()->sum('qty');
+    }
+
+    public function getRefundedQuantityAttribute(): int
+    {
+        return $this->refundedUnits();
     }
 
     public function remainingQuantity(): int

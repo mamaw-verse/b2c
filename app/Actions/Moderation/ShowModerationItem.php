@@ -125,6 +125,7 @@ final readonly class ShowModerationItem
             'snapshot' => [
                 'shop_name' => $shop->name,
                 'description' => $shop->description,
+                'halal_only' => $shop->halal_only,
                 'logo_url' => $shop->logo_url,
                 'address_line' => $shop->address_line,
                 'city' => $shop->city,

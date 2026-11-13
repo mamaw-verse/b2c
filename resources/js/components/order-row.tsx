@@ -17,6 +17,7 @@ export interface OrderRowProps {
     urgent?: boolean;
     pay: string;
     thumbnailIcon?: string;
+    thumbnail?: string | null;
     selected?: boolean;
     onSelect?: (checked: boolean) => void;
     onAction?: () => void;
@@ -36,6 +37,7 @@ export function OrderRow({
     urgent = false,
     pay,
     thumbnailIcon = 'package',
+    thumbnail,
     selected = false,
     onSelect,
     onAction,
@@ -77,7 +79,15 @@ export function OrderRow({
 
             <div className="flex gap-3 md:contents">
                 <div className="grid aspect-square w-14 shrink-0 place-items-center overflow-hidden rounded-tile bg-surface-muted text-muted-foreground md:w-16">
-                    <DsIcon name={thumbnailIcon} className="size-6" />
+                    {thumbnail ? (
+                        <img
+                            src={thumbnail}
+                            alt=""
+                            className="size-full object-cover"
+                        />
+                    ) : (
+                        <DsIcon name={thumbnailIcon} className="size-6" />
+                    )}
                 </div>
                 <div className="grid min-w-0 gap-0.5 pr-10 md:pr-0">
                     <p className="text-label">

@@ -13,7 +13,7 @@ final class OrderReturnController
 {
     public function store(ResolveOrderReturnRequest $request, Order $order, ResolveReturn $action): RedirectResponse
     {
-        $action->handle($request->user(), $order, $request->validated('decision'), $request->validated('note'));
+        $action->handle($request->user(), $order, $request->validated('decision'), $request->validated('note'), $request->validated('items', []));
 
         return back();
     }

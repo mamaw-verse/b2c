@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
+import { NameAvatar } from '@/components/name-avatar';
 import { Modal } from '@/components/ui/modal';
 import { TextArea } from '@/components/ui/textarea';
 import { formatDateTime, formatPeso } from '@/lib/format';
@@ -16,6 +17,7 @@ import {
     update as updateFulfillment,
 } from '@/routes/seller/orders/fulfillments';
 import { store as storeReturn } from '@/routes/seller/orders/return';
+import { show as customerShow } from '@/routes/seller/customers';
 
 type OrderItem = {
     id: string;
@@ -27,6 +29,7 @@ type OrderItem = {
     price: number;
     subtotal: number;
     thumbnail_icon?: string;
+    thumbnail?: string | null;
     frozen: boolean;
     remaining: number;
 };
@@ -46,6 +49,7 @@ type Fulfillment = {
         unit_price?: number;
         variation?: string | null;
         thumbnail_icon?: string | null;
+        thumbnail?: string | null;
         slug?: string | null;
         sku?: string | null;
     }[];
@@ -60,7 +64,13 @@ type OrderDetail = {
     status_raw: string;
     status_variant: 'neutral' | 'info' | 'warning' | 'success' | 'danger';
     created_at: string;
-    buyer: { id: string; name: string; email: string };
+    buyer: {
+        id: string;
+        name: string;
+        email: string;
+        phone?: string | null;
+        orders_count: number;
+    };
     shipping_address: {
         recipient_name?: string | null;
         phone?: string | null;
@@ -87,6 +97,8 @@ type OrderDetail = {
         total: number;
     };
     items: OrderItem[];
+    subtotal: number;
+    voucher_discount: number;
     timeline: {
         title?: string | null;
         detail?: string | null;
@@ -94,6 +106,7 @@ type OrderDetail = {
         courier_name?: string | null;
         tracking_number?: string | null;
         tracking_url?: string | null;
+        help_url?: string | null;
         state?: string | null;
     }[];
     fulfillment_status: string;
@@ -104,6 +117,15 @@ type OrderDetail = {
     return_request: {
         reason: string | null;
         requested_at: string | null;
+        items: {
+            order_item_id: string;
+            name: string;
+            qty_available: number;
+            qty_requested: number;
+            unit_price: number;
+        }[];
+        refunded_gross: number;
+        refunded_net: number;
     } | null;
 };
 
@@ -117,6 +139,16 @@ export default function SellerOrderShow({ order }: PageProps) {
     const [declineModalOpen, setDeclineModalOpen] = useState(false);
     const [declineNote, setDeclineNote] = useState('');
     const [resolveProcessing, setResolveProcessing] = useState(false);
+    const [returnSelections, setReturnSelections] = useState<
+        Record<string, number>
+    >(
+        Object.fromEntries(
+            order.return_request?.items.map((item) => [
+                item.order_item_id,
+                item.qty_requested,
+            ]) ?? [],
+        ),
+    );
 
     const unfulfilledItems = order.items
         .filter((item) => item.remaining > 0)
@@ -125,12 +157,37 @@ export default function SellerOrderShow({ order }: PageProps) {
             variation: item.variation,
             sku: item.sku,
             thumbnail_icon: item.thumbnail_icon,
+            thumbnail: item.thumbnail,
             unit_price: item.price,
             quantity: item.remaining,
         }));
     const totalRemainingQty = unfulfilledItems.reduce(
         (sum, item) => sum + item.quantity,
         0,
+    );
+    const selectedRefundGross =
+        order.return_request?.items.reduce(
+            (total, item) =>
+                total +
+                item.unit_price * (returnSelections[item.order_item_id] ?? 0),
+            0,
+        ) ?? 0;
+    const previousRefundDiscount =
+        (order.return_request?.refunded_gross ?? 0) -
+        (order.return_request?.refunded_net ?? 0);
+    const cumulativeRefundDiscount =
+        order.subtotal > 0
+            ? Math.round(
+                  (order.voucher_discount *
+                      ((order.return_request?.refunded_gross ?? 0) +
+                          selectedRefundGross)) /
+                      order.subtotal,
+              )
+            : 0;
+    const estimatedRefund = Math.max(
+        0,
+        selectedRefundGross -
+            (cumulativeRefundDiscount - previousRefundDiscount),
     );
     const shipForm = useForm({
         courier_name: '',
@@ -162,7 +219,18 @@ export default function SellerOrderShow({ order }: PageProps) {
         setResolveProcessing(true);
         router.post(
             storeReturn({ order: order.raw_id }).url,
-            { decision: 'approve' },
+            {
+                decision: 'approve',
+                items: order.return_request?.items
+                    .filter(
+                        (item) =>
+                            (returnSelections[item.order_item_id] ?? 0) > 0,
+                    )
+                    .map((item) => ({
+                        order_item_id: item.order_item_id,
+                        qty: returnSelections[item.order_item_id],
+                    })),
+            },
             { onFinish: () => setResolveProcessing(false) },
         );
     };
@@ -199,7 +267,7 @@ export default function SellerOrderShow({ order }: PageProps) {
                     <span className="text-foreground">{order.id}</span>
                 </nav>
 
-                <div className="grid gap-6 pb-24 lg:pb-0">
+                <div className="grid gap-6 pb-28">
                     {/* Header */}
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
@@ -257,12 +325,97 @@ export default function SellerOrderShow({ order }: PageProps) {
                                     )}
                                 </p>
                             )}
+                            <fieldset className="mb-4 grid gap-2">
+                                <legend className="mb-2 text-label font-semibold">
+                                    Items to refund
+                                </legend>
+                                {order.return_request.items.map((item) => {
+                                    const qty =
+                                        returnSelections[item.order_item_id] ??
+                                        0;
+
+                                    return (
+                                        <div
+                                            key={item.order_item_id}
+                                            className="flex items-center gap-3 rounded-tile border border-border p-3"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={qty > 0}
+                                                aria-label={`Refund ${item.name}`}
+                                                onChange={(event) =>
+                                                    setReturnSelections(
+                                                        (current) => ({
+                                                            ...current,
+                                                            [item.order_item_id]:
+                                                                event.target
+                                                                    .checked
+                                                                    ? item.qty_available
+                                                                    : 0,
+                                                        }),
+                                                    )
+                                                }
+                                            />
+                                            <span className="min-w-0 flex-1 text-body-sm">
+                                                {item.name} ·{' '}
+                                                {formatPeso(item.unit_price)}{' '}
+                                                each
+                                            </span>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                max={item.qty_available}
+                                                value={qty}
+                                                disabled={qty === 0}
+                                                aria-label={`Refund quantity for ${item.name}`}
+                                                className="w-20"
+                                                onChange={(event) =>
+                                                    setReturnSelections(
+                                                        (current) => ({
+                                                            ...current,
+                                                            [item.order_item_id]:
+                                                                Math.min(
+                                                                    item.qty_available,
+                                                                    Math.max(
+                                                                        0,
+                                                                        Number(
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                        }),
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                    );
+                                })}
+                                <p className="text-body-sm font-semibold">
+                                    Refund total: {formatPeso(estimatedRefund)}
+                                </p>
+                            </fieldset>
                             <div className="flex gap-3">
                                 <Button
                                     onClick={handleApproveReturn}
-                                    disabled={resolveProcessing}
+                                    disabled={
+                                        resolveProcessing ||
+                                        Object.values(returnSelections).every(
+                                            (qty) => qty <= 0,
+                                        )
+                                    }
                                 >
-                                    Approve refund
+                                    {Object.values(returnSelections).reduce(
+                                        (sum, qty) => sum + qty,
+                                        0,
+                                    ) >=
+                                    order.return_request.items.reduce(
+                                        (sum, item) => sum + item.qty_available,
+                                        0,
+                                    )
+                                        ? 'Approve full refund'
+                                        : 'Approve partial refund'}
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -302,6 +455,7 @@ export default function SellerOrderShow({ order }: PageProps) {
                                 variation: line.variation,
                                 sku: line.sku,
                                 thumbnail_icon: line.thumbnail_icon,
+                                thumbnail: line.thumbnail,
                                 unit_price: line.unit_price ?? 0,
                                 quantity: line.quantity,
                             }))}
@@ -402,6 +556,38 @@ export default function SellerOrderShow({ order }: PageProps) {
                         </div>
                     </section>
 
+                    <section className="panel flex items-start gap-3 p-4 md:p-6">
+                        <NameAvatar name={order.buyer.name} size="lg" />
+                        <div className="min-w-0 flex-1">
+                            <h2 className="text-h3">Customer</h2>
+                            <Link
+                                href={customerShow(order.buyer.id).url}
+                                className="mt-1 inline-flex font-medium text-primary-text hover:underline"
+                            >
+                                {order.buyer.name}
+                            </Link>
+                            <p className="text-body-sm text-muted-foreground">
+                                {order.buyer.email}
+                            </p>
+                            {order.buyer.phone && (
+                                <p className="text-body-sm text-muted-foreground">
+                                    {order.buyer.phone}
+                                </p>
+                            )}
+                            <p className="mt-1 text-caption text-muted-foreground">
+                                {order.buyer.orders_count} order
+                                {order.buyer.orders_count === 1 ? '' : 's'} with
+                                your shop
+                            </p>
+                        </div>
+                        <Link
+                            href={customerShow(order.buyer.id).url}
+                            className="btn btn-outline shrink-0"
+                        >
+                            View profile
+                        </Link>
+                    </section>
+
                     {/* Shipping address */}
                     <section className="panel p-4 md:p-6">
                         <h2 className="mb-3 text-h3">Shipping address</h2>
@@ -434,6 +620,14 @@ export default function SellerOrderShow({ order }: PageProps) {
                                             <p className="text-body-sm text-muted-foreground">
                                                 {event.detail}
                                             </p>
+                                        )}
+                                        {event.help_url && (
+                                            <Link
+                                                href={event.help_url}
+                                                className="mt-1 inline-flex text-caption font-medium text-primary-text hover:underline"
+                                            >
+                                                How refunds work
+                                            </Link>
                                         )}
                                         <time className="text-caption text-muted-foreground">
                                             {event.time &&

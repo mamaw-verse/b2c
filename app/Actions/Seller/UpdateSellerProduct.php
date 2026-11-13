@@ -11,7 +11,10 @@ use App\Enums\ModerationState;
 use App\Models\ModerationQueueItem;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 final readonly class UpdateSellerProduct
 {
@@ -37,16 +40,21 @@ final readonly class UpdateSellerProduct
             $isHalalCertified = ($data['halal_status'] ?? '') === 'certified';
 
             // Calculate stock and price (form submits pesos; storage is centavos)
-            $hasVariations = ! empty($data['variations']) && is_array($data['variations']);
+            $hasVariations = isset($data['variations']) && is_array($data['variations']);
             $stock = isset($data['stock']) ? (int) $data['stock'] : $product->stock;
-            $price = isset($data['price']) ? (int) round(((float) $data['price']) * 100) : $product->price;
+            $price = $product->price;
+            $wasPrice = $product->was_price;
+
+            if (! empty($data['sale_price'])) {
+                $price = (int) round(((float) $data['sale_price']) * 100);
+                $wasPrice = (int) round(((float) ($data['price'] ?? 0)) * 100);
+            } elseif (array_key_exists('price', $data)) {
+                $price = (int) round(((float) ($data['price'] ?? 0)) * 100);
+                $wasPrice = array_key_exists('was_price', $data) ? ($data['was_price'] ? (int) round(((float) $data['was_price']) * 100) : null) : null;
+            }
 
             if ($hasVariations) {
                 $stock = collect($data['variations'])->sum(fn ($v) => (int) ($v['stock'] ?? 0));
-                $firstPrice = collect($data['variations'])->first()['price'] ?? null;
-                if ($firstPrice !== null) {
-                    $price = (int) round(((float) $firstPrice) * 100);
-                }
             }
 
             $updateData = [
@@ -54,7 +62,7 @@ final readonly class UpdateSellerProduct
                 'category_id' => $data['category_id'] ?? $product->category_id,
                 'description' => $data['description'] ?? $product->description,
                 'price' => $price,
-                'was_price' => array_key_exists('was_price', $data) ? ($data['was_price'] ? (int) round(((float) $data['was_price']) * 100) : null) : $product->was_price,
+                'was_price' => $wasPrice,
                 'stock' => $stock,
                 'free_shipping' => isset($data['free_shipping']) ? (bool) $data['free_shipping'] : $product->free_shipping,
                 'frozen' => isset($data['frozen']) ? (bool) $data['frozen'] : $product->frozen,
@@ -104,16 +112,94 @@ final readonly class UpdateSellerProduct
             }
 
             // Replace variations if provided
-            if (isset($data['variations']) && is_array($data['variations'])) {
+            if ($hasVariations) {
                 $product->variations()->delete();
+                $savedVariations = [];
                 foreach ($data['variations'] as $i => $v) {
+                    if (! empty($v['sale_price'])) {
+                        $vPrice = (int) round(((float) $v['sale_price']) * 100);
+                        $vWasPrice = (int) round(((float) ($v['price'] ?? 0)) * 100);
+                    } else {
+                        $vPrice = isset($v['price']) ? (int) round(((float) $v['price']) * 100) : $price;
+                        $vWasPrice = ! empty($v['was_price']) ? (int) round(((float) $v['was_price']) * 100) : null;
+                    }
+
                     $product->variations()->create([
                         'option1_value' => (string) ($v['option1_value'] ?? 'Default'),
                         'option2_value' => ! empty($v['option2_value']) ? (string) $v['option2_value'] : null,
-                        'price' => isset($v['price']) ? (int) round(((float) $v['price']) * 100) : $price,
+                        'price' => $vPrice,
+                        'was_price' => $vWasPrice,
                         'stock' => isset($v['stock']) ? (int) $v['stock'] : 0,
                         'sku' => $v['sku'] ?? null,
                         'sort_order' => $i,
+                    ]);
+                    $savedVariations[] = ['price' => $vPrice, 'was_price' => $vWasPrice];
+                }
+
+                $cheapest = collect($savedVariations)->sortBy('price')->first();
+                if ($cheapest) {
+                    $product->update([
+                        'price' => $cheapest['price'],
+                        'was_price' => $cheapest['was_price'],
+                    ]);
+                }
+            }
+
+            // Media / images sync
+            if (array_key_exists('keep_image_ids', $data) || ! empty($data['images'])) {
+                $keepIds = $data['keep_image_ids'] ?? [];
+                if (array_key_exists('keep_image_ids', $data)) {
+                    $removedImages = $product->images()->whereNotIn('id', $keepIds)->get();
+                    foreach ($removedImages as $removed) {
+                        if (! empty($removed->url) && str_contains($removed->url, 'product-images/')) {
+                            $relativePath = 'product-images/'.Str::after($removed->url, 'product-images/');
+                            Storage::disk('public')->delete($relativePath);
+                        }
+                        $removed->delete();
+                    }
+                }
+
+                $sortOrder = 0;
+                $kept = $product->images()->whereIn('id', $keepIds)->orderBy('sort_order')->get();
+                foreach ($kept as $keptImage) {
+                    $keptImage->update(['sort_order' => $sortOrder++]);
+                }
+
+                $files = $data['images'] ?? [];
+                if (! empty($files) && is_array($files)) {
+                    foreach (array_values($files) as $file) {
+                        if ($file instanceof UploadedFile) {
+                            $path = $file->store('product-images', 'public');
+                            if ($path === false) {
+                                continue;
+                            }
+
+                            $product->images()->create([
+                                'url' => Storage::disk('public')->url($path),
+                                'icon' => 'package',
+                                'sort_order' => $sortOrder++,
+                            ]);
+                        } elseif (is_array($file)) {
+                            $product->images()->create([
+                                'url' => $file['url'] ?? '',
+                                'icon' => $file['icon'] ?? 'package',
+                                'sort_order' => $sortOrder++,
+                            ]);
+                        } elseif (is_string($file)) {
+                            $product->images()->create([
+                                'url' => $file,
+                                'icon' => 'package',
+                                'sort_order' => $sortOrder++,
+                            ]);
+                        }
+                    }
+                }
+
+                if ($product->images()->count() === 0) {
+                    $product->images()->create([
+                        'url' => '',
+                        'icon' => 'package',
+                        'sort_order' => 0,
                     ]);
                 }
             }

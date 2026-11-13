@@ -109,7 +109,7 @@ export default function Category({
                 </div>
                 <SortControl
                     value={filters.sort}
-                    onChange={(sort) => visit({ sort })}
+                    onChange={(sort) => visit({ sort: sort as SortKey })}
                     className="w-auto shrink-0"
                 />
             </div>

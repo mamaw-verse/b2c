@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\Cart\AddToCart;
 use App\Actions\Cart\RemoveCartItem;
 use App\Actions\Cart\UpdateCartItemQty;
+use App\Actions\Cart\UpdateCartItemVariation;
 use App\Http\Requests\CreateCartItemRequest;
 use App\Http\Requests\DeleteCartItemRequest;
 use App\Http\Requests\ListCartRequest;
@@ -27,7 +28,7 @@ final class CartController
         $user = $request->user();
         assert($user instanceof User);
 
-        $items = CartItem::with(['product.shop', 'product.images', 'product.halalCertification', 'variation'])
+        $items = CartItem::with(['product.shop', 'product.images', 'product.halalCertification', 'product.variations', 'variation'])
             ->where('user_id', $user->id)
             ->latest('created_at')
             ->get();
@@ -43,6 +44,10 @@ final class CartController
                 $stock = $variation ? $variation->stock : $product->stock;
                 $unavailableReason = $item->availabilityWarning();
 
+                $variationLabel = $variation
+                    ? mb_trim(implode(' · ', array_filter([$variation->option1_value, $variation->option2_value], fn (?string $v) => $v !== null && $v !== '')))
+                    : null;
+
                 return [
                     'id' => $item->id,
                     'product_id' => $product->id,
@@ -53,14 +58,26 @@ final class CartController
                     'halal_status' => $product->halal_status->value,
                     'certifier' => $product->halalCertification?->certifying_body,
                     'frozen' => $product->frozen,
+                    'option1_name' => $product->option1_name,
+                    'option2_name' => $product->option2_name,
+                    'variations' => $product->variations->map(fn (ProductVariation $v) => [
+                        'id' => $v->id,
+                        'option1_value' => $v->option1_value,
+                        'option2_value' => $v->option2_value,
+                        'price' => $v->price,
+                        'was_price' => $v->was_price,
+                        'stock' => $v->stock,
+                    ])->values()->all(),
                     'variation' => $variation ? [
                         'id' => $variation->id,
-                        'label' => mb_trim("{$variation->option1_value} {$variation->option2_value}"),
+                        'option1_value' => $variation->option1_value,
+                        'option2_value' => $variation->option2_value,
+                        'label' => $variationLabel,
                     ] : null,
                     'qty' => $item->qty,
                     'stock' => $stock,
                     'unit_price' => $variation->price ?? $product->price,
-                    'was_price' => $product->was_price,
+                    'was_price' => $variation->was_price ?? $product->was_price,
                     'selected' => $item->selected,
                     'unavailable' => $unavailableReason,
                 ];
@@ -121,12 +138,22 @@ final class CartController
         return back();
     }
 
-    public function update(UpdateCartItemRequest $request, CartItem $cart, UpdateCartItemQty $action): RedirectResponse
-    {
+    public function update(
+        UpdateCartItemRequest $request,
+        CartItem $cart,
+        UpdateCartItemQty $qtyAction,
+        UpdateCartItemVariation $variationAction
+    ): RedirectResponse {
         $user = $request->user();
         assert($user instanceof User);
 
-        $action->handle($user, $cart, (int) $request->input('qty'));
+        if ($request->filled('product_variation_id')) {
+            /** @var ProductVariation $variation */
+            $variation = ProductVariation::whereKey($request->input('product_variation_id'))->firstOrFail();
+            $variationAction->handle($user, $cart, $variation);
+        } else {
+            $qtyAction->handle($user, $cart, (int) $request->input('qty'));
+        }
 
         return back();
     }

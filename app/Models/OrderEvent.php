@@ -29,7 +29,7 @@ final class OrderEvent extends Model
     use HasFactory, HasUlids;
 
     /** @var list<string> */
-    protected $appends = ['tracking_url', 'tracking_number'];
+    protected $appends = ['tracking_url', 'tracking_number', 'help_url'];
 
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
@@ -49,6 +49,13 @@ final class OrderEvent extends Model
             $this->metadata['tracking_number'] ?? null,
             $this->metadata['tracking_url'] ?? null,
         );
+    }
+
+    public function getHelpUrlAttribute(): ?string
+    {
+        return str_contains(mb_strtolower($this->title), 'refund') || str_starts_with($this->title, 'Return/refund')
+            ? route('pages.show', 'returns')
+            : null;
     }
 
     protected function casts(): array

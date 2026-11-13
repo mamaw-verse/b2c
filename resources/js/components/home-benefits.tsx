@@ -116,19 +116,21 @@ export function HomeBenefits({
         return (
             <section
                 aria-labelledby="home-benefits-heading"
-                className={cn('mt-6 md:mt-8', className)}
+                className={cn(
+                    'mt-6 rounded-hero bg-primary-soft p-4 md:mt-8 md:p-8',
+                    className,
+                )}
             >
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2
                             id="home-benefits-heading"
-                            className="text-h3 font-semibold"
+                            className="text-h2 font-semibold text-primary-soft-foreground"
                         >
                             {homeBenefitsContent.heading}
                         </h2>
-                        <p className="text-body-sm text-muted-foreground">
-                            Built around halal values for buyers, sellers, and
-                            businesses
+                        <p className="text-body text-primary-soft-foreground/80">
+                            {homeBenefitsContent.intro}
                         </p>
                     </div>
                     <Button
@@ -152,39 +154,60 @@ export function HomeBenefits({
                         const Icon = audienceIcons[audience.id] ?? ShieldCheck;
 
                         return (
-                            <Link
+                            <div
                                 key={audience.id}
-                                href={`/why-choose-us#${audience.id}`}
-                                className="panel group flex flex-col justify-between p-4 transition-all hover:border-primary/50 hover:shadow-xs"
+                                className="panel flex flex-col justify-between gap-4 p-5 transition-all hover:border-primary/50 hover:shadow-xs md:p-6"
                             >
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="grid size-8 shrink-0 place-items-center rounded-tile bg-halal-soft text-halal transition-colors group-hover:bg-halal group-hover:text-white">
+                                        <span className="grid size-11 shrink-0 place-items-center rounded-tile bg-halal-soft text-halal">
                                             <Icon
-                                                className="size-4"
+                                                className="size-5"
                                                 aria-hidden="true"
                                             />
                                         </span>
-                                        <span className="rounded-badge bg-surface-subtle px-2 py-0.5 text-caption font-semibold text-foreground">
+                                        <span className="rounded-badge bg-surface-subtle px-2.5 py-1 text-caption font-semibold text-foreground">
                                             {audience.title}
                                         </span>
                                     </div>
-                                    <p className="mt-2 text-label font-semibold text-foreground">
+                                    <p className="mt-3 text-h4 font-semibold text-foreground">
                                         {audience.eyebrow}
                                     </p>
-                                    <p className="mt-1 line-clamp-2 text-body-sm text-muted-foreground">
+                                    <p className="mt-1 text-body-sm text-muted-foreground">
                                         {audience.summary}
                                     </p>
+                                    <ul className="mt-3 grid gap-1.5 text-body-sm text-muted-foreground">
+                                        {audience.bullets
+                                            .slice(0, 2)
+                                            .map((bullet) => (
+                                                <li
+                                                    key={bullet}
+                                                    className="flex items-start gap-2"
+                                                >
+                                                    <Check
+                                                        className="mt-0.5 size-4 shrink-0 text-halal"
+                                                        aria-hidden="true"
+                                                    />
+                                                    <span>{bullet}</span>
+                                                </li>
+                                            ))}
+                                    </ul>
                                 </div>
 
-                                <div className="mt-3 flex items-center gap-1 text-caption font-medium text-primary-text">
-                                    <span>Details</span>
-                                    <ChevronRight
-                                        className="size-3.5 transition-transform group-hover:translate-x-0.5"
-                                        aria-hidden="true"
-                                    />
+                                <div className="flex flex-col items-start gap-2">
+                                    {renderCta(audience)}
+                                    <Link
+                                        href={`/why-choose-us#${audience.id}`}
+                                        className="inline-flex min-h-9 items-center gap-1 text-body-sm font-medium text-primary-text hover:underline"
+                                    >
+                                        Learn more
+                                        <ChevronRight
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                    </Link>
                                 </div>
-                            </Link>
+                            </div>
                         );
                     })}
                 </div>

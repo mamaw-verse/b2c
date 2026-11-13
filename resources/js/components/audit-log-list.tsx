@@ -1,5 +1,23 @@
 import { Shield } from 'lucide-react';
 
+const ACTION_LABELS: Record<string, string> = {
+    approved: 'Approved',
+    certificate_requested: 'Certificate requested',
+    changes_requested: 'Changes requested',
+    rejected: 'Rejected',
+    request_certificate: 'Certificate requested',
+    request_changes: 'Changes requested',
+};
+
+function actionLabel(action: string): string {
+    return (
+        ACTION_LABELS[action] ??
+        action
+            .replaceAll('_', ' ')
+            .replace(/^./, (letter) => letter.toUpperCase())
+    );
+}
+
 export type AuditEntry = {
     id?: string;
     actor: string;
@@ -59,7 +77,7 @@ export function AuditLogList({ entries }: { entries: AuditEntry[] }) {
                                         · {entry.actor_role}
                                     </span>
                                 )}
-                                <span> · {entry.action}</span>
+                                <span> · {actionLabel(entry.action)}</span>
                             </p>
                             {entry.detail && (
                                 <p className="text-body-sm text-muted-foreground">

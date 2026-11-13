@@ -106,6 +106,12 @@ final class Order extends Model
         return $this->hasMany(LedgerEntry::class);
     }
 
+    /** @return HasMany<OrderRefund, $this> */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(OrderRefund::class);
+    }
+
     /** @return HasMany<OrderEvent, $this> */
     public function events(): HasMany
     {

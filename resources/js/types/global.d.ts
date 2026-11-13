@@ -29,6 +29,7 @@ declare module '@inertiajs/core' {
                 suspended: boolean;
                 shop_name: string;
                 shop_id: string;
+                shop_slug: string;
             } | null;
             marketplace: Marketplace;
             [key: string]: unknown;

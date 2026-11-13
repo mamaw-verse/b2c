@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Models\CartItem;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class UpdateCartItemRequest extends FormRequest
 {
@@ -22,11 +23,19 @@ final class UpdateCartItemRequest extends FormRequest
             : Response::denyAsNotFound();
     }
 
-    /** @return array<string, array<int, string>> */
+    /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
+        $cartItem = $this->route('cart');
+        $productId = $cartItem instanceof CartItem ? $cartItem->product_id : null;
+
         return [
-            'qty' => ['required', 'integer', 'min:1', 'max:99'],
+            'qty' => ['required_without:product_variation_id', 'integer', 'min:1', 'max:99'],
+            'product_variation_id' => [
+                'sometimes',
+                'string',
+                Rule::exists('product_variations', 'id')->where('product_id', $productId),
+            ],
         ];
     }
 }

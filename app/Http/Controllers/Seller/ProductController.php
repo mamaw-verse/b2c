@@ -54,12 +54,16 @@ final class ProductController
     {
         $product->load(['variations', 'images', 'category']);
 
+        $regularPrice = $product->was_price !== null ? $product->was_price / 100 : $product->price / 100;
+        $salePrice = $product->was_price !== null ? $product->price / 100 : null;
+
         $productData = [
             'id' => $product->id,
             'name' => $product->name,
             'category_id' => $product->category_id,
             'description' => $product->description,
-            'price' => $product->price / 100,
+            'price' => $regularPrice,
+            'sale_price' => $salePrice,
             'was_price' => $product->was_price !== null ? $product->was_price / 100 : null,
             'stock' => $product->stock,
             'frozen' => $product->frozen,
@@ -77,11 +81,14 @@ final class ProductController
             'variations' => $product->variations->map(fn ($v) => [
                 'option1_value' => $v->option1_value,
                 'option2_value' => $v->option2_value,
-                'price' => $v->price !== null ? $v->price / 100 : null,
+                'price' => $v->was_price !== null ? $v->was_price / 100 : ($v->price !== null ? $v->price / 100 : null),
+                'sale_price' => $v->was_price !== null ? $v->price / 100 : null,
                 'stock' => $v->stock,
                 'sku' => $v->sku,
             ]),
             'images' => $product->images->map(fn ($img) => [
+                'id' => $img->id,
+                'url' => $img->url,
                 'name' => 'Image '.($img->sort_order + 1),
                 'icon' => $img->icon,
             ]),

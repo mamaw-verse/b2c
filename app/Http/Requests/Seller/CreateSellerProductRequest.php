@@ -30,7 +30,8 @@ final class CreateSellerProductRequest extends FormRequest
             'category_id' => ['required', 'string', 'exists:categories,id'],
             'description' => ['required', 'string', 'max:3000'],
             'price' => ['required_without:variations', 'nullable', 'numeric', 'min:1'],
-            'was_price' => ['nullable', 'numeric', 'gt:price'],
+            'sale_price' => ['nullable', 'numeric', 'min:1', 'lt:price'],
+            'was_price' => ['nullable', 'numeric'],
             'stock' => ['required_without:variations', 'nullable', 'integer', 'min:0'],
             'halal_status' => ['sometimes', 'nullable', 'string', 'in:certified,not_ingestible,na'],
             'certifying_body' => ['nullable', 'string', 'max:255'],
@@ -52,9 +53,14 @@ final class CreateSellerProductRequest extends FormRequest
             'variations.*.option1_value' => ['required_with:variations', 'string', 'max:50'],
             'variations.*.option2_value' => ['nullable', 'string', 'max:50'],
             'variations.*.price' => ['required_with:variations', 'numeric', 'min:1'],
+            'variations.*.sale_price' => ['nullable', 'numeric', 'min:1', 'lt:variations.*.price'],
+            'variations.*.was_price' => ['nullable', 'numeric'],
             'variations.*.stock' => ['required_with:variations', 'integer', 'min:0'],
             'variations.*.sku' => ['nullable', 'string', 'max:50'],
-            'images' => ['nullable', 'array'],
+            'images' => ['nullable', 'array', 'max:9'],
+            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'keep_image_ids' => ['nullable', 'array'],
+            'keep_image_ids.*' => ['string'],
         ];
     }
 }
