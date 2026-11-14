@@ -146,6 +146,13 @@ export function ChatThread({
                             );
                         }
 
+                        const senderLabel =
+                            m.sender_role === 'seller' && m.sender
+                                ? m.sender.is_staff
+                                    ? `Replied by ${m.sender.name}`
+                                    : 'Owner'
+                                : undefined;
+
                         return (
                             <ChatBubble
                                 key={m.id}
@@ -153,6 +160,7 @@ export function ChatThread({
                                 out={isOut}
                                 status={status}
                                 time={time}
+                                senderLabel={senderLabel}
                                 onRetry={onRetry ? () => onRetry(m) : undefined}
                             />
                         );

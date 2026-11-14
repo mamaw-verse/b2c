@@ -141,6 +141,10 @@ final readonly class ResolveReturn
                     'order_id' => $order->id,
                     'title' => 'Return/refund declined',
                     'detail' => $note,
+                    'metadata' => [
+                        'actor_id' => $seller->id,
+                        'actor_name' => $seller->name,
+                    ],
                 ]);
 
                 DB::afterCommit(fn () => $order->user->notify(new OrderStatusNotification(

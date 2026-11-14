@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import {
     flatNav,
     navItemActive,
+    sellerHome,
     workspaces,
     type WorkspaceKey,
     type WorkspaceNavItem,
@@ -133,6 +134,9 @@ export default function WorkspaceShell({
             ? (seller?.role as 'owner' | 'staff' | undefined)
             : undefined;
 
+    const homeHref =
+        workspace === 'seller' ? sellerHome(sellerRole) : config.home;
+
     const navItems: NavItem[] = flatNav(workspace, sellerRole).map((item) => ({
         ...item,
         badge:
@@ -161,7 +165,7 @@ export default function WorkspaceShell({
                 <div className="flex h-header items-center gap-2 px-gutter">
                     {/* Logo */}
                     <Link
-                        href={config.home}
+                        href={homeHref}
                         className="flex min-h-touch min-w-0 items-center gap-2 rounded-button text-h4 text-primary-text"
                     >
                         {workspaceIcon(workspace, name)}

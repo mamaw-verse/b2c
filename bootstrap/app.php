@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'workspace' => App\Http\Middleware\EnsureWorkspaceAccess::class,
+            'feature' => App\Http\Middleware\EnsureFeatureEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

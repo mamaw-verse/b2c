@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Product;
 use App\Models\Shop;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -76,6 +77,18 @@ final class ProductFactory extends Factory
             'video_path' => 'product-videos/sample.mp4',
             'video_duration' => 30,
         ]);
+    }
+
+    public function withMediaVideo(?Media $media = null): static
+    {
+        return $this->state(function (array $attributes) use ($media) {
+            $mediaRecord = $media ?? Media::factory()->create();
+
+            return [
+                'video_media_id' => $mediaRecord->id,
+                'video_duration' => 30,
+            ];
+        });
     }
 
     public function affiliateEnabled(): static

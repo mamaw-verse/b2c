@@ -67,7 +67,7 @@ final class UpdateSellerProductRequest extends FormRequest
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'keep_image_ids' => ['nullable', 'array'],
             'keep_image_ids.*' => ['string'],
-            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/webm', 'max:30720'],
+            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/webm', 'max:'.(config('marketplace.video.max_kb') ?? 51200)],
             'video_duration' => ['nullable', 'integer', 'min:1', 'max:60'],
             'remove_video' => ['nullable', 'boolean'],
         ];

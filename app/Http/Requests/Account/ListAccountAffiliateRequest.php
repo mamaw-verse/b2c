@@ -15,6 +15,10 @@ final class ListAccountAffiliateRequest extends FormRequest
         $user = $this->user();
         assert($user instanceof User);
 
+        if (! (bool) config('marketplace.affiliate.enabled', false)) {
+            return Response::denyAsNotFound();
+        }
+
         return $user->hasVerifiedEmail() && ! $user->isAdmin()
             ? Response::allow()
             : Response::denyAsNotFound();

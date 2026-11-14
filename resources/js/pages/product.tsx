@@ -15,6 +15,7 @@ import { ProductCard } from '@/components/product-card';
 import { QuantityStepper } from '@/components/quantity-stepper';
 import { Rating } from '@/components/rating';
 import { ReportDialog } from '@/components/report-dialog';
+import { FlagProductDialog } from '@/components/flag-product-dialog';
 import { ReviewCard, type ReviewData } from '@/components/review-card';
 import { ShopHeader } from '@/components/shop-header';
 import { SoldCount } from '@/components/sold-count';
@@ -48,6 +49,7 @@ export default function Product({
     const isAdmin = (workspaces ?? []).some((w) => w.key === 'admin');
     const [pickerOpen, setPickerOpen] = useState(false);
     const [reportOpen, setReportOpen] = useState(false);
+    const [adminFlagOpen, setAdminFlagOpen] = useState(false);
     const [qty, setQty] = useState(1);
 
     const handleReportClick = () => {
@@ -334,6 +336,27 @@ export default function Product({
                                     </Button>
                                 </>
                             )}
+                            {isAdmin && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAdminFlagOpen(true)}
+                                        className="flex min-h-touch-primary w-12 shrink-0 flex-col items-center justify-center rounded-button text-caption text-mod-flagged hover:bg-surface-muted lg:hidden"
+                                    >
+                                        <Flag aria-hidden="true" />
+                                        <span>Flag</span>
+                                    </button>
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        icon={<Flag aria-hidden="true" />}
+                                        className="hidden text-mod-flagged hover:text-mod-flagged lg:flex"
+                                        onClick={() => setAdminFlagOpen(true)}
+                                    >
+                                        Flag for review
+                                    </Button>
+                                </>
+                            )}
                             {isOwnProduct ? (
                                 <p className="flex-1 self-center text-center text-label text-muted-foreground">
                                     This is your product
@@ -573,6 +596,18 @@ export default function Product({
                 targetId={p.id}
                 targetTitle={`Report ${p.name}`}
             />
+            {isAdmin && (
+                <FlagProductDialog
+                    open={adminFlagOpen}
+                    onClose={() => setAdminFlagOpen(false)}
+                    initialProduct={{
+                        id: p.id,
+                        name: p.name,
+                        shop_name: p.shop?.name,
+                        thumbnail_url: p.images[0]?.url ?? null,
+                    }}
+                />
+            )}
         </>
     );
 }

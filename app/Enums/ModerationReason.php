@@ -33,6 +33,26 @@ enum ModerationReason: string
             ->all();
     }
 
+    /** @return list<self> */
+    public static function reportDrivenCases(): array
+    {
+        return [
+            self::MisleadingContent,
+            self::InappropriateContent,
+            self::Spam,
+            self::CounterfeitGoods,
+            self::Other,
+        ];
+    }
+
+    /** @return array<string, string> */
+    public static function reportDrivenOptions(): array
+    {
+        return collect(self::reportDrivenCases())
+            ->mapWithKeys(fn (self $r) => [$r->value => $r->label()])
+            ->all();
+    }
+
     public function label(): string
     {
         return match ($this) {

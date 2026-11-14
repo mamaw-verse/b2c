@@ -249,7 +249,7 @@ test.describe.serial('seller products', () => {
         );
         await expect(videoInput).toBeAttached();
 
-        await videoInput.setInputFiles('tests/e2e/fixtures/sample.mp4');
+        await videoInput.setInputFiles('fixtures/sample.mp4');
 
         await expect(
             page.locator('[data-ds-video-uploader] video'),

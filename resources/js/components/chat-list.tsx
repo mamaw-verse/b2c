@@ -8,6 +8,7 @@ import type { Conversation } from '@/types/chat';
 export interface ChatListProps {
     conversations: Conversation[];
     activeId?: string | null;
+    conversationUrl: (conversationId: string) => string;
     onSelect?: (conversation: Conversation) => void;
     className?: string;
 }
@@ -15,6 +16,7 @@ export interface ChatListProps {
 export function ChatList({
     conversations,
     activeId,
+    conversationUrl,
     onSelect,
     className,
 }: ChatListProps) {
@@ -90,7 +92,7 @@ export function ChatList({
                             return (
                                 <li key={c.id}>
                                     <Link
-                                        href={`/chat/${c.id}`}
+                                        href={conversationUrl(c.id)}
                                         preserveState
                                         preserveScroll
                                         onClick={(e) => {

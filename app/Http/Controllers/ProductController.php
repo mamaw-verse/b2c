@@ -17,7 +17,7 @@ final class ProductController
      */
     public function show(ShowProductRequest $request, Product $product): Response
     {
-        $product->load(['shop', 'category', 'variations', 'images', 'halalCertification']);
+        $product->load(['shop', 'category', 'variations', 'images', 'halalCertification', 'video']);
 
         return Inertia::render('product', [
             'product' => $product->toDetail(),

@@ -39,6 +39,11 @@ final class ModerationQueueItemFactory extends Factory
         return $this->state(['state' => ModerationState::Pending->value]);
     }
 
+    public function manual(): static
+    {
+        return $this->state(['type' => ModerationItemType::Manual->value]);
+    }
+
     public function resolved(): static
     {
         return $this->state([

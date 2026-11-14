@@ -26,6 +26,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    config(['marketplace.affiliate.enabled' => true]);
+});
+
 test('user can activate an affiliate profile', function () {
     $user = User::factory()->create();
     $action = app(ActivateAffiliateProfile::class);

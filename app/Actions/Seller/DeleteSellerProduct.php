@@ -14,6 +14,7 @@ final readonly class DeleteSellerProduct
     public function handle(Product $product): bool
     {
         $videoPath = $product->video_path;
+        $videoMedia = $product->video;
         $imagePaths = $product->images()
             ->get()
             ->map(static function ($img): ?string {
@@ -27,14 +28,19 @@ final readonly class DeleteSellerProduct
             ->values()
             ->all();
 
-        return DB::transaction(function () use ($product, $videoPath, $imagePaths) {
+        return DB::transaction(function () use ($product, $videoPath, $videoMedia, $imagePaths) {
             $product->variations()->delete();
             $product->images()->delete();
             $product->halalCertifications()->delete();
 
             $deleted = (bool) $product->delete();
 
-            DB::afterCommit(static function () use ($videoPath, $imagePaths): void {
+            DB::afterCommit(static function () use ($videoPath, $videoMedia, $imagePaths): void {
+                if ($videoMedia !== null) {
+                    Storage::disk('s3')->delete($videoMedia->storage_path);
+                    $videoMedia->delete();
+                }
+
                 if ($videoPath !== null) {
                     Storage::disk('public')->delete($videoPath);
                 }

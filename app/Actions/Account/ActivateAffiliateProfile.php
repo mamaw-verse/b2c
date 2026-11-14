@@ -11,8 +11,12 @@ use Illuminate\Support\Str;
 
 final readonly class ActivateAffiliateProfile
 {
-    public function handle(User $user): AffiliateProfile
+    public function handle(User $user): ?AffiliateProfile
     {
+        if (! (bool) config('marketplace.affiliate.enabled', false)) {
+            return null;
+        }
+
         /** @var AffiliateProfile */
         return $user->affiliateProfile()->firstOrCreate(
             [],

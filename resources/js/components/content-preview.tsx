@@ -16,6 +16,7 @@ export type ProductSnapshot = {
     photos?: string[];
     video?: { url: string; duration: number | null } | null;
     flag_notice?: string;
+    note?: string | null;
     halal_status?: string;
     halal_badge_class?: string;
     ingredients?: string;
@@ -178,6 +179,15 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                         <p className="rounded-tile bg-mod-flagged-bg p-2 text-body-sm text-mod-flagged">
                             {data.flag_notice}
                         </p>
+                    )}
+
+                    {data.note && (
+                        <div className="rounded-tile border border-mod-flagged/20 bg-mod-flagged-bg p-2 text-body-sm text-mod-flagged">
+                            <span className="font-bold">Flag note: </span>
+                            <span className="whitespace-pre-wrap">
+                                {data.note}
+                            </span>
+                        </div>
                     )}
 
                     <dl className="grid gap-1 text-body-sm">

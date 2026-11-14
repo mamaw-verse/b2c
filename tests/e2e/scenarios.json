@@ -740,6 +740,109 @@
                     "expect": "member removed; staff member loses seller workspace access"
                 }
             ]
+        },
+        {
+            "id": "admin-moderation-flag",
+            "spec": "specs/admin-moderation-flag.spec.ts",
+            "description": "M-03: admin flags a product that has a video via the Flag a product dialog, the queue item shows the note/photos/video preview, admin hides it, and buyers get a 404 on the product page (anonymous and logged-in).",
+            "steps": [
+                {
+                    "action": "seed a published product cloned from the video listing",
+                    "expect": "buyer PDP renders with a video slide"
+                },
+                {
+                    "action": "login as admin, goto /admin/moderation, open Flag a product",
+                    "screenshots": [
+                        "mod-flag-01-buyer-pdp",
+                        "mod-flag-02-flag-dialog"
+                    ],
+                    "expect": "search finds the product; reason + note submit redirects to the queue item detail"
+                },
+                {
+                    "action": "hide the item via the confirm dialog",
+                    "screenshots": [
+                        "mod-flag-03-queue-item",
+                        "mod-flag-04-hide-confirm",
+                        "mod-flag-05-hidden"
+                    ],
+                    "expect": "back on the queue index; product unpublished"
+                },
+                {
+                    "action": "buyer (anonymous, then logged-in test@example.com) opens the product URL",
+                    "screenshots": [
+                        "mod-flag-06-buyer-404",
+                        "mod-flag-07-buyer-404-logged-in"
+                    ],
+                    "expect": "HTTP 404"
+                }
+            ]
+        },
+        {
+            "id": "seller-staff-permissions",
+            "spec": "specs/seller-staff-permissions.spec.ts",
+            "description": "S-14: Staff signs in and lands on Orders; processes an order and resolves a return; replies in chat and the owner sees who replied; Dashboard, Customers, delete actions and Team are unavailable. Run at 360/768/1280 + iphone-safari with axe.",
+            "steps": [
+                {
+                    "action": "staff signs in, lands on Orders",
+                    "screenshot": "s14-01-staff-orders",
+                    "expect": "Orders heading visible; Dashboard, Customers, Team 404; DELETE product 404"
+                },
+                {
+                    "action": "buyer places an order",
+                    "expect": "order confirmed and visible in buyer orders"
+                },
+                {
+                    "action": "staff arranges shipment",
+                    "screenshot": "s14-07-staff-shipment",
+                    "expect": "order status changes to To Receive"
+                },
+                {
+                    "action": "staff replies in chat",
+                    "screenshot": "s14-09-staff-chat-reply",
+                    "expect": "message visible in chat thread"
+                },
+                {
+                    "action": "buyer confirms receipt and requests return",
+                    "screenshot": "s14-10-buyer-return-request",
+                    "expect": "return/refund requested status visible"
+                },
+                {
+                    "action": "staff declines return",
+                    "screenshot": "s14-12-staff-return-resolved",
+                    "expect": "order returns to Completed"
+                },
+                {
+                    "action": "owner views order and chat",
+                    "screenshot": "s14-16-owner-sees-staff-reply",
+                    "expect": "timeline shows Resolved by staff name; chat shows Replied by staff name"
+                }
+            ]
+        },
+        {
+            "id": "admin-payables",
+            "spec": "specs/admin-payables.spec.ts",
+            "description": "P-07: admin payables page — owed totals across Sellers/Customers/Affiliates, mark a payout paid with a reference, mark a refund processed, and verify the customer refund totals drop.",
+            "steps": [
+                {
+                    "action": "seed a requested payout and an unprocessed refund via artisan",
+                    "expect": "fixtures created for Barakah Pantry and a factory order"
+                },
+                {
+                    "action": "login as admin and goto /admin/payouts",
+                    "screenshot": "payables-01-overview",
+                    "expect": "Payables & Payouts heading, three summary cards, and the seeded payout request visible"
+                },
+                {
+                    "action": "fill Transfer reference and click Mark paid",
+                    "screenshot": "payables-02-payout-paid",
+                    "expect": "payout card shows paid badge and the reference; Mark paid form gone"
+                },
+                {
+                    "action": "open Customer Refunds tab, fill Refund reference, click Mark refunded",
+                    "screenshots": ["payables-03-pending-refund", "payables-04-refund-processed"],
+                    "expect": "refund row disappears; summary total_refunds drops by the seeded amount and pending_count by one"
+                }
+            ]
         }
     ],
     "candidateNextScenarios": [

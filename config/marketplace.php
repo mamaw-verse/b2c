@@ -133,7 +133,17 @@ return [
         'max_staff' => (int) env('MARKETPLACE_SELLER_MAX_STAFF', 2),
     ],
 
+    'video' => [
+        'max_kb' => (int) env('MARKETPLACE_PRODUCT_VIDEO_MAX_KB', 51200),
+        'storage_prefix' => mb_trim((string) env('MARKETPLACE_VIDEO_STORAGE_PREFIX', 'media'), '/'),
+    ],
+
+    'features' => [
+        'product_video_enabled' => (bool) env('MARKETPLACE_PRODUCT_VIDEO_ENABLED', false),
+    ],
+
     'affiliate' => [
+        'enabled' => (bool) env('MARKETPLACE_AFFILIATE_ENABLED', false),
         'default_bps' => (int) env('MARKETPLACE_AFFILIATE_DEFAULT_BPS', 500),
         'min_bps' => (int) env('MARKETPLACE_AFFILIATE_MIN_BPS', 100),
         'max_bps' => (int) env('MARKETPLACE_AFFILIATE_MAX_BPS', 3000),

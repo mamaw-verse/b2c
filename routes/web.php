@@ -19,6 +19,7 @@ use App\Http\Controllers\CartVoucherController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MediaViewController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ShopController;
@@ -36,6 +37,7 @@ Route::get('sellers', ShopDirectoryController::class)->name('shops.index');
 Route::get('why-choose-us', WhyChooseUsController::class)->name('why-choose-us');
 Route::get('pages/{page}', [App\Http\Controllers\ContentPageController::class, 'show'])->name('pages.show');
 Route::get('seller/terms', App\Http\Controllers\Seller\SellerTermsController::class)->name('seller.terms');
+Route::get('media/{media}/view', MediaViewController::class)->name('media.view');
 
 Route::prefix('api/psgc')->name('psgc.')->group(function () {
     Route::get('regions', PsgcRegionController::class)->name('regions');
@@ -126,7 +128,10 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::get('dashboard', App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
         Route::resource('moderation', App\Http\Controllers\Admin\ModerationQueueController::class)->parameters(['moderation' => 'moderationQueueItem'])->only(['index', 'show'])->names('moderation');
         Route::post('moderation/{moderationQueueItem}/decisions', [App\Http\Controllers\Admin\ModerationDecisionController::class, 'store'])->name('moderation.decisions.store');
+        Route::post('moderation/flags', [App\Http\Controllers\Admin\ModerationFlagController::class, 'store'])->name('moderation.flags.store');
+        Route::get('products/search', [App\Http\Controllers\Admin\ProductSearchController::class, 'index'])->name('products.search');
         Route::resource('payouts', App\Http\Controllers\Admin\PayoutController::class)->only(['index', 'update'])->names('payouts');
+        Route::put('refunds/{refund}', [App\Http\Controllers\Admin\RefundController::class, 'update'])->name('refunds.update');
         Route::post('moderation/bulk-decisions', [App\Http\Controllers\Admin\BulkModerationDecisionController::class, 'store'])->name('moderation.bulk-decisions.store');
         Route::get('audit-log', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-log.index');
         Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->names('categories');

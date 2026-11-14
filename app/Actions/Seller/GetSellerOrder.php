@@ -18,7 +18,7 @@ final readonly class GetSellerOrder
      */
     public function handle(Shop $shop, Order $order): array
     {
-        $order->load(['items.product.images', 'items.variation', 'items.refundItems', 'refunds.items.orderItem', 'user', 'address', 'shippingOption', 'events', 'fulfillments.items']);
+        $order->load(['items.product.images', 'items.variation', 'items.refundItems', 'refunds.items.orderItem', 'refunds.resolvedBy', 'user', 'address', 'shippingOption', 'events', 'fulfillments.items']);
 
         return [
             'id' => $order->referenceNumber(),
@@ -34,7 +34,6 @@ final readonly class GetSellerOrder
             'buyer' => [
                 'id' => $order->user->id,
                 'name' => $order->user->name,
-                'email' => $order->user->email,
                 'phone' => $order->address?->phone,
                 'orders_count' => $order->user->orders()->where('shop_id', $shop->id)->where('status', '!=', OrderStatus::Cancelled)->count(),
             ],
@@ -71,20 +70,32 @@ final readonly class GetSellerOrder
                 'frozen' => $item->product->frozen ?? false,
                 'remaining' => $item->remainingQuantity(),
             ]),
-            'timeline' => $order->events->map(fn ($e) => [
-                'title' => $e->title,
-                'detail' => $e->detail,
-                'time' => $e->created_at?->toISOString(),
-                'courier_name' => $e->metadata['courier_name'] ?? null,
-                'tracking_number' => $e->metadata['tracking_number'] ?? null,
-                'tracking_url' => CourierTracking::resolve(
-                    $e->metadata['courier_name'] ?? null,
-                    $e->metadata['tracking_number'] ?? null,
-                    $e->metadata['tracking_url'] ?? null,
-                ),
-                'help_url' => $e->help_url,
-                'state' => 'done',
-            ]),
+            'timeline' => $order->events->map(function ($e) use ($order) {
+                $resolvedBy = null;
+                if ($e->title === 'Return/refund declined') {
+                    $resolvedBy = $e->metadata['actor_name'] ?? null;
+                } elseif (str_contains(mb_strtolower($e->title), 'refund approved')) {
+                    $refundId = $e->metadata['refund_id'] ?? null;
+                    $refund = $refundId ? $order->refunds->firstWhere('id', $refundId) : $order->refunds->last();
+                    $resolvedBy = $refund?->resolvedBy?->name;
+                }
+
+                return [
+                    'title' => $e->title,
+                    'detail' => $e->detail,
+                    'resolved_by' => $resolvedBy,
+                    'time' => $e->created_at?->toISOString(),
+                    'courier_name' => $e->metadata['courier_name'] ?? null,
+                    'tracking_number' => $e->metadata['tracking_number'] ?? null,
+                    'tracking_url' => CourierTracking::resolve(
+                        $e->metadata['courier_name'] ?? null,
+                        $e->metadata['tracking_number'] ?? null,
+                        $e->metadata['tracking_url'] ?? null,
+                    ),
+                    'help_url' => $e->help_url,
+                    'state' => 'done',
+                ];
+            }),
             'fulfillment_status' => $order->fulfillment_status->value,
             'fulfillments' => $order->fulfillments->map(fn ($fulfillment) => [
                 'id' => $fulfillment->id,

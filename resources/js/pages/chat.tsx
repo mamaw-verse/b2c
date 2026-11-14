@@ -6,6 +6,13 @@ import { ReportDialog } from '@/components/report-dialog';
 import AppLayout from '@/layouts/app-layout';
 import SellerLayout from '@/layouts/seller-layout';
 import type { Conversation, Message } from '@/types/chat';
+import { index as buyerChatIndex, show as buyerChatShow } from '@/routes/chat';
+import { store as buyerMessageStore } from '@/routes/chat/messages';
+import {
+    index as sellerChatIndex,
+    show as sellerChatShow,
+} from '@/routes/seller/chat';
+import { store as sellerMessageStore } from '@/routes/seller/chat/messages';
 
 interface ChatPageProps {
     conversations: Conversation[];
@@ -20,9 +27,17 @@ export default function ChatPage({
     messages = [],
     workspace,
 }: ChatPageProps) {
-    const { auth } = usePage().props;
+    const { auth, seller } = usePage().props as {
+        auth: { user: { id: string; name: string } };
+        seller?: { role?: 'owner' | 'staff' };
+    };
     const Layout = workspace === 'seller' ? SellerLayout : AppLayout;
-    const chatBase = workspace === 'seller' ? '/seller/chat' : '/account/chat';
+    const chatIndex = workspace === 'seller' ? sellerChatIndex : buyerChatIndex;
+    const chatShow = workspace === 'seller' ? sellerChatShow : buyerChatShow;
+    const messageStore =
+        workspace === 'seller' ? sellerMessageStore : buyerMessageStore;
+    const conversationUrl = (conversationId: string): string =>
+        chatShow.url(conversationId);
     const [selectedConv, setSelectedConv] = useState<Conversation | null>(
         activeConversation,
     );
@@ -52,7 +67,7 @@ export default function ChatPage({
 
     const handleSelectConversation = (conv: Conversation) => {
         setSelectedConv(conv);
-        router.visit(`${chatBase}/${conv.id}`, {
+        router.visit(conversationUrl(conv.id), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -60,7 +75,7 @@ export default function ChatPage({
 
     const handleBackToList = () => {
         setSelectedConv(null);
-        router.visit(chatBase, {
+        router.visit(chatIndex.url(), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -85,12 +100,20 @@ export default function ChatPage({
                 order_id: null,
                 read_at: null,
                 created_at: new Date().toISOString(),
+                sender:
+                    workspace === 'seller'
+                        ? {
+                              id: auth.user.id,
+                              name: auth.user.name,
+                              is_staff: seller?.role === 'staff',
+                          }
+                        : null,
             };
 
             setThreadMessages((prev) => [...prev, optimisticMsg]);
 
             router.post(
-                `${chatBase}/${selectedConv.id}/messages`,
+                messageStore.url(selectedConv.id),
                 { body: text, type: 'text' },
                 {
                     preserveScroll: true,
@@ -107,7 +130,7 @@ export default function ChatPage({
                 },
             );
         },
-        [selectedConv, auth.user.id, chatBase, workspace],
+        [selectedConv, auth.user.id, messageStore, workspace],
     );
 
     const handleRetry = useCallback(
@@ -139,6 +162,7 @@ export default function ChatPage({
                     <ChatList
                         conversations={conversations}
                         activeId={selectedConv?.id}
+                        conversationUrl={conversationUrl}
                         onSelect={handleSelectConversation}
                     />
                 </div>

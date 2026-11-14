@@ -16,6 +16,12 @@ export interface ChatOrderSummary {
     items_count?: number;
 }
 
+export interface MessageSender {
+    id: string;
+    name: string;
+    is_staff: boolean;
+}
+
 export interface Message {
     id: string;
     conversation_id: string;
@@ -30,6 +36,7 @@ export interface Message {
     product?: Product | null;
     order?: ChatOrderSummary | null;
     failed?: boolean;
+    sender?: MessageSender | null;
 }
 
 export interface Conversation {

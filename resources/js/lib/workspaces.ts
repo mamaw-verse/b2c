@@ -23,6 +23,7 @@ import {
     Wallet,
 } from 'lucide-react';
 import { home as accountHome } from '@/routes/account';
+import { index as accountAffiliate } from '@/routes/account/affiliate';
 import { index as addresses } from '@/routes/addresses';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as adminAuditLog } from '@/routes/admin/audit-log';
@@ -53,6 +54,7 @@ export type WorkspaceKey = 'buyer' | 'seller' | 'admin';
  * flag; nav items referencing a disabled feature are filtered out of
  * `navGroups` so no placeholder links ever render. */
 export const workspaceFeatures = {
+    'buyer.affiliate': false,
     'seller.marketing': true,
     'seller.finance': true,
     'seller.team': true,
@@ -154,9 +156,10 @@ const shoppingNavGroup: WorkspaceNavGroup = {
         },
         {
             label: 'Affiliate',
-            href: '/account/affiliate',
+            href: accountAffiliate().url,
             icon: Share2,
             matchPrefix: '/account/affiliate',
+            feature: 'buyer.affiliate',
         },
     ],
 };
@@ -180,6 +183,7 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                         href: sellerDashboard().url,
                         icon: Gauge,
                         matchPrefix: '/seller/dashboard',
+                        roles: ['owner'],
                     },
                     {
                         label: 'Orders',
@@ -206,6 +210,7 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                         href: sellerCustomers().url,
                         icon: Users,
                         matchPrefix: '/seller/customers',
+                        roles: ['owner'],
                     },
                     {
                         label: 'Marketing',
@@ -356,4 +361,12 @@ export function navItemActive(
     }
 
     return currentPath.startsWith(item.matchPrefix ?? item.href);
+}
+
+/**
+ * Returns the correct Seller Centre home URL based on role.
+ * Staff land on Orders (they cannot access Dashboard); owners land on Dashboard.
+ */
+export function sellerHome(role?: 'owner' | 'staff'): string {
+    return role === 'staff' ? sellerOrders().url : sellerDashboard().url;
 }

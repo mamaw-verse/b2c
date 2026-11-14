@@ -7,6 +7,7 @@ export interface ChatBubbleProps {
     status?: 'sent' | 'read' | 'failed';
     time?: string;
     senderPrefix?: string;
+    senderLabel?: string;
     onRetry?: () => void;
     className?: string;
 }
@@ -17,6 +18,7 @@ export function ChatBubble({
     status = 'sent',
     time,
     senderPrefix,
+    senderLabel,
     onRetry,
     className,
 }: ChatBubbleProps) {
@@ -56,6 +58,8 @@ export function ChatBubble({
                     )}
                 >
                     <span className="sr-only">{prefix}</span>
+                    {senderLabel && <span>{senderLabel}</span>}
+                    {senderLabel && time && <span aria-hidden="true">·</span>}
                     {time && <time>{time}</time>}
 
                     {out && !isFailed && (

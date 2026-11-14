@@ -12,7 +12,6 @@ use App\Http\Requests\Seller\CreateSellerProductRequest;
 use App\Http\Requests\Seller\DeleteSellerProductRequest;
 use App\Http\Requests\Seller\EditSellerProductRequest;
 use App\Http\Requests\Seller\ListSellerProductsRequest;
-use App\Http\Requests\Seller\ShowSellerDashboardRequest;
 use App\Http\Requests\Seller\UpdateSellerProductRequest;
 use App\Models\Category;
 use App\Models\Product;
@@ -35,7 +34,7 @@ final class ProductController
         ]);
     }
 
-    public function create(ShowSellerDashboardRequest $request): Response
+    public function create(ListSellerProductsRequest $request): Response
     {
         return Inertia::render('seller/products/form', [
             'product' => null,
@@ -94,7 +93,7 @@ final class ProductController
                 'name' => 'Image '.($img->sort_order + 1),
                 'icon' => $img->icon,
             ]),
-            'video' => $product->video_path ? [
+            'video' => ($product->video_media_id !== null || $product->video_path !== null) ? [
                 'url' => $product->videoUrl(),
                 'duration' => $product->video_duration,
             ] : null,

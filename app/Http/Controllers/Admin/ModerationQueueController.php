@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Moderation\GetModerationQueueCounts;
 use App\Actions\Moderation\ListModerationQueue;
 use App\Actions\Moderation\ShowModerationItem;
+use App\Enums\ModerationReason;
 use App\Http\Requests\Admin\ListModerationQueueRequest;
 use App\Http\Requests\Admin\ShowModerationItemRequest;
 use App\Models\ModerationQueueItem;
@@ -23,6 +24,7 @@ final class ModerationQueueController
             'queue' => $queue,
             'counts' => $counts->handle(),
             'filters' => $request->filters(),
+            'flagReasons' => ModerationReason::reportDrivenOptions(),
         ]);
     }
 

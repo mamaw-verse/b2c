@@ -39,6 +39,7 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
     review: Star,
     seller_application: Store,
     shop: ShieldAlert,
+    manual: ShieldAlert,
     dispute: Scale,
 };
 

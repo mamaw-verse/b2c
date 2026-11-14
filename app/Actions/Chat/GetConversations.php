@@ -9,6 +9,7 @@ use App\Enums\Workspace;
 use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Fluent;
 
 final readonly class GetConversations
 {
@@ -21,8 +22,13 @@ final readonly class GetConversations
      */
     public function handle(User $user, ?string $search = null, Workspace $workspace = Workspace::Buyer): Collection
     {
+        $relations = ['shop', 'latestMessage.product', 'latestMessage.order'];
+        if ($workspace === Workspace::Seller) {
+            $relations[] = 'latestMessage.sender:id,name';
+        }
+
         $query = Conversation::query()
-            ->with(['shop', 'latestMessage.product', 'latestMessage.order'])
+            ->with($relations)
             ->withCount([
                 'messages as unread_count' => function ($query) use ($user, $workspace): void {
                     $query->whereNull('read_at');
@@ -54,8 +60,38 @@ final readonly class GetConversations
             });
         }
 
-        return $query->orderByDesc('last_message_at')
+        $conversations = $query->orderByDesc('last_message_at')
             ->orderByDesc('updated_at')
             ->get();
+
+        if ($workspace === Workspace::Seller) {
+            foreach ($conversations as $conversation) {
+                $latest = $conversation->latestMessage;
+                if ($latest !== null) {
+                    if ($latest->sender_role === MessageSenderRole::Seller && $latest->sender !== null) {
+                        $isStaff = $latest->sender_id !== $conversation->shop->user_id;
+                        $latest->setRelation('sender', new Fluent([
+                            'id' => $latest->sender->id,
+                            'name' => $latest->sender->name,
+                            'is_staff' => $isStaff,
+                        ]));
+                    } else {
+                        $latest->setRelation('sender', null);
+                    }
+                }
+            }
+        } else {
+            foreach ($conversations as $conversation) {
+                $latest = $conversation->latestMessage;
+                if ($latest !== null) {
+                    $latest->unsetRelation('sender');
+                    if ($latest->sender_role === MessageSenderRole::Seller) {
+                        $latest->sender_id = null;
+                    }
+                }
+            }
+        }
+
+        return $conversations;
     }
 }

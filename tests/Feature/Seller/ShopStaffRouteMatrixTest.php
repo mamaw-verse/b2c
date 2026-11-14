@@ -63,38 +63,53 @@ function createShopWithStaff(): array
 
 test('owner can access owner-only get routes', function (string $routeKey) {
     $data = createShopWithStaff();
+    $buyer = $data['buyer'];
     $url = match ($routeKey) {
+        'dashboard' => '/seller/dashboard',
         'finance' => '/seller/finance',
         'vouchers' => '/seller/vouchers',
         'settings' => '/seller/settings',
+        'customers_index' => '/seller/customers',
+        'customers_show' => "/seller/customers/{$buyer->id}",
     };
 
     $this->actingAs($data['owner'])->get($url)->assertOk();
 })->with([
+    'dashboard',
     'finance',
     'vouchers',
     'settings',
+    'customers_index',
+    'customers_show',
 ]);
 
 test('staff is denied with 404 from owner-only get routes', function (string $routeKey) {
     $data = createShopWithStaff();
+    $buyer = $data['buyer'];
     $url = match ($routeKey) {
+        'dashboard' => '/seller/dashboard',
         'finance' => '/seller/finance',
         'vouchers' => '/seller/vouchers',
         'settings' => '/seller/settings',
+        'customers_index' => '/seller/customers',
+        'customers_show' => "/seller/customers/{$buyer->id}",
     };
 
     $this->actingAs($data['staff'])->get($url)->assertNotFound();
 })->with([
+    'dashboard',
     'finance',
     'vouchers',
     'settings',
+    'customers_index',
+    'customers_show',
 ]);
 
 test('staff is denied with 404 from owner-only mutating routes', function () {
     $data = createShopWithStaff();
     $staff = $data['staff'];
     $voucher = $data['voucher'];
+    $product = $data['product'];
 
     // Vouchers store
     $this->actingAs($staff)->post('/seller/vouchers', [
@@ -132,24 +147,28 @@ test('staff is denied with 404 from owner-only mutating routes', function () {
     $this->actingAs($staff)->put('/seller/settings', [
         'name' => 'Renamed by staff',
     ])->assertNotFound();
+
+    // Products destroy (staff cannot delete products)
+    $this->actingAs($staff)->delete("/seller/products/{$product->id}")->assertNotFound();
+
+    // Staff invite (staff cannot add staff)
+    $this->actingAs($staff)->post('/seller/staff', [
+        'email' => 'newstaff@example.com',
+    ])->assertNotFound();
 });
 
 test('staff and owner can access all operated get routes for their shop', function (string $routeKey) {
     $data = createShopWithStaff();
     $product = $data['product'];
     $order = $data['order'];
-    $buyer = $data['buyer'];
     $conversation = $data['conversation'];
 
     $url = match ($routeKey) {
-        'dashboard' => '/seller/dashboard',
         'products_index' => '/seller/products',
         'products_create' => '/seller/products/create',
         'products_edit' => "/seller/products/{$product->id}/edit",
         'orders_index' => '/seller/orders',
         'orders_show' => "/seller/orders/{$order->id}",
-        'customers_index' => '/seller/customers',
-        'customers_show' => "/seller/customers/{$buyer->id}",
         'chat_index' => '/seller/chat',
         'chat_show' => "/seller/chat/{$conversation->id}",
         'notifications_index' => '/seller/notifications',
@@ -159,14 +178,11 @@ test('staff and owner can access all operated get routes for their shop', functi
     $this->actingAs($data['owner'])->get($url)->assertOk();
     $this->actingAs($data['staff'])->get($url)->assertOk();
 })->with([
-    'dashboard',
     'products_index',
     'products_create',
     'products_edit',
     'orders_index',
     'orders_show',
-    'customers_index',
-    'customers_show',
     'chat_index',
     'chat_show',
     'notifications_index',

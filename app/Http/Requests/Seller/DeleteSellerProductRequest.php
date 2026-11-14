@@ -21,7 +21,7 @@ final class DeleteSellerProductRequest extends FormRequest
 
         $operatedShop = $user->operatedShop();
 
-        return ($operatedShop !== null && $product->shop_id === $operatedShop->id)
+        return ($operatedShop !== null && $product->shop_id === $operatedShop->id && $user->ownsShop())
             ? Response::allow()
             : Response::denyAsNotFound();
     }

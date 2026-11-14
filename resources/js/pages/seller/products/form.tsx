@@ -329,9 +329,15 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                     className="panel p-4 md:p-6"
                                     data-testid="affiliate-panel"
                                 >
-                                    <h2 className="mb-4 text-h3">
-                                        Affiliate program
-                                    </h2>
+                                    <div className="mb-4">
+                                        <h2 className="text-h3">
+                                            Affiliate program
+                                        </h2>
+                                        <p className="mt-1 text-body-sm text-muted-foreground">
+                                            Earnings accrue only once the
+                                            program launches.
+                                        </p>
+                                    </div>
                                     <div className="grid gap-4">
                                         <Switch
                                             id="affiliate_enabled"

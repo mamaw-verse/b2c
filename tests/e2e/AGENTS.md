@@ -30,12 +30,16 @@ scripts/e2e-run.sh --project mobile-360 --spec specs/smoke.spec.ts
 
 Env vars:
 
-- `E2E_BASE_URL` — target app (default `http://localhost`, i.e. Sail port 80).
+- `E2E_BASE_URL` — target app. `e2e-run.sh` defaults it to
+  `http://localhost:$APP_PORT` (read from `.env`; this project uses `8000`,
+  not Sail's usual 80 — port 80 may be a different project's container).
+  `playwright.config.ts` falls back to `http://localhost:${APP_PORT ?? 8000}`.
 - `E2E_OUTPUT_DIR` — override artifact dir (the runner sets a per-run timestamped dir).
 
 ## Agent instructions
 
-1. Verify the app responds: `curl -sf http://localhost` (run `vendor/bin/sail up -d` first if not).
+1. Verify the app responds: `curl -sf http://localhost:8000` (run
+   `vendor/bin/sail up -d` first if not; port comes from `APP_PORT` in `.env`).
 2. Ensure assets exist: `public/hot` (Vite dev) or `public/build` (built). Otherwise run `vendor/bin/sail npm run build`.
 3. Run `scripts/e2e-run.sh` (add `--setup` once if `node_modules` is missing here).
 4. Report: list pass/fail per project from `output/*/results.json`, attach

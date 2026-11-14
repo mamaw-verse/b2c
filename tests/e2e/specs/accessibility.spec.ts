@@ -27,7 +27,7 @@ const surfaces = [
             '/account/addresses',
             '/account/chat',
             '/account/notifications',
-            '/account/affiliate',
+            // '/account/affiliate' is parked behind buyer.affiliate flag (AF-09)
             '/cart',
         ],
     },

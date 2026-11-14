@@ -47,7 +47,7 @@ test('active staff gets access to seller workspace with staff role in seller pro
         ->and($staffUser->fresh()->isShopStaff())->toBeTrue()
         ->and($staffUser->fresh()->operatedShop()?->id)->toBe($shop->id);
 
-    $this->actingAs($staffUser)->get('/seller/dashboard')
+    $this->actingAs($staffUser)->get('/seller/orders')
         ->assertOk()
         ->assertInertia(
             fn ($page) => $page

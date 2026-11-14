@@ -14,6 +14,10 @@ final class CaptureAffiliateReferral
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (! (bool) config('marketplace.affiliate.enabled', false)) {
+            return $next($request);
+        }
+
         $ref = $request->query('ref');
 
         if (is_string($ref) && $ref !== '') {

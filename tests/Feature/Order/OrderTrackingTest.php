@@ -166,3 +166,40 @@ test('tracking url resolves from courier templates or explicit url', function ()
         ->where('order.fulfillments.0.tracking_url', 'https://www.jtexpress.ph/trajectoryQuery?bills=JT12345678')
     );
 });
+
+test('order detail reflects refund approved and refunded with reference for customer', function () {
+    $user = User::factory()->create();
+    $shop = Shop::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $user->id,
+        'shop_id' => $shop->id,
+        'status' => OrderStatus::Refunded,
+    ]);
+
+    $refund = App\Models\OrderRefund::factory()->create([
+        'order_id' => $order->id,
+        'amount' => 5000,
+        'processed_at' => null,
+        'reference' => null,
+    ]);
+
+    // When approved but not yet processed
+    $this->actingAs($user)->get(route('orders.show', $order))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('account/order')
+            ->where('return_outcome.status', 'approved')
+        );
+
+    // When processed by admin with reference
+    $admin = User::factory()->create(['role' => 'admin']);
+    app(App\Actions\Admin\ProcessRefund::class)->handle($refund, $admin, 'REF-PAY-9876');
+
+    $this->actingAs($user)->get(route('orders.show', $order))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('account/order')
+            ->where('return_outcome.status', 'processed')
+            ->where('return_outcome.reference', 'REF-PAY-9876')
+        );
+});

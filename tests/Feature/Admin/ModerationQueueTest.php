@@ -99,3 +99,54 @@ test('admin can view single moderation item with target and events loaded', func
     expect($pageItem['id'])->toBe($item->id)
         ->and($pageItem['target']['id'])->toBe($product->id);
 });
+
+test('admin can filter moderation queue by manual type and see live counts', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $manual = ModerationQueueItem::factory()->create(['type' => ModerationItemType::Manual->value, 'state' => ModerationState::Pending->value]);
+    $halal = ModerationQueueItem::factory()->create(['type' => ModerationItemType::Halal->value, 'state' => ModerationState::Pending->value]);
+
+    $response = $this->actingAs($admin)
+        ->get(route('admin.moderation.index', ['type' => 'manual']));
+
+    $response->assertOk();
+    $items = $response->viewData('page')['props']['queue']['data'];
+    $counts = $response->viewData('page')['props']['counts'];
+    $ids = collect($items)->pluck('id');
+
+    expect($ids)->toContain($manual->id)
+        ->not->toContain($halal->id)
+        ->and($counts['manual'] ?? 0)->toBeGreaterThanOrEqual(1);
+});
+
+test('admin detail view shows note and photos/video preview for manual flagged item', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $product = Product::factory()->create([
+        'video_path' => 'product-videos/demo.mp4',
+        'video_duration' => 25,
+    ]);
+
+    $item = ModerationQueueItem::factory()->create([
+        'target_type' => $product->getMorphClass(),
+        'target_id' => $product->id,
+        'type' => ModerationItemType::Manual->value,
+        'state' => ModerationState::Pending->value,
+    ]);
+
+    App\Models\ModerationEvent::create([
+        'moderation_queue_item_id' => $item->id,
+        'admin_id' => $admin->id,
+        'action' => 'flagged',
+        'reason' => 'Misleading packaging claim.',
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->get(route('admin.moderation.show', $item));
+
+    $response->assertOk();
+    $preview = $response->viewData('page')['props']['preview'];
+    expect($preview['kind'])->toBe('product')
+        ->and($preview['snapshot']['note'])->toBe('Misleading packaging claim.')
+        ->and($preview['snapshot']['video']['url'])->toContain('product-videos/demo.mp4')
+        ->and($preview['snapshot']['video']['duration'])->toBe(25);
+});

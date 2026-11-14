@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\Admin\ListPayouts;
+use App\Actions\Admin\GetPayables;
 use App\Actions\Finance\ResolvePayout;
 use App\Enums\PayoutStatus;
 use App\Http\Requests\Admin\ListPayoutsRequest;
@@ -16,9 +16,9 @@ use Inertia\Response;
 
 final class PayoutController
 {
-    public function index(ListPayoutsRequest $request, ListPayouts $action): Response
+    public function index(ListPayoutsRequest $request, GetPayables $action): Response
     {
-        return Inertia::render('admin/payouts', $action->handle($request->status()));
+        return Inertia::render('admin/payouts', $action->handle());
     }
 
     public function update(UpdatePayoutRequest $request, Payout $payout, ResolvePayout $action): RedirectResponse

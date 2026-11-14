@@ -34,11 +34,27 @@ final class OrderController
 
         $returnOutcome = null;
         if ($result->status->value === 'refunded') {
+            $processedRefund = $result->refunds->whereNotNull('processed_at')->sortByDesc('processed_at')->first();
             $event = $result->events->where('title', 'Refund approved')->sortByDesc('created_at')->first();
-            $returnOutcome = ['status' => 'approved', 'note' => $event?->detail];
+            if ($processedRefund) {
+                $returnOutcome = [
+                    'status' => 'processed',
+                    'reference' => $processedRefund->reference,
+                    'note' => $processedRefund->reason ?? $event?->detail,
+                ];
+            } else {
+                $returnOutcome = ['status' => 'approved', 'note' => $event?->detail];
+            }
         } elseif ($result->status->value === 'completed') {
+            $processedRefund = $result->refunds->whereNotNull('processed_at')->sortByDesc('processed_at')->first();
             $event = $result->events->where('title', 'Return/refund declined')->sortByDesc('created_at')->first();
-            if ($event) {
+            if ($processedRefund) {
+                $returnOutcome = [
+                    'status' => 'processed',
+                    'reference' => $processedRefund->reference,
+                    'note' => $processedRefund->reason,
+                ];
+            } elseif ($event) {
                 $returnOutcome = ['status' => 'declined', 'note' => $event->detail];
             }
         }

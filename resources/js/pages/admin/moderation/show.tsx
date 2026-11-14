@@ -114,13 +114,16 @@ export default function ModerationShow({
                       ? 'Keyword'
                       : item.type === 'shop_application'
                         ? 'Shop application'
-                        : 'General',
+                        : item.type === 'manual'
+                          ? 'Admin flag'
+                          : 'General',
         priority:
             item.type === 'halal' || item.type === 'expiry'
                 ? 'P1'
                 : item.type === 'keyword' ||
                     item.type === 'report' ||
-                    item.type === 'shop_application'
+                    item.type === 'shop_application' ||
+                    item.type === 'manual'
                   ? 'P2'
                   : 'P3',
         title: targetTitle,

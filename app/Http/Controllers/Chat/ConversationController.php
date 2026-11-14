@@ -78,7 +78,7 @@ final class ConversationController
 
         $readAction->handle($user, $conversation);
         $conversations = $conversationsAction->handle($user, workspace: $workspace);
-        $messages = $messagesAction->handle($user, $conversation);
+        $messages = $messagesAction->handle($user, $conversation, $workspace);
 
         $conversation->load('shop');
 

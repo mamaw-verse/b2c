@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { Flag } from 'lucide-react';
 import { useState } from 'react';
 import AdminLayout from '@/layouts/admin-layout';
 import {
@@ -10,6 +11,7 @@ import {
     ModerationQueueItem,
     type QueueItem,
 } from '@/components/moderation-queue-item';
+import { FlagProductDialog } from '@/components/flag-product-dialog';
 import { store as bulkDecide } from '@/actions/App/Http/Controllers/Admin/BulkModerationDecisionController';
 import type { ModerationState } from '@/components/status-pill';
 
@@ -42,6 +44,7 @@ export default function ModerationIndex({
     queue,
     counts = {},
     filters = {},
+    flagReasons,
 }: {
     queue: CursorPaginator<RawModerationItem>;
     counts?: Record<string, number>;
@@ -50,9 +53,11 @@ export default function ModerationIndex({
         type?: string;
         sla_days?: number;
     };
+    flagReasons?: Record<string, string>;
 }) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [processing, setProcessing] = useState(false);
+    const [flagModalOpen, setFlagModalOpen] = useState(false);
 
     const typeCounts = [
         { value: 'halal', label: 'Halal checks', count: counts.halal ?? 0 },
@@ -68,6 +73,7 @@ export default function ModerationIndex({
             label: 'Shop applications',
             count: counts.shop_application ?? 0,
         },
+        { value: 'manual', label: 'Admin flags', count: counts.manual ?? 0 },
         { value: 'general', label: 'General', count: counts.general ?? 0 },
     ];
 
@@ -96,7 +102,8 @@ export default function ModerationIndex({
                 ? 'P1'
                 : raw.type === 'keyword' ||
                     raw.type === 'report' ||
-                    raw.type === 'shop_application'
+                    raw.type === 'shop_application' ||
+                    raw.type === 'manual'
                   ? 'P2'
                   : 'P3';
 
@@ -115,7 +122,9 @@ export default function ModerationIndex({
                           ? 'Keyword'
                           : raw.type === 'shop_application'
                             ? 'Shop application'
-                            : 'General',
+                            : raw.type === 'manual'
+                              ? 'Admin flag'
+                              : 'General',
             title: targetTitle,
             excerpt,
             state: raw.state,
@@ -177,6 +186,16 @@ export default function ModerationIndex({
                             Inspect flagged listings, halal certifications, and
                             user reports.
                         </p>
+                    </div>
+                    <div>
+                        <button
+                            type="button"
+                            onClick={() => setFlagModalOpen(true)}
+                            className="btn btn-primary btn-sm inline-flex items-center gap-1.5"
+                        >
+                            <Flag aria-hidden="true" className="size-4" />
+                            Flag a product
+                        </button>
                     </div>
                 </div>
 
@@ -265,6 +284,12 @@ export default function ModerationIndex({
                     )}
                 </div>
             </div>
+
+            <FlagProductDialog
+                open={flagModalOpen}
+                onClose={() => setFlagModalOpen(false)}
+                reasons={flagReasons}
+            />
         </AdminLayout>
     );
 }

@@ -15,7 +15,7 @@ final class ShowSellerDashboardRequest extends FormRequest
         $user = $this->user();
         assert($user instanceof User);
 
-        return $user->operatedShop() !== null
+        return $user->ownsShop()
             ? Response::allow()
             : Response::denyAsNotFound();
     }

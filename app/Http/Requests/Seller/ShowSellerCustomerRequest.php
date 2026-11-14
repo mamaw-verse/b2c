@@ -20,7 +20,7 @@ final class ShowSellerCustomerRequest extends FormRequest
         }
 
         $shop = $user->operatedShop();
-        if ($shop === null || $shop->suspended) {
+        if ($shop === null || $shop->suspended || ! $user->ownsShop()) {
             return Response::denyAsNotFound();
         }
 

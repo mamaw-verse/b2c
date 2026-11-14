@@ -132,7 +132,17 @@ test.describe.serial('affiliate program', () => {
         page,
     }) => {
         await login(page, BUYER);
-        await page.goto('/account/affiliate');
+        const response = await page.goto('/account/affiliate');
+
+        // When parked behind buyer.affiliate toggle (AF-09), assert 404 and absent nav item
+        if (response?.status() === 404) {
+            await page.goto('/account');
+            await expect(
+                page.getByRole('link', { name: 'Affiliate' }),
+            ).toHaveCount(0);
+            await shot(page, 'affiliate-04-parked-flag-off');
+            return;
+        }
 
         await expect(page.locator('h1')).toContainText('Affiliate Program');
 

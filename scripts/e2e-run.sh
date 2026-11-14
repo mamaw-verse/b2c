@@ -42,12 +42,16 @@ if [[ $SETUP -eq 1 || ! -d "$E2E_DIR/node_modules/@playwright/test" ]]; then
     (cd "$E2E_DIR" && npm install && npx playwright install --with-deps chromium)
 fi
 
+APP_PORT="${APP_PORT:-$(grep -E '^APP_PORT=' .env 2>/dev/null | tail -1 | cut -d= -f2)}"
+APP_PORT="${APP_PORT:-80}"
+export E2E_BASE_URL="${E2E_BASE_URL:-http://localhost:${APP_PORT}}"
+
 echo "==> Ensuring Sail is up"
 vendor/bin/sail up -d
 
-echo "==> Waiting for the app"
+echo "==> Waiting for the app ($E2E_BASE_URL)"
 for i in $(seq 1 30); do
-    curl -fsS -o /dev/null "http://localhost:${APP_PORT:-80}" && break || sleep 2
+    curl -fsS -o /dev/null "$E2E_BASE_URL" && break || sleep 2
 done
 
 if [[ $BUILD -eq 1 || ( ! -f public/hot && ! -d public/build ) ]]; then

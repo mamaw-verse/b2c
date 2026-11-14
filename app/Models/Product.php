@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -45,6 +46,7 @@ use Illuminate\Support\Facades\Storage;
  * @property float|null $length
  * @property float|null $width
  * @property float|null $height
+ * @property string|null $video_media_id
  * @property string|null $video_path
  * @property int|null $video_duration
  * @property Carbon|null $created_at
@@ -52,7 +54,7 @@ use Illuminate\Support\Facades\Storage;
  * @property bool $affiliate_enabled
  * @property int|null $affiliate_commission_bps
  */
-#[Fillable(['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'was_price', 'rating', 'sold_count', 'location', 'free_shipping', 'frozen', 'halal_status', 'stock', 'option1_name', 'option2_name', 'published', 'hidden', 'ingredients', 'no_pork_alcohol_declared', 'weight', 'length', 'width', 'height', 'video_path', 'video_duration', 'affiliate_enabled', 'affiliate_commission_bps'])]
+#[Fillable(['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'was_price', 'rating', 'sold_count', 'location', 'free_shipping', 'frozen', 'halal_status', 'stock', 'option1_name', 'option2_name', 'published', 'hidden', 'ingredients', 'no_pork_alcohol_declared', 'weight', 'length', 'width', 'height', 'video_media_id', 'video_path', 'video_duration', 'affiliate_enabled', 'affiliate_commission_bps'])]
 final class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -87,13 +89,48 @@ final class Product extends Model
         return $this->images->firstWhere('url', '!=', '')?->url;
     }
 
+    /** @return BelongsTo<Media, $this> */
+    public function video(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'video_media_id');
+    }
+
     public function videoUrl(): ?string
     {
+        if ($this->video_media_id !== null && Route::has('media.view')) {
+            return route('media.view', ['media' => $this->video_media_id]);
+        }
+
         if ($this->video_path === null) {
             return null;
         }
 
         return Storage::disk('public')->url($this->video_path);
+    }
+
+    /** @return array{url: string|null, duration: int|null}|null */
+    public function videoDetail(): ?array
+    {
+        if ($this->video_media_id !== null) {
+            $media = $this->video;
+            if ($media !== null && $media->scan_status !== 'clean') {
+                return null;
+            }
+
+            return [
+                'url' => $this->videoUrl(),
+                'duration' => $this->video_duration,
+            ];
+        }
+
+        if ($this->video_path !== null) {
+            return [
+                'url' => $this->videoUrl(),
+                'duration' => $this->video_duration,
+            ];
+        }
+
+        return null;
     }
 
     /** @return HasMany<Review, $this> */
@@ -158,10 +195,7 @@ final class Product extends Model
                 'url' => $image->url,
                 'icon' => $image->icon,
             ])->all(),
-            'video' => $this->video_path ? [
-                'url' => $this->videoUrl(),
-                'duration' => $this->video_duration,
-            ] : null,
+            'video' => $this->videoDetail(),
             'option1_name' => $this->option1_name,
             'option2_name' => $this->option2_name,
             'variations' => $this->variations->map(fn (ProductVariation $v) => [

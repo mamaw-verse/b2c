@@ -109,7 +109,8 @@ type OrderDetailPageProps = {
         }[];
     };
     return_outcome?: {
-        status: 'approved' | 'declined';
+        status: 'approved' | 'declined' | 'processed';
+        reference?: string | null;
         note?: string | null;
     } | null;
 };
@@ -276,7 +277,21 @@ export default function OrderDetail({
                             className="mr-1.5 inline size-4 align-[-0.15em]"
                             aria-hidden="true"
                         />
-                        Your refund has been approved.
+                        {return_outcome?.status === 'processed' &&
+                        return_outcome.reference
+                            ? `Refunded (ref: ${return_outcome.reference})`
+                            : 'Refund approved'}
+                    </div>
+                ) : return_outcome?.status === 'processed' ? (
+                    <div className="rounded-panel border border-success bg-success-soft p-3 text-body-sm text-success-text">
+                        <CheckCircle2
+                            className="mr-1.5 inline size-4 align-[-0.15em]"
+                            aria-hidden="true"
+                        />
+                        Refunded
+                        {return_outcome.reference
+                            ? ` (ref: ${return_outcome.reference})`
+                            : ''}
                     </div>
                 ) : return_outcome?.status === 'declined' ? (
                     <div className="rounded-panel border border-danger bg-danger-soft p-3 text-body-sm text-danger-text">

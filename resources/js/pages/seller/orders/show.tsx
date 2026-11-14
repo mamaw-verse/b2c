@@ -67,7 +67,7 @@ type OrderDetail = {
     buyer: {
         id: string;
         name: string;
-        email: string;
+        email?: string | null;
         phone?: string | null;
         orders_count: number;
     };
@@ -102,6 +102,7 @@ type OrderDetail = {
     timeline: {
         title?: string | null;
         detail?: string | null;
+        resolved_by?: string | null;
         time?: string | null;
         courier_name?: string | null;
         tracking_number?: string | null;
@@ -566,9 +567,11 @@ export default function SellerOrderShow({ order }: PageProps) {
                             >
                                 {order.buyer.name}
                             </Link>
-                            <p className="text-body-sm text-muted-foreground">
-                                {order.buyer.email}
-                            </p>
+                            {order.buyer.email && (
+                                <p className="text-body-sm text-muted-foreground">
+                                    {order.buyer.email}
+                                </p>
+                            )}
                             {order.buyer.phone && (
                                 <p className="text-body-sm text-muted-foreground">
                                     {order.buyer.phone}
@@ -619,6 +622,11 @@ export default function SellerOrderShow({ order }: PageProps) {
                                         {event.detail && (
                                             <p className="text-body-sm text-muted-foreground">
                                                 {event.detail}
+                                            </p>
+                                        )}
+                                        {event.resolved_by && (
+                                            <p className="text-caption text-muted-foreground">
+                                                Resolved by {event.resolved_by}
                                             </p>
                                         )}
                                         {event.help_url && (

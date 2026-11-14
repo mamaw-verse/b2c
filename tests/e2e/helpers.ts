@@ -72,6 +72,72 @@ export function ensureProductStock(slug: string, stock = 999): void {
     });
 }
 
+/**
+ * Clone the seeded video product (travel prayer mat) into a fresh published
+ * listing so moderation specs can flag/hide it without breaking the shared
+ * catalogue product other specs rely on. Returns nothing; the caller knows
+ * the slug it passed in.
+ */
+export function seedProductWithVideo(name: string, slug: string): void {
+    const php = `
+        \\$src = App\\Models\\Product::where('slug', 'travel-prayer-mat-with-qibla-compass-and-pouch')->firstOrFail();
+        \\$product = \\$src->replicate(['id', 'created_at', 'updated_at']);
+        \\$product->name = '${name}';
+        \\$product->slug = '${slug}';
+        \\$product->published = true;
+        \\$product->hidden = false;
+        \\$product->save();
+        foreach (\\$src->images as \\$image) {
+            \\$copy = \\$image->replicate(['id', 'created_at', 'updated_at']);
+            \\$copy->product_id = \\$product->id;
+            \\$copy->save();
+        }
+    `;
+    execSync(`vendor/bin/sail artisan tinker --execute "${php}"`, {
+        cwd: repoRoot,
+        stdio: 'pipe',
+    });
+}
+
+/**
+ * Seed a pending payout request and an unprocessed customer refund for the
+ * admin payables page (P-07). Returns the unique markers the spec uses to
+ * locate the rows and the refund amount in centavos.
+ */
+export function seedPayablesFixtures(): {
+    payoutAccountName: string;
+    refundReason: string;
+    refundAmount: number;
+} {
+    const stamp = Date.now();
+    const payoutAccountName = `E2E Payout Admin ${stamp}`;
+    const refundReason = `E2E payables refund ${stamp}`;
+    const php = `
+        \\$shop = App\\Models\\Shop::where('slug', 'barakah-pantry')->firstOrFail();
+        App\\Models\\Payout::create([
+            'shop_id' => \\$shop->id,
+            'amount' => 15000,
+            'status' => 'requested',
+            'method' => 'GCash',
+            'account_name' => '${payoutAccountName}',
+            'account_number' => 'E2E-ACCT-778899',
+        ]);
+        \\$order = App\\Models\\Order::latest('created_at')->firstOrFail();
+        App\\Models\\OrderRefund::create([
+            'order_id' => \\$order->id,
+            'amount' => 25000,
+            'reason' => '${refundReason}',
+            'resolved_by' => App\\Models\\User::where('email', 'admin@example.com')->value('id'),
+        ]);
+    `;
+    execSync(`vendor/bin/sail artisan tinker --execute "${php}"`, {
+        cwd: repoRoot,
+        stdio: 'pipe',
+    });
+
+    return { payoutAccountName, refundReason, refundAmount: 25000 };
+}
+
 /** Log in through the real Fortify form and wait for the redirect away. */
 export async function login(
     page: Page,

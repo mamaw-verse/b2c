@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost';
+const baseURL =
+    process.env.E2E_BASE_URL ??
+    `http://localhost:${process.env.APP_PORT ?? '8000'}`;
 const outputDir = process.env.E2E_OUTPUT_DIR ?? 'output';
 
 export default defineConfig({
