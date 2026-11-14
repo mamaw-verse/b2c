@@ -19,7 +19,10 @@ use Illuminate\Support\Str;
 
 final readonly class CreateSellerProduct
 {
-    public function __construct(private FlagListingKeywords $flagListingKeywords) {}
+    public function __construct(
+        private FlagListingKeywords $flagListingKeywords,
+        private SyncProductVideo $syncProductVideo,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $data
@@ -66,6 +69,12 @@ final readonly class CreateSellerProduct
 
             $slug = Str::slug((string) $data['name']).'-'.mb_strtolower(Str::random(6));
 
+            $affiliateEnabled = (bool) ($data['affiliate_enabled'] ?? false);
+            $affiliateCommissionBps = null;
+            if (isset($data['affiliate_commission_percent']) && is_numeric($data['affiliate_commission_percent'])) {
+                $affiliateCommissionBps = (int) round(((float) $data['affiliate_commission_percent']) * 100);
+            }
+
             $product = $shop->products()->create([
                 'category_id' => $data['category_id'],
                 'name' => $data['name'],
@@ -87,6 +96,8 @@ final readonly class CreateSellerProduct
                 'length' => ! empty($data['length']) ? (float) $data['length'] : null,
                 'width' => ! empty($data['width']) ? (float) $data['width'] : null,
                 'height' => ! empty($data['height']) ? (float) $data['height'] : null,
+                'affiliate_enabled' => $affiliateEnabled,
+                'affiliate_commission_bps' => $affiliateCommissionBps,
             ]);
 
             // Save Halal Certification if claiming certified
@@ -170,6 +181,15 @@ final readonly class CreateSellerProduct
                     'icon' => 'package',
                     'sort_order' => 0,
                 ]);
+            }
+
+            // Video sync
+            $video = ($data['video'] ?? null) instanceof UploadedFile ? $data['video'] : null;
+            $removeVideo = (bool) ($data['remove_video'] ?? false);
+            $duration = isset($data['video_duration']) ? (int) $data['video_duration'] : null;
+
+            if ($video !== null || $removeVideo) {
+                $this->syncProductVideo->handle($product, $video, $removeVideo, $duration);
             }
 
             if ($product->halal_status === HalalStatus::Review) {

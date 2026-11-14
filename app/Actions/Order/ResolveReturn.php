@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
+use App\Enums\AffiliateEarningStatus;
 use App\Enums\LedgerEntryType;
 use App\Enums\OrderStatus;
+use App\Models\AffiliateEarning;
 use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Models\OrderRefund;
@@ -76,6 +78,46 @@ final readonly class ResolveReturn
                     'available_at' => now(),
                     'metadata' => ['order_id' => $order->id],
                 ]);
+
+                $affiliateReversalTotal = (int) $selectedItems->sum(function (array $item): int {
+                    $orderItem = $item['order_item'];
+                    if ($orderItem->affiliate_amount > 0 && $orderItem->qty > 0) {
+                        return (int) round(($item['qty'] / $orderItem->qty) * $orderItem->affiliate_amount);
+                    }
+
+                    return 0;
+                });
+
+                if ($affiliateReversalTotal > 0) {
+                    $order->ledgerEntries()->create([
+                        'shop_id' => $order->shop_id,
+                        'type' => LedgerEntryType::Adjustment,
+                        'amount' => $affiliateReversalTotal,
+                        'available_at' => now(),
+                        'metadata' => [
+                            'order_id' => $order->id,
+                            'order_refund_id' => $refund->id,
+                            'reason' => 'Affiliate commission reversal on refund',
+                        ],
+                    ]);
+
+                    foreach ($selectedItems as $item) {
+                        $orderItem = $item['order_item'];
+                        if ($orderItem->affiliate_profile_id !== null && $orderItem->affiliate_amount > 0 && $orderItem->qty > 0) {
+                            $reversal = (int) round(($item['qty'] / $orderItem->qty) * $orderItem->affiliate_amount);
+                            if ($reversal > 0) {
+                                AffiliateEarning::create([
+                                    'affiliate_profile_id' => $orderItem->affiliate_profile_id,
+                                    'order_id' => $order->id,
+                                    'order_item_id' => $orderItem->id,
+                                    'amount' => -$reversal,
+                                    'status' => AffiliateEarningStatus::Cancelled,
+                                    'available_at' => now(),
+                                ]);
+                            }
+                        }
+                    }
+                }
 
                 $fullyRefunded = $order->items->every(fn ($item) => $item->refundedUnits() + $selectedItems->where('order_item.id', $item->id)->sum('qty') >= $item->qty);
                 $order->update(['status' => $fullyRefunded ? OrderStatus::Refunded : OrderStatus::Completed]);

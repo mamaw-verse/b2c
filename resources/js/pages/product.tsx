@@ -154,24 +154,51 @@ export default function Product({
                 <div className="md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-10 md:pt-6">
                     <div>
                         <Carousel
-                            slides={p.images.map((img, i) => ({
-                                label: `${p.name} photo ${i + 1}`,
-                                icon: img.icon,
-                                src: img.url,
-                            }))}
+                            slides={[
+                                ...(p.video?.url
+                                    ? [
+                                          {
+                                              label: `${p.name} video`,
+                                              src: p.video.url,
+                                              type: 'video' as const,
+                                          },
+                                      ]
+                                    : []),
+                                ...p.images.map((img, i) => ({
+                                    label: `${p.name} photo ${i + 1}`,
+                                    icon: img.icon,
+                                    src: img.url,
+                                    type: 'image' as const,
+                                })),
+                            ]}
                         />
                     </div>
                     <div className="grid content-start gap-5 pt-4 md:gap-6 md:pt-0">
                         <div>
-                            <Breadcrumb
-                                items={[
-                                    { label: 'Home', href: home().url },
-                                    {
-                                        label: p.category.name,
-                                        href: categoryShow.url(p.category.slug),
-                                    },
-                                ]}
-                            />
+                            <div className="flex items-center justify-between gap-2">
+                                <Breadcrumb
+                                    items={[
+                                        { label: 'Home', href: home().url },
+                                        {
+                                            label: p.category.name,
+                                            href: categoryShow.url(
+                                                p.category.slug,
+                                            ),
+                                        },
+                                    ]}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleReportClick}
+                                    className="hidden shrink-0 items-center gap-1 text-body-sm text-muted-foreground hover:text-foreground md:inline-flex"
+                                >
+                                    <Flag
+                                        aria-hidden="true"
+                                        className="size-4"
+                                    />
+                                    Report this product
+                                </button>
+                            </div>
                             <h1 className="mt-2 text-h1">{p.name}</h1>
                             <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm">
                                 {p.review_count > 0 ? (
@@ -337,7 +364,7 @@ export default function Product({
                         <button
                             type="button"
                             onClick={handleReportClick}
-                            className="inline-flex min-h-touch items-center gap-1 self-start text-body-sm text-muted-foreground hover:text-foreground"
+                            className="inline-flex min-h-touch items-center gap-1 self-start text-body-sm text-muted-foreground hover:text-foreground md:hidden"
                         >
                             <Flag aria-hidden="true" className="size-4" />
                             Report this product

@@ -19,12 +19,16 @@ final class ResolveOrderReturnRequest extends FormRequest
     public function authorize(): Response
     {
         $user = $this->user();
-        assert($user instanceof User);
+        if (! $user instanceof User) {
+            return Response::denyAsNotFound();
+        }
 
         $order = $this->route('order');
         assert($order instanceof Order);
 
-        if (! $user->isSeller() || ! $user->shop || $order->shop_id !== $user->shop->id) {
+        $operatedShop = $user->operatedShop();
+
+        if ($operatedShop === null || $operatedShop->suspended || $order->shop_id !== $operatedShop->id) {
             return Response::denyAsNotFound();
         }
 

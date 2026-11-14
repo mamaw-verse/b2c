@@ -39,7 +39,7 @@ export default function Home({
     halalCertificationUrl?: string | null;
     b2bUrl?: string | null;
 }) {
-    const { marketplace: m, name, auth } = usePage().props;
+    const { marketplace: m, auth } = usePage().props;
     const trust: [LucideIcon, string, string][] = [
         ...(m.claims.halal_verification && m.trust.certificates
             ? ([
@@ -90,17 +90,22 @@ export default function Home({
                             </h1>
                             <p className="flex flex-wrap gap-2">
                                 <Button size="lg">Shop the fair</Button>
-                                {canBecomeSeller && (
-                                    <Button size="lg" variant="outline" asChild>
-                                        <Link href={sellerRegister.url()}>
-                                            Sell to {name}
-                                        </Link>
-                                    </Button>
-                                )}
-                                {!auth?.user && (
+                                {auth?.user ? (
+                                    canBecomeSeller && (
+                                        <Button
+                                            size="lg"
+                                            variant="outline"
+                                            asChild
+                                        >
+                                            <Link href={sellerRegister.url()}>
+                                                Start Selling
+                                            </Link>
+                                        </Button>
+                                    )
+                                ) : (
                                     <Button size="lg" variant="outline" asChild>
                                         <Link href="/register">
-                                            Sell to {name}
+                                            Start Selling
                                         </Link>
                                     </Button>
                                 )}

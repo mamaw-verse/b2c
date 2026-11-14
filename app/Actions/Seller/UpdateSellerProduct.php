@@ -18,7 +18,10 @@ use Illuminate\Support\Str;
 
 final readonly class UpdateSellerProduct
 {
-    public function __construct(private FlagListingKeywords $flagListingKeywords) {}
+    public function __construct(
+        private FlagListingKeywords $flagListingKeywords,
+        private SyncProductVideo $syncProductVideo,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $data
@@ -86,6 +89,14 @@ final readonly class UpdateSellerProduct
                     'not_ingestible', 'na' => HalalStatus::NotApplicable,
                     default => $product->halal_status,
                 };
+            }
+
+            if (array_key_exists('affiliate_enabled', $data)) {
+                $updateData['affiliate_enabled'] = (bool) $data['affiliate_enabled'];
+            }
+
+            if (isset($data['affiliate_commission_percent']) && is_numeric($data['affiliate_commission_percent'])) {
+                $updateData['affiliate_commission_bps'] = (int) round(((float) $data['affiliate_commission_percent']) * 100);
             }
 
             $product->update($updateData);
@@ -202,6 +213,15 @@ final readonly class UpdateSellerProduct
                         'sort_order' => 0,
                     ]);
                 }
+            }
+
+            // Video sync
+            $video = ($data['video'] ?? null) instanceof UploadedFile ? $data['video'] : null;
+            $removeVideo = (bool) ($data['remove_video'] ?? false);
+            $duration = isset($data['video_duration']) ? (int) $data['video_duration'] : null;
+
+            if ($video !== null || $removeVideo) {
+                $this->syncProductVideo->handle($product, $video, $removeVideo, $duration);
             }
 
             if ($product->halal_status === HalalStatus::Review) {

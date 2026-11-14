@@ -24,7 +24,8 @@ final class ProductController
 {
     public function index(ListSellerProductsRequest $request, ListSellerProducts $action): Response
     {
-        $shop = $request->user()->shop;
+        $shop = $request->user()->operatedShop();
+        assert($shop !== null);
         $products = $action->handle($shop, $request->validated());
 
         return Inertia::render('seller/products/index', [
@@ -44,7 +45,8 @@ final class ProductController
 
     public function store(CreateSellerProductRequest $request, CreateSellerProduct $action): RedirectResponse
     {
-        $shop = $request->user()->shop;
+        $shop = $request->user()->operatedShop();
+        assert($shop !== null);
         $product = $action->handle($shop, $request->validated());
 
         return redirect()->route('seller.products.index')->with('success', 'Product listed successfully.');
@@ -92,6 +94,14 @@ final class ProductController
                 'name' => 'Image '.($img->sort_order + 1),
                 'icon' => $img->icon,
             ]),
+            'video' => $product->video_path ? [
+                'url' => $product->videoUrl(),
+                'duration' => $product->video_duration,
+            ] : null,
+            'affiliate_enabled' => (bool) $product->affiliate_enabled,
+            'affiliate_commission_percent' => $product->affiliate_commission_bps !== null
+                ? $product->affiliate_commission_bps / 100
+                : null,
         ];
 
         return Inertia::render('seller/products/form', [

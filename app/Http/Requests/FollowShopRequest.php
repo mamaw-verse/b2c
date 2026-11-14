@@ -21,7 +21,7 @@ final class FollowShopRequest extends FormRequest
         $shop = $this->route('shop');
         assert($shop instanceof Shop);
 
-        return $shop->user_id !== $user->id
+        return ! $shop->isOperatedBy($user)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

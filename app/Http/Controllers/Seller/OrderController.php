@@ -9,6 +9,7 @@ use App\Actions\Seller\ListSellerOrders;
 use App\Http\Requests\Seller\ListSellerOrdersRequest;
 use App\Http\Requests\Seller\ShowSellerOrderRequest;
 use App\Models\Order;
+use App\Models\Shop;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +17,8 @@ final class OrderController
 {
     public function index(ListSellerOrdersRequest $request, ListSellerOrders $action): Response
     {
-        $shop = $request->user()->shop;
+        $shop = $request->user()->operatedShop();
+        assert($shop instanceof Shop);
         $orders = $action->handle($shop, $request->validated());
 
         return Inertia::render('seller/orders/index', [
@@ -27,7 +29,8 @@ final class OrderController
 
     public function show(ShowSellerOrderRequest $request, Order $order, GetSellerOrder $action): Response
     {
-        $shop = $request->user()->shop;
+        $shop = $request->user()->operatedShop();
+        assert($shop instanceof Shop);
         $orderData = $action->handle($shop, $order);
 
         return Inertia::render('seller/orders/show', [

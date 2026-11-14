@@ -13,7 +13,10 @@ final readonly class ShowAdminUser
      */
     public function handle(User $user): array
     {
-        $user->loadMissing('shop:id,user_id,name,slug,status,suspended');
+        $user->loadMissing([
+            'shop:id,user_id,name,slug,status,suspended',
+            'staffMembership.shop:id,name,slug,status,suspended',
+        ]);
         $user->loadCount(['orders', 'reports']);
 
         return [
@@ -31,6 +34,13 @@ final readonly class ShowAdminUser
                     'slug' => $user->shop->slug,
                     'status' => $user->shop->status->value,
                     'suspended' => (bool) $user->shop->suspended,
+                ],
+                'staff_at' => $user->staffMembership?->shop === null ? null : [
+                    'id' => $user->staffMembership->shop->id,
+                    'name' => $user->staffMembership->shop->name,
+                    'slug' => $user->staffMembership->shop->slug,
+                    'status' => $user->staffMembership->shop->status->value,
+                    'suspended' => (bool) $user->staffMembership->shop->suspended,
                 ],
                 'orders_count' => $user->orders_count,
                 'reports_count' => $user->reports_count,

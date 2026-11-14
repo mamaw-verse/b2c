@@ -14,6 +14,7 @@ export type ProductSnapshot = {
     seller_joined?: string;
     seller_warnings?: number;
     photos?: string[];
+    video?: { url: string; duration: number | null } | null;
     flag_notice?: string;
     halal_status?: string;
     halal_badge_class?: string;
@@ -125,6 +126,19 @@ export function ContentPreview({ kind, snapshot }: ContentPreviewProps) {
                             </li>
                         ))}
                     </ul>
+                )}
+
+                {data.video?.url && (
+                    <div className="max-w-xs overflow-hidden rounded-tile border border-border bg-surface-muted">
+                        <video
+                            controls
+                            playsInline
+                            preload="metadata"
+                            src={data.video.url}
+                            className="aspect-video w-full object-contain"
+                            aria-label="Listing video"
+                        />
+                    </div>
                 )}
 
                 <div className="grid content-start gap-2">

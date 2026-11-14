@@ -15,7 +15,7 @@ final class CreateSellerProductRequest extends FormRequest
         $user = $this->user();
         assert($user instanceof User);
 
-        return ($user->isSeller() && $user->shop()->exists())
+        return $user->operatedShop() !== null
             ? Response::allow()
             : Response::denyAsNotFound();
     }
@@ -25,7 +25,7 @@ final class CreateSellerProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:120'],
             'category_id' => ['required', 'string', 'exists:categories,id'],
             'description' => ['required', 'string', 'max:3000'],
@@ -61,6 +61,48 @@ final class CreateSellerProductRequest extends FormRequest
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'keep_image_ids' => ['nullable', 'array'],
             'keep_image_ids.*' => ['string'],
+            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/webm', 'max:30720'],
+            'video_duration' => ['nullable', 'integer', 'min:1', 'max:60'],
+            'remove_video' => ['nullable', 'boolean'],
         ];
+
+        $user = $this->user();
+        assert($user instanceof User);
+
+        $affiliateRules = ! $user->ownsShop()
+            ? [
+                'affiliate_enabled' => ['prohibited'],
+                'affiliate_commission_percent' => ['prohibited'],
+            ]
+            : [
+                'affiliate_enabled' => ['sometimes', 'boolean'],
+                'affiliate_commission_percent' => [
+                    'nullable',
+                    'required_if:affiliate_enabled,true,1',
+                    'numeric',
+                    'min:'.(((int) config('marketplace.affiliate.min_bps', 100)) / 100),
+                    'max:'.(((int) config('marketplace.affiliate.max_bps', 3000)) / 100),
+                ],
+            ];
+
+        return array_merge($rules, $affiliateRules);
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('affiliate_enabled')) {
+            $this->merge([
+                'affiliate_enabled' => filter_var($this->input('affiliate_enabled'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            ]);
+        }
+
+        if ($this->has('remove_video')) {
+            $remove = $this->input('remove_video');
+            $this->merge([
+                'remove_video' => ($remove === 'undefined' || $remove === null || $remove === '')
+                    ? false
+                    : filter_var($remove, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            ]);
+        }
     }
 }

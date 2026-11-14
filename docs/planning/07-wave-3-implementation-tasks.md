@@ -1,6 +1,6 @@
 # Wave 3 — Implementation tasks
 
-Derived from `06-wave-3-gap-assessment.md`. This is the **live tracker** for wave 3: tick boxes as work lands, record decisions in §1. Historical `ui-audit/` reports stay read-only.
+Derived from `06-wave-3-gap-assessment.md`. This is the **live tracker** for wave 3: tick boxes as work lands, record decisions in §1. Historical `ui-audit/` reports stay read-only. Seller Video, Staff Accounts & Optional Affiliate features are tracked in `09-video-staff-affiliate-features-plan.md`.
 
 Sizing: S ≤ 0.5 day, M ≈ 1–2 days, L ≈ 3+ days (ideal dev-days, not commitments). Priority: P0 blocks later tasks, P1 core wave scope, P2 optional/defer.
 

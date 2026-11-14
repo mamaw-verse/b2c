@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ShopStaffStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -48,7 +49,37 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasOne(Shop::class);
     }
 
+    /** @return HasOne<ShopStaff, $this> */
+    public function staffMembership(): HasOne
+    {
+        return $this->hasOne(ShopStaff::class)->where('status', ShopStaffStatus::Active->value);
+    }
+
     public function isSeller(): bool
+    {
+        return $this->shop?->isApproved() ?? false;
+    }
+
+    public function operatedShop(): ?Shop
+    {
+        if ($this->shop?->isApproved()) {
+            return $this->shop;
+        }
+
+        $staffShop = $this->staffMembership?->shop;
+        if ($staffShop?->isApproved()) {
+            return $staffShop;
+        }
+
+        return null;
+    }
+
+    public function isShopStaff(): bool
+    {
+        return $this->staffMembership?->shop?->isApproved() ?? false;
+    }
+
+    public function ownsShop(): bool
     {
         return $this->shop?->isApproved() ?? false;
     }
@@ -97,6 +128,12 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function followedShops(): BelongsToMany
     {
         return $this->belongsToMany(Shop::class, 'shop_followers')->withTimestamps();
+    }
+
+    /** @return HasOne<AffiliateProfile, $this> */
+    public function affiliateProfile(): HasOne
+    {
+        return $this->hasOne(AffiliateProfile::class);
     }
 
     protected function casts(): array

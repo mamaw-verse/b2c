@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property string $id
@@ -37,16 +38,21 @@ use Illuminate\Support\Carbon;
  * @property string|null $option1_name
  * @property string|null $option2_name
  * @property bool $published
+ * @property bool $hidden
  * @property string|null $ingredients
  * @property bool $no_pork_alcohol_declared
  * @property float|null $weight
  * @property float|null $length
  * @property float|null $width
  * @property float|null $height
+ * @property string|null $video_path
+ * @property int|null $video_duration
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property bool $affiliate_enabled
+ * @property int|null $affiliate_commission_bps
  */
-#[Fillable(['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'was_price', 'rating', 'sold_count', 'location', 'free_shipping', 'frozen', 'halal_status', 'stock', 'option1_name', 'option2_name', 'published', 'hidden', 'ingredients', 'no_pork_alcohol_declared', 'weight', 'length', 'width', 'height'])]
+#[Fillable(['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'was_price', 'rating', 'sold_count', 'location', 'free_shipping', 'frozen', 'halal_status', 'stock', 'option1_name', 'option2_name', 'published', 'hidden', 'ingredients', 'no_pork_alcohol_declared', 'weight', 'length', 'width', 'height', 'video_path', 'video_duration', 'affiliate_enabled', 'affiliate_commission_bps'])]
 final class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -79,6 +85,15 @@ final class Product extends Model
     public function thumbnailUrl(): ?string
     {
         return $this->images->firstWhere('url', '!=', '')?->url;
+    }
+
+    public function videoUrl(): ?string
+    {
+        if ($this->video_path === null) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->video_path);
     }
 
     /** @return HasMany<Review, $this> */
@@ -143,6 +158,10 @@ final class Product extends Model
                 'url' => $image->url,
                 'icon' => $image->icon,
             ])->all(),
+            'video' => $this->video_path ? [
+                'url' => $this->videoUrl(),
+                'duration' => $this->video_duration,
+            ] : null,
             'option1_name' => $this->option1_name,
             'option2_name' => $this->option2_name,
             'variations' => $this->variations->map(fn (ProductVariation $v) => [
@@ -197,12 +216,25 @@ final class Product extends Model
             'free_shipping' => 'boolean',
             'frozen' => 'boolean',
             'published' => 'boolean',
+            'hidden' => 'boolean',
             'no_pork_alcohol_declared' => 'boolean',
             'weight' => 'float',
             'length' => 'float',
             'width' => 'float',
             'height' => 'float',
             'halal_status' => HalalStatus::class,
+            'video_duration' => 'integer',
+            'affiliate_enabled' => 'boolean',
         ];
+    }
+
+    /** @param Builder<Product> $query */
+    #[Scope]
+    protected function affiliateEligible(Builder $query): void
+    {
+        $query->visible()
+            ->where('hidden', false)
+            ->where('affiliate_enabled', true)
+            ->whereHas('shop', fn (Builder $q) => $q->where('status', 'approved')->where('suspended', false));
     }
 }

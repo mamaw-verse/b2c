@@ -15,7 +15,9 @@ final class UpdateFulfillmentRequest extends FormRequest
     public function authorize(): Response
     {
         $user = $this->user();
-        assert($user instanceof User);
+        if (! $user instanceof User) {
+            return Response::denyAsNotFound();
+        }
 
         $order = $this->route('order');
         assert($order instanceof Order);
@@ -23,7 +25,9 @@ final class UpdateFulfillmentRequest extends FormRequest
         $fulfillment = $this->route('fulfillment');
         assert($fulfillment instanceof Fulfillment);
 
-        return ($user->isSeller() && $user->shop && $order->shop_id === $user->shop->id && $fulfillment->order_id === $order->id && $fulfillment->status === 'shipped')
+        $operatedShop = $user->operatedShop();
+
+        return ($operatedShop !== null && ! $operatedShop->suspended && $order->shop_id === $operatedShop->id && $fulfillment->order_id === $order->id && $fulfillment->status === 'shipped')
             ? Response::allow()
             : Response::denyAsNotFound();
     }

@@ -13,7 +13,8 @@ final class DashboardController
 {
     public function __invoke(ShowSellerDashboardRequest $request, GetSellerDashboard $action): Response
     {
-        $shop = $request->user()->shop;
+        $shop = $request->user()->operatedShop();
+        assert($shop !== null);
         $period = (string) $request->input('period', '7D');
 
         $data = $action->handle($shop, $period);

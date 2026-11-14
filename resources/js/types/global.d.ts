@@ -21,6 +21,7 @@ declare module '@inertiajs/core' {
             cartCount?: number;
             workspaces?: SharedWorkspace[];
             seller?: {
+                role?: 'owner' | 'staff';
                 status:
                     | 'pending'
                     | 'approved'

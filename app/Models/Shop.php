@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ShopStaffStatus;
 use App\Enums\ShopStatus;
 use Database\Factories\ShopFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * @property string $id
@@ -131,6 +133,51 @@ final class Shop extends Model
     public function followers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'shop_followers')->withTimestamps();
+    }
+
+    /** @return HasMany<ShopStaff, $this> */
+    public function staff(): HasMany
+    {
+        return $this->hasMany(ShopStaff::class);
+    }
+
+    /** @return HasMany<ShopStaff, $this> */
+    public function activeStaff(): HasMany
+    {
+        return $this->hasMany(ShopStaff::class)->where('status', ShopStaffStatus::Active->value);
+    }
+
+    public function isOperatedBy(User $user): bool
+    {
+        if ($this->user_id === $user->id) {
+            return true;
+        }
+
+        if ($this->relationLoaded('activeStaff')) {
+            return $this->activeStaff->contains(fn (ShopStaff $staff) => $staff->user_id === $user->id);
+        }
+
+        return $this->activeStaff()->where('user_id', $user->id)->exists();
+    }
+
+    /** @return Collection<int, User> */
+    public function operators(): Collection
+    {
+        $operators = collect();
+
+        $owner = $this->owner;
+        if ($owner !== null) {
+            $operators->push($owner);
+        }
+
+        $staffUsers = $this->activeStaff()
+            ->with('user')
+            ->get()
+            ->pluck('user')
+            ->filter();
+
+        /** @var Collection<int, User> */
+        return $operators->concat($staffUsers)->unique('id')->values();
     }
 
     protected function casts(): array

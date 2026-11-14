@@ -94,6 +94,10 @@ final readonly class ShowModerationItem
                 'seller_name' => $product->shop?->name,
                 'seller_href' => $product->shop ? route('shops.show', $product->shop->slug) : null,
                 'photos' => $product->images->pluck('url')->filter()->values()->all(),
+                'video' => $product->video_path ? [
+                    'url' => $product->videoUrl(),
+                    'duration' => $product->video_duration,
+                ] : null,
                 'flag_notice' => $this->reasonLabel($item),
                 'halal_status' => $product->halal_status->value,
                 'ingredients' => $product->ingredients,

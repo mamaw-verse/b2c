@@ -13,9 +13,11 @@ final class ShowSuspendedShopRequest extends FormRequest
     public function authorize(): Response
     {
         $user = $this->user();
-        assert($user instanceof User);
+        if (! $user instanceof User) {
+            return Response::denyAsNotFound();
+        }
 
-        return $user->shop?->suspended
+        return $user->operatedShop()?->suspended
             ? Response::allow()
             : Response::denyAsNotFound();
     }

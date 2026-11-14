@@ -20,7 +20,7 @@ final readonly class ListAdminUsers
                 'suspended' => $suspended,
             ],
             'users' => User::query()
-                ->with('shop:id,user_id,name,status')
+                ->with(['shop:id,user_id,name,status', 'staffMembership.shop:id,name,status'])
                 ->withCount('orders')
                 ->when($search, fn ($query) => $query->where(fn ($inner) => $inner
                     ->where('name', 'ilike', "%{$search}%")
@@ -42,6 +42,10 @@ final readonly class ListAdminUsers
                     'shop' => $user->shop === null ? null : [
                         'name' => $user->shop->name,
                         'status' => $user->shop->status->value,
+                    ],
+                    'staff_at' => $user->staffMembership?->shop === null ? null : [
+                        'name' => $user->staffMembership->shop->name,
+                        'status' => $user->staffMembership->shop->status->value,
                     ],
                     'orders_count' => $user->orders_count,
                     'created_at' => $user->created_at?->toISOString(),

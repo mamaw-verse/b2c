@@ -551,4 +551,4 @@
 19. [x] **Task 6.5:** Reserve space for the fixed Print waybill bar (`seller/orders/show.tsx`)
 20. [x] **Task 7.1:** Implement partial refunds end to end (migration, models, `RequestReturn`, `ResolveReturn`, request classes, both order pages)
 21. [x] **Task 7.2:** Link refund timeline events to refund information (`timeline.tsx`, order payload actions, `config/marketplace.php`)
-22. [ ] **Final pass:** Run `php artisan test`, `vendor/bin/pint`, `vendor/bin/phpstan` and the front-end lint/typecheck. Then smoke-test buyer, seller and admin flows once.
+22. [x] **Final pass:** Run `php artisan test`, `vendor/bin/pint`, `vendor/bin/phpstan` and the front-end lint/typecheck. Then smoke-test buyer, seller and admin flows once.

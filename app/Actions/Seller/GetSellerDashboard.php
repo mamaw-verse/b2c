@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Seller;
 
 use App\Enums\HalalStatus;
+use App\Enums\MessageSenderRole;
 use App\Enums\OrderStatus;
 use App\Models\Shop;
 use App\Support\Money;
@@ -55,7 +56,7 @@ final readonly class GetSellerDashboard
             ->count();
         $returnRequestsCount = $shop->orders()->where('status', OrderStatus::ReturnRefund)->count();
         $unreadChatsCount = $shop->conversations()
-            ->whereHas('messages', fn ($q) => $q->whereNull('read_at')->where('sender_id', '!=', $shop->user_id))
+            ->whereHas('messages', fn ($q) => $q->whereNull('read_at')->where('sender_role', MessageSenderRole::Buyer->value))
             ->count();
         $needsChangesCount = $shop->products()->where('halal_status', HalalStatus::Review)->count();
         $lowStockCount = $shop->products()->where('stock', '<=', 10)->count();

@@ -1,6 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { BulkActionBar } from '@/components/bulk-action-bar';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { Media } from '@/components/media';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,8 @@ type Product = {
     stock: number;
     halal_status: string;
     published: boolean;
+    affiliate_enabled?: boolean;
+    affiliate_commission_bps?: number | null;
     certifier: string | null;
     variations_count: number;
     image_url?: string | null;
@@ -49,13 +52,38 @@ export default function SellerProductsIndex({
     filters,
     categories,
 }: PageProps) {
+    const { seller } = usePage<{ seller?: { role?: 'owner' | 'staff' } }>()
+        .props;
+    const isOwner = seller?.role === 'owner';
+
     const [search, setSearch] = useState(filters.search ?? '');
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+    const [bulkProcessing, setBulkProcessing] = useState(false);
 
     function applyFilter(params: Record<string, string | number | undefined>) {
         router.get(
             '/seller/products',
             { ...filters, ...params },
             { preserveState: true, replace: true },
+        );
+    }
+
+    function handleBulkAffiliate(enabled: boolean) {
+        if (selectedKeys.length === 0) return;
+        setBulkProcessing(true);
+        router.post(
+            '/seller/products/bulk-affiliate',
+            {
+                product_ids: selectedKeys,
+                enabled,
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setBulkProcessing(false);
+                    setSelectedKeys([]);
+                },
+            },
         );
     }
 
@@ -105,12 +133,21 @@ export default function SellerProductsIndex({
         {
             key: 'published',
             label: 'Status',
-            render: (p) =>
-                p.published ? (
-                    <Badge variant="success">Published</Badge>
-                ) : (
-                    <Badge variant="neutral">Draft</Badge>
-                ),
+            render: (p) => (
+                <div className="flex flex-wrap items-center gap-1.5">
+                    {p.published ? (
+                        <Badge variant="success">Published</Badge>
+                    ) : (
+                        <Badge variant="neutral">Draft</Badge>
+                    )}
+                    {p.affiliate_enabled && (
+                        <Badge variant="info">
+                            Affiliate{' '}
+                            {(p.affiliate_commission_bps ?? 500) / 100}%
+                        </Badge>
+                    )}
+                </div>
+            ),
         },
         {
             key: 'actions',
@@ -204,11 +241,39 @@ export default function SellerProductsIndex({
                     </select>
                 </div>
 
+                {isOwner && (
+                    <BulkActionBar
+                        selectedCount={selectedKeys.length}
+                        onClearSelection={() => setSelectedKeys([])}
+                        processing={bulkProcessing}
+                    >
+                        <button
+                            type="button"
+                            disabled={bulkProcessing}
+                            onClick={() => handleBulkAffiliate(true)}
+                            className="btn btn-inverse btn-sm"
+                        >
+                            <span>Enable affiliate</span>
+                        </button>
+                        <button
+                            type="button"
+                            disabled={bulkProcessing}
+                            onClick={() => handleBulkAffiliate(false)}
+                            className="btn btn-inverse btn-sm"
+                        >
+                            <span>Disable affiliate</span>
+                        </button>
+                    </BulkActionBar>
+                )}
+
                 <DataTable
                     caption={`${products.total} products`}
                     columns={columns}
                     rows={products.data}
                     rowKey={(p) => String(p.id)}
+                    selectable={isOwner}
+                    selectedKeys={selectedKeys}
+                    onSelectKeys={setSelectedKeys}
                     emptyText="No products yet. Add your first product!"
                 />
             </div>

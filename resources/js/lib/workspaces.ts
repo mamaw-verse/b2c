@@ -15,6 +15,7 @@ import {
     Percent,
     ScrollText,
     Settings,
+    Share2,
     ShoppingBag,
     Ticket,
     UserRound,
@@ -43,6 +44,7 @@ import { index as sellerFinance } from '@/routes/seller/finance';
 import { index as sellerOrders } from '@/routes/seller/orders';
 import { index as sellerProducts } from '@/routes/seller/products';
 import { edit as sellerSettings } from '@/routes/seller/settings';
+import { index as sellerStaff } from '@/routes/seller/staff';
 import { index as sellerVouchers } from '@/routes/seller/vouchers';
 
 export type WorkspaceKey = 'buyer' | 'seller' | 'admin';
@@ -53,6 +55,7 @@ export type WorkspaceKey = 'buyer' | 'seller' | 'admin';
 export const workspaceFeatures = {
     'seller.marketing': true,
     'seller.finance': true,
+    'seller.team': true,
     'admin.users': true,
     'admin.audit-log': true,
     'admin.settings': true,
@@ -72,6 +75,8 @@ export type WorkspaceNavItem = {
     feature?: WorkspaceFeature;
     /** Slot layouts fill with a live count (orders, chats, queue). */
     badgeKey?: 'orders' | 'chat' | 'queue';
+    /** Restrict the item to these seller roles; undefined = visible to all. */
+    roles?: ('owner' | 'staff')[];
 };
 
 export type WorkspaceNavGroup = {
@@ -147,6 +152,12 @@ const shoppingNavGroup: WorkspaceNavGroup = {
             icon: Bell,
             matchPrefix: '/account/notifications',
         },
+        {
+            label: 'Affiliate',
+            href: '/account/affiliate',
+            icon: Share2,
+            matchPrefix: '/account/affiliate',
+        },
     ],
 };
 
@@ -202,6 +213,7 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                         icon: Percent,
                         matchPrefix: '/seller/vouchers',
                         feature: 'seller.marketing',
+                        roles: ['owner'],
                     },
                     {
                         label: 'Finance',
@@ -209,12 +221,22 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                         icon: Wallet,
                         matchPrefix: '/seller/finance',
                         feature: 'seller.finance',
+                        roles: ['owner'],
                     },
                     {
                         label: 'Shop settings',
                         href: sellerSettings().url,
                         icon: Settings,
                         matchPrefix: '/seller/settings',
+                        roles: ['owner'],
+                    },
+                    {
+                        label: 'Team',
+                        href: sellerStaff().url,
+                        icon: Users,
+                        matchPrefix: '/seller/staff',
+                        feature: 'seller.team',
+                        roles: ['owner'],
                     },
                 ],
             },
@@ -294,22 +316,35 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
     },
 };
 
-/** Nav groups with items hidden behind disabled feature flags removed. */
-export function navGroups(workspace: WorkspaceKey): WorkspaceNavGroup[] {
+/** Nav groups with items hidden behind disabled feature flags or role removed. */
+export function navGroups(
+    workspace: WorkspaceKey,
+    sellerRole?: 'owner' | 'staff',
+): WorkspaceNavGroup[] {
     return workspaces[workspace].nav
         .map((group) => ({
             ...group,
-            items: group.items.filter(
-                (item) =>
-                    item.feature === undefined ||
-                    workspaceFeatures[item.feature],
-            ),
+            items: group.items.filter((item) => {
+                if (
+                    item.feature !== undefined &&
+                    !workspaceFeatures[item.feature]
+                ) {
+                    return false;
+                }
+                if (item.roles !== undefined && sellerRole !== undefined) {
+                    return item.roles.includes(sellerRole);
+                }
+                return true;
+            }),
         }))
         .filter((group) => group.items.length > 0);
 }
 
-export function flatNav(workspace: WorkspaceKey): WorkspaceNavItem[] {
-    return navGroups(workspace).flatMap((group) => group.items);
+export function flatNav(
+    workspace: WorkspaceKey,
+    sellerRole?: 'owner' | 'staff',
+): WorkspaceNavItem[] {
+    return navGroups(workspace, sellerRole).flatMap((group) => group.items);
 }
 
 export function navItemActive(

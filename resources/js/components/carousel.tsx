@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Play, X, ZoomIn } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Media } from '@/components/media';
 import {
     Dialog,
@@ -15,6 +15,7 @@ export type CarouselSlide = {
     label: string;
     icon?: string;
     src?: string | null;
+    type?: 'image' | 'video';
 };
 
 type CarouselProps = {
@@ -62,14 +63,32 @@ export function Carousel({
         }
     };
 
+    useEffect(() => {
+        const track = trackRef.current;
+        if (!track) {
+            return;
+        }
+        const slideElements = track.children;
+        for (let i = 0; i < slideElements.length; i++) {
+            if (i !== current) {
+                const video = slideElements[i]?.querySelector('video');
+                if (video && !video.paused) {
+                    video.pause();
+                }
+            }
+        }
+    }, [current]);
+
     const navBtn =
         'btn btn-icon btn-neutral absolute top-1/2 hidden -translate-y-1/2 rounded-full border-transparent shadow-popover [@media(hover:hover)]:inline-flex disabled:hidden';
+
+    const showThumbs = thumbs && slides.length > 1;
 
     return (
         <section
             aria-roledescription="carousel"
             aria-label={label}
-            className="grid gap-2"
+            className={cn('grid', showThumbs && 'gap-2')}
         >
             <div className="relative">
                 <ul
@@ -90,13 +109,37 @@ export function Carousel({
                             aria-label={`${i + 1} of ${slides.length}`}
                             className="w-full shrink-0 snap-center"
                         >
-                            <Media
-                                label={slide.label}
-                                icon={slide.icon ?? 'package'}
-                                src={slide.src}
-                                index={i}
-                                ratio={ratio}
-                            />
+                            {slide.type === 'video' ? (
+                                <div
+                                    className={cn(
+                                        'relative grid place-items-center overflow-hidden bg-surface-muted',
+                                        ratio,
+                                        rounded,
+                                    )}
+                                >
+                                    <video
+                                        controls
+                                        playsInline
+                                        preload="metadata"
+                                        src={
+                                            slide.src
+                                                ? `${slide.src}#t=0.1`
+                                                : undefined
+                                        }
+                                        aria-label={slide.label}
+                                        className="size-full object-contain"
+                                    />
+                                </div>
+                            ) : (
+                                <Media
+                                    label={slide.label}
+                                    icon={slide.icon ?? 'package'}
+                                    src={slide.src}
+                                    index={i}
+                                    ratio={ratio}
+                                    className={rounded}
+                                />
+                            )}
                         </li>
                     ))}
                 </ul>
@@ -108,7 +151,7 @@ export function Carousel({
                         {current + 1} of {slides.length}
                     </p>
                 )}
-                {zoom && (
+                {zoom && slides[current]?.type !== 'video' && (
                     <Dialog>
                         <DialogTrigger
                             className="btn btn-icon btn-neutral absolute top-2 right-2 rounded-full border-transparent shadow-popover"
@@ -167,7 +210,7 @@ export function Carousel({
                     <ChevronRight aria-hidden="true" />
                 </button>
             </div>
-            {thumbs && slides.length > 1 && (
+            {showThumbs && (
                 <ul
                     aria-label="Thumbnails"
                     className="bleed-x flex gap-2 overflow-x-auto"
@@ -177,17 +220,33 @@ export function Carousel({
                             <button
                                 type="button"
                                 aria-current={i === current}
-                                aria-label={`Show photo ${i + 1}: ${slide.label}`}
+                                aria-label={
+                                    slide.type === 'video'
+                                        ? 'Show product video'
+                                        : `Show photo ${i + 1}: ${slide.label}`
+                                }
                                 onClick={() => goTo(i)}
                                 className="block size-14 overflow-hidden rounded-tile border-2 border-transparent aria-[current=true]:border-primary md:size-16"
                             >
-                                <Media
-                                    label={slide.label}
-                                    icon={slide.icon ?? 'package'}
-                                    src={slide.src}
-                                    index={i}
-                                    decorative
-                                />
+                                {slide.type === 'video' ? (
+                                    <div
+                                        aria-label="Product video"
+                                        className="text-foreground-muted flex size-full items-center justify-center bg-surface-muted"
+                                    >
+                                        <Play
+                                            className="size-6 fill-current"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
+                                ) : (
+                                    <Media
+                                        label={slide.label}
+                                        icon={slide.icon ?? 'package'}
+                                        src={slide.src}
+                                        index={i}
+                                        decorative
+                                    />
+                                )}
                             </button>
                         </li>
                     ))}

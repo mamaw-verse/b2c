@@ -14,9 +14,13 @@ final class ListSellerFinanceRequest extends FormRequest
     public function authorize(): Response
     {
         $user = $this->user();
-        assert($user instanceof User);
+        if (! $user instanceof User) {
+            return Response::denyAsNotFound();
+        }
 
-        return $user->isSeller() ? Response::allow() : Response::denyAsNotFound();
+        return ($user->ownsShop() && ! $user->shop?->suspended)
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
     /**

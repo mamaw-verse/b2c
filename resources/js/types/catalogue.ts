@@ -81,6 +81,7 @@ export type ProductDetail = ProductCardData & {
     review_count: number;
     ships_from: string;
     images: { url: string | null; icon: string }[];
+    video?: { url: string; duration: number | null } | null;
     option1_name: string | null;
     option2_name: string | null;
     variations: ProductVariation[];

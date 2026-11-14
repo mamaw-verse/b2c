@@ -28,6 +28,15 @@ test.describe('public pages', () => {
                 page.getByText(audience, { exact: true }),
             ).toBeVisible();
         }
+        // Each benefit card carries a CTA (qa3 task 5.3). The header/footer
+        // "Start selling" labels are lowercase, so exact matching isolates
+        // the card buttons.
+        await expect(
+            page.getByRole('link', { name: 'Start Shopping', exact: true }),
+        ).toBeVisible();
+        await expect(
+            page.getByRole('link', { name: 'Start Selling', exact: true }),
+        ).toHaveAttribute('href', '/seller/register');
         await shot(page, '01b-home-benefits');
     });
 
@@ -64,6 +73,19 @@ test.describe('public pages', () => {
         await expect(page.locator('input[name="name"]')).toBeVisible();
         await expect(page.locator('input[name="email"]')).toBeVisible();
         await shot(page, '03-register-form');
+    });
+
+    test('seller directory lists shops and offers search', async ({ page }) => {
+        const response = await page.goto('/sellers');
+
+        expect(response?.status()).toBe(200);
+        await expect(
+            page.getByRole('heading', { name: 'Discover sellers' }),
+        ).toBeVisible();
+        await expect(
+            page.getByRole('combobox', { name: 'Search sellers' }),
+        ).toBeVisible();
+        await shot(page, '01d-sellers-directory');
     });
 });
 

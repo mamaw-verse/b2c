@@ -6,7 +6,7 @@
         {
             "id": "accessibility",
             "spec": "specs/accessibility.spec.ts",
-            "description": "WCAG 2.1 AA axe checks of public, buyer, seller and admin routes in light and dark at all three viewport widths, including /search?q=dates and /seller/products/create. JSON attachments retain violations and manual-review findings; a11y-role-index screenshots capture every scanned route.",
+            "description": "WCAG 2.1 AA axe checks of public, buyer, seller and admin routes in light and dark at all three viewport widths, including /sellers, /search?q=dates and /seller/products/create. JSON attachments retain violations and manual-review findings; a11y-role-index screenshots capture every scanned route.",
             "steps": [
                 {
                     "action": "scan workspace routes in light and dark",
@@ -29,7 +29,7 @@
                     "action": "goto",
                     "url": "/",
                     "screenshot": "01b-home-benefits",
-                    "expect": "'Why Choose Our Marketplace?' section with For Buyers / For Sellers / For Certification Applicants / For Businesses blocks"
+                    "expect": "'Why Choose Our Marketplace?' section with For Buyers / For Sellers / For Certification Applicants / For Businesses blocks, each with a CTA (Start Shopping, Start Selling)"
                 },
                 {
                     "action": "goto",
@@ -48,6 +48,12 @@
                     "email": "unique",
                     "screenshots": ["10-register-filled", "11-after-register"],
                     "expect": "lands on /account or /email/verify"
+                },
+                {
+                    "action": "goto",
+                    "url": "/sellers",
+                    "screenshot": "01d-sellers-directory",
+                    "expect": "'Discover sellers' heading and the seller search input are visible"
                 },
                 {
                     "action": "login",
@@ -96,7 +102,7 @@
         {
             "id": "order-lifecycle",
             "spec": "specs/order-lifecycle.spec.ts",
-            "description": "Full order lifecycle across the three roles: buyer checkout, seller fulfilment, admin moderation, and return/refund resolution. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
+            "description": "Full order lifecycle across the three roles: buyer checkout (qty 2), seller fulfilment, admin moderation, and a return/refund flow covering item selection, decline, partial refund and final full refund. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
             "steps": [
                 {
                     "action": "login",
@@ -118,7 +124,7 @@
                         "buyer-05-orders",
                         "buyer-06-order-detail"
                     ],
-                    "expect": "order is placed (COD, default shipping) and listed in the My Purchases orders table"
+                    "expect": "cart quantity stepped to 2, order is placed (COD, default shipping) and listed in the My Purchases orders table"
                 },
                 {
                     "action": "login",
@@ -130,7 +136,7 @@
                         "seller-04-ship-modal",
                         "seller-05-shipped"
                     ],
-                    "expect": "order appears in the seller orders table; Arrange shipment moves it to To Receive"
+                    "expect": "order appears in the seller orders table; the Customer panel links to the seller customer profile, fulfilment cards show the product photo, and Arrange shipment moves it to To Receive"
                 },
                 {
                     "action": "confirm receipt and submit review",
@@ -155,7 +161,7 @@
                     "expect": "buyer's report appears in the moderation queue and can be approved after confirming the dialog"
                 },
                 {
-                    "action": "buyer requests return/refund; seller declines with a note; buyer re-requests; seller approves",
+                    "action": "buyer requests return/refund for 1 of 2 units; seller declines with a note; buyer re-requests; seller approves partial; buyer requests the rest; seller approves full",
                     "screenshots": [
                         "buyer-11-return-request",
                         "buyer-12-return-pending",
@@ -163,10 +169,11 @@
                         "seller-07-decline-modal",
                         "seller-08-declined",
                         "buyer-13-return-declined",
-                        "seller-09-refunded",
+                        "seller-09-partial-refund",
+                        "seller-10-refunded",
                         "buyer-14-refunded"
                     ],
-                    "expect": "seller sees the Return/refund request panel with the buyer's reason; decline requires a note and restores Completed with the declined outcome on the buyer page; approval sets Refunded and the buyer sees 'Your refund has been approved.'"
+                    "expect": "the return modal requires picking items and quantities; decline requires a note and restores Completed; the seller panel shows per-item steppers and a refund total, 'Approve partial refund' keeps the order Completed with a 'Partial refund approved' event and 'How refunds work' link, and the final 'Approve full refund' sets Refunded with the buyer seeing 'Your refund has been approved.'"
                 },
                 {
                     "action": "buyer places a fresh order and cancels it",
@@ -318,7 +325,7 @@
                         "seller-reg-09-changes-banner",
                         "seller-reg-10-resubmitted"
                     ],
-                    "expect": "'Changes were requested' banner shows the admin's note; PSGC and uploads must be redone; resubmit returns to 'Application under review'"
+                    "expect": "'Changes were requested' banner shows the admin's note; PSGC, logo, business permit and certificate files are prefilled and kept, so resubmitting unchanged returns to 'Application under review'"
                 },
                 {
                     "action": "login",
@@ -490,7 +497,7 @@
         {
             "id": "seller-products",
             "spec": "specs/seller-products.spec.ts",
-            "description": "Seller product CRUD: list, create a simple published product (no halal section anymore), generate variant rows from option values with apply-to-all price/stock, filter by name, edit the name and save as draft, then delete the product.",
+            "description": "Seller product CRUD: list with the View shop button, create a simple published product with photo upload and sale price, generate variant rows from option values with named options and apply-to-all regular/sale price and stock, filter by name, edit (photo and price mapping round-trip) and save as draft, then delete the product.",
             "steps": [
                 {
                     "action": "login",
@@ -500,7 +507,7 @@
                     "action": "goto",
                     "url": "/seller/products",
                     "screenshot": "products-01-list",
-                    "expect": "Add product link, product table caption and search input visible"
+                    "expect": "Add product link, product table caption, search input and the outlined View shop button (new tab) visible"
                 },
                 {
                     "action": "create simple product and publish",
@@ -508,7 +515,7 @@
                         "products-02-create-form",
                         "products-03-created"
                     ],
-                    "expect": "redirects to /seller/products with the new product row visible"
+                    "expect": "redirects to /seller/products with the new product row visible and the uploaded photo as its thumbnail"
                 },
                 {
                     "action": "generate variations and apply to all",
@@ -517,7 +524,7 @@
                         "products-04-apply-all",
                         "products-05-variation-form"
                     ],
-                    "expect": "2 option-1 × 2 option-2 values produce 4 rows; Apply fills ₱49.50/100 on every row; removing a value drops its rows; saves as draft"
+                    "expect": "2 option-1 × 2 option-2 named values produce 4 rows; Apply fills ₱49.50 regular / ₱45 sale / 100 stock on every row; removing a value drops its rows; saves as draft"
                 },
                 {
                     "action": "filter list by product name",
@@ -527,7 +534,7 @@
                 {
                     "action": "edit name and save as draft",
                     "screenshots": ["products-06-edit", "products-07-updated"],
-                    "expect": "updated name and Draft badge visible in the list"
+                    "expect": "updated name and Draft badge visible in the list; the edit form shows the kept photo and maps was_price back to regular ₱199 / sale ₱150"
                 },
                 {
                     "action": "delete product and accept the confirm dialog",
@@ -573,7 +580,7 @@
         {
             "id": "product-detail",
             "spec": "specs/product-detail.spec.ts",
-            "description": "Buyer product detail page: price and review sections, halal certification facts, variation picker, report dialog, anonymous chat redirect and the sold-out state.",
+            "description": "Buyer product detail page: price and review sections, halal certification facts, variation picker selection, shop profile link, report dialog, anonymous chat redirect and the sold-out state.",
             "steps": [
                 {
                     "action": "goto",
@@ -588,9 +595,17 @@
                     "expect": "Halal summary shows the badge and 'Valid to' date; no certifier name anywhere"
                 },
                 {
-                    "action": "click Add to cart on a product with variants",
-                    "screenshot": "pdp-04-variation-picker",
-                    "expect": "'Select variation' dialog opens with option inputs"
+                    "action": "click Add to cart on a product with variants and pick Standard · 1kg",
+                    "screenshots": [
+                        "pdp-04-variation-picker",
+                        "pdp-04b-variation-selected"
+                    ],
+                    "expect": "'Select variation' dialog opens with Grade/Weight chips; switching grade resets the weight default and the price updates to ₱999"
+                },
+                {
+                    "action": "click the View shop link in the shop header",
+                    "screenshot": "pdp-08-shop-profile",
+                    "expect": "navigates to /shops/barakah-pantry"
                 },
                 {
                     "action": "login as test@example.com and click Report",
@@ -607,6 +622,26 @@
                     "url": "/products/halal-certified-beef-tapa-300g-vacuum-pack",
                     "screenshot": "pdp-07-sold-out",
                     "expect": "the Buy now button reads Out of stock and is disabled"
+                }
+            ]
+        },
+        {
+            "id": "cart",
+            "spec": "specs/cart.spec.ts",
+            "description": "Cart variation editing: add a seeded variation product through the PDP picker, then change the variation from the cart line via the edit-mode picker.",
+            "steps": [
+                {
+                    "action": "login as a fresh verified user and add Ajwa Standard · 1kg via the PDP picker",
+                    "expect": "'Added to cart' toast; /cart shows the 'Variation: Standard · 1kg' chip"
+                },
+                {
+                    "action": "click the variation chip and pick Premium · 250g in edit mode",
+                    "screenshots": [
+                        "cart-01-variation",
+                        "cart-02-edit-picker",
+                        "cart-03-updated"
+                    ],
+                    "expect": "'Change variation' dialog opens; confirming swaps the chip to 'Variation: Premium · 250g'"
                 }
             ]
         },
@@ -671,6 +706,38 @@
                     "action": "delete the voucher",
                     "screenshot": "sv-04-deleted",
                     "expect": "the voucher row disappears"
+                }
+            ]
+        },
+        {
+            "id": "seller-staff",
+            "spec": "specs/seller-staff.spec.ts",
+            "description": "Shop staff invitation, acceptance, permission scoping, and removal lifecycle.",
+            "steps": [
+                {
+                    "action": "goto /seller/staff",
+                    "screenshot": "staff-01-team-page",
+                    "expect": "Team page renders with seat counter"
+                },
+                {
+                    "action": "invite staff member",
+                    "screenshot": "staff-02-invite-sent",
+                    "expect": "staff invitation listed with Pending badge"
+                },
+                {
+                    "action": "view invitation as invitee",
+                    "screenshot": "staff-03-invite-view",
+                    "expect": "invitation page displays shop name and permissions"
+                },
+                {
+                    "action": "accept invitation and access seller dashboard",
+                    "screenshot": "staff-04-seller-dashboard",
+                    "expect": "lands on seller dashboard; staff can view products but 404s on finance/settings"
+                },
+                {
+                    "action": "remove staff member as owner",
+                    "screenshot": "staff-05-member-removed",
+                    "expect": "member removed; staff member loses seller workspace access"
                 }
             ]
         }

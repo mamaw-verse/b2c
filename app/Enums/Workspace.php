@@ -84,7 +84,7 @@ enum Workspace: string
 
         return match ($this) {
             self::Buyer => ! $user->isAdmin(),
-            self::Seller => ! $user->isAdmin() && ($shop = $user->shop) !== null && $shop->isApproved(),
+            self::Seller => ! $user->isAdmin() && ($shop = $user->operatedShop()) !== null && $shop->isApproved(),
             self::Admin => $user->isAdmin(),
         };
     }

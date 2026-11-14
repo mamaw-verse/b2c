@@ -5,6 +5,7 @@ const BUYER = 'test@example.com';
 const QURAN = '/products/quran-with-english-translation-hardcover';
 const AJWA = '/products/ajwa-dates-500g-premium-grade-resealable-tub';
 const SOLD_OUT = '/products/halal-certified-beef-tapa-300g-vacuum-pack';
+const TRAVEL_MAT = '/products/travel-prayer-mat-with-qibla-compass-and-pouch';
 
 test.describe('product detail', () => {
     test('renders the detail page with price and reviews', async ({ page }) => {
@@ -34,7 +35,7 @@ test.describe('product detail', () => {
         await shot(page, 'pdp-03-halal');
     });
 
-    test('opens the variation picker for a product with variants', async ({
+    test('opens the variation picker and updates the selection', async ({
         page,
     }) => {
         await page.goto(AJWA);
@@ -48,15 +49,37 @@ test.describe('product detail', () => {
         ).toBeVisible();
         await shot(page, 'pdp-04-variation-picker');
 
+        // Option names come from the product (Grade / Weight on the seeded
+        // Ajwa listing); picking a different grade swaps the weight default.
+        await dialog.getByText('Standard', { exact: true }).click();
+        await expect(dialog.locator('legend').first()).toContainText(
+            'Standard',
+        );
+        await dialog.getByText('1kg', { exact: true }).click();
+        await expect(dialog).toContainText('999');
+        await shot(page, 'pdp-04b-variation-selected');
+
         await page.keyboard.press('Escape');
         await expect(dialog).toHaveCount(0);
+    });
+
+    test('links the shop header to the shop profile', async ({ page }) => {
+        await page.goto(QURAN);
+
+        const viewShop = page.getByRole('link', { name: 'View shop' });
+        await expect(viewShop).toHaveAttribute('href', '/shops/barakah-pantry');
+        await viewShop.click();
+        await expect(page).toHaveURL(/\/shops\/barakah-pantry/);
+        await shot(page, 'pdp-08-shop-profile');
     });
 
     test('opens the report dialog for a logged-in buyer', async ({ page }) => {
         await login(page, BUYER);
         await page.goto(QURAN);
 
-        await page.getByRole('button', { name: 'Report', exact: true }).click();
+        await page
+            .getByRole('button', { name: 'Report this product', exact: true })
+            .click();
 
         const dialog = page.locator('dialog[open]');
         await expect(dialog).toContainText(
@@ -95,5 +118,29 @@ test.describe('product detail', () => {
         await expect(buy).toBeVisible();
         await expect(buy).toBeDisabled();
         await shot(page, 'pdp-07-sold-out');
+    });
+
+    test('renders video slide first with controls and play thumbnail', async ({
+        page,
+    }) => {
+        await page.goto(TRAVEL_MAT);
+
+        const video = page.locator('video');
+        await expect(video).toBeVisible();
+        await expect(video).toHaveAttribute('controls', '');
+        await expect(video).not.toHaveAttribute('autoplay');
+
+        // Zoom button is not present on the video slide
+        await expect(page.getByRole('button', { name: /Zoom/i })).toHaveCount(
+            0,
+        );
+
+        // Thumbnail has play icon tile
+        const videoThumb = page.getByRole('button', {
+            name: 'Show product video',
+        });
+        await expect(videoThumb).toBeVisible();
+
+        await shot(page, 'pdp-09-video-slide');
     });
 });

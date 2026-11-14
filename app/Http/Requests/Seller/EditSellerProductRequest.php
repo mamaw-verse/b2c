@@ -19,7 +19,9 @@ final class EditSellerProductRequest extends FormRequest
         $product = $this->route('product');
         assert($product instanceof Product);
 
-        return ($user->isSeller() && $user->shop && $product->shop_id === $user->shop->id)
+        $operatedShop = $user->operatedShop();
+
+        return ($operatedShop !== null && $product->shop_id === $operatedShop->id)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Actions\Cart;
 
 use App\Actions\Finance\ResolveCommissionRate;
+use App\Actions\Seller\ResolveAffiliateRate;
 use App\Enums\DiscountType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\VoucherKind;
 use App\Models\Address;
+use App\Models\AffiliateProfile;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -24,11 +26,15 @@ use App\Notifications\SellerOrderNotification;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 final readonly class PlaceOrder
 {
-    public function __construct(private ResolveCommissionRate $commission) {}
+    public function __construct(
+        private ResolveCommissionRate $commission,
+        private ResolveAffiliateRate $affiliateRate,
+    ) {}
 
     /**
      * @return Order|Collection<int, Order>
@@ -40,7 +46,8 @@ final readonly class PlaceOrder
         string $paymentMethod,
         ?Voucher $shopVoucher = null,
         ?Voucher $platformVoucher = null,
-        ?string $notes = null
+        ?string $notes = null,
+        ?string $affiliateCode = null
     ): Order|Collection {
         $paymentEnum = PaymentMethod::tryFrom($paymentMethod) ?? PaymentMethod::Cod;
 
@@ -51,7 +58,8 @@ final readonly class PlaceOrder
             $paymentEnum,
             $shopVoucher,
             $platformVoucher,
-            $notes
+            $notes,
+            $affiliateCode
         ): Order|Collection {
             $items = CartItem::with(['product', 'variation'])
                 ->where('user_id', $user->id)
@@ -67,6 +75,13 @@ final readonly class PlaceOrder
             $createdOrders = [];
             $shopGroups = $items->groupBy('product.shop_id');
             $shopCount = $shopGroups->count();
+
+            $cookieRef = request()->cookie('affiliate_ref');
+            $ref = $affiliateCode ?? (is_string($cookieRef) ? $cookieRef : null);
+            $affiliateProfile = null;
+            if ($ref !== null && $ref !== '') {
+                $affiliateProfile = AffiliateProfile::active()->where('code', $ref)->first();
+            }
 
             foreach ($shopGroups as $shopId => $groupItems) {
                 $subtotal = 0;
@@ -113,6 +128,23 @@ final readonly class PlaceOrder
 
                     $commissionBps = $this->commission->handle($item->product->category);
 
+                    $affiliateProfileId = null;
+                    $affiliateBps = 0;
+                    $affiliateAmount = 0;
+
+                    if ($affiliateProfile !== null
+                        && $affiliateProfile->user_id !== $user->id
+                        && $affiliateProfile->user_id !== $item->product->shop->user_id
+                        && ! $item->product->shop->staff()->where('user_id', $affiliateProfile->user_id)->where('status', 'active')->exists()
+                    ) {
+                        $rate = $this->affiliateRate->handle($item->product);
+                        if ($rate !== null && $rate > 0) {
+                            $affiliateProfileId = $affiliateProfile->id;
+                            $affiliateBps = $rate;
+                            $affiliateAmount = (int) round($lineSubtotal * $rate / 10000);
+                        }
+                    }
+
                     $orderItemsData[] = [
                         'product_id' => $item->product_id,
                         'product_variation_id' => $item->product_variation_id,
@@ -123,6 +155,9 @@ final readonly class PlaceOrder
                         'subtotal' => $lineSubtotal,
                         'commission_bps' => $commissionBps,
                         'commission_amount' => (int) round($lineSubtotal * $commissionBps / 10000),
+                        'affiliate_profile_id' => $affiliateProfileId,
+                        'affiliate_bps' => $affiliateBps,
+                        'affiliate_amount' => $affiliateAmount,
                     ];
                 }
 
@@ -197,7 +232,7 @@ final readonly class PlaceOrder
                     "Order #{$order->id} placed. Total ".Money::format($total),
                 ));
 
-                DB::afterCommit(fn () => $order->shop->owner?->notify(new SellerOrderNotification($order, 'created')));
+                DB::afterCommit(fn () => Notification::send($order->shop->operators(), new SellerOrderNotification($order, 'created')));
 
                 $createdOrders[] = $order;
             }

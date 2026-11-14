@@ -89,9 +89,21 @@ test.describe.serial('full order lifecycle', () => {
             details: 'Automated e2e report for moderation coverage.',
         });
 
-        // Cart → checkout → place order.
+        // Cart → checkout → place order. Bump the quantity to 2 so the
+        // return/refund flow below can exercise a partial refund (qa3
+        // task 7.1).
         await page.goto('/cart');
         await shot(page, 'buyer-02-cart');
+        await page
+            .getByRole('button', { name: 'Increase quantity' })
+            .first()
+            .click();
+        await expect(
+            page
+                .getByRole('group', { name: 'Quantity' })
+                .locator('input')
+                .first(),
+        ).toHaveValue('2');
         await page
             .getByRole('button', { name: /Checkout/ })
             .first()
@@ -119,6 +131,10 @@ test.describe.serial('full order lifecycle', () => {
             .first()
             .click();
         await expect(page).toHaveURL(/account\/orders\/.+/);
+        // Fulfilment lines show the uploaded product photo (qa3 task 6.3).
+        await expect(
+            page.locator('img[src*="prod-quran-hardcover"]').first(),
+        ).toBeVisible();
         await shot(page, 'buyer-06-order-detail');
         await page.reload();
         const detail = await pageProps<{
@@ -149,6 +165,19 @@ test.describe.serial('full order lifecycle', () => {
             .first()
             .click();
         await expect(page).toHaveURL(/seller\/orders\/.+/);
+
+        // The customer panel links through to the seller customer profile
+        // (qa3 task 6.2) and fulfilment cards render the real product photo
+        // instead of only the icon (task 6.3).
+        await expect(
+            page.getByRole('heading', { name: 'Customer' }),
+        ).toBeVisible();
+        await expect(
+            page.getByRole('link', { name: 'View profile' }),
+        ).toHaveAttribute('href', /\/seller\/customers\//);
+        await expect(
+            page.locator('img[src*="prod-quran-hardcover"]').first(),
+        ).toBeVisible();
         await shot(page, 'seller-03-order');
 
         await page.getByRole('button', { name: /Arrange shipment/ }).click();
@@ -244,6 +273,11 @@ test.describe.serial('full order lifecycle', () => {
         await page.getByRole('button', { name: 'Return / refund' }).click();
         const returnModal = page.locator('dialog[open]');
         await expect(returnModal).toContainText('Request Return / Refund');
+        // The modal lists each item with a checkbox and quantity (qa3 task
+        // 7.1); request one of the two units so the seller can approve a
+        // partial refund.
+        await returnModal.locator('input[type="checkbox"]').first().check();
+        await returnModal.locator('input[type="number"]').first().fill('1');
         await returnModal
             .locator('textarea')
             .fill('E2E: item arrived damaged.');
@@ -304,6 +338,14 @@ test.describe.serial('full order lifecycle', () => {
         await page.getByRole('button', { name: 'Return / refund' }).click();
         const secondReturnModal = page.locator('dialog[open]');
         await secondReturnModal
+            .locator('input[type="checkbox"]')
+            .first()
+            .check();
+        await secondReturnModal
+            .locator('input[type="number"]')
+            .first()
+            .fill('1');
+        await secondReturnModal
             .locator('textarea')
             .fill('E2E: second return request.');
         await secondReturnModal
@@ -314,7 +356,7 @@ test.describe.serial('full order lifecycle', () => {
         ).toBeVisible({ timeout: 15_000 });
     });
 
-    test('seller approves the refund and the order becomes refunded', async ({
+    test('seller approves a partial refund and the order stays completed', async ({
         page,
     }) => {
         await login(page, SELLER);
@@ -322,12 +364,74 @@ test.describe.serial('full order lifecycle', () => {
         await expect(
             page.getByText('E2E: second return request.').first(),
         ).toBeVisible();
+
+        // The buyer requested 1 of 2 units, so the selections default to
+        // the requested quantity and the button offers a partial refund
+        // (qa3 task 7.1).
+        const approve = page.getByRole('button', {
+            name: 'Approve partial refund',
+            exact: true,
+        });
+        await expect(approve).toBeVisible();
+        await expect(
+            page.getByText('Refund total:', { exact: false }),
+        ).toBeVisible();
         page.once('dialog', (dialog) => dialog.accept());
-        await page.getByRole('button', { name: 'Approve refund' }).click();
+        await approve.click();
+
+        // A partial refund returns the order to Completed and logs a
+        // "Partial refund approved" event with a help link (qa3 tasks 7.1
+        // and 7.2).
+        await expect(
+            page.getByText('Partial refund approved', { exact: false }).first(),
+        ).toBeVisible({ timeout: 15_000 });
+        await expect(
+            page.getByRole('link', { name: /How refunds work/ }).first(),
+        ).toBeVisible();
+        await shot(page, 'seller-09-partial-refund');
+    });
+
+    test('buyer requests the remaining unit after the partial refund', async ({
+        page,
+    }) => {
+        await login(page, BUYER);
+        await page.goto(`/account/orders/${orderId}`);
+        // The order is back to Completed, so it can be returned again for
+        // the one unit that was not refunded.
+        await page.getByRole('button', { name: 'Return / refund' }).click();
+        const returnModal = page.locator('dialog[open]');
+        await returnModal.locator('input[type="checkbox"]').first().check();
+        await returnModal.locator('input[type="number"]').first().fill('1');
+        await returnModal
+            .locator('textarea')
+            .fill('E2E: final return request.');
+        await returnModal
+            .getByRole('button', { name: 'Submit request' })
+            .click();
+        await expect(
+            page.getByText('Return/refund requested', { exact: false }).first(),
+        ).toBeVisible({ timeout: 15_000 });
+    });
+
+    test('seller approves the remaining refund and the order is refunded', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        await page.goto(`/seller/orders/${orderId}`);
+        await expect(
+            page.getByText('E2E: final return request.').first(),
+        ).toBeVisible();
+        const approve = page.getByRole('button', {
+            name: 'Approve full refund',
+            exact: true,
+        });
+        await expect(approve).toBeVisible();
+        page.once('dialog', (dialog) => dialog.accept());
+        await approve.click();
         await expect(
             page.getByText('Refunded', { exact: true }).first(),
         ).toBeVisible({ timeout: 15_000 });
-        await shot(page, 'seller-09-refunded');
+        await shot(page, 'seller-10-refunded');
     });
 
     test('buyer sees the approved refund outcome', async ({ page }) => {
@@ -336,6 +440,11 @@ test.describe.serial('full order lifecycle', () => {
         await expect(
             page.getByText('Your refund has been approved.'),
         ).toBeVisible({ timeout: 15_000 });
+        // Refund timeline events link to the returns policy page (qa3 task
+        // 7.2).
+        await expect(
+            page.getByRole('link', { name: /How refunds work/ }).first(),
+        ).toBeVisible();
         await shot(page, 'buyer-14-refunded');
     });
 });

@@ -84,6 +84,9 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::get('account/notifications', [App\Http\Controllers\Notification\NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/read', [App\Http\Controllers\Notification\NotificationReadController::class, 'store'])->name('notifications.read.store');
 
+        Route::get('account/affiliate', [App\Http\Controllers\Account\AffiliateController::class, 'index'])->name('account.affiliate.index');
+        Route::post('account/affiliate', [App\Http\Controllers\Account\AffiliateController::class, 'store'])->name('account.affiliate.store');
+
         Route::post('shops/{shop:slug}/follow', [ShopFollowController::class, 'store'])->name('shops.follow.store');
         Route::delete('shops/{shop:slug}/follow', [ShopFollowController::class, 'destroy'])->name('shops.follow.destroy');
 
@@ -91,11 +94,15 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::get('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'create'])->name('seller.register');
         Route::post('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'store'])->name('seller.register.store');
         Route::get('seller/suspended', App\Http\Controllers\Seller\SuspendedShopController::class)->name('seller.suspended');
+
+        Route::resource('staff-invitations', App\Http\Controllers\ShopStaffInvitationController::class)->parameters(['staff-invitations' => 'staffInvitation'])->only(['show', 'update', 'destroy'])->names('staff-invitations');
     });
 
     Route::prefix('seller')->name('seller.')->middleware('workspace:seller')->group(function () {
         Route::get('dashboard', App\Http\Controllers\Seller\DashboardController::class)->name('dashboard');
         Route::resource('products', App\Http\Controllers\Seller\ProductController::class)->names('products');
+        Route::post('products/bulk-affiliate', [App\Http\Controllers\Seller\BulkProductAffiliateController::class, 'store'])->name('products.bulk-affiliate.store');
+        Route::resource('staff', App\Http\Controllers\Seller\ShopStaffController::class)->only(['index', 'store', 'destroy'])->names('staff');
         Route::resource('orders', App\Http\Controllers\Seller\OrderController::class)->only(['index', 'show'])->names('orders');
         Route::post('orders/{order}/return', [App\Http\Controllers\Seller\OrderReturnController::class, 'store'])->name('orders.return.store');
         Route::post('orders/{order}/chat', [App\Http\Controllers\Seller\OrderChatController::class, 'store'])->name('orders.chat.store');

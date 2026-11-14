@@ -37,9 +37,10 @@ async function pickOptionByLabel(page: Page, id: string, label: string) {
 
 /**
  * Fill the PSGC address fields: first region/province, then a city that has
- * both barangays and a postal code in the PSGC data. PSGC selections and
- * file uploads are not persisted between applications, so resubmissions
- * after "changes requested" must call this again.
+ * both barangays and a postal code in the PSGC data. Only needed for the
+ * first submission — resubmissions after "changes requested" get the saved
+ * codes, address and uploaded files back from the application payload
+ * (qa3 task 3.2).
  */
 async function pickAddress(page: Page) {
     await pickFirstOption(page, 'f-region');
@@ -86,12 +87,6 @@ async function pickAddress(page: Page) {
         await postal.fill('7000');
     }
 }
-
-const uploadPdf = {
-    name: 'document.pdf',
-    mimeType: 'application/pdf',
-    buffer: MINIMAL_PDF,
-};
 
 test.describe.serial('seller registration', () => {
     test.beforeAll(() => {
@@ -301,12 +296,25 @@ test.describe.serial('seller registration', () => {
             page.getByText(/clearer business permit scan/),
         ).toBeVisible();
         await expect(page.locator('#f-shop-name')).toHaveValue(shopName);
-        await shot(page, 'seller-reg-09-changes-banner');
 
-        // PSGC selections and file uploads are not persisted — redo them.
-        await pickAddress(page);
-        await page.locator('#f-permit-file').setInputFiles(uploadPdf);
-        await page.locator('#cert-0-document-file').setInputFiles(uploadPdf);
+        // PSGC codes, the street address and every uploaded file are kept
+        // from the first submission (qa3 task 3.2): the selects are
+        // prefilled and each file field offers "Current file" with a
+        // view/replace pair instead of forcing a re-upload.
+        for (const id of ['f-region', 'f-province', 'f-city', 'f-barangay']) {
+            await expect(page.locator(`#${id}`)).not.toHaveValue('');
+        }
+        await expect(page.locator('#f-street')).not.toHaveValue('');
+        await expect(page.locator('[data-file-field="f-logo"]')).toContainText(
+            'Current file',
+        );
+        await expect(
+            page.locator('[data-file-field="f-permit"]'),
+        ).toContainText('Current file');
+        await expect(
+            page.locator('[data-file-field="cert-0-document"]'),
+        ).toContainText('Current file');
+        await shot(page, 'seller-reg-09-changes-banner');
 
         await page.locator('#f-terms').check();
         await page.getByRole('checkbox', { name: /true and correct/i }).check();
@@ -334,7 +342,16 @@ test.describe.serial('seller registration', () => {
 
         await item.click();
         await expect(page).toHaveURL(/admin\/moderation\/.+/);
-        // The snapshot shows the shop name and the submitted documents.
+        // The snapshot is grouped into labelled sections (qa3 task 3.3) and
+        // shows the shop name plus the submitted documents.
+        await expect(
+            page.getByRole('heading', { name: 'Shop application' }),
+        ).toBeVisible();
+        for (const section of ['Applicant', 'Shop details', 'Documents']) {
+            await expect(
+                page.getByRole('heading', { name: section, exact: true }),
+            ).toBeVisible();
+        }
         await expect(page.getByText(shopName).first()).toBeVisible();
         await expect(page.getByText('Business permit').first()).toBeVisible();
         await shot(page, 'seller-reg-06-application');

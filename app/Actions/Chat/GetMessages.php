@@ -18,7 +18,7 @@ final readonly class GetMessages
     public function handle(User $user, Conversation $conversation): Collection
     {
         $isBuyer = $conversation->user_id === $user->id;
-        $isSeller = $conversation->shop->user_id === $user->id;
+        $isSeller = $conversation->shop->isOperatedBy($user);
 
         if (! $isBuyer && ! $isSeller) {
             throw ValidationException::withMessages(['conversation' => 'Unauthorized conversation access.']);

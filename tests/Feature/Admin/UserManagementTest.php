@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Shop;
+use App\Models\ShopStaff;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -95,4 +96,30 @@ test('non-admin gets a not found response on user management routes', function (
 
     $this->actingAs($user)->get(route('admin.users.index'))->assertNotFound();
     $this->actingAs($user)->post(route('admin.users.suspension.store', $target))->assertNotFound();
+});
+
+test('admin can see shop staff association in user list and show', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $owner = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $owner->id, 'name' => 'Al-Barakah Mart']);
+
+    $staffUser = User::factory()->create(['email' => 'staffer@example.com']);
+    ShopStaff::factory()->active()->create([
+        'shop_id' => $shop->id,
+        'user_id' => $staffUser->id,
+        'email' => $staffUser->email,
+    ]);
+
+    $listResponse = $this->actingAs($admin)->get(route('admin.users.index', ['q' => 'staffer']));
+    $listResponse->assertOk();
+    $users = $listResponse->viewData('page')['props']['users'];
+    $staffRow = collect($users)->firstWhere('id', $staffUser->id);
+    expect($staffRow['staff_at'])->not->toBeNull()
+        ->and($staffRow['staff_at']['name'])->toBe('Al-Barakah Mart');
+
+    $showResponse = $this->actingAs($admin)->get(route('admin.users.show', $staffUser));
+    $showResponse->assertOk();
+    $shown = $showResponse->viewData('page')['props']['user'];
+    expect($shown['staff_at'])->not->toBeNull()
+        ->and($shown['staff_at']['name'])->toBe('Al-Barakah Mart');
 });

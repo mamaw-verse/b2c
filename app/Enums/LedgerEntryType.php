@@ -8,6 +8,7 @@ enum LedgerEntryType: string
 {
     case Sale = 'sale';
     case Commission = 'commission';
+    case AffiliateCommission = 'affiliate_commission';
     case PlatformVoucherReimbursement = 'platform_voucher_reimbursement';
     case Refund = 'refund';
     case Adjustment = 'adjustment';
@@ -18,6 +19,7 @@ enum LedgerEntryType: string
         return match ($this) {
             self::Sale => 'Sale',
             self::Commission => 'Commission',
+            self::AffiliateCommission => 'Affiliate commission',
             self::PlatformVoucherReimbursement => 'Platform voucher reimbursement',
             self::Refund => 'Refund',
             self::Adjustment => 'Adjustment',

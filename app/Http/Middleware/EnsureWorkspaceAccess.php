@@ -42,7 +42,7 @@ final class EnsureWorkspaceAccess
         }
 
         if ($workspace === 'seller') {
-            $shop = $request->user()?->shop;
+            $shop = $request->user()?->operatedShop();
 
             if ($shop === null || ! $shop->isApproved()) {
                 if ($isRead && ! $request->expectsJson()) {

@@ -13,7 +13,7 @@ final class WhyChooseUsController
     public function __invoke(Request $request): Response
     {
         return Inertia::render('why-choose-us', [
-            'canBecomeSeller' => $request->user()?->isSeller() === false,
+            'canBecomeSeller' => $request->user()?->isSeller() !== true,
             'halalCertificationUrl' => config('services.halal_certification.url'),
             'b2bUrl' => config('services.b2b.url'),
         ]);

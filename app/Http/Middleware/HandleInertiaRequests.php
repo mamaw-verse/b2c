@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\MessageSenderRole;
 use App\Enums\ModerationState;
 use App\Enums\Workspace;
 use App\Models\Category;
@@ -46,7 +47,7 @@ final class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $workspace = Workspace::fromRequest($request);
-        $shop = $user?->shop;
+        $shop = $user?->operatedShop();
         // Admins have a single unified shell, so their badges and unread
         // counts always reflect the account (buyer) scope even on /admin/*.
         $countScope = $workspace === Workspace::Admin ? Workspace::Buyer : $workspace;
@@ -68,6 +69,7 @@ final class HandleInertiaRequests extends Middleware
                     'current' => $w === $workspace || count($allowed) === 1,
                 ])->all(),
             'seller' => $shop === null ? null : [
+                'role' => $user->ownsShop() ? 'owner' : 'staff',
                 'status' => $shop->status->value,
                 'suspended' => (bool) $shop->suspended,
                 'shop_name' => $shop->name,
@@ -83,12 +85,21 @@ final class HandleInertiaRequests extends Middleware
             'unreadCounts' => fn () => $request->user() ? [
                 'chat' => Message::whereHas('conversation', function ($q) use ($request, $countScope) {
                     if ($countScope === Workspace::Seller) {
-                        $q->whereHas('shop', fn ($sq) => $sq->where('user_id', $request->user()->id));
+                        $operated = $request->user()->operatedShop();
+                        if ($operated !== null) {
+                            $q->where('shop_id', $operated->id);
+                        } else {
+                            $q->whereRaw('1 = 0');
+                        }
                     } else {
                         $q->where('user_id', $request->user()->id);
                     }
-                })->where(function ($q) use ($request) {
-                    $q->where('sender_id', '!=', $request->user()->id)->orWhereNull('sender_id');
+                })->where(function ($q) use ($request, $countScope) {
+                    if ($countScope === Workspace::Seller) {
+                        $q->where('sender_role', MessageSenderRole::Buyer->value);
+                    } else {
+                        $q->where('sender_id', '!=', $request->user()->id)->orWhereNull('sender_id');
+                    }
                 })->whereNull('read_at')->count(),
                 'notifications' => $request->user()->unreadNotifications()
                     ->whereRaw("COALESCE(data::jsonb->>'workspace', 'buyer') = ?", [$countScope->value])

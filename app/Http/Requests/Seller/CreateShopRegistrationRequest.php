@@ -17,6 +17,10 @@ final class CreateShopRegistrationRequest extends FormRequest
         $user = $this->user();
         assert($user instanceof User);
 
+        if ($user->isShopStaff()) {
+            return Response::denyAsNotFound();
+        }
+
         $shop = $user->shop;
 
         return match (true) {

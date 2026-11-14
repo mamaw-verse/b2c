@@ -13,9 +13,13 @@ final class ListSellerOrdersRequest extends FormRequest
     public function authorize(): Response
     {
         $user = $this->user();
-        assert($user instanceof User);
+        if (! $user instanceof User) {
+            return Response::denyAsNotFound();
+        }
 
-        return ($user->isSeller() && $user->shop()->exists())
+        $operatedShop = $user->operatedShop();
+
+        return ($operatedShop !== null && ! $operatedShop->suspended)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

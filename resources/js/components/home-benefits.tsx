@@ -129,7 +129,7 @@ export function HomeBenefits({
                         >
                             {homeBenefitsContent.heading}
                         </h2>
-                        <p className="text-body text-primary-soft-foreground/80">
+                        <p className="text-body text-primary-soft-foreground">
                             {homeBenefitsContent.intro}
                         </p>
                     </div>

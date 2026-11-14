@@ -24,6 +24,13 @@ type Detail = {
         status: string;
         suspended: boolean;
     } | null;
+    staff_at?: {
+        id: string;
+        name: string;
+        slug: string;
+        status: string;
+        suspended: boolean;
+    } | null;
     orders_count: number;
     reports_count: number;
     created_at: string;
@@ -76,6 +83,25 @@ export default function AdminUserShow({ user }: { user: Detail }) {
                             </a>{' '}
                             · {user.shop.status}
                             {user.shop.suspended && ' · shop suspended'}
+                        </p>
+                    </div>
+                )}
+
+                {user.staff_at && (
+                    <div className="panel grid gap-2 p-4">
+                        <p className="text-label">Shop Staff</p>
+                        <p className="text-body-sm text-muted-foreground">
+                            Staff at{' '}
+                            <a
+                                href={
+                                    showShop({ shop: user.staff_at.slug }).url
+                                }
+                                className="text-primary-text underline"
+                            >
+                                {user.staff_at.name}
+                            </a>{' '}
+                            · {user.staff_at.status}
+                            {user.staff_at.suspended && ' · shop suspended'}
                         </p>
                     </div>
                 )}

@@ -129,6 +129,16 @@ return [
         'minimum' => (int) env('MARKETPLACE_PAYOUT_MINIMUM', 50000),
     ],
 
+    'seller' => [
+        'max_staff' => (int) env('MARKETPLACE_SELLER_MAX_STAFF', 2),
+    ],
+
+    'affiliate' => [
+        'default_bps' => (int) env('MARKETPLACE_AFFILIATE_DEFAULT_BPS', 500),
+        'min_bps' => (int) env('MARKETPLACE_AFFILIATE_MIN_BPS', 100),
+        'max_bps' => (int) env('MARKETPLACE_AFFILIATE_MAX_BPS', 3000),
+    ],
+
     'footer' => [
         'shop' => [
             ['label' => 'Sellers', 'href' => '/sellers'],

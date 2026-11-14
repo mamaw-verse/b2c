@@ -50,7 +50,7 @@ final class Conversation extends Model
     public function isParty(User $user, Workspace $workspace): bool
     {
         return match ($workspace) {
-            Workspace::Seller => $this->shop->user_id === $user->id,
+            Workspace::Seller => $this->shop->isOperatedBy($user),
             default => $this->user_id === $user->id,
         };
     }

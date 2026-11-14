@@ -17,12 +17,14 @@ final class UpdateSellerVoucherRequest extends FormRequest
     public function authorize(): Response
     {
         $user = $this->user();
-        assert($user instanceof User);
+        if (! $user instanceof User) {
+            return Response::denyAsNotFound();
+        }
 
         $voucher = $this->route('voucher');
         assert($voucher instanceof Voucher);
 
-        return ($user->isSeller() && $voucher->shop_id === $user->shop?->id)
+        return ($user->ownsShop() && ! $user->shop?->suspended && $voucher->shop_id === $user->shop?->id)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

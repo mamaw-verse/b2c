@@ -51,6 +51,8 @@ final readonly class ListSellerProducts
             'price' => $p->price,
             'stock' => $p->stock,
             'published' => $p->published,
+            'affiliate_enabled' => (bool) $p->affiliate_enabled,
+            'affiliate_commission_bps' => $p->affiliate_commission_bps,
             'halal_status' => $p->halal_status->value,
             'certifier' => $p->halalCertification?->certifying_body,
             'variations_count' => $p->variations_count,

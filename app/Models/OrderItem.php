@@ -26,12 +26,15 @@ use Illuminate\Support\Carbon;
  * @property int $subtotal
  * @property int $commission_bps
  * @property int $commission_amount
+ * @property string|null $affiliate_profile_id
+ * @property int $affiliate_bps
+ * @property int $affiliate_amount
  * @property-read int $remaining
  * @property-read int $refunded_quantity
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['order_id', 'product_id', 'product_variation_id', 'product_name', 'variation_label', 'unit_price', 'qty', 'subtotal', 'commission_bps', 'commission_amount'])]
+#[Fillable(['order_id', 'product_id', 'product_variation_id', 'product_name', 'variation_label', 'unit_price', 'qty', 'subtotal', 'commission_bps', 'commission_amount', 'affiliate_profile_id', 'affiliate_bps', 'affiliate_amount'])]
 final class OrderItem extends Model
 {
     /** @use HasFactory<OrderItemFactory> */
@@ -68,6 +71,18 @@ final class OrderItem extends Model
     public function refundItems(): HasMany
     {
         return $this->hasMany(OrderRefundItem::class);
+    }
+
+    /** @return BelongsTo<AffiliateProfile, $this> */
+    public function affiliateProfile(): BelongsTo
+    {
+        return $this->belongsTo(AffiliateProfile::class);
+    }
+
+    /** @return HasMany<AffiliateEarning, $this> */
+    public function affiliateEarnings(): HasMany
+    {
+        return $this->hasMany(AffiliateEarning::class);
     }
 
     public function refundedUnits(): int

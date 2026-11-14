@@ -115,7 +115,7 @@ export default function WorkspaceShell({
     badges?: Partial<Record<'orders' | 'chat' | 'queue', number>>;
     headerExtra?: ReactNode;
 }>) {
-    const { name, unreadCounts, pendingQueueCount } =
+    const { name, unreadCounts, pendingQueueCount, seller } =
         usePage<AppLayoutProps>().props;
     const notifUnread = unreadCounts?.notifications ?? 0;
     const [navOpen, setNavOpen] = useState(false);
@@ -128,7 +128,12 @@ export default function WorkspaceShell({
             ? sellerNotifications().url
             : buyerNotifications().url;
 
-    const navItems: NavItem[] = flatNav(workspace).map((item) => ({
+    const sellerRole =
+        workspace === 'seller'
+            ? (seller?.role as 'owner' | 'staff' | undefined)
+            : undefined;
+
+    const navItems: NavItem[] = flatNav(workspace, sellerRole).map((item) => ({
         ...item,
         badge:
             item.badgeKey === 'queue'

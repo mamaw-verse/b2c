@@ -8,6 +8,7 @@ export type BulkActionBarProps = {
     onAssignToMe?: () => void;
     onClearSelection?: () => void;
     processing?: boolean;
+    children?: React.ReactNode;
 };
 
 export function BulkActionBar({
@@ -18,6 +19,7 @@ export function BulkActionBar({
     onAssignToMe,
     onClearSelection,
     processing = false,
+    children,
 }: BulkActionBarProps) {
     if (selectedCount <= 0) {
         return null;
@@ -26,7 +28,7 @@ export function BulkActionBar({
     return (
         <div
             data-ds-bulk-bar
-            className="sticky top-[calc(var(--header-h)+env(safe-area-inset-top,0px))] z-sticky-bar hidden border-b border-border bg-surface-inverse md:block"
+            className="sticky top-[calc(var(--header-h)+env(safe-area-inset-top,0px))] z-sticky-bar block border-b border-border bg-surface-inverse"
         >
             <div className="on-inverse flex flex-wrap items-center gap-2 px-3 py-2 text-foreground-inverse">
                 <p className="flex-1 text-label" aria-live="polite">
@@ -85,6 +87,7 @@ export function BulkActionBar({
                         <span>Assign to me</span>
                     </button>
                 )}
+                {children}
             </div>
         </div>
     );

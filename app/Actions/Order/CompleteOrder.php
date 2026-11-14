@@ -11,6 +11,7 @@ use App\Models\OrderEvent;
 use App\Notifications\OrderStatusNotification;
 use App\Notifications\SellerOrderNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 final readonly class CompleteOrder
 {
@@ -32,7 +33,7 @@ final readonly class CompleteOrder
 
             $this->ledger->handle($order);
 
-            DB::afterCommit(fn () => $order->shop->owner?->notify(new SellerOrderNotification($order, 'completed')));
+            DB::afterCommit(fn () => Notification::send($order->shop->operators(), new SellerOrderNotification($order, 'completed')));
 
             $order->user->notify(new OrderStatusNotification(
                 $order,

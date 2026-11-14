@@ -59,7 +59,7 @@ final class CreateCheckoutRequest extends FormRequest
                 ->where('user_id', $this->user()->id)
                 ->where('selected', true)
                 ->get()
-                ->first(fn (CartItem $item) => $item->product->shop->user_id === $this->user()->id);
+                ->first(fn (CartItem $item) => $item->product->shop->isOperatedBy($this->user()));
 
             if ($ownShopItem !== null) {
                 $validator->errors()->add(

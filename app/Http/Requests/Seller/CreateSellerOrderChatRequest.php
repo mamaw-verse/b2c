@@ -14,12 +14,16 @@ final class CreateSellerOrderChatRequest extends FormRequest
     public function authorize(): Response
     {
         $user = $this->user();
-        assert($user instanceof User);
+        if (! $user instanceof User) {
+            return Response::denyAsNotFound();
+        }
 
         $order = $this->route('order');
         assert($order instanceof Order);
 
-        return ($user->isSeller() && $user->shop->id === $order->shop_id)
+        $operatedShop = $user->operatedShop();
+
+        return ($operatedShop !== null && ! $operatedShop->suspended && $operatedShop->id === $order->shop_id)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

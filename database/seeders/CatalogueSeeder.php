@@ -181,6 +181,14 @@ final class CatalogueSeeder extends Seeder
             ]);
         }
 
+        $travelMat = Product::where('slug', 'travel-prayer-mat-with-qibla-compass-and-pouch')->first();
+        if ($travelMat) {
+            $travelMat->update([
+                'video_path' => 'product-videos/sample.mp4',
+                'video_duration' => 2,
+            ]);
+        }
+
         // Authored catalogue depth: every name matches its category, photo and
         // shop; location always comes from the shop. Each product state the UI
         // renders (certified, review, expiring, expired, missing, na, frozen,

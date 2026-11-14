@@ -8,6 +8,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
 use App\Notifications\SellerOrderNotification;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 final readonly class MarkOrderReceived
@@ -24,7 +25,7 @@ final readonly class MarkOrderReceived
             throw ValidationException::withMessages(['order' => 'Order cannot be marked as received.']);
         }
 
-        $order->shop->owner?->notify(new SellerOrderNotification($order, 'received'));
+        Notification::send($order->shop->operators(), new SellerOrderNotification($order, 'received'));
         $this->complete->handle($order);
     }
 }

@@ -1,4 +1,5 @@
 import type { PropsWithChildren, ReactNode } from 'react';
+import React from 'react';
 import { SiteBottomTabs, type TabName } from '@/components/site-bottom-tabs';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
@@ -22,7 +23,14 @@ export default function PublicLayout({
     children,
 }: PropsWithChildren<PublicLayoutProps>) {
     return (
-        <div className="flex min-h-dvh flex-col">
+        <div
+            className="flex min-h-dvh flex-col"
+            style={
+                !tabBar
+                    ? ({ '--tabbar-h': '0px' } as React.CSSProperties)
+                    : undefined
+            }
+        >
             <a
                 href="#main"
                 className="fixed top-2 left-2 z-toast flex min-h-touch -translate-y-24 items-center rounded-button bg-primary px-4 text-label text-primary-foreground focus:translate-y-0"

@@ -1,12 +1,14 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { ImageUploader } from '@/components/image-uploader';
+import { VideoUploader } from '@/components/video-uploader';
 import { VariantMatrix, type VariationItem } from '@/components/variant-matrix';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { TextArea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { formatPeso } from '@/lib/format';
 import {
     store as storeRoute,
     update as updateRoute,
@@ -35,6 +37,9 @@ type ProductData = {
     option2_name: string;
     option2_values: string[];
     images?: { id: string; url: string; name: string; icon: string }[];
+    video?: { url: string; duration: number | null } | null;
+    affiliate_enabled?: boolean;
+    affiliate_commission_percent?: number | null;
 };
 
 type PageProps = {
@@ -43,9 +48,37 @@ type PageProps = {
 };
 
 export default function SellerProductForm({ product, categories }: PageProps) {
+    const { props } = usePage<{
+        seller?: { role?: 'owner' | 'staff' } | null;
+        marketplace?: {
+            commission?: { default_bps?: number };
+            affiliate?: {
+                default_bps?: number;
+                min_bps?: number;
+                max_bps?: number;
+            };
+        };
+    }>();
+    const isOwner = props.seller?.role === 'owner';
+
     const isEditing = product !== null;
     const [name, setName] = useState(product?.name ?? '');
     const [description, setDescription] = useState(product?.description ?? '');
+    const [regularPrice, setRegularPrice] = useState<string | number>(
+        product?.price ?? product?.variations?.[0]?.price ?? '',
+    );
+    const [salePrice, setSalePrice] = useState<string | number>(
+        product?.sale_price ?? product?.variations?.[0]?.sale_price ?? '',
+    );
+    const [affiliateEnabled, setAffiliateEnabled] = useState(
+        product?.affiliate_enabled ?? false,
+    );
+    const [affiliatePercent, setAffiliatePercent] = useState<string | number>(
+        product?.affiliate_commission_percent ??
+            (props.marketplace?.affiliate?.default_bps
+                ? props.marketplace.affiliate.default_bps / 100
+                : 5),
+    );
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [existingImages, setExistingImages] = useState<
         { id: string; url: string }[]
@@ -55,6 +88,15 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                 ?.filter((img) => !!img.url)
                 .map((img) => ({ id: img.id, url: img.url })) ?? [],
     );
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [videoDuration, setVideoDuration] = useState<number | null>(
+        product?.video?.duration ?? null,
+    );
+    const [existingVideo, setExistingVideo] = useState<{
+        url: string;
+        duration: number | null;
+    } | null>(product?.video ?? null);
+    const [removeVideo, setRemoveVideo] = useState(false);
     const [hasVariations, setHasVariations] = useState(
         product?.has_variations ?? (product?.variations?.length ?? 0) > 0,
     );
@@ -108,6 +150,30 @@ export default function SellerProductForm({ product, categories }: PageProps) {
             }),
         );
 
+    const effectivePricePesos = hasVariations
+        ? variations[0]?.sale_price || variations[0]?.price || 0
+        : salePrice !== '' && !isNaN(Number(salePrice)) && Number(salePrice) > 0
+          ? Number(salePrice)
+          : regularPrice !== '' && !isNaN(Number(regularPrice))
+            ? Number(regularPrice)
+            : 0;
+
+    const priceInCentavos = Math.round(Number(effectivePricePesos) * 100);
+    const commissionPercent = Number(affiliatePercent) || 0;
+    const affiliateCentavos = Math.round(
+        (priceInCentavos * commissionPercent) / 100,
+    );
+
+    const platformBps = props.marketplace?.commission?.default_bps ?? 0;
+    const platformCentavos = Math.round(
+        (priceInCentavos * platformBps) / 10000,
+    );
+
+    const netCentavos = Math.max(
+        0,
+        priceInCentavos - affiliateCentavos - platformCentavos,
+    );
+
     const action = isEditing
         ? updateRoute({ product: product!.id })
         : storeRoute();
@@ -125,8 +191,19 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                     ...data,
                     images: imageFiles,
                     keep_image_ids: existingImages.map((img) => img.id),
+                    video: videoFile,
+                    video_duration: videoDuration,
+                    remove_video: removeVideo ? 1 : 0,
                     option1_name: hasVariations ? option1Name : null,
                     option2_name: hasVariations ? option2Name || null : null,
+                    ...(isOwner
+                        ? {
+                              affiliate_enabled: affiliateEnabled ? 1 : 0,
+                              affiliate_commission_percent: affiliateEnabled
+                                  ? affiliatePercent
+                                  : undefined,
+                          }
+                        : {}),
                 })}
             >
                 {({ errors, processing }) => (
@@ -224,6 +301,141 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                 />
                             </section>
 
+                            {/* Product video */}
+                            <section className="panel p-4 md:p-6">
+                                <h2 className="mb-4 text-h3">Product video</h2>
+                                <VideoUploader
+                                    file={videoFile}
+                                    onChange={(file, duration) => {
+                                        setVideoFile(file);
+                                        setVideoDuration(duration);
+                                        if (file) {
+                                            setRemoveVideo(false);
+                                        }
+                                    }}
+                                    existing={existingVideo}
+                                    onRemoveExisting={() => {
+                                        setExistingVideo(null);
+                                        setRemoveVideo(true);
+                                        setVideoDuration(null);
+                                    }}
+                                    error={errors.video}
+                                />
+                            </section>
+
+                            {/* Affiliate (owner-only) */}
+                            {isOwner && (
+                                <section
+                                    className="panel p-4 md:p-6"
+                                    data-testid="affiliate-panel"
+                                >
+                                    <h2 className="mb-4 text-h3">
+                                        Affiliate program
+                                    </h2>
+                                    <div className="grid gap-4">
+                                        <Switch
+                                            id="affiliate_enabled"
+                                            name="affiliate_enabled"
+                                            label="Allow affiliates to promote this product"
+                                            checked={affiliateEnabled}
+                                            onChange={(e) =>
+                                                setAffiliateEnabled(
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+
+                                        {affiliateEnabled && (
+                                            <div className="grid gap-4 pt-2">
+                                                <FormField
+                                                    label="Affiliate commission (%)"
+                                                    error={
+                                                        errors.affiliate_commission_percent
+                                                    }
+                                                    help="Between 1% and 30%. Paid to creators when their referral leads to a completed order."
+                                                    required
+                                                >
+                                                    <Input
+                                                        type="number"
+                                                        name="affiliate_commission_percent"
+                                                        min="1"
+                                                        max="30"
+                                                        step="0.1"
+                                                        value={affiliatePercent}
+                                                        onChange={(e) =>
+                                                            setAffiliatePercent(
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        required
+                                                    />
+                                                </FormField>
+
+                                                {priceInCentavos > 0 && (
+                                                    <div className="bg-muted/40 rounded-lg border border-border p-4 text-body-sm">
+                                                        <h3 className="mb-2 font-medium text-foreground">
+                                                            Live payout
+                                                            breakdown (based on{' '}
+                                                            {formatPeso(
+                                                                priceInCentavos,
+                                                            )}
+                                                            )
+                                                        </h3>
+                                                        <div className="space-y-1.5 text-muted-foreground">
+                                                            <div className="flex justify-between">
+                                                                <span>
+                                                                    Affiliate
+                                                                    commission (
+                                                                    {
+                                                                        commissionPercent
+                                                                    }
+                                                                    %):
+                                                                </span>
+                                                                <span className="font-medium text-foreground">
+                                                                    {formatPeso(
+                                                                        affiliateCentavos,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span>
+                                                                    Platform fee
+                                                                    (
+                                                                    {(
+                                                                        platformBps /
+                                                                        100
+                                                                    ).toFixed(
+                                                                        1,
+                                                                    )}
+                                                                    %):
+                                                                </span>
+                                                                <span className="font-medium text-foreground">
+                                                                    {formatPeso(
+                                                                        platformCentavos,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            <div className="mt-2 flex justify-between border-t border-border pt-2 font-medium text-foreground">
+                                                                <span>
+                                                                    Estimated
+                                                                    seller
+                                                                    payout:
+                                                                </span>
+                                                                <span className="font-semibold text-primary">
+                                                                    {formatPeso(
+                                                                        netCentavos,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+                            )}
+
                             {/* Sales information */}
                             <section className="panel p-4 md:p-6">
                                 <h2 className="mb-4 text-h3">
@@ -242,11 +454,11 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                                     name="price"
                                                     min="1"
                                                     step="0.01"
-                                                    defaultValue={
-                                                        product?.price ??
-                                                        product?.variations?.[0]
-                                                            ?.price ??
-                                                        ''
+                                                    value={regularPrice}
+                                                    onChange={(e) =>
+                                                        setRegularPrice(
+                                                            e.target.value,
+                                                        )
                                                     }
                                                 />
                                             </FormField>
@@ -259,11 +471,11 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                                     name="sale_price"
                                                     min="1"
                                                     step="0.01"
-                                                    defaultValue={
-                                                        product?.sale_price ??
-                                                        product?.variations?.[0]
-                                                            ?.sale_price ??
-                                                        ''
+                                                    value={salePrice}
+                                                    onChange={(e) =>
+                                                        setSalePrice(
+                                                            e.target.value,
+                                                        )
                                                     }
                                                 />
                                             </FormField>

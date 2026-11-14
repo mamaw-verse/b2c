@@ -61,11 +61,28 @@ final class ProductFactory extends Factory
             'halal_status' => 'na',
             'stock' => 50,
             'published' => true,
+            'affiliate_enabled' => false,
         ];
     }
 
     public function certified(): static
     {
         return $this->state(['halal_status' => 'certified']);
+    }
+
+    public function withVideo(): static
+    {
+        return $this->state([
+            'video_path' => 'product-videos/sample.mp4',
+            'video_duration' => 30,
+        ]);
+    }
+
+    public function affiliateEnabled(): static
+    {
+        return $this->state([
+            'affiliate_enabled' => true,
+            'affiliate_commission_bps' => 500,
+        ]);
     }
 }
