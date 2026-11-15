@@ -31,7 +31,7 @@ export default function SellerSettings({ settings }: PageProps) {
             <Head title="Shop settings" />
             <Form action={updateSettings().url} method="put">
                 {({ errors, processing, wasSuccessful }) => (
-                    <div className="mx-auto max-w-3xl p-gutter py-8">
+                    <div className="mx-auto max-w-container p-gutter py-8">
                         <h1 className="mb-6 text-h1">Shop settings</h1>
 
                         {wasSuccessful && (

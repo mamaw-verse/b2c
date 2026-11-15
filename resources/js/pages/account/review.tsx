@@ -20,7 +20,7 @@ export default function ReviewPage({ orderItem }: ReviewPageProps) {
         <>
             <Head title="Write a Review" />
 
-            <div className="mx-auto max-w-2xl">
+            <div className="mx-auto w-full">
                 <Link
                     href={`/account/orders/${orderItem.order_id}`}
                     className="mb-4 inline-flex items-center gap-1 text-body-sm font-bold text-muted-foreground transition-colors hover:text-foreground"

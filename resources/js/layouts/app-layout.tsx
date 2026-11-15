@@ -39,7 +39,7 @@ export default function AppLayout({
         >
             {/* Account/settings pages don't pad themselves — the shell's
                 content column keeps them off the edges like before. */}
-            <div className="mx-auto w-full max-w-container flex-1 p-gutter md:p-6 lg:p-8">
+            <div className="mx-auto w-full max-w-container flex-1 px-gutter py-8">
                 {children}
             </div>
         </WorkspaceShell>

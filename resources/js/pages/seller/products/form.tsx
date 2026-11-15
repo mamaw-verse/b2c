@@ -226,7 +226,7 @@ export default function SellerProductForm({
                 })}
             >
                 {({ errors, processing }) => (
-                    <div className="mx-auto max-w-4xl p-gutter py-8 pb-28 lg:pb-8">
+                    <div className="mx-auto max-w-container p-gutter py-8 pb-28 lg:pb-8">
                         <h1 className="mb-6 text-h1">{title}</h1>
 
                         <div className="grid gap-6">
@@ -839,7 +839,7 @@ export default function SellerProductForm({
 
                         {/* Sticky bottom bar */}
                         <div className="fixed inset-x-0 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] z-sticky-bar border-t border-border bg-surface px-[var(--gutter)] pt-3 pb-safe md:bottom-0 lg:left-[var(--sidebar-w)]">
-                            <div className="mx-auto flex max-w-4xl items-center gap-3">
+                            <div className="mx-auto flex max-w-container items-center gap-3">
                                 <span className="hidden flex-1 text-body-sm text-muted-foreground lg:block">
                                     {isEditing
                                         ? 'Editing draft'

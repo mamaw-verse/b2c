@@ -9,7 +9,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     Manage your profile and account settings
                 </p>
             </header>
-            <section className="grid max-w-2xl gap-10">{children}</section>
+            <section className="grid gap-10">{children}</section>
         </div>
     );
 }

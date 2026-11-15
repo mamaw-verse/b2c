@@ -3,14 +3,12 @@ import { cn } from '@/lib/utils';
 type BrandMarkProps = {
     name: string;
     showName?: boolean;
-    markClassName?: string;
     className?: string;
 };
 
 export function BrandMark({
     name,
     showName = true,
-    markClassName = 'size-8',
     className,
 }: BrandMarkProps) {
     if (!showName) {
@@ -19,15 +17,12 @@ export function BrandMark({
                 <img
                     src="/brand/halalbenta-mark.svg"
                     alt={name || 'Brand icon'}
-                    className={cn('object-contain dark:hidden', markClassName)}
+                    className="size-8 object-contain dark:hidden"
                 />
                 <img
                     src="/brand/halalbenta-mark-dark.svg"
                     alt={name || 'Brand icon'}
-                    className={cn(
-                        'hidden object-contain dark:block',
-                        markClassName,
-                    )}
+                    className="hidden size-8 object-contain dark:block"
                 />
             </span>
         );

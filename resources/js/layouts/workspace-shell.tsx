@@ -2,7 +2,6 @@ import { Link, usePage } from '@inertiajs/react';
 import { Bell } from 'lucide-react';
 import { useState, type PropsWithChildren, type ReactNode } from 'react';
 import { AccountUserMenu } from '@/components/account-user-menu';
-import { BrandMark } from '@/components/brand-mark';
 import {
     PortalBottomTabs,
     type PortalTabItem,
@@ -154,12 +153,18 @@ export default function WorkspaceShell({
                         href={homeHref}
                         className="flex min-h-touch min-w-0 items-center gap-2 rounded-button text-h4 text-primary-text"
                     >
-                        <BrandMark
-                            name={name}
-                            showName={false}
-                            markClassName="size-8 lg:size-10"
-                        />
-                        <span className="truncate lg:hidden">{name}</span>
+                        <span className="flex">
+                            <img
+                                src="/images/brand/logo.png"
+                                alt={name}
+                                className="h-8 w-auto object-contain md:h-9 dark:hidden"
+                            />
+                            <img
+                                src="/images/brand/logo-dark.png"
+                                alt={name}
+                                className="hidden h-8 w-auto object-contain md:h-9 dark:block"
+                            />
+                        </span>
                         <span className="shrink-0 rounded-badge border border-border px-2 py-0.5 text-eyebrow whitespace-nowrap text-muted-foreground uppercase">
                             {config.label}
                         </span>
@@ -219,9 +224,6 @@ export default function WorkspaceShell({
                             ))}
                         </ul>
                     </nav>
-                    <p className="hidden pt-4 text-caption text-muted-foreground lg:block">
-                        © {new Date().getFullYear()} {name}
-                    </p>
                 </div>
             </aside>
 
@@ -271,9 +273,12 @@ export default function WorkspaceShell({
             <main
                 id="main"
                 data-shell={shellNames[workspace]}
-                className="min-w-0 pb-tabbar md:ps-18 lg:ps-[var(--sidebar-w)]"
+                className="flex min-h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top,0px))] min-w-0 flex-col pb-tabbar md:ps-18 lg:ps-[var(--sidebar-w)]"
             >
-                {children}
+                <div className="min-w-0 flex-1">{children}</div>
+                <p className="mx-auto w-full max-w-container px-gutter py-6 text-right text-caption text-muted-foreground">
+                    © {new Date().getFullYear()} {name}
+                </p>
             </main>
         </>
     );
