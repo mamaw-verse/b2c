@@ -839,7 +839,10 @@
                 },
                 {
                     "action": "open Customer Refunds tab, fill Refund reference, click Mark refunded",
-                    "screenshots": ["payables-03-pending-refund", "payables-04-refund-processed"],
+                    "screenshots": [
+                        "payables-03-pending-refund",
+                        "payables-04-refund-processed"
+                    ],
                     "expect": "refund row disappears; summary total_refunds drops by the seeded amount and pending_count by one"
                 }
             ]

@@ -18,6 +18,9 @@ type MediaProps = {
     ratio?: string;
     decorative?: boolean;
     className?: string;
+    loading?: 'lazy' | 'eager';
+    width?: number;
+    height?: number;
 };
 
 /** Product/media component: renders real image when src is provided, falls back to neutral SVG placeholder. */
@@ -29,6 +32,9 @@ export function Media({
     ratio = 'aspect-square',
     decorative = false,
     className,
+    loading,
+    width = 600,
+    height = 600,
 }: MediaProps) {
     if (src) {
         return (
@@ -44,7 +50,9 @@ export function Media({
                     alt={decorative ? '' : label}
                     aria-hidden={decorative || undefined}
                     className="size-full object-cover"
-                    loading="lazy"
+                    loading={loading ?? (index === 0 ? 'eager' : 'lazy')}
+                    width={width}
+                    height={height}
                 />
             </div>
         );

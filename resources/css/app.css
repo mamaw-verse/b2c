@@ -221,6 +221,19 @@
         --fs-price-lg: 1.75rem;
     }
 }
+/* Account (buyer), seller and admin shells use a more compact header bar. */
+[data-shell='app'],
+[data-shell='seller'],
+[data-shell='admin'] {
+    --header-h: 3rem;
+}
+@media (min-width: 48rem) {
+    [data-shell='app'],
+    [data-shell='seller'],
+    [data-shell='admin'] {
+        --header-h: 4rem;
+    }
+}
 /* Input size follows the input device, not the width: a landscape iPad (>=1024px, coarse pointer)
    must stay at 16px or iOS zooms on focus. */
 @media (min-width: 64rem) and (pointer: fine) {

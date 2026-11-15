@@ -7,7 +7,7 @@ import { SearchInput } from '@/components/search-input';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/utils';
-import { home, login } from '@/routes';
+import { login } from '@/routes';
 import { index as chatIndex } from '@/routes/chat';
 import { index as notificationsIndex } from '@/routes/notifications';
 import { show as categoryShow } from '@/routes/categories';
@@ -37,7 +37,6 @@ export function SiteHeader({
     desktopNav = true,
 }: SiteHeaderProps) {
     const {
-        name,
         auth,
         navCategories,
         unreadCounts,
@@ -76,7 +75,7 @@ export function SiteHeader({
         });
     }, [activeSlug]);
 
-    const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const handleLogoClick = (e: React.MouseEvent) => {
         if (window.location.pathname === '/') {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -89,17 +88,17 @@ export function SiteHeader({
             onClick={handleLogoClick}
             aria-label="HalalBenta home"
             data-edge="start"
-            className="flex min-h-touch items-center gap-2 rounded-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex min-h-touch items-center gap-2 rounded-button focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         >
             <img
                 src="/brand/halalbenta-wordmark.svg"
                 alt="HalalBenta"
-                className="h-7 md:h-8 w-auto object-contain dark:hidden"
+                className="h-7 w-auto object-contain md:h-8 dark:hidden"
             />
             <img
                 src="/brand/halalbenta-wordmark-dark.svg"
                 alt="HalalBenta"
-                className="hidden h-7 md:h-8 w-auto object-contain dark:block"
+                className="hidden h-7 w-auto object-contain md:h-8 dark:block"
             />
         </Link>
     );
@@ -110,7 +109,7 @@ export function SiteHeader({
             onClick={handleLogoClick}
             aria-label="HalalBenta home"
             data-edge="start"
-            className="flex size-11 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex size-11 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-button focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         >
             <img
                 src="/brand/halalbenta-mark.svg"
@@ -190,7 +189,9 @@ export function SiteHeader({
             >
                 {marketplace?.announcement && (
                     <div className="hidden min-h-[var(--announce-h)] items-center bg-surface-inverse text-caption text-foreground-inverse lg:flex">
-                        <p className="page w-full">{marketplace.announcement}</p>
+                        <p className="page w-full">
+                            {marketplace.announcement}
+                        </p>
                     </div>
                 )}
 
@@ -204,9 +205,7 @@ export function SiteHeader({
                                 : 'h-11 max-h-11 translate-y-0 py-1.5 opacity-100',
                         )}
                     >
-                        <div className="flex items-center">
-                            {wordmarkLink}
-                        </div>
+                        <div className="flex items-center">{wordmarkLink}</div>
                         <div className="flex items-center gap-1">
                             {cartButton}
                             {chatButton}
@@ -224,7 +223,9 @@ export function SiteHeader({
                                 className="-ml-2"
                                 onClick={() => window.history.back()}
                             />
-                            <span className="hidden lg:inline">{wordmarkLink}</span>
+                            <span className="hidden lg:inline">
+                                {wordmarkLink}
+                            </span>
                         </>
                     ) : (
                         <>
@@ -393,7 +394,9 @@ export function SiteHeader({
                                                     active ? 'page' : undefined
                                                 }
                                                 data-edge={
-                                                    i === 0 ? 'start' : undefined
+                                                    i === 0
+                                                        ? 'start'
+                                                        : undefined
                                                 }
                                                 className={navLink(active)}
                                             >

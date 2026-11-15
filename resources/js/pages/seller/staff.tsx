@@ -1,7 +1,9 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, router } from '@inertiajs/react';
 import { Users } from 'lucide-react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
@@ -26,6 +28,25 @@ type PageProps = {
 
 export default function SellerStaff({ staff, maxStaff }: PageProps) {
     const usedSeats = staff.length;
+    const [memberToRemove, setMemberToRemove] = useState<StaffMember | null>(
+        null,
+    );
+    const [isRemoving, setIsRemoving] = useState(false);
+
+    const handleRemove = () => {
+        if (!memberToRemove) {
+            return;
+        }
+
+        setIsRemoving(true);
+        router.delete(destroyStaff({ staff: memberToRemove.id }).url, {
+            preserveScroll: true,
+            onFinish: () => {
+                setIsRemoving(false);
+                setMemberToRemove(null);
+            },
+        });
+    };
 
     return (
         <>
@@ -59,7 +80,7 @@ export default function SellerStaff({ staff, maxStaff }: PageProps) {
                                         />
                                     </FormField>
                                     <div className="shrink-0">
-                                        <Button type="submit" size="sm">
+                                        <Button type="submit">
                                             Send invitation
                                         </Button>
                                     </div>
@@ -135,31 +156,18 @@ export default function SellerStaff({ staff, maxStaff }: PageProps) {
                                                     : '—'}
                                             </td>
                                             <td className="p-4 text-right">
-                                                <Form
-                                                    action={
-                                                        destroyStaff({
-                                                            staff: member.id,
-                                                        }).url
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setMemberToRemove(
+                                                            member,
+                                                        )
                                                     }
-                                                    method="delete"
-                                                    onSubmit={(e) => {
-                                                        if (
-                                                            !confirm(
-                                                                `Remove ${member.email} from your shop?`,
-                                                            )
-                                                        ) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
                                                 >
-                                                    <Button
-                                                        type="submit"
-                                                        variant="outline"
-                                                        size="sm"
-                                                    >
-                                                        Remove
-                                                    </Button>
-                                                </Form>
+                                                    Remove
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))}
@@ -208,37 +216,38 @@ export default function SellerStaff({ staff, maxStaff }: PageProps) {
                                         </p>
                                     )}
                                     <div className="mt-3">
-                                        <Form
-                                            action={
-                                                destroyStaff({
-                                                    staff: member.id,
-                                                }).url
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setMemberToRemove(member)
                                             }
-                                            method="delete"
-                                            onSubmit={(e) => {
-                                                if (
-                                                    !confirm(
-                                                        `Remove ${member.email} from your shop?`,
-                                                    )
-                                                ) {
-                                                    e.preventDefault();
-                                                }
-                                            }}
                                         >
-                                            <Button
-                                                type="submit"
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                Remove
-                                            </Button>
-                                        </Form>
+                                            Remove
+                                        </Button>
                                     </div>
                                 </li>
                             ))}
                         </ul>
                     </>
                 )}
+
+                <ConfirmDialog
+                    open={memberToRemove !== null}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setMemberToRemove(null);
+                        }
+                    }}
+                    title="Remove staff member"
+                    text={`Remove ${memberToRemove?.email ?? ''} from your shop? They will lose access immediately.`}
+                    confirmLabel="Remove"
+                    cancelLabel="Cancel"
+                    tone="danger"
+                    loading={isRemoving}
+                    onConfirm={handleRemove}
+                />
             </div>
         </>
     );

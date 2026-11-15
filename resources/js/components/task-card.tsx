@@ -25,7 +25,7 @@ export function TaskCard({
         <Link
             href={href}
             className={cn(
-                'card card-interactive flex min-h-touch-primary items-center gap-3 p-3 hover:border-border-outline',
+                'card card-interactive flex h-full min-h-touch-primary items-center gap-3 p-3 hover:border-border-outline',
                 className,
             )}
         >
@@ -41,7 +41,7 @@ export function TaskCard({
             </span>
             <span className="grid min-w-0 flex-1">
                 <span className="tabular text-h3">{count}</span>
-                <span className="text-body-sm text-muted-foreground">
+                <span className="line-clamp-2 min-h-[2lh] text-body-sm text-muted-foreground">
                     {label}
                 </span>
             </span>

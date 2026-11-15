@@ -1,36 +1,75 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-brand="{{ config('app.brand', 'default') }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<html lang="en-PH" data-brand="{{ config('app.brand', 'default') }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#17643c">
 
-        @if (isset($meta))
-            <link rel="canonical" href="{{ $meta['url'] }}">
-            <meta name="description" content="{{ $meta['description'] }}">
-            <meta property="og:type" content="product">
-            <meta property="og:title" content="{{ $meta['title'] }}">
-            <meta property="og:description" content="{{ $meta['description'] }}">
-            <meta property="og:url" content="{{ $meta['url'] }}">
-            <meta property="og:image" content="{{ $meta['image'] }}">
-            <meta property="og:site_name" content="{{ $meta['site_name'] }}">
-            <meta name="twitter:card" content="summary_large_image">
-            <meta name="twitter:title" content="{{ $meta['title'] }}">
-            <meta name="twitter:description" content="{{ $meta['description'] }}">
-            <meta name="twitter:image" content="{{ $meta['image'] }}">
-        @else
-            <meta name="description" content="HalalBenta - Certified halal marketplace">
-            <meta property="og:type" content="website">
-            <meta property="og:title" content="{{ config('app.name', 'HalalBenta') }}">
-            <meta property="og:description" content="Certified halal marketplace in the Philippines">
-            <meta property="og:url" content="{{ url()->current() }}">
-            <meta property="og:image" content="{{ asset('brand/og-image.png') }}">
-            <meta property="og:site_name" content="HalalBenta">
-            <meta name="twitter:card" content="summary_large_image">
-            <meta name="twitter:title" content="{{ config('app.name', 'HalalBenta') }}">
-            <meta name="twitter:description" content="Certified halal marketplace in the Philippines">
-            <meta name="twitter:image" content="{{ asset('brand/og-image.png') }}">
+        @php
+            /** @var \App\Support\SeoData $seo */
+            $seo = $seo ?? app(\App\Support\Seo::class)->resolve();
+        @endphp
+
+        <meta name="description" content="{{ $seo->description }}">
+        <link rel="canonical" href="{{ $seo->canonical }}">
+        <meta name="robots" content="{{ $seo->robots }}">
+
+        {{-- Open Graph --}}
+        <meta property="og:site_name" content="{{ $seo->og['site_name'] }}">
+        <meta property="og:locale" content="{{ $seo->og['locale'] }}">
+        <meta property="og:type" content="{{ $seo->og['type'] }}">
+        <meta property="og:title" content="{{ $seo->og['title'] }}">
+        <meta property="og:description" content="{{ $seo->og['description'] }}">
+        <meta property="og:url" content="{{ $seo->og['url'] }}">
+        <meta property="og:image" content="{{ $seo->og['image'] }}">
+        <meta property="og:image:width" content="{{ $seo->og['image_width'] }}">
+        <meta property="og:image:height" content="{{ $seo->og['image_height'] }}">
+        <meta property="og:image:alt" content="{{ $seo->og['image_alt'] }}">
+        <meta property="og:image:type" content="{{ $seo->og['image_type'] }}">
+
+        {{-- Twitter --}}
+        <meta name="twitter:card" content="{{ $seo->twitter['card'] }}">
+        <meta name="twitter:title" content="{{ $seo->twitter['title'] }}">
+        <meta name="twitter:description" content="{{ $seo->twitter['description'] }}">
+        <meta name="twitter:image" content="{{ $seo->twitter['image'] }}">
+        <meta name="twitter:image:alt" content="{{ $seo->twitter['image_alt'] }}">
+        @if (!empty($seo->twitter['labels']))
+            @foreach ($seo->twitter['labels'] as $index => $item)
+                <meta name="twitter:label{{ $index + 1 }}" content="{{ $item['label'] }}">
+                <meta name="twitter:data{{ $index + 1 }}" content="{{ $item['data'] }}">
+            @endforeach
+        @endif
+
+        {{-- Product Meta --}}
+        @if (!empty($seo->product))
+            <meta property="product:price:amount" content="{{ $seo->product['price_amount'] }}">
+            <meta property="product:price:currency" content="{{ $seo->product['price_currency'] }}">
+            <meta property="product:availability" content="{{ $seo->product['availability'] }}">
+            <meta property="product:condition" content="{{ $seo->product['condition'] }}">
+            <meta property="product:retailer_item_id" content="{{ $seo->product['retailer_item_id'] }}">
+            <meta property="product:brand" content="{{ $seo->product['brand'] }}">
+            <meta property="og:price:amount" content="{{ $seo->product['price_amount'] }}">
+            <meta property="og:price:currency" content="{{ $seo->product['price_currency'] }}">
+        @endif
+
+        {{-- Pagination --}}
+        @if (!empty($seo->prev))
+            <link rel="prev" href="{{ $seo->prev }}">
+        @endif
+        @if (!empty($seo->next))
+            <link rel="next" href="{{ $seo->next }}">
+        @endif
+
+        {{-- Hreflang --}}
+        <link rel="alternate" hreflang="en-PH" href="{{ $seo->canonical }}">
+        <link rel="alternate" hreflang="x-default" href="{{ $seo->canonical }}">
+
+        {{-- JSON-LD --}}
+        @if (!empty($seo->jsonLd))
+            <script type="application/ld+json">
+{!! json_encode($seo->jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+            </script>
         @endif
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
@@ -67,7 +106,7 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'HalalBenta') }}</title>
+            <title>{{ $seo->title }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

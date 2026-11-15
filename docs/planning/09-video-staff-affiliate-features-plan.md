@@ -13,7 +13,7 @@ Three seller-facing features, specified against the code on `production` (`eb431
 | Video (V-01 → V-10)       | **Done.** Follow-ups in §8.1 (S3 video upload & signed-URL delivery) and §8.2 (admin moderation). |
 | Staff (S-01 → S-09)       | **Done**, but the permission set changed (§7, answer 5). Follow-ups in §8.3.                      |
 | Affiliate (AF-00 → AF-08) | **Done, then parked.** No further affiliate work until the items in §5.0 are answered.            |
-| Payables / payouts (new)  | **Done (P-01 → P-06).** P-07 e2e to be handled by user. §8.4.                                      |
+| Payables / payouts (new)  | **Done (P-01 → P-06).** P-07 e2e to be handled by user. §8.4.                                     |
 
 Sizing: S ≤ 0.5 day, M ≈ 1–2 days, L ≈ 3+ days. Priority: P0 blocks later tasks, P1 core scope, P2 optional.
 

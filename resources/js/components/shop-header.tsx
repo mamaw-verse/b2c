@@ -13,6 +13,7 @@ export function ShopHeader({
     onReport,
     onFollow,
     following = false,
+    asHeading: Heading = 'h1',
 }: {
     shop: ShopData;
     profileHref?: string;
@@ -20,6 +21,7 @@ export function ShopHeader({
     onReport?: () => void;
     onFollow?: () => void;
     following?: boolean;
+    asHeading?: 'h1' | 'h2' | 'div';
 }) {
     const stats: [string, string | number][] = [
         ['Rating', `${s.rating} / 5`],
@@ -72,7 +74,7 @@ export function ShopHeader({
                     </span>
                 )}
                 <div className="min-w-0 flex-1 md:pb-1">
-                    <h1
+                    <Heading
                         id="shop-name"
                         className="flex flex-wrap items-center gap-2 text-h2"
                     >
@@ -95,7 +97,7 @@ export function ShopHeader({
                                 Halal-only shop
                             </Badge>
                         )}
-                    </h1>
+                    </Heading>
                     <p className="mt-1 flex items-center gap-1 text-body-sm text-muted-foreground">
                         <DsIcon name="map-pin" className="size-4" />
                         {s.location} ·{' '}

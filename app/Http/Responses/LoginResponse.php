@@ -21,10 +21,11 @@ final class LoginResponse implements LoginResponseContract
             return response()->json(['two_factor' => false]);
         }
 
+        $user = $request->user();
         $workspace = Workspace::tryFrom((string) $request->session()->get(RememberWorkspace::SESSION_KEY, ''));
-        $default = $workspace?->accessibleBy($request->user())
-            ? $workspace->home()
-            : (Workspace::allowedFor($request->user())[0] ?? Workspace::Buyer)->home();
+        $default = $workspace?->accessibleBy($user)
+            ? $workspace->home($user)
+            : (Workspace::allowedFor($user)[0] ?? Workspace::Buyer)->home($user);
 
         return redirect()->intended($default);
     }

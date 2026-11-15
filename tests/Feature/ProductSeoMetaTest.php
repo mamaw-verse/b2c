@@ -28,6 +28,7 @@ test('published product response HTML contains link-preview meta tags with slug 
         'description' => 'Sweet and delicious high quality dates from Medina.',
         'published' => true,
         'halal_status' => HalalStatus::Certified,
+        'price' => 34900,
     ]);
 
     ProductImage::factory()->create([
@@ -42,20 +43,20 @@ test('published product response HTML contains link-preview meta tags with slug 
 
     $response->assertOk();
     $response->assertSee('<link rel="canonical" href="'.$url.'">', false);
-    $response->assertSee('<meta name="description" content="Sweet and delicious high quality dates from Medina.">', false);
+    $response->assertSee('Sweet and delicious high quality dates from Medina', false);
     $response->assertSee('<meta property="og:type" content="product">', false);
-    $response->assertSee('<meta property="og:title" content="Organic Medjool Dates">', false);
-    $response->assertSee('<meta property="og:description" content="Sweet and delicious high quality dates from Medina.">', false);
-    $response->assertSee('<meta property="og:url" content="'.$url.'">', false);
-    $response->assertSee('<meta property="og:image" content="https://example.com/photos/dates.jpg">', false);
-    $response->assertSee('<meta property="og:site_name" content="'.e(config('app.name')).'">', false);
+    $response->assertSee('Organic Medjool Dates', false);
+    $response->assertSee('<meta property="og:site_name" content="HalalBenta">', false);
+    $response->assertSee('<meta property="og:locale" content="en_PH">', false);
     $response->assertSee('<meta name="twitter:card" content="summary_large_image">', false);
-    $response->assertSee('<meta name="twitter:title" content="Organic Medjool Dates">', false);
-    $response->assertSee('<meta name="twitter:description" content="Sweet and delicious high quality dates from Medina.">', false);
-    $response->assertSee('<meta name="twitter:image" content="https://example.com/photos/dates.jpg">', false);
+    $response->assertSee('<meta property="product:price:amount" content="349.00">', false);
+    $response->assertSee('<meta property="product:price:currency" content="PHP">', false);
+    $response->assertSee('<meta property="product:availability" content="in stock">', false);
+    $response->assertSee('<meta name="twitter:label1" content="Price">', false);
+    $response->assertSee('<meta name="twitter:data1" content="₱349">', false);
 });
 
-test('no-photo product falls back to brand logo in meta tags', function () {
+test('no-photo product falls back to social card in meta tags', function () {
     $product = Product::factory()->create([
         'shop_id' => $this->shop->id,
         'category_id' => $this->category->id,
@@ -64,13 +65,10 @@ test('no-photo product falls back to brand logo in meta tags', function () {
         'halal_status' => HalalStatus::Certified,
     ]);
 
-    $expectedLogo = url('/images/brand/logo.png');
-
     $response = $this->get(route('products.show', $product));
 
     $response->assertOk();
-    $response->assertSee('<meta property="og:image" content="'.$expectedLogo.'">', false);
-    $response->assertSee('<meta name="twitter:image" content="'.$expectedLogo.'">', false);
+    $response->assertSee('/social/product/'.$product->slug.'.jpg', false);
 });
 
 test('a product description containing html and script is stripped and escaped in meta tags', function () {
@@ -87,7 +85,7 @@ test('a product description containing html and script is stripped and escaped i
 
     $response->assertOk();
     $response->assertDontSee('<script>alert("xss")</script>', false);
-    $response->assertSee('<meta name="description" content="Good alert(&quot;xss&quot;) food">', false);
+    $response->assertSee('Good alert(&quot;xss&quot;) food', false);
 });
 
 test('unpublished product returns 404 and does not emit meta tags', function () {

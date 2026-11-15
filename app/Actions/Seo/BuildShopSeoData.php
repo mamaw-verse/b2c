@@ -1,0 +1,140 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Seo;
+
+use App\Enums\ShopStatus;
+use App\Models\Shop;
+use App\Support\SeoData;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+final readonly class BuildShopSeoData
+{
+    public function handle(Shop $shop, ?Request $request = null): SeoData
+    {
+        $origin = SeoData::canonicalOrigin();
+        $canonical = "{$origin}/shops/{$shop->slug}";
+
+        $city = $shop->city ?? $shop->location;
+        $titleLocation = $city !== '' ? " in {$city}" : '';
+        $title = "{$shop->name} – Halal Shop{$titleLocation} | HalalBenta";
+        $ogTitle = "{$shop->name} – Verified Halal Shop on HalalBenta";
+
+        // Description from shop bio / description with fallback template
+        $rawBio = mb_trim(strip_tags((string) ($shop->description ?? '')));
+        $collapsedBio = preg_replace('/\s+/', ' ', $rawBio);
+        $cleanBio = is_string($collapsedBio) ? mb_trim($collapsedBio) : '';
+
+        if ($cleanBio !== '') {
+            $description = Str::limit($cleanBio, 155, '…');
+        } else {
+            $sellerType = $shop->halal_only ? 'Halal-only' : 'verified Halal';
+            $cityPhrase = $city !== '' ? " in {$city}" : ' in the Philippines';
+            $prodCount = $shop->products()->visible()->count();
+            $ratingPhrase = $shop->rating > 0 ? ' rated '.number_format((float) $shop->rating, 1).'/5' : '';
+            $description = "{$shop->name} is a {$sellerType} seller{$cityPhrase} with {$prodCount} halal products{$ratingPhrase} on HalalBenta.";
+        }
+
+        // Suspended or non-approved shop must be noindex
+        $isInactive = $shop->suspended || $shop->status !== ShopStatus::Approved;
+        $robots = (SeoData::isStaging() || $isInactive)
+            ? 'noindex, nofollow'
+            : 'index, follow';
+
+        // Social image
+        $timestamp = $shop->updated_at?->timestamp ?? time();
+        $socialImage = "{$origin}/social/shop/{$shop->slug}.jpg?v={$timestamp}";
+
+        // JSON-LD Breadcrumbs
+        $breadcrumbs = [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Home',
+                'item' => "{$origin}/",
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => 'Sellers',
+                'item' => "{$origin}/sellers",
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $shop->name,
+                'item' => $canonical,
+            ],
+        ];
+
+        // JSON-LD Store / Organization
+        $storeSchema = [
+            '@type' => 'Store',
+            'name' => $shop->name,
+            'url' => $canonical,
+            'description' => $description,
+            'image' => $socialImage,
+        ];
+
+        if ($shop->logo_url !== null && $shop->logo_url !== '') {
+            $logoUrl = Str::startsWith($shop->logo_url, ['http://', 'https://'])
+                ? $shop->logo_url
+                : $origin.'/'.mb_ltrim($shop->logo_url, '/');
+            $storeSchema['logo'] = $logoUrl;
+        }
+
+        if ($city !== '') {
+            $storeSchema['address'] = [
+                '@type' => 'PostalAddress',
+                'addressLocality' => $city,
+                'addressCountry' => 'PH',
+            ];
+        }
+
+        if ($shop->rating > 0) {
+            $storeSchema['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => number_format((float) $shop->rating, 1, '.', ''),
+                'reviewCount' => max(1, $shop->followers_count),
+            ];
+        }
+
+        $jsonLd = [
+            [
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => $breadcrumbs,
+            ],
+            $storeSchema,
+        ];
+
+        return new SeoData(
+            title: $title,
+            description: $description,
+            canonical: $canonical,
+            robots: $robots,
+            og: [
+                'site_name' => 'HalalBenta',
+                'locale' => 'en_PH',
+                'type' => 'website',
+                'title' => $ogTitle,
+                'description' => $description,
+                'url' => $canonical,
+                'image' => $socialImage,
+                'image_width' => 1200,
+                'image_height' => 630,
+                'image_alt' => "{$shop->name} on HalalBenta",
+                'image_type' => 'image/jpeg',
+            ],
+            twitter: [
+                'card' => 'summary_large_image',
+                'title' => $ogTitle,
+                'description' => $description,
+                'image' => $socialImage,
+                'image_alt' => "{$shop->name} on HalalBenta",
+            ],
+            jsonLd: $jsonLd,
+        );
+    }
+}

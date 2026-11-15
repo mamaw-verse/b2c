@@ -14,9 +14,10 @@ import { request } from '@/routes/password';
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    email?: string;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({ status, canResetPassword, email }: Props) {
     return (
         <>
             <Head title="Log in" />
@@ -35,9 +36,10 @@ export default function Login({ status, canResetPassword }: Props) {
                                 <Input
                                     type="email"
                                     name="email"
-                                    autoFocus
+                                    autoFocus={!email}
                                     tabIndex={1}
                                     autoComplete="email"
+                                    defaultValue={email ?? ''}
                                     placeholder="email@example.com"
                                 />
                             </FormField>
@@ -62,6 +64,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                 <PasswordInput
                                     name="password"
                                     tabIndex={2}
+                                    autoFocus={Boolean(email)}
                                     autoComplete="current-password"
                                     placeholder="Password"
                                 />

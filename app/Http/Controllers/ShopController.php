@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Catalogue\ListShopProducts;
+use App\Actions\Seo\BuildShopSeoData;
 use App\Http\Requests\ShowShopRequest;
 use App\Models\Shop;
+use App\Support\Seo;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,8 +17,16 @@ final class ShopController
     /**
      * Show the shop page.
      */
-    public function show(ShowShopRequest $request, Shop $shop, ListShopProducts $products): Response
-    {
+    public function show(
+        ShowShopRequest $request,
+        Shop $shop,
+        ListShopProducts $products,
+        BuildShopSeoData $buildSeoData,
+        Seo $seo
+    ): Response {
+        $seoData = $buildSeoData->handle($shop, $request);
+        $seo->set($seoData);
+
         return Inertia::render('shop', [
             'shop' => [
                 'id' => $shop->id,
@@ -34,6 +44,6 @@ final class ShopController
                 'is_following' => $request->user()?->followedShops()->whereKey($shop->id)->exists() ?? false,
             ],
             'products' => Inertia::scroll(fn () => $products->handle($shop, $request->sort())),
-        ]);
+        ])->withViewData(['seo' => $seoData]);
     }
 }

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, Shield, Store } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useState, type PropsWithChildren, type ReactNode } from 'react';
 import { AccountUserMenu } from '@/components/account-user-menu';
 import { BrandMark } from '@/components/brand-mark';
@@ -86,23 +86,6 @@ const shellNames: Record<WorkspaceKey, string> = {
     admin: 'admin',
 };
 
-function workspaceIcon(workspace: WorkspaceKey, name?: string): ReactNode {
-    if (workspace === 'buyer') {
-        return <BrandMark name={name ?? ''} showName={false} />;
-    }
-
-    const Icon = workspace === 'seller' ? Store : Shield;
-
-    return (
-        <span
-            className="grid size-8 shrink-0 place-items-center rounded-tile bg-primary text-primary-foreground"
-            aria-hidden="true"
-        >
-            <Icon className="size-5" />
-        </span>
-    );
-}
-
 /** One shell for every workspace: skip link, branded header with
  * notifications and the user menu, icon/expanded sidebar, phone bottom
  * tabs and an overflow drawer holding the workspace switcher. */
@@ -161,14 +144,17 @@ export default function WorkspaceShell({
             </a>
 
             {/* Header */}
-            <header className="sticky top-0 z-header border-b border-border bg-surface pt-safe">
+            <header
+                data-shell={shellNames[workspace]}
+                className="sticky top-0 z-header border-b border-border bg-surface pt-safe"
+            >
                 <div className="flex h-header items-center gap-2 px-gutter">
                     {/* Logo */}
                     <Link
                         href={homeHref}
                         className="flex min-h-touch min-w-0 items-center gap-2 rounded-button text-h4 text-primary-text"
                     >
-                        {workspaceIcon(workspace, name)}
+                        <BrandMark name={name} showName={false} />
                         <span className="truncate">{name}</span>
                         <span className="shrink-0 rounded-badge border border-border px-2 py-0.5 text-eyebrow whitespace-nowrap text-muted-foreground uppercase">
                             {config.label}
@@ -209,7 +195,10 @@ export default function WorkspaceShell({
             </header>
 
             {/* Sidebar (md+) */}
-            <aside className="fixed top-[calc(var(--header-h)+env(safe-area-inset-top,0px))] bottom-0 left-0 hidden w-18 border-r border-border bg-surface md:block lg:w-[var(--sidebar-w)]">
+            <aside
+                data-shell={shellNames[workspace]}
+                className="fixed top-[calc(var(--header-h)+env(safe-area-inset-top,0px))] bottom-0 left-0 hidden w-18 border-r border-border bg-surface md:block lg:w-[var(--sidebar-w)]"
+            >
                 <div className="flex h-full flex-col p-2 lg:p-3">
                     <nav
                         aria-label={`${config.label} navigation`}

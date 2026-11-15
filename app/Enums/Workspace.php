@@ -64,11 +64,11 @@ enum Workspace: string
         };
     }
 
-    public function home(): string
+    public function home(?User $user = null): string
     {
         return match ($this) {
             self::Buyer => '/account',
-            self::Seller => '/seller/dashboard',
+            self::Seller => $user?->isShopStaff() ? '/seller/orders' : '/seller/dashboard',
             self::Admin => '/admin/dashboard',
         };
     }

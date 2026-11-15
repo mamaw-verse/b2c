@@ -1,11 +1,19 @@
-import { Head, Link, router, setLayoutProps, usePage } from '@inertiajs/react';
-import { ChevronRight, Flag, MessageCircle, Store } from 'lucide-react';
-import { useState } from 'react';
+import { Head, router, setLayoutProps, usePage } from '@inertiajs/react';
+import {
+    Check,
+    ChevronRight,
+    ExternalLink,
+    Flag,
+    MessageCircle,
+    ShieldCheck,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { Carousel } from '@/components/carousel';
 import { ColdChainNote } from '@/components/cold-chain-note';
 import { DsIcon } from '@/components/ds-icon';
+import { FlagProductDialog } from '@/components/flag-product-dialog';
 import { HalalBadge } from '@/components/halal-badge';
 import { HalalCertificateCard } from '@/components/halal-certificate-card';
 import { HalalFacts } from '@/components/halal-facts';
@@ -15,15 +23,15 @@ import { ProductCard } from '@/components/product-card';
 import { QuantityStepper } from '@/components/quantity-stepper';
 import { Rating } from '@/components/rating';
 import { ReportDialog } from '@/components/report-dialog';
-import { FlagProductDialog } from '@/components/flag-product-dialog';
 import { ReviewCard, type ReviewData } from '@/components/review-card';
 import { ShareButtons } from '@/components/share-buttons';
 import { ShopHeader } from '@/components/shop-header';
 import { SoldCount } from '@/components/sold-count';
-import { StickyActionBar } from '@/components/sticky-action-bar';
-import { Button } from '@/components/ui/button';
 import { Accordion } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { VariationPicker } from '@/components/variation-picker';
+import { cn } from '@/lib/utils';
 import { home, login } from '@/routes';
 import { show as categoryShow } from '@/routes/categories';
 import { show as shopShow } from '@/routes/shops';
@@ -55,6 +63,54 @@ export default function Product({
     const [reportOpen, setReportOpen] = useState(false);
     const [adminFlagOpen, setAdminFlagOpen] = useState(false);
     const [qty, setQty] = useState(1);
+    const [isAdding, setIsAdding] = useState(false);
+    const [isAdded, setIsAdded] = useState(false);
+    const [isBuying, setIsBuying] = useState(false);
+    const [isVariationConfirmed, setIsVariationConfirmed] = useState(false);
+
+    const actionRowRef = useRef<HTMLDivElement>(null);
+    const [showStickyBar, setShowStickyBar] = useState(false);
+
+    useEffect(() => {
+        const el = actionRowRef.current;
+        if (!el) {
+            return;
+        }
+
+        let inPageView = true;
+        let footerInView = false;
+
+        const updateVisibility = () => {
+            setShowStickyBar(!inPageView && !footerInView);
+        };
+
+        const actionObserver = new IntersectionObserver(
+            ([entry]) => {
+                inPageView = entry.isIntersecting;
+                updateVisibility();
+            },
+            { threshold: 0.1 },
+        );
+        actionObserver.observe(el);
+
+        const footerEl = document.querySelector('footer');
+        let footerObserver: IntersectionObserver | null = null;
+        if (footerEl) {
+            footerObserver = new IntersectionObserver(
+                ([entry]) => {
+                    footerInView = entry.isIntersecting;
+                    updateVisibility();
+                },
+                { threshold: 0.05 },
+            );
+            footerObserver.observe(footerEl);
+        }
+
+        return () => {
+            actionObserver.disconnect();
+            footerObserver?.disconnect();
+        };
+    }, []);
 
     const handleReportClick = () => {
         if (!auth.user) {
@@ -63,6 +119,7 @@ export default function Product({
         }
         setReportOpen(true);
     };
+
     const handleChatClick = () => {
         if (!auth.user) {
             router.visit(login().url);
@@ -73,6 +130,7 @@ export default function Product({
             product_id: p.id,
         });
     };
+
     const [selectedVariation, setSelectedVariation] =
         useState<ProductVariation | null>(
             () =>
@@ -100,19 +158,24 @@ export default function Product({
 
     const addToCart = (
         variationId: string | null,
-        qty: number,
+        quantity: number,
         buyNow: boolean,
     ) => {
         if (!auth.user) {
             router.visit(login().url);
             return;
         }
+        if (buyNow) {
+            setIsBuying(true);
+        } else {
+            setIsAdding(true);
+        }
         router.post(
             '/cart',
             {
                 product_id: p.id,
                 product_variation_id: variationId,
-                qty,
+                qty: quantity,
             },
             {
                 preserveScroll: true,
@@ -120,7 +183,9 @@ export default function Product({
                     if (buyNow) {
                         router.visit('/checkout');
                     } else {
+                        setIsAdded(true);
                         toast.success('Added to cart.');
+                        setTimeout(() => setIsAdded(false), 2000);
                     }
                 },
                 onError: (errors) => {
@@ -130,16 +195,20 @@ export default function Product({
                             'This item could not be added to your cart.',
                     );
                 },
+                onFinish: () => {
+                    setIsAdding(false);
+                    setIsBuying(false);
+                },
             },
         );
     };
 
     const hasVariations = p.variations.length > 0;
     const buyAction = (buyNow: boolean) => {
-        if (hasVariations) {
+        if (hasVariations && !isVariationConfirmed) {
             setPickerOpen(true);
         } else {
-            addToCart(null, qty, buyNow);
+            addToCart(selectedVariation?.id ?? null, qty, buyNow);
         }
     };
 
@@ -153,11 +222,21 @@ export default function Product({
             'No certificate is on file for this product — the halal claim is not verified.',
     };
 
+    const halalStatusTitle: Record<string, string> = {
+        certified: 'Halal certified',
+        na: 'Muslim-friendly · no certificate needed',
+        review: 'Certificate under review',
+        expiring: 'Certificate expires soon',
+        expired: 'Certificate expired',
+        missing: 'No certificate on file',
+    };
+
     return (
         <>
             <Head title={p.name} />
-            <div>
+            <div className="pb-16 md:pb-0">
                 <div className="md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-10 md:pt-6">
+                    {/* Gallery column */}
                     <div>
                         <Carousel
                             slides={[
@@ -171,7 +250,7 @@ export default function Product({
                                       ]
                                     : []),
                                 ...p.images.map((img, i) => ({
-                                    label: `${p.name} photo ${i + 1}`,
+                                    label: `${p.name} – image ${i + 1}`,
                                     icon: img.icon,
                                     src: img.url,
                                     type: 'image' as const,
@@ -179,81 +258,87 @@ export default function Product({
                             ]}
                         />
                     </div>
-                    <div className="grid content-start gap-5 pt-4 md:gap-6 md:pt-0">
-                        <div>
-                            <div className="flex items-center justify-between gap-2">
-                                <Breadcrumb
-                                    items={[
-                                        { label: 'Home', href: home().url },
-                                        {
-                                            label: p.category.name,
-                                            href: categoryShow.url(
-                                                p.category.slug,
-                                            ),
-                                        },
-                                    ]}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleReportClick}
-                                    className="hidden shrink-0 items-center gap-1 text-body-sm text-muted-foreground hover:text-foreground md:inline-flex"
-                                >
-                                    <Flag
+
+                    {/* Buy box column */}
+                    <div className="grid content-start gap-4 pt-4 md:gap-5 md:pt-0">
+                        {/* 1. Breadcrumb + "Report this product" */}
+                        <div className="flex items-center justify-between gap-2">
+                            <Breadcrumb
+                                items={[
+                                    { label: 'Home', href: home().url },
+                                    {
+                                        label: p.category.name,
+                                        href: categoryShow.url(p.category.slug),
+                                    },
+                                ]}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleReportClick}
+                                className="inline-flex shrink-0 items-center gap-1 text-body-sm text-muted-foreground hover:text-foreground"
+                            >
+                                <Flag aria-hidden="true" className="size-4" />
+                                Report this product
+                            </button>
+                        </div>
+
+                        {/* 2. Title */}
+                        <h1 className="text-h1">{p.name}</h1>
+
+                        {/* 3. Meta line */}
+                        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-sm">
+                            {p.review_count > 0 ? (
+                                <>
+                                    <Rating value={p.rating} size="size-4" />
+                                    <a
+                                        href="#pd-rev"
+                                        className="inline-flex min-h-touch items-center text-muted-foreground underline underline-offset-2"
+                                    >
+                                        {p.review_count === 1
+                                            ? '1 rating'
+                                            : `${p.review_count} ratings`}
+                                    </a>
+                                    <span
                                         aria-hidden="true"
-                                        className="size-4"
-                                    />
-                                    Report this product
-                                </button>
-                            </div>
-                            <h1 className="mt-2 text-h1">{p.name}</h1>
-                            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm">
-                                {p.review_count > 0 ? (
-                                    <>
-                                        <Rating
-                                            value={p.rating}
-                                            size="size-4"
-                                        />
-                                        <a
-                                            href="#pd-rev"
-                                            className="inline-flex min-h-touch items-center text-muted-foreground underline underline-offset-2"
-                                        >
-                                            {p.review_count === 1
-                                                ? '1 rating'
-                                                : `${p.review_count} ratings`}
-                                        </a>
-                                        <span
-                                            aria-hidden="true"
-                                            className="text-muted-foreground"
-                                        >
-                                            ·
-                                        </span>
-                                    </>
-                                ) : (
+                                        className="text-muted-foreground"
+                                    >
+                                        ·
+                                    </span>
+                                </>
+                            ) : (
+                                <>
                                     <span className="text-muted-foreground">
                                         No ratings yet
                                     </span>
-                                )}
-                                {p.sold_count > 0 && (
+                                    <span
+                                        aria-hidden="true"
+                                        className="text-muted-foreground"
+                                    >
+                                        ·
+                                    </span>
+                                </>
+                            )}
+                            {p.sold_count > 0 && (
+                                <>
                                     <span className="text-muted-foreground">
                                         <SoldCount count={p.sold_count} />
                                     </span>
-                                )}
-                            </p>
-                            {share && (
-                                <ShareButtons
-                                    className="mt-3"
-                                    url={share.url}
-                                    title={p.name}
-                                    text={p.description ?? p.name}
-                                    count={share.count}
-                                    enabled={share.enabled}
-                                    slug={p.slug}
-                                />
+                                    <span
+                                        aria-hidden="true"
+                                        className="text-muted-foreground"
+                                    >
+                                        ·
+                                    </span>
+                                </>
                             )}
-                        </div>
-                        {p.halal_status === 'certified' && (
-                            <HalalFacts valid={certValid} frozen={p.frozen} />
-                        )}
+                            <HalalBadge
+                                status={p.halal_status}
+                                short
+                                className="badge-halal"
+                            />
+                        </p>
+
+                        {/* 4. Price box */}
                         <div className="rounded-panel bg-surface-cta p-4">
                             <PriceBlock
                                 price={currentPrice}
@@ -262,12 +347,33 @@ export default function Product({
                             />
                         </div>
                         {p.frozen && <ColdChainNote />}
-                        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm">
+
+                        {p.variations.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setPickerOpen(true)}
+                                className="flex min-h-touch-primary w-full items-center justify-between gap-2 rounded-button border border-border-control bg-surface px-3 text-left text-body"
+                            >
+                                <span>
+                                    <span className="text-muted-foreground">
+                                        Variation:
+                                    </span>{' '}
+                                    {variationLabel}
+                                </span>
+                                <ChevronRight
+                                    aria-hidden="true"
+                                    className="text-muted-foreground"
+                                />
+                            </button>
+                        )}
+
+                        {/* 5. Stock + shipping line */}
+                        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-sm">
                             <span
                                 className={
                                     inStock
                                         ? 'font-bold text-success-text'
-                                        : 'text-muted-foreground'
+                                        : 'font-bold text-muted-foreground'
                                 }
                             >
                                 {inStock
@@ -289,155 +395,214 @@ export default function Product({
                                 · ships from {p.ships_from}
                             </span>
                         </p>
-                        {p.variations.length > 0 && (
-                            <button
-                                type="button"
-                                onClick={() => setPickerOpen(true)}
-                                className="flex min-h-touch-primary w-full items-center justify-between gap-2 rounded-button border border-border-control bg-surface px-3 text-left text-body"
-                            >
-                                <span>
-                                    <span className="text-muted-foreground">
-                                        Variation:
-                                    </span>{' '}
-                                    {variationLabel}
-                                </span>
-                                <ChevronRight
-                                    aria-hidden="true"
-                                    className="text-muted-foreground"
-                                />
-                            </button>
-                        )}
-                        {inStock && (
-                            <div className="flex items-center gap-3">
-                                <span className="text-label text-foreground">
-                                    Quantity
-                                </span>
-                                <QuantityStepper
-                                    value={qty}
-                                    min={1}
-                                    max={Math.max(currentStock, 1)}
-                                    onChange={setQty}
-                                />
-                            </div>
-                        )}
-                        <StickyActionBar>
-                            <Link
-                                href={shopShow.url(p.shop.slug)}
-                                className="flex min-h-touch-primary w-12 shrink-0 flex-col items-center justify-center rounded-button text-caption text-muted-foreground hover:bg-surface-muted lg:hidden"
-                            >
-                                <Store aria-hidden="true" />
-                                <span>Shop</span>
-                            </Link>
-                            {!isAdmin && (
-                                <>
-                                    <button
-                                        type="button"
-                                        onClick={handleChatClick}
-                                        className="flex min-h-touch-primary w-12 shrink-0 flex-col items-center justify-center rounded-button text-caption text-muted-foreground hover:bg-surface-muted lg:hidden"
-                                    >
-                                        <MessageCircle aria-hidden="true" />
-                                        <span>Chat</span>
-                                    </button>
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        icon={
-                                            <MessageCircle aria-hidden="true" />
-                                        }
-                                        className="hidden lg:flex"
-                                        onClick={handleChatClick}
-                                    >
-                                        Chat
-                                    </Button>
-                                </>
-                            )}
-                            {isAdmin && (
-                                <>
-                                    <button
-                                        type="button"
-                                        onClick={() => setAdminFlagOpen(true)}
-                                        className="flex min-h-touch-primary w-12 shrink-0 flex-col items-center justify-center rounded-button text-caption text-mod-flagged hover:bg-surface-muted lg:hidden"
-                                    >
-                                        <Flag aria-hidden="true" />
-                                        <span>Flag</span>
-                                    </button>
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        icon={<Flag aria-hidden="true" />}
-                                        className="hidden text-mod-flagged hover:text-mod-flagged lg:flex"
-                                        onClick={() => setAdminFlagOpen(true)}
-                                    >
-                                        Flag for review
-                                    </Button>
-                                </>
-                            )}
+
+                        {/* 6. ACTION ROW */}
+                        <div ref={actionRowRef} className="flex flex-col gap-3">
                             {isOwnProduct ? (
-                                <p className="flex-1 self-center text-center text-label text-muted-foreground">
+                                <p className="rounded-panel border border-border bg-surface-muted p-3 text-center text-label text-muted-foreground">
                                     This is your product
                                 </p>
                             ) : (
-                                <>
-                                    <Button
-                                        variant="secondary"
-                                        size="lg"
-                                        icon={<DsIcon name="shopping-cart" />}
-                                        className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-8 max-[399px]:[&>svg]:hidden"
-                                        onClick={() => buyAction(false)}
-                                        disabled={!inStock}
-                                    >
-                                        Add to cart
-                                    </Button>
-                                    <Button
-                                        size="lg"
-                                        className="min-w-0 flex-1 px-2.5 min-[400px]:px-4 lg:flex-none lg:px-10"
-                                        onClick={() => buyAction(true)}
-                                        disabled={!inStock}
-                                    >
-                                        {inStock ? 'Buy now' : 'Out of stock'}
-                                    </Button>
-                                </>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    {/* Quantity label + stepper */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="hidden text-label text-foreground md:inline">
+                                            Qty
+                                        </span>
+                                        <QuantityStepper
+                                            value={qty}
+                                            min={1}
+                                            max={Math.max(currentStock, 1)}
+                                            label="quantity"
+                                            disabled={!inStock}
+                                            onChange={setQty}
+                                            className="h-11 w-[132px]"
+                                        />
+                                    </div>
+
+                                    {/* Add to cart and Buy now buttons */}
+                                    <div className="flex min-w-[280px] flex-1 basis-[280px] items-center gap-3">
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            icon={
+                                                isAdded ? (
+                                                    <Check
+                                                        aria-hidden="true"
+                                                        className="size-4 text-success-text"
+                                                    />
+                                                ) : isAdding ? (
+                                                    <Spinner className="size-4" />
+                                                ) : (
+                                                    <DsIcon
+                                                        name="shopping-cart"
+                                                        className="size-4"
+                                                    />
+                                                )
+                                            }
+                                            className="h-11 min-w-[140px] flex-1 border-primary/30 text-primary hover:bg-primary-soft"
+                                            onClick={() => buyAction(false)}
+                                            disabled={
+                                                !inStock || isAdding || isBuying
+                                            }
+                                        >
+                                            {isAdded ? 'Added' : 'Add to cart'}
+                                        </Button>
+                                        <Button
+                                            size="lg"
+                                            className="h-11 min-w-[140px] flex-1"
+                                            onClick={() => buyAction(true)}
+                                            disabled={
+                                                !inStock || isAdding || isBuying
+                                            }
+                                            icon={
+                                                isBuying ? (
+                                                    <Spinner className="size-4" />
+                                                ) : undefined
+                                            }
+                                        >
+                                            {inStock
+                                                ? isBuying
+                                                    ? 'Processing...'
+                                                    : 'Buy now'
+                                                : 'Out of stock'}
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
-                        </StickyActionBar>
-                        <button
-                            type="button"
-                            onClick={handleReportClick}
-                            className="inline-flex min-h-touch items-center gap-1 self-start text-body-sm text-muted-foreground hover:text-foreground md:hidden"
-                        >
-                            <Flag aria-hidden="true" className="size-4" />
-                            Report this product
-                        </button>
+                        </div>
+
+                        {/* 7. SECONDARY ROW: Chat + Share */}
+                        <div className="flex flex-wrap items-center gap-3 text-body-sm leading-none">
+                            {!isAdmin ? (
+                                <button
+                                    type="button"
+                                    onClick={handleChatClick}
+                                    className="inline-flex items-center gap-1.5 font-medium text-primary-text transition-colors hover:text-primary-hover hover:underline focus-visible:rounded-xs focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                                >
+                                    <MessageCircle
+                                        aria-hidden="true"
+                                        className="size-4 shrink-0"
+                                    />
+                                    <span>Chat</span>
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => setAdminFlagOpen(true)}
+                                    className="inline-flex items-center gap-1.5 font-medium text-mod-flagged transition-colors hover:underline focus-visible:rounded-xs focus-visible:ring-2 focus-visible:ring-mod-flagged focus-visible:outline-none"
+                                >
+                                    <Flag
+                                        aria-hidden="true"
+                                        className="size-4 shrink-0"
+                                    />
+                                    <span>Flag for review</span>
+                                </button>
+                            )}
+                            <div
+                                className="h-3.5 w-px bg-border"
+                                aria-hidden="true"
+                            />
+                            {share && (
+                                <ShareButtons
+                                    url={share.url}
+                                    title={p.name}
+                                    price={currentPrice}
+                                    text={p.description ?? p.name}
+                                    count={share.count}
+                                    enabled={share.enabled}
+                                    slug={p.slug}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
-                <div className="mt-2 md:mt-6">
+
+                {/* 1. Seller card (unchanged) */}
+                <div className="mt-6 md:mt-8">
                     <ShopHeader
                         shop={p.shop}
                         profileHref={shopShow(p.shop.slug).url}
+                        asHeading="h2"
                     />
                 </div>
+
+                {/* 2. Halal status card */}
                 <section aria-labelledby="pd-halal" className="mt-6 md:mt-8">
                     <h2 id="pd-halal" className="text-h3">
                         Halal status
                     </h2>
-                    {p.halal_status === 'na' ? (
-                        <p className="card mt-3 p-4 text-body text-muted-foreground">
-                            Muslim-friendly · no certificate needed
-                        </p>
-                    ) : !cert ? (
-                        <div className="card mt-3 p-4">
-                            <HalalBadge status={p.halal_status} />
-                            {halalGuidance[p.halal_status] && (
-                                <p className="mt-2 text-body-sm text-muted-foreground">
-                                    {halalGuidance[p.halal_status]}
-                                </p>
-                            )}
-                        </div>
-                    ) : (
-                        <>
-                            <div className="mt-3">
-                                <HalalBadge status={p.halal_status} />
+                    <div className="card mt-3 p-4 md:p-6">
+                        <div className="flex items-start gap-3">
+                            <span className="grid size-10 shrink-0 place-items-center rounded-tile bg-halal-soft text-halal">
+                                <ShieldCheck
+                                    className="size-6 text-halal"
+                                    aria-hidden="true"
+                                />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-h4 text-foreground">
+                                        {halalStatusTitle[p.halal_status] ??
+                                            'Halal status'}
+                                    </span>
+                                    <HalalBadge status={p.halal_status} short />
+                                </div>
+                                {cert && (
+                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm">
+                                        <span>
+                                            <span className="text-muted-foreground">
+                                                Certificate no:{' '}
+                                            </span>
+                                            <span className="tabular font-medium text-foreground">
+                                                {cert.number}
+                                            </span>
+                                        </span>
+                                        {certValid && (
+                                            <span>
+                                                <span className="text-muted-foreground">
+                                                    Valid until:{' '}
+                                                </span>
+                                                <span className="tabular font-medium text-foreground">
+                                                    {certValid}
+                                                </span>
+                                            </span>
+                                        )}
+                                        {cert.document_path && (
+                                            <a
+                                                href={cert.document_path}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 font-semibold text-primary-text underline underline-offset-2 hover:text-primary"
+                                            >
+                                                View certificate
+                                                <ExternalLink
+                                                    aria-hidden="true"
+                                                    className="size-3.5"
+                                                />
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
+                                {halalGuidance[p.halal_status] && (
+                                    <p className="mt-2 text-body-sm text-muted-foreground">
+                                        {halalGuidance[p.halal_status]}
+                                    </p>
+                                )}
                             </div>
-                            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                        </div>
+
+                        {p.halal_status === 'certified' && (
+                            <div className="mt-4 border-t border-border pt-4">
+                                <HalalFacts
+                                    valid={certValid}
+                                    frozen={p.frozen}
+                                />
+                            </div>
+                        )}
+
+                        {cert && (
+                            <div className="mt-4 grid gap-3 lg:grid-cols-2">
                                 <HalalCertificateCard
                                     id="pd-hc"
                                     certification={cert}
@@ -481,9 +646,11 @@ export default function Product({
                                     </p>
                                 </section>
                             </div>
-                        </>
-                    )}
+                        )}
+                    </div>
                 </section>
+
+                {/* 3. "Product details" accordion */}
                 <section aria-labelledby="pd-det" className="mt-6 md:mt-8">
                     <h2 id="pd-det" className="text-h3">
                         Product details
@@ -507,6 +674,7 @@ export default function Product({
                                 : []),
                             {
                                 title: 'Specifications',
+                                open: false,
                                 content: (
                                     <KeyValueList
                                         cols={2}
@@ -514,12 +682,70 @@ export default function Product({
                                             ['Category', p.category.name],
                                             [
                                                 'Stock',
-                                                p.in_stock
-                                                    ? `${p.stock} units`
+                                                inStock
+                                                    ? `${currentStock} units`
                                                     : 'Out of stock',
                                             ],
                                             ['Ships from', p.ships_from],
                                             ['Sold by', p.shop.name],
+                                            ...(p.frozen
+                                                ? [
+                                                      [
+                                                          'Handling',
+                                                          'Frozen (-18°C)',
+                                                      ] as [
+                                                          string,
+                                                          React.ReactNode,
+                                                      ],
+                                                  ]
+                                                : []),
+                                            ...(p.certification
+                                                ? [
+                                                      [
+                                                          'Certificate no.',
+                                                          p.certification
+                                                              .number,
+                                                      ] as [
+                                                          string,
+                                                          React.ReactNode,
+                                                      ],
+                                                  ]
+                                                : []),
+                                        ]}
+                                    />
+                                ),
+                            },
+                            {
+                                title: 'Shipping & returns',
+                                open: false,
+                                content: (
+                                    <KeyValueList
+                                        cols={1}
+                                        rows={[
+                                            [
+                                                'Shipping',
+                                                p.free_shipping
+                                                    ? 'Free shipping'
+                                                    : 'Shipping calculated at checkout based on delivery location',
+                                            ],
+                                            ['Ships from', p.ships_from],
+                                            ...(p.frozen
+                                                ? [
+                                                      [
+                                                          'Handling',
+                                                          'Cold-chain delivery (packed with thermal insulation and gel/dry ice to maintain frozen temperature)',
+                                                      ] as [
+                                                          string,
+                                                          React.ReactNode,
+                                                      ],
+                                                  ]
+                                                : []),
+                                            [
+                                                'Returns',
+                                                p.frozen
+                                                    ? 'Perishable and frozen items are non-returnable once delivered, unless damaged or spoiled upon arrival.'
+                                                    : 'Eligible for return or replacement within 7 days of delivery in original, unopened condition.',
+                                            ],
                                         ]}
                                     />
                                 ),
@@ -527,6 +753,8 @@ export default function Product({
                         ]}
                     />
                 </section>
+
+                {/* 4. "Ratings & reviews" */}
                 <section
                     id="pd-rev"
                     aria-labelledby="pd-rev-h"
@@ -535,9 +763,9 @@ export default function Product({
                     <h2 id="pd-rev-h" className="text-h3">
                         Ratings & reviews
                     </h2>
-                    <div className="card mt-3 p-4">
+                    <div className="card mt-3 p-4 md:p-6">
                         {p.review_count > 0 && (
-                            <div className="flex items-center gap-4 border-b border-border pb-4">
+                            <div className="flex flex-wrap items-center gap-4 border-b border-border pb-4">
                                 <p className="text-h2">
                                     <span className="text-foreground">
                                         {p.rating.toFixed(1)}
@@ -549,6 +777,12 @@ export default function Product({
                                 </p>
                                 <div className="flex-1">
                                     <Rating value={p.rating} />
+                                    <p className="mt-1 text-body-sm text-muted-foreground">
+                                        Based on {p.review_count}{' '}
+                                        {p.review_count === 1
+                                            ? 'rating'
+                                            : 'ratings'}
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -564,6 +798,8 @@ export default function Product({
                         )}
                     </div>
                 </section>
+
+                {/* 5. "You may also like" (unchanged) */}
                 {related.length > 0 && (
                     <section aria-labelledby="pd-also" className="mt-6 md:mt-8">
                         <h2 id="pd-also" className="text-h3">
@@ -583,6 +819,89 @@ export default function Product({
                     </section>
                 )}
             </div>
+
+            {/* Sticky bottom action bar for small screens (< 768px) */}
+            <div
+                className={cn(
+                    'fixed inset-x-0 bottom-[calc(var(--tabbar-h,0px)+env(safe-area-inset-bottom,0px))] z-sticky-bar border-t border-border bg-surface/95 shadow-sticky backdrop-blur transition-transform duration-200 md:hidden',
+                    showStickyBar
+                        ? 'translate-y-0'
+                        : 'pointer-events-none translate-y-full',
+                )}
+                style={{
+                    paddingBottom:
+                        'max(0.5rem, env(safe-area-inset-bottom, 0px))',
+                }}
+            >
+                <div className="mx-auto flex items-center gap-2 px-4 py-2">
+                    {!isAdmin ? (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleChatClick}
+                            aria-label="Chat with seller"
+                            className="size-11 shrink-0 rounded-button"
+                        >
+                            <MessageCircle
+                                aria-hidden="true"
+                                className="size-5"
+                            />
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setAdminFlagOpen(true)}
+                            aria-label="Flag product for review"
+                            className="size-11 shrink-0 rounded-button text-mod-flagged hover:text-mod-flagged"
+                        >
+                            <Flag aria-hidden="true" className="size-5" />
+                        </Button>
+                    )}
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        icon={
+                            isAdded ? (
+                                <Check
+                                    aria-hidden="true"
+                                    className="size-4 text-success-text"
+                                />
+                            ) : isAdding ? (
+                                <Spinner className="size-4" />
+                            ) : (
+                                <DsIcon
+                                    name="shopping-cart"
+                                    className="size-4"
+                                />
+                            )
+                        }
+                        className="h-11 min-w-0 flex-1 px-3"
+                        onClick={() => buyAction(false)}
+                        disabled={!inStock || isAdding || isBuying}
+                    >
+                        {isAdded ? 'Added' : 'Add to cart'}
+                    </Button>
+                    <Button
+                        size="lg"
+                        className="h-11 min-w-0 flex-1 px-3"
+                        onClick={() => buyAction(true)}
+                        disabled={!inStock || isAdding || isBuying}
+                        icon={
+                            isBuying ? (
+                                <Spinner className="size-4" />
+                            ) : undefined
+                        }
+                    >
+                        {inStock
+                            ? isBuying
+                                ? 'Processing...'
+                                : 'Buy now'
+                            : 'Out of stock'}
+                    </Button>
+                </div>
+            </div>
+
             <VariationPicker
                 open={pickerOpen}
                 onOpenChange={setPickerOpen}
@@ -596,6 +915,7 @@ export default function Product({
                                     (selection.option2 ?? null),
                         ) ?? null;
                     setSelectedVariation(variation);
+                    setIsVariationConfirmed(true);
                     setPickerOpen(false);
                     addToCart(
                         variation?.id ?? null,

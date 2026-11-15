@@ -22,10 +22,17 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MediaViewController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductShareController;
+use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopDirectoryController;
 use App\Http\Controllers\ShopFollowController;
+use App\Http\Controllers\SitemapCategoriesController;
+use App\Http\Controllers\SitemapIndexController;
+use App\Http\Controllers\SitemapPagesController;
+use App\Http\Controllers\SitemapProductsController;
+use App\Http\Controllers\SitemapShopsController;
+use App\Http\Controllers\SocialImageController;
 use App\Http\Controllers\WhyChooseUsController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,7 +48,16 @@ Route::get('sellers', ShopDirectoryController::class)->name('shops.index');
 Route::get('why-choose-us', WhyChooseUsController::class)->name('why-choose-us');
 Route::get('pages/{page}', [App\Http\Controllers\ContentPageController::class, 'show'])->name('pages.show');
 Route::get('seller/terms', App\Http\Controllers\Seller\SellerTermsController::class)->name('seller.terms');
+Route::get('staff-invitations/{staffInvitation}', [App\Http\Controllers\ShopStaffInvitationController::class, 'show'])->name('staff-invitations.show');
 Route::get('media/{media}/view', MediaViewController::class)->name('media.view');
+
+Route::get('social/{type}/{slug}.jpg', SocialImageController::class)->name('social.image');
+Route::get('sitemap.xml', SitemapIndexController::class)->name('sitemap.index');
+Route::get('sitemap-pages.xml', SitemapPagesController::class)->name('sitemap.pages');
+Route::get('sitemap-categories.xml', SitemapCategoriesController::class)->name('sitemap.categories');
+Route::get('sitemap-shops.xml', SitemapShopsController::class)->name('sitemap.shops');
+Route::get('sitemap-products-{page}.xml', SitemapProductsController::class)->name('sitemap.products');
+Route::get('robots.txt', RobotsController::class)->name('robots');
 
 Route::prefix('api/psgc')->name('psgc.')->group(function () {
     Route::get('regions', PsgcRegionController::class)->name('regions');
@@ -101,7 +117,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::post('seller/register', [App\Http\Controllers\Seller\ShopRegistrationController::class, 'store'])->name('seller.register.store');
         Route::get('seller/suspended', App\Http\Controllers\Seller\SuspendedShopController::class)->name('seller.suspended');
 
-        Route::resource('staff-invitations', App\Http\Controllers\ShopStaffInvitationController::class)->parameters(['staff-invitations' => 'staffInvitation'])->only(['show', 'update', 'destroy'])->names('staff-invitations');
+        Route::resource('staff-invitations', App\Http\Controllers\ShopStaffInvitationController::class)->parameters(['staff-invitations' => 'staffInvitation'])->only(['update', 'destroy'])->names('staff-invitations');
     });
 
     Route::prefix('seller')->name('seller.')->middleware('workspace:seller')->group(function () {
@@ -141,6 +157,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->names('categories');
         Route::resource('vouchers', App\Http\Controllers\Admin\VoucherController::class)->only(['index', 'store', 'update', 'destroy'])->names('vouchers');
         Route::resource('users', App\Http\Controllers\Admin\UserController::class)->only(['index', 'show'])->names('users');
+        Route::resource('admins', App\Http\Controllers\Admin\AdminAccountController::class)->only(['store', 'destroy'])->names('admins');
         Route::post('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'store'])->name('users.suspension.store');
         Route::delete('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'destroy'])->name('users.suspension.destroy');
         Route::get('settings', [App\Http\Controllers\Admin\SettingController::class, 'edit'])->name('settings.edit');

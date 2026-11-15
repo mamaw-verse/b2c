@@ -61,6 +61,30 @@ final class Product extends Model
     /** @use HasFactory<ProductFactory> */
     use HasFactory, HasUlids;
 
+    public function resolveRouteBinding($value, $field = null): ?Model
+    {
+        $field = $field ?? $this->getRouteKeyName();
+        $model = parent::resolveRouteBinding($value, $field);
+        if ($model !== null) {
+            return $model;
+        }
+
+        if ($field === 'slug' && is_string($value)) {
+            $history = ProductSlugHistory::where('slug', $value)->with('product')->first();
+            if ($history !== null && $history->product !== null) {
+                abort(redirect()->to(route('products.show', $history->product), 301));
+            }
+        }
+
+        return null;
+    }
+
+    /** @return HasMany<ProductSlugHistory, $this> */
+    public function slugHistories(): HasMany
+    {
+        return $this->hasMany(ProductSlugHistory::class);
+    }
+
     /** @return BelongsTo<Shop, $this> */
     public function shop(): BelongsTo
     {
@@ -238,6 +262,29 @@ final class Product extends Model
                 'products_count' => $this->shop->products()->visible()->count(),
             ],
         ];
+    }
+
+    protected static function booted(): void
+    {
+        self::saved(static function (): void {
+            resolve(\App\Actions\Seo\InvalidateSitemapCache::class)->handle();
+        });
+
+        self::deleted(static function (): void {
+            resolve(\App\Actions\Seo\InvalidateSitemapCache::class)->handle();
+        });
+
+        self::updating(static function (self $product): void {
+            if ($product->isDirty('slug')) {
+                $oldSlug = (string) $product->getOriginal('slug');
+                if ($oldSlug !== '' && $oldSlug !== $product->slug) {
+                    ProductSlugHistory::firstOrCreate([
+                        'product_id' => $product->id,
+                        'slug' => $oldSlug,
+                    ]);
+                }
+            }
+        });
     }
 
     /** @param Builder<Product> $query */

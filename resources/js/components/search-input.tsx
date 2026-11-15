@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import {
+    useEffect,
     useId,
     useRef,
     useState,
@@ -41,6 +42,10 @@ export function SearchInput({
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setTerm(value);
+    }, [value]);
 
     const filtered = term
         ? suggestions.filter((s) =>

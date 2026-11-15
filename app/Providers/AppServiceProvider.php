@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -20,7 +21,7 @@ final class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Support\Seo::class);
     }
 
     /**
@@ -28,6 +29,8 @@ final class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Route::model('admin', \App\Models\User::class);
+
         $this->configureDefaults();
         $this->configureRateLimiting();
     }

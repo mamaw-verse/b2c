@@ -4,15 +4,24 @@ declare(strict_types=1);
 
 namespace App\Actions\Fortify;
 
+use App\Actions\Seller\AcceptShopStaffInvitation;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Enums\ShopStaffStatus;
+use App\Models\ShopStaff;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
-final class CreateNewUser implements CreatesNewUsers
+final readonly class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules, ProfileValidationRules;
+
+    public function __construct(
+        private AcceptShopStaffInvitation $acceptStaffInvitation
+    ) {}
 
     /**
      * Validate and create a newly registered user.
@@ -24,12 +33,41 @@ final class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
+            'invitation' => ['nullable', 'string'],
         ])->validate();
 
-        return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
-        ]);
+        $invitationId = $input['invitation'] ?? session()->get('staff_invitation_id');
+        $invitation = null;
+
+        if (is_string($invitationId) && $invitationId !== '') {
+            $invitation = ShopStaff::query()
+                ->where('id', $invitationId)
+                ->where('status', ShopStaffStatus::Pending)
+                ->whereRaw('LOWER(email) = ?', [mb_strtolower($input['email'])])
+                ->first();
+
+            if ($invitation !== null && $invitation->invited_at !== null && $invitation->invited_at->lt(now()->subDays(7))) {
+                throw ValidationException::withMessages([
+                    'email' => 'This invitation has expired.',
+                ]);
+            }
+        }
+
+        return DB::transaction(function () use ($input, $invitation): User {
+            $user = User::create([
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'password' => $input['password'],
+                'email_verified_at' => $invitation !== null ? now() : null,
+            ]);
+
+            if ($invitation !== null) {
+                $this->acceptStaffInvitation->handle($invitation, $user, request()->ip());
+                session()->forget('staff_invitation_id');
+                session()->flash('success', "Welcome to the {$invitation->shop->name} team!");
+            }
+
+            return $user;
+        });
     }
 }

@@ -24,4 +24,5 @@ Artisan::command('orders:auto-complete', function () {
 
 Schedule::command('orders:auto-complete')->dailyAt('03:30');
 Schedule::command('moderation:flag-expiring-certificates')->dailyAt('03:00');
+Schedule::command('sitemap:generate')->dailyAt('02:00');
 Schedule::job(new App\Jobs\ReconcileMediaOrphansJob)->dailyAt('04:00');

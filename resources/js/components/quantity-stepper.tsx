@@ -45,7 +45,7 @@ export function QuantityStepper({
     };
 
     const btnCls =
-        'btn btn-ghost btn-icon rounded-none border-0 text-foreground hover:bg-surface-muted active:bg-border disabled:text-muted-foreground';
+        'btn btn-ghost btn-icon h-full rounded-none border-0 px-0 text-foreground hover:bg-surface-muted active:bg-border disabled:text-muted-foreground';
 
     return (
         <div
@@ -59,7 +59,11 @@ export function QuantityStepper({
             <button
                 type="button"
                 className={cn(btnCls, 'rounded-s-field')}
-                aria-label={`Decrease ${label.toLowerCase()}`}
+                aria-label={
+                    label.toLowerCase() === 'quantity'
+                        ? 'Decrease quantity'
+                        : `Decrease ${label.toLowerCase()}`
+                }
                 disabled={disabled || current <= min}
                 onClick={() => {
                     setText(null);
@@ -92,8 +96,13 @@ export function QuantityStepper({
             <button
                 type="button"
                 className={cn(btnCls, 'rounded-e-field')}
-                aria-label={`Increase ${label.toLowerCase()}`}
+                aria-label={
+                    label.toLowerCase() === 'quantity'
+                        ? 'Increase quantity'
+                        : `Increase ${label.toLowerCase()}`
+                }
                 disabled={disabled || current >= max}
+                title={current >= max ? 'Max available' : undefined}
                 onClick={() => {
                     setText(null);
                     setValue(current + 1);

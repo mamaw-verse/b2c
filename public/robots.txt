@@ -1,2 +1,17 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-confirmed
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /seller/dashboard
+Disallow: /admin
+Disallow: /api
+Disallow: /search
+Disallow: /*?*sort=
+Disallow: /*?*filter
+
+Sitemap: https://halalbenta.com/sitemap.xml

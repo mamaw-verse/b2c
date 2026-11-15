@@ -62,6 +62,17 @@ final class Category extends Model
         return $ids;
     }
 
+    protected static function booted(): void
+    {
+        self::saved(static function (): void {
+            resolve(\App\Actions\Seo\InvalidateSitemapCache::class)->handle();
+        });
+
+        self::deleted(static function (): void {
+            resolve(\App\Actions\Seo\InvalidateSitemapCache::class)->handle();
+        });
+    }
+
     protected function casts(): array
     {
         return [

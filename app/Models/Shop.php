@@ -180,6 +180,17 @@ final class Shop extends Model
         return $operators->concat($staffUsers)->unique('id')->values();
     }
 
+    protected static function booted(): void
+    {
+        self::saved(static function (): void {
+            resolve(\App\Actions\Seo\InvalidateSitemapCache::class)->handle();
+        });
+
+        self::deleted(static function (): void {
+            resolve(\App\Actions\Seo\InvalidateSitemapCache::class)->handle();
+        });
+    }
+
     protected function casts(): array
     {
         return [

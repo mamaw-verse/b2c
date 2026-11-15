@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Catalogue\ListHomeFeed;
+use App\Actions\Seo\BuildHomeSeoData;
 use App\Actions\Voucher\ListActiveVouchers;
 use App\Models\Category;
+use App\Support\Seo;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,8 +18,16 @@ final class HomeController
     /**
      * Show the storefront home page.
      */
-    public function __invoke(Request $request, ListHomeFeed $feed, ListActiveVouchers $vouchers): Response
-    {
+    public function __invoke(
+        Request $request,
+        ListHomeFeed $feed,
+        ListActiveVouchers $vouchers,
+        BuildHomeSeoData $buildSeoData,
+        Seo $seo
+    ): Response {
+        $seoData = $buildSeoData->handle();
+        $seo->set($seoData);
+
         return Inertia::render('home', [
             'categories' => Category::whereNull('parent_id')
                 ->orderBy('sort_order')
@@ -27,6 +37,6 @@ final class HomeController
             'canBecomeSeller' => $request->user()?->isSeller() !== true,
             'halalCertificationUrl' => config('services.halal_certification.url'),
             'b2bUrl' => config('services.b2b.url'),
-        ]);
+        ])->withViewData(['seo' => $seoData]);
     }
 }

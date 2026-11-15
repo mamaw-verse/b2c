@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { LockKeyhole, Palette, UserRound } from 'lucide-react';
+import { LockKeyhole, Palette, Store, UserRound } from 'lucide-react';
 import { BrandMark } from '@/components/brand-mark';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -8,6 +9,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { sellerHome } from '@/lib/workspaces';
 import { home as accountHome } from '@/routes/account';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
@@ -37,14 +39,18 @@ const accountLinks = [
 ];
 
 export default function AccountHome() {
-    const { auth, name } = usePage<{ auth: Auth; name: string }>().props;
+    const { auth, name, seller } = usePage<{
+        auth: Auth;
+        name: string;
+        seller?: { role?: 'owner' | 'staff' } | null;
+    }>().props;
 
     return (
         <>
             <Head title="Account home" />
             <div className="grid gap-6">
                 <section className="panel p-4 md:p-6">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                         <BrandMark name={name} showName={false} />
                         <div>
                             <h1 className="text-h1">Account home</h1>
@@ -53,6 +59,21 @@ export default function AccountHome() {
                                 {auth.user.email}
                             </p>
                         </div>
+                        {seller && (
+                            <Button
+                                variant="outline"
+                                className="ml-auto shrink-0"
+                                asChild
+                            >
+                                <Link href={sellerHome(seller.role)} prefetch>
+                                    <Store
+                                        className="icon"
+                                        aria-hidden="true"
+                                    />
+                                    Seller centre
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </section>
 

@@ -155,7 +155,9 @@ test('invitee can view invitation with valid signed link and accept it', functio
 
     // Accept invitation
     $this->actingAs($inviteeUser)->put("/staff-invitations/{$staff->id}")
-        ->assertRedirect('/seller/dashboard');
+        ->assertRedirect('/seller/orders');
+
+    $this->actingAs($inviteeUser->fresh())->get('/seller/orders')->assertOk();
 
     $staff->refresh();
     expect($staff->status)->toBe(ShopStaffStatus::Active)
@@ -269,4 +271,101 @@ test('owner can remove staff and staff can leave', function () {
 
     // Both seats freed
     expect($shop->staff()->count())->toBe(0);
+});
+
+test('unregistered invitee visiting valid signed link is redirected to register and automatically joins team upon registration', function () {
+    $owner = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $owner->id]);
+
+    $staff = ShopStaff::factory()->create([
+        'shop_id' => $shop->id,
+        'email' => 'newstaff@example.com',
+        'status' => ShopStaffStatus::Pending,
+        'invited_by' => $owner->id,
+        'invited_at' => now(),
+    ]);
+
+    $validSignedUrl = URL::temporarySignedRoute(
+        'staff-invitations.show',
+        now()->addDays(7),
+        ['staffInvitation' => $staff->id]
+    );
+
+    // Guest visits signed invitation link -> redirected to register
+    $response = $this->get($validSignedUrl);
+    $response->assertRedirect('/register?email=newstaff%40example.com&invitation='.$staff->id)
+        ->assertSessionHas('staff_invitation_id', $staff->id);
+
+    // Registration page renders invitation details
+    $this->get('/register?email=newstaff%40example.com&invitation='.$staff->id)
+        ->assertOk()
+        ->assertInertia(
+            fn ($page) => $page
+                ->component('auth/register')
+                ->where('invitation.id', $staff->id)
+                ->where('invitation.shop_name', $shop->name)
+                ->where('invitation.email', 'newstaff@example.com')
+        );
+
+    // Register user
+    $registerResponse = $this->post('/register', [
+        'name' => 'New Staff User',
+        'email' => 'newstaff@example.com',
+        'password' => 'Password123!',
+        'password_confirmation' => 'Password123!',
+        'invitation' => $staff->id,
+    ]);
+
+    $registerResponse->assertRedirect('/seller/orders');
+    $this->assertAuthenticated();
+
+    $newUser = User::where('email', 'newstaff@example.com')->firstOrFail();
+    expect($newUser->email_verified_at)->not->toBeNull();
+    expect($newUser->isShopStaff())->toBeTrue();
+
+    $staff->refresh();
+    expect($staff->status)->toBe(ShopStaffStatus::Active)
+        ->and($staff->user_id)->toBe($newUser->id)
+        ->and($staff->accepted_at)->not->toBeNull();
+
+    expect(AuditLog::where('action', 'shop.staff.accepted')->exists())->toBeTrue();
+
+    // The newly registered user can access operated staff routes
+    $this->actingAs($newUser->fresh())->get('/seller/orders')->assertOk();
+    $this->get('/seller/products')->assertOk();
+});
+
+test('already registered invitee visiting valid signed link while logged out is redirected to login', function () {
+    $owner = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $owner->id]);
+
+    $existingUser = User::factory()->create(['email' => 'existingstaff@example.com']);
+
+    $staff = ShopStaff::factory()->create([
+        'shop_id' => $shop->id,
+        'email' => 'existingstaff@example.com',
+        'status' => ShopStaffStatus::Pending,
+        'invited_by' => $owner->id,
+        'invited_at' => now(),
+    ]);
+
+    $validSignedUrl = URL::temporarySignedRoute(
+        'staff-invitations.show',
+        now()->addDays(7),
+        ['staffInvitation' => $staff->id]
+    );
+
+    // Guest visits signed invitation link -> redirected to login
+    $response = $this->get($validSignedUrl);
+    $response->assertRedirect('/login?email=existingstaff%40example.com')
+        ->assertSessionHas('url.intended', $validSignedUrl);
+
+    // Login views prefilled email
+    $this->get('/login?email=existingstaff%40example.com')
+        ->assertOk()
+        ->assertInertia(
+            fn ($page) => $page
+                ->component('auth/login')
+                ->where('email', 'existingstaff@example.com')
+        );
 });

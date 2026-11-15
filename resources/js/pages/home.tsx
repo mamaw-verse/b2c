@@ -155,9 +155,9 @@ export default function Home({
                         </h2>
                         <ul
                             className={cn(
-                                'bleed-x mt-3 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory',
+                                'bleed-x mt-3 flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden',
                                 vouchers.length > 2
-                                    ? 'md:bleed-x md:flex md:gap-4 md:overflow-x-auto md:snap-x md:snap-mandatory'
+                                    ? 'md:bleed-x md:flex md:snap-x md:snap-mandatory md:gap-4 md:overflow-x-auto'
                                     : 'md:m-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:p-0',
                                 vouchers.length >= 4
                                     ? 'lg:m-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible lg:p-0'
@@ -171,8 +171,8 @@ export default function Home({
                                         'w-[85%] shrink-0 snap-start',
                                         vouchers.length > 2
                                             ? 'md:w-[calc(50%-8px)] md:shrink-0 md:snap-start'
-                                            : 'md:w-auto md:h-full',
-                                        'lg:w-auto lg:h-full',
+                                            : 'md:h-full md:w-auto',
+                                        'lg:h-full lg:w-auto',
                                     )}
                                 >
                                     <VoucherCard

@@ -1,20 +1,42 @@
 import { Form, Head } from '@inertiajs/react';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
+import { Banner } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
-type Props = {
-    passwordRules: string;
+type Invitation = {
+    id: string;
+    shop_name: string;
+    email: string;
 };
 
-export default function Register({ passwordRules }: Props) {
+type Props = {
+    passwordRules: string;
+    invitation?: Invitation | null;
+    email?: string | null;
+};
+
+export default function Register({ passwordRules, invitation, email }: Props) {
     return (
         <>
             <Head title="Register" />
+
+            {invitation && (
+                <div className="mb-6">
+                    <Banner
+                        tone="info"
+                        title={`Staff invitation from ${invitation.shop_name}`}
+                    >
+                        Complete your registration to automatically join the{' '}
+                        <strong>{invitation.shop_name}</strong> team.
+                    </Banner>
+                </div>
+            )}
+
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -22,6 +44,14 @@ export default function Register({ passwordRules }: Props) {
             >
                 {({ processing, errors }) => (
                     <div className="grid gap-5">
+                        {invitation && (
+                            <input
+                                type="hidden"
+                                name="invitation"
+                                value={invitation.id}
+                            />
+                        )}
+
                         <FormField
                             id="name"
                             label="Name"
@@ -49,6 +79,8 @@ export default function Register({ passwordRules }: Props) {
                                 tabIndex={2}
                                 autoComplete="email"
                                 name="email"
+                                defaultValue={invitation?.email ?? email ?? ''}
+                                readOnly={Boolean(invitation)}
                                 placeholder="email@example.com"
                             />
                         </FormField>

@@ -26,7 +26,7 @@ final class ListShopsRequest extends FormRequest
 
     public function queryText(): string
     {
-        return $this->validated('q', '');
+        return $this->validated('q') ?? '';
     }
 
     public function halalOnly(): bool
@@ -36,6 +36,6 @@ final class ListShopsRequest extends FormRequest
 
     public function sort(): string
     {
-        return $this->validated('sort', 'followers');
+        return $this->validated('sort') ?? 'followers';
     }
 }

@@ -16,8 +16,28 @@ use Inertia\Response;
 
 final class ShopStaffInvitationController
 {
-    public function show(ShowShopStaffInvitationRequest $request, ShopStaff $staffInvitation): Response
+    public function show(ShowShopStaffInvitationRequest $request, ShopStaff $staffInvitation): Response|RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user === null) {
+            $existingUser = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($staffInvitation->email)])->first();
+
+            if ($existingUser !== null) {
+                session()->put('url.intended', $request->fullUrl());
+
+                return redirect()->route('login', ['email' => $staffInvitation->email])
+                    ->with('status', 'Please log in to view and accept your staff invitation.');
+            }
+
+            session()->put('staff_invitation_id', $staffInvitation->id);
+
+            return redirect()->route('register', [
+                'email' => $staffInvitation->email,
+                'invitation' => $staffInvitation->id,
+            ]);
+        }
+
         return Inertia::render('account/staff-invitation', [
             'invitation' => [
                 'id' => $staffInvitation->id,
@@ -38,7 +58,7 @@ final class ShopStaffInvitationController
 
         $action->handle($staffInvitation, $user, $request->ip());
 
-        return redirect()->route('seller.dashboard')->with('success', "Welcome to the {$staffInvitation->shop->name} team!");
+        return redirect()->route('seller.orders.index')->with('success', "Welcome to the {$staffInvitation->shop->name} team!");
     }
 
     public function destroy(

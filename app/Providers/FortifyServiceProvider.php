@@ -6,7 +6,10 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Enums\ShopStaffStatus;
 use App\Http\Responses\LoginResponse;
+use App\Http\Responses\RegisterResponse;
+use App\Models\ShopStaff;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -18,6 +21,7 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -29,6 +33,7 @@ final class FortifyServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
+        $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
     }
 
     /**
@@ -76,6 +81,7 @@ final class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'status' => $request->session()->get('status'),
+            'email' => $request->query('email'),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
@@ -92,9 +98,32 @@ final class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/register', [
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
-        ]));
+        Fortify::registerView(function (Request $request) {
+            $invitationId = $request->query('invitation') ?? $request->session()->get('staff_invitation_id');
+            $invitation = null;
+
+            if (is_string($invitationId) && $invitationId !== '') {
+                $staff = ShopStaff::query()
+                    ->with('shop')
+                    ->where('id', $invitationId)
+                    ->where('status', ShopStaffStatus::Pending)
+                    ->first();
+
+                if ($staff !== null && ($staff->invited_at === null || $staff->invited_at->gte(now()->subDays(7)))) {
+                    $invitation = [
+                        'id' => $staff->id,
+                        'shop_name' => $staff->shop->name,
+                        'email' => $staff->email,
+                    ];
+                }
+            }
+
+            return Inertia::render('auth/register', [
+                'passwordRules' => Password::defaults()->toPasswordRulesString(),
+                'invitation' => $invitation,
+                'email' => $invitation['email'] ?? $request->query('email'),
+            ]);
+        });
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 

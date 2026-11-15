@@ -57,6 +57,7 @@ final class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'brand' => config('app.brand'),
+            'seo' => fn () => app(\App\Support\Seo::class)->resolve()->toArray(),
             'marketplace' => fn () => app(Settings::class)->marketplaceConfig(),
             'auth' => [
                 'user' => $request->user(),
@@ -65,7 +66,7 @@ final class HandleInertiaRequests extends Middleware
                 ->map(fn (Workspace $w) => [
                     'key' => $w->value,
                     'label' => $w->label(),
-                    'href' => $w->home(),
+                    'href' => $w->home($user),
                     'current' => $w === $workspace || count($allowed) === 1,
                 ])->all(),
             'seller' => $shop === null ? null : [

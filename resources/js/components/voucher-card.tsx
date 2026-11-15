@@ -1,4 +1,4 @@
-import { Check, Clock, CircleAlert, Store, Tag, Truck } from 'lucide-react';
+import { Check, Store, Tag, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -47,7 +47,7 @@ export function VoucherCard({
     return (
         <div
             className={cn(
-                'flex h-full w-full min-h-[4.5rem] overflow-hidden rounded-card border bg-surface',
+                'flex h-full min-h-[4.5rem] w-full overflow-hidden rounded-card border bg-surface',
                 state === 'unavailable'
                     ? 'border-border'
                     : 'border-border-outline',
@@ -64,7 +64,7 @@ export function VoucherCard({
             </div>
             <div className="relative flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-l-2 border-dashed border-border py-2 pr-2 pl-3">
                 <p
-                    className="text-label font-semibold text-foreground truncate"
+                    className="truncate text-label font-semibold text-foreground"
                     title={title}
                     aria-label={title}
                 >
@@ -72,7 +72,7 @@ export function VoucherCard({
                 </p>
                 <p
                     className={cn(
-                        'text-caption truncate',
+                        'truncate text-caption',
                         state === 'unavailable'
                             ? 'text-danger-text'
                             : 'text-muted-foreground',
@@ -85,7 +85,10 @@ export function VoucherCard({
             </div>
             {state === 'applied' ? (
                 <div className="flex shrink-0 items-center pr-3">
-                    <Badge variant="success" className="min-w-[72px] justify-center">
+                    <Badge
+                        variant="success"
+                        className="min-w-[72px] justify-center"
+                    >
                         <Check aria-hidden="true" className="size-3.5" />
                         Applied
                     </Badge>
@@ -96,7 +99,7 @@ export function VoucherCard({
                         size="sm"
                         variant={state === 'claimed' ? 'outline' : 'primary'}
                         onClick={onAction}
-                        className="min-w-[72px] w-[72px] shrink-0"
+                        className="w-[72px] min-w-[72px] shrink-0"
                     >
                         {state === 'claimed' ? 'Use' : 'Claim'}
                     </Button>

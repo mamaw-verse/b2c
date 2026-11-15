@@ -1,0 +1,254 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Seo;
+
+use App\Enums\HalalStatus;
+use App\Models\Product;
+use App\Models\ProductVariation;
+use App\Support\SeoData;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+final readonly class BuildProductSeoData
+{
+    public function handle(Product $product, ?Request $request = null): SeoData
+    {
+        $origin = SeoData::canonicalOrigin();
+        $canonical = $origin."/products/{$product->slug}";
+        $shop = $product->shop;
+        $category = $product->category;
+
+        // Price formatting
+        $variantParam = $request?->query('variant');
+        $selectedVariant = null;
+        if (is_string($variantParam) && $variantParam !== '') {
+            $selectedVariant = $product->variations->first(fn (ProductVariation $v) => (string) $v->id === $variantParam || $v->option1_value === $variantParam);
+        }
+
+        $activePrice = $selectedVariant?->price ?? $product->price;
+        $pesos = $activePrice / 100;
+        $priceStr = ($activePrice % 100 === 0)
+            ? (string) ((int) $pesos)
+            : number_format($pesos, 2);
+
+        $shopName = $shop?->name ?? 'HalalBenta';
+
+        // Title <= 60 chars for <title>
+        $titleSuffix = " – ₱{$priceStr} | {$shopName} | HalalBenta";
+        $availableLength = max(15, 60 - mb_strlen($titleSuffix));
+        $truncatedName = Str::limit($product->name, $availableLength, '…');
+        $metaTitle = "{$truncatedName}{$titleSuffix}";
+
+        // og:title up to ~90 chars, can include variant name
+        $variantName = $selectedVariant !== null
+            ? $selectedVariant->option1_value.($selectedVariant->option2_value ? " / {$selectedVariant->option2_value}" : '')
+            : null;
+        $ogName = $variantName !== null
+            ? "{$product->name} ({$variantName})"
+            : $product->name;
+        $ogSuffix = " – ₱{$priceStr} | {$shopName} | HalalBenta";
+        $ogAvailable = max(20, 90 - mb_strlen($ogSuffix));
+        $ogTruncated = Str::limit($ogName, $ogAvailable, '…');
+        $ogTitle = "{$ogTruncated}{$ogSuffix}";
+
+        // Halal status label
+        $halalLabel = match ($product->halal_status) {
+            HalalStatus::Certified, HalalStatus::Expiring => 'Halal-certified',
+            HalalStatus::NotApplicable => 'Muslim-friendly',
+            default => 'Verified Halal',
+        };
+
+        // Trust facts
+        $facts = ["₱{$priceStr}", $halalLabel];
+        $city = $shop?->city ?? $product->location;
+        if ($city !== '') {
+            $facts[] = "Sold by {$shopName} in {$city}";
+        } else {
+            $facts[] = "Sold by {$shopName}";
+        }
+        if ($product->free_shipping) {
+            $facts[] = 'Free shipping';
+        }
+        $factsString = implode(' · ', $facts).'.';
+
+        // Clean description
+        $rawDesc = mb_trim(strip_tags((string) $product->description));
+        $collapsedDesc = preg_replace('/\s+/', ' ', $rawDesc);
+        $cleanDesc = is_string($collapsedDesc) ? mb_trim($collapsedDesc) : '';
+
+        // Target total description 140 - 160 chars
+        $targetTotal = 155;
+        $factsLen = mb_strlen($factsString);
+        $leadMaxLen = $targetTotal - $factsLen - 1;
+
+        if ($cleanDesc !== '' && $leadMaxLen >= 20) {
+            $words = explode(' ', $cleanDesc);
+            $lead = '';
+            foreach ($words as $word) {
+                $candidate = $lead === '' ? $word : "{$lead} {$word}";
+                if (mb_strlen($candidate) > $leadMaxLen) {
+                    break;
+                }
+                $lead = $candidate;
+            }
+            $lead = mb_rtrim($lead, ".,; \t\n\r\0\x0B");
+            $description = $lead !== '' ? "{$lead}. {$factsString}" : $factsString;
+        } else {
+            $description = $factsString;
+        }
+
+        // Social image
+        $timestamp = $product->updated_at?->timestamp ?? time();
+        $socialImage = "{$origin}/social/product/{$product->slug}.jpg?v={$timestamp}";
+
+        // Product tags
+        $inStock = $product->stock > 0;
+        $decimalPrice = number_format($pesos, 2, '.', '');
+        $productMeta = [
+            'price_amount' => $decimalPrice,
+            'price_currency' => 'PHP',
+            'availability' => $inStock ? 'in stock' : 'out of stock',
+            'condition' => 'new',
+            'retailer_item_id' => (string) $product->id,
+            'brand' => $shopName,
+        ];
+
+        // Twitter tags
+        $twitter = [
+            'card' => 'summary_large_image',
+            'title' => $ogTitle,
+            'description' => $description,
+            'image' => $socialImage,
+            'image_alt' => $product->name,
+            'labels' => [
+                ['label' => 'Price', 'data' => "₱{$priceStr}"],
+                ['label' => 'Availability', 'data' => $inStock ? 'In stock' : 'Out of stock'],
+            ],
+        ];
+
+        // JSON-LD @graph
+        $images = $product->images->pluck('url')->filter()->values()->all();
+        if (empty($images)) {
+            $images = [$socialImage];
+        } else {
+            $images = array_map(function ($url) use ($origin) {
+                return Str::startsWith($url, ['http://', 'https://']) ? $url : $origin.'/'.mb_ltrim($url, '/');
+            }, $images);
+        }
+
+        $offers = [];
+        if ($product->variations->isNotEmpty()) {
+            foreach ($product->variations as $variation) {
+                $varPesos = ($variation->price ?? $product->price) / 100;
+                $varName = $variation->option1_value.($variation->option2_value ? " / {$variation->option2_value}" : '');
+                $offers[] = [
+                    '@type' => 'Offer',
+                    'name' => $varName,
+                    'price' => number_format($varPesos, 2, '.', ''),
+                    'priceCurrency' => 'PHP',
+                    'availability' => $variation->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                    'url' => "{$canonical}?variant={$variation->id}",
+                    'seller' => [
+                        '@type' => 'Organization',
+                        'name' => $shopName,
+                    ],
+                ];
+            }
+        } else {
+            $offers[] = [
+                '@type' => 'Offer',
+                'price' => $decimalPrice,
+                'priceCurrency' => 'PHP',
+                'availability' => $inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                'url' => $canonical,
+                'seller' => [
+                    '@type' => 'Organization',
+                    'name' => $shopName,
+                ],
+            ];
+        }
+
+        $productSchema = [
+            '@type' => 'Product',
+            'name' => $product->name,
+            'description' => $description,
+            'image' => $images,
+            'sku' => (string) $product->id,
+            'brand' => [
+                '@type' => 'Brand',
+                'name' => $shopName,
+            ],
+            'offers' => count($offers) === 1 ? $offers[0] : $offers,
+        ];
+
+        $reviewCount = $product->reviews()->count();
+        if ($reviewCount > 0 && $product->rating > 0) {
+            $productSchema['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => number_format((float) $product->rating, 1, '.', ''),
+                'reviewCount' => $reviewCount,
+            ];
+        }
+
+        $breadcrumbs = [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Home',
+                'item' => "{$origin}/",
+            ],
+        ];
+
+        if ($category !== null) {
+            $breadcrumbs[] = [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $category->name,
+                'item' => "{$origin}/categories/{$category->slug}",
+            ];
+            $breadcrumbs[] = [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $product->name,
+                'item' => $canonical,
+            ];
+        } else {
+            $breadcrumbs[] = [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $product->name,
+                'item' => $canonical,
+            ];
+        }
+
+        $breadcrumbSchema = [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => $breadcrumbs,
+        ];
+
+        return new SeoData(
+            title: $metaTitle,
+            description: $description,
+            canonical: $canonical,
+            robots: SeoData::isStaging() ? 'noindex, nofollow' : 'index, follow',
+            og: [
+                'site_name' => 'HalalBenta',
+                'locale' => 'en_PH',
+                'type' => 'product',
+                'title' => $ogTitle,
+                'description' => $description,
+                'url' => $canonical,
+                'image' => $socialImage,
+                'image_width' => 1200,
+                'image_height' => 630,
+                'image_alt' => $product->name,
+                'image_type' => 'image/jpeg',
+            ],
+            twitter: $twitter,
+            product: $productMeta,
+            jsonLd: [$breadcrumbSchema, $productSchema],
+        );
+    }
+}

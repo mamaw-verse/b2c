@@ -34,9 +34,7 @@ test.describe.serial('admin payables', () => {
             page.getByRole('heading', { name: 'Payables & Payouts' }),
         ).toBeVisible();
         await expect(page.getByText('Sellers Payable').first()).toBeVisible();
-        await expect(
-            page.getByText('Customer Refunds').first(),
-        ).toBeVisible();
+        await expect(page.getByText('Customer Refunds').first()).toBeVisible();
         await expect(
             page.getByText('Affiliate Accruals').first(),
         ).toBeVisible();
@@ -78,9 +76,7 @@ test.describe.serial('admin payables', () => {
 
         const before = await pageProps<PayablesProps>(page);
 
-        await page
-            .getByRole('button', { name: /Customer Refunds/ })
-            .click();
+        await page.getByRole('button', { name: /Customer Refunds/ }).click();
 
         // The refund row renders as a table row on lg and a card below it.
         const refundRow = page
@@ -93,15 +89,11 @@ test.describe.serial('admin payables', () => {
         await refundRow
             .getByRole('textbox', { name: /refund reference/i })
             .fill('E2E-REFUND-REF-001');
-        await refundRow
-            .getByRole('button', { name: /mark refunded/i })
-            .click();
+        await refundRow.getByRole('button', { name: /mark refunded/i }).click();
 
         await expect(page).toHaveURL(/admin\/payouts/);
         // The redirect lands back on the Sellers tab; revisit Customers.
-        await page
-            .getByRole('button', { name: /Customer Refunds/ })
-            .click();
+        await page.getByRole('button', { name: /Customer Refunds/ }).click();
         await expect(page.getByText(fixtures.refundReason)).toHaveCount(0);
         await shot(page, 'payables-04-refund-processed');
 

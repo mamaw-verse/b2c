@@ -21,3 +21,16 @@ test('seller directory only shows approved unsuspended shops and applies search 
             ->has('shops.data', 1)
             ->where('filters.halal_only', true));
 });
+
+test('an empty search query renders the directory instead of failing', function () {
+    Shop::factory()->create(['name' => 'Barakah Pantry']);
+
+    $this->get(route('shops.index', ['q' => '', 'halal_only' => 0]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('sellers')
+            ->where('query', '')
+            ->where('filters.halal_only', false)
+            ->where('filters.sort', 'followers')
+            ->has('shops.data', 1));
+});

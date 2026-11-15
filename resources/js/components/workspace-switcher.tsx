@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import {
+    sellerHome,
     workspaces as workspaceConfig,
     type WorkspaceKey,
 } from '@/lib/workspaces';
@@ -29,6 +30,7 @@ export function useWorkspaceEntries(): WorkspaceEntry[] {
     const { workspaces, seller } = usePage<{
         workspaces?: SharedWorkspace[];
         seller?: {
+            role?: 'owner' | 'staff';
             status: string;
             suspended: boolean;
             shop_name: string;
@@ -74,7 +76,7 @@ export function useWorkspaceEntries(): WorkspaceEntry[] {
         sellerEntry = {
             key: 'seller',
             label: 'Seller Centre',
-            href: workspaceConfig.seller.home,
+            href: sellerHome(seller.role),
             icon: entryIcons.seller,
             current: current === 'seller',
         };

@@ -19,21 +19,31 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
         expect(title).toContain('· HalalBenta');
 
         // Theme color meta tag
-        const themeColor = await page.locator('meta[name="theme-color"]').getAttribute('content');
+        const themeColor = await page
+            .locator('meta[name="theme-color"]')
+            .getAttribute('content');
         expect(themeColor).toBe('#17643c');
 
         // Manifest link
-        const manifest = await page.locator('link[rel="manifest"]').getAttribute('href');
+        const manifest = await page
+            .locator('link[rel="manifest"]')
+            .getAttribute('href');
         expect(manifest).toBe('/manifest.webmanifest');
 
         // Apple touch icon link
-        const appleIcon = await page.locator('link[rel="apple-touch-icon"]').getAttribute('href');
+        const appleIcon = await page
+            .locator('link[rel="apple-touch-icon"]')
+            .getAttribute('href');
         expect(appleIcon).toBe('/apple-touch-icon.png');
 
         // Open Graph & Twitter meta tags
-        const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
+        const ogImage = await page
+            .locator('meta[property="og:image"]')
+            .getAttribute('content');
         expect(ogImage).toContain('/brand/og-image.png');
-        const twitterImage = await page.locator('meta[name="twitter:image"]').getAttribute('content');
+        const twitterImage = await page
+            .locator('meta[name="twitter:image"]')
+            .getAttribute('content');
         expect(twitterImage).toContain('/brand/og-image.png');
 
         // Favicon response checks
@@ -48,17 +58,23 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
         expect(manifestJson.icons.length).toBeGreaterThanOrEqual(4);
     });
 
-    test('Header brand placement on mobile (< 768px): uncollapsed and collapsed states', async ({ page }) => {
+    test('Header brand placement on mobile (< 768px): uncollapsed and collapsed states', async ({
+        page,
+    }) => {
         await page.setViewportSize({ width: 360, height: 800 });
         await page.goto('/');
 
         // 1. Initial top state (scrollY = 0)
-        const wordmarkLink = page.locator('header a[aria-label="HalalBenta home"]').first();
+        const wordmarkLink = page
+            .locator('header a[aria-label="HalalBenta home"]')
+            .first();
         await expect(wordmarkLink).toBeVisible();
         await expect(wordmarkLink).toHaveAttribute('href', '/');
 
         // Check wordmark img has alt="HalalBenta"
-        const wordmarkImg = wordmarkLink.locator('img[alt="HalalBenta"]').first();
+        const wordmarkImg = wordmarkLink
+            .locator('img[alt="HalalBenta"]')
+            .first();
         await expect(wordmarkImg).toBeVisible();
         const wordmarkBox = await wordmarkImg.boundingBox();
         expect(wordmarkBox?.height).toBeCloseTo(28, 1);
@@ -80,7 +96,9 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
         await page.waitForTimeout(300);
 
         // Square mark appears
-        const squareMark = page.locator('header img[src*="halalbenta-mark.svg"]').first();
+        const squareMark = page
+            .locator('header img[src*="halalbenta-mark.svg"]')
+            .first();
         await expect(squareMark).toBeVisible();
         // Decorative: alt="" and aria-hidden="true"
         await expect(squareMark).toHaveAttribute('alt', '');
@@ -107,12 +125,16 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
         expect(currentScrollY).toBeLessThan(10);
     });
 
-    test('Header brand placement on tablet (768px - 1023px)', async ({ page }) => {
+    test('Header brand placement on tablet (768px - 1023px)', async ({
+        page,
+    }) => {
         await page.setViewportSize({ width: 768, height: 1024 });
         await page.goto('/');
 
         // Wordmark is visible (h=28-32px)
-        const wordmarkImg = page.locator('header img[alt="HalalBenta"]').first();
+        const wordmarkImg = page
+            .locator('header img[alt="HalalBenta"]')
+            .first();
         await expect(wordmarkImg).toBeVisible();
         const wordmarkBox = await wordmarkImg.boundingBox();
         expect(wordmarkBox?.height).toBeGreaterThanOrEqual(28);
@@ -130,12 +152,16 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
         await expect(wordmarkImg).toBeVisible();
     });
 
-    test('Voucher cards responsive layout, anatomy and overflow check', async ({ page }) => {
+    test('Voucher cards responsive layout, anatomy and overflow check', async ({
+        page,
+    }) => {
         for (const vp of viewports) {
             await page.setViewportSize({ width: vp.width, height: vp.height });
             await page.goto('/');
 
-            const vouchersSection = page.locator('section[aria-labelledby="home-vouch"]');
+            const vouchersSection = page.locator(
+                'section[aria-labelledby="home-vouch"]',
+            );
             await expect(vouchersSection).toBeVisible();
 
             const voucherList = vouchersSection.locator('ul');
@@ -144,17 +170,30 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
             expect(count).toBeGreaterThanOrEqual(2);
 
             // Verify no horizontal overflow on page
-            const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-            const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-            expect(scrollWidth, `No page horizontal overflow at ${vp.width}px`).toBeLessThanOrEqual(clientWidth);
+            const scrollWidth = await page.evaluate(
+                () => document.documentElement.scrollWidth,
+            );
+            const clientWidth = await page.evaluate(
+                () => document.documentElement.clientWidth,
+            );
+            expect(
+                scrollWidth,
+                `No page horizontal overflow at ${vp.width}px`,
+            ).toBeLessThanOrEqual(clientWidth);
 
             // Card Anatomy for each voucher card
             for (let i = 0; i < count; i++) {
                 const item = voucherItems.nth(i);
                 // Left color tab with icon and label ("Platform" or "Shop")
-                const colorTab = item.locator('div').first().locator('> div').first();
+                const colorTab = item
+                    .locator('div')
+                    .first()
+                    .locator('> div')
+                    .first();
                 const tabText = await colorTab.innerText();
-                expect(['Platform', 'Shop', 'Shipping']).toContain(tabText.trim());
+                expect(['Platform', 'Shop', 'Shipping']).toContain(
+                    tabText.trim(),
+                );
 
                 // Content block: title on one line (truncate), subtitle on one line (truncate)
                 const titleEl = item.locator('p.text-label');
@@ -163,7 +202,9 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
                 await expect(subtitleEl).toHaveClass(/truncate/);
 
                 // Claim button on the right with min-width 72px
-                const claimButton = item.locator('button, [role="button"], span.btn').first();
+                const claimButton = item
+                    .locator('button, [role="button"], span.btn')
+                    .first();
                 const btnBox = await claimButton.boundingBox();
                 expect(btnBox?.width).toBeGreaterThanOrEqual(72);
             }
@@ -182,14 +223,26 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
                 const firstItemBox = await voucherItems.nth(0).boundingBox();
                 const secondItemBox = await voucherItems.nth(1).boundingBox();
                 // Equal width and equal height
-                expect(firstItemBox?.width).toBeCloseTo(secondItemBox?.width ?? 0, 2);
-                expect(firstItemBox?.height).toBeCloseTo(secondItemBox?.height ?? 0, 2);
+                expect(firstItemBox?.width).toBeCloseTo(
+                    secondItemBox?.width ?? 0,
+                    2,
+                );
+                expect(firstItemBox?.height).toBeCloseTo(
+                    secondItemBox?.height ?? 0,
+                    2,
+                );
             } else {
                 // lg: 3 or 4 columns, equal width and height
                 const firstItemBox = await voucherItems.nth(0).boundingBox();
                 const secondItemBox = await voucherItems.nth(1).boundingBox();
-                expect(firstItemBox?.width).toBeCloseTo(secondItemBox?.width ?? 0, 2);
-                expect(firstItemBox?.height).toBeCloseTo(secondItemBox?.height ?? 0, 2);
+                expect(firstItemBox?.width).toBeCloseTo(
+                    secondItemBox?.width ?? 0,
+                    2,
+                );
+                expect(firstItemBox?.height).toBeCloseTo(
+                    secondItemBox?.height ?? 0,
+                    2,
+                );
             }
         }
     });
@@ -202,7 +255,9 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
         });
 
         // Dark mode wordmark is visible
-        const darkWordmark = page.locator('header img[src*="halalbenta-wordmark-dark.svg"]').first();
+        const darkWordmark = page
+            .locator('header img[src*="halalbenta-wordmark-dark.svg"]')
+            .first();
         await expect(darkWordmark).toBeVisible();
 
         // Mobile scrolled dark mark
@@ -210,7 +265,9 @@ test.describe('Header Brand Placement, Voucher Cards & Brand Assets', () => {
         await page.evaluate(() => window.scrollTo(0, 80));
         await page.waitForTimeout(300);
 
-        const darkSquareMark = page.locator('header img[src*="halalbenta-mark-dark.svg"]').first();
+        const darkSquareMark = page
+            .locator('header img[src*="halalbenta-mark-dark.svg"]')
+            .first();
         await expect(darkSquareMark).toBeVisible();
     });
 });

@@ -1,5 +1,4 @@
 import { Head, InfiniteScroll, router } from '@inertiajs/react';
-import { useState } from 'react';
 import { Chip } from '@/components/chip';
 import { SearchInput } from '@/components/search-input';
 import { ShopCard } from '@/components/shop-card';
@@ -23,24 +22,29 @@ export default function Sellers({
     filters: { halal_only: boolean; sort: string };
     shops: CursorPage<ShopData>;
 }) {
-    const [searchQuery, setSearchQuery] = useState(query);
     const visit = (patch: {
         q?: string;
         halal_only?: boolean;
         sort?: string;
-    }) =>
+    }) => {
+        const next = {
+            q: patch.q ?? query,
+            halal_only: patch.halal_only ?? filters.halal_only,
+            sort: patch.sort ?? filters.sort,
+        };
+
         router.get(
             sellersIndex({
                 query: {
-                    q: searchQuery,
-                    halal_only: filters.halal_only ? 1 : undefined,
-                    sort: filters.sort,
-                    ...patch,
+                    q: next.q || undefined,
+                    halal_only: next.halal_only ? 1 : undefined,
+                    sort: next.sort,
                 },
             }).url,
             {},
             { preserveState: true, preserveScroll: true },
         );
+    };
 
     return (
         <>
@@ -52,13 +56,8 @@ export default function Sellers({
                 </p>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                     <SearchInput
-                        value={searchQuery}
-                        onSearch={(value) => {
-                            setSearchQuery(value);
-                            router.get(
-                                sellersIndex({ query: { q: value } }).url,
-                            );
-                        }}
+                        value={query}
+                        onSearch={(value) => visit({ q: value })}
                         placeholder="Search sellers"
                         label="Search sellers"
                         className="min-w-0 flex-1"
@@ -67,6 +66,7 @@ export default function Sellers({
                         value={filters.sort}
                         options={sortOptions}
                         onChange={(sort) => visit({ sort })}
+                        className="w-auto shrink-0"
                     />
                 </div>
                 <div className="mt-3">
@@ -87,7 +87,13 @@ export default function Sellers({
                             <button
                                 type="button"
                                 className="btn btn-outline"
-                                onClick={() => router.get(sellersIndex().url)}
+                                onClick={() =>
+                                    visit({
+                                        q: '',
+                                        halal_only: false,
+                                        sort: 'followers',
+                                    })
+                                }
                             >
                                 Clear filters
                             </button>

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Catalogue\BuildProductSeoMeta;
+use App\Actions\Seo\BuildProductSeoData;
 use App\Http\Requests\ShowProductRequest;
 use App\Models\Product;
 use App\Models\Review;
+use App\Support\Seo;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,9 +18,17 @@ final class ProductController
     /**
      * Show the product detail page.
      */
-    public function show(ShowProductRequest $request, Product $product, BuildProductSeoMeta $buildSeoMeta): Response
-    {
+    public function show(
+        ShowProductRequest $request,
+        Product $product,
+        BuildProductSeoMeta $buildSeoMeta,
+        BuildProductSeoData $buildSeoData,
+        Seo $seo
+    ): Response {
         $product->load(['shop', 'category', 'variations', 'images', 'halalCertification', 'video']);
+
+        $seoData = $buildSeoData->handle($product, $request);
+        $seo->set($seoData);
 
         $shareEnabled = (bool) config('marketplace.features.product_share_enabled', false);
         $publicMin = (int) config('marketplace.share.public_min', 5);
@@ -55,6 +65,6 @@ final class ProductController
                 ->limit(8)
                 ->get()
                 ->map->toCard()),
-        ])->withViewData(['meta' => $buildSeoMeta->handle($product)]);
+        ])->withViewData(['seo' => $seoData, 'meta' => $buildSeoMeta->handle($product)]);
     }
 }
