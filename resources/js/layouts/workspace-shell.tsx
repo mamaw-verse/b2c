@@ -154,8 +154,12 @@ export default function WorkspaceShell({
                         href={homeHref}
                         className="flex min-h-touch min-w-0 items-center gap-2 rounded-button text-h4 text-primary-text"
                     >
-                        <BrandMark name={name} showName={false} />
-                        <span className="truncate">{name}</span>
+                        <BrandMark
+                            name={name}
+                            showName={false}
+                            markClassName="size-8 lg:size-10"
+                        />
+                        <span className="truncate lg:hidden">{name}</span>
                         <span className="shrink-0 rounded-badge border border-border px-2 py-0.5 text-eyebrow whitespace-nowrap text-muted-foreground uppercase">
                             {config.label}
                         </span>
