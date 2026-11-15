@@ -1,7 +1,8 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import AdminLayout from '@/layouts/admin-layout';
 import { formatDateTime, formatPeso } from '@/lib/format';
@@ -271,93 +272,10 @@ export default function AdminPayouts({
                             ) : (
                                 <ul className="grid gap-3">
                                     {payoutRequests.map((payout) => (
-                                        <li
+                                        <PayoutRequestItem
                                             key={payout.id}
-                                            className="panel grid gap-3 p-4"
-                                            data-test="payout-request"
-                                        >
-                                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                                <p className="text-label">
-                                                    {payout.shop} ·{' '}
-                                                    {formatPeso(payout.amount)}
-                                                </p>
-                                                <Badge
-                                                    variant={
-                                                        payoutVariant[
-                                                            payout.status
-                                                        ]
-                                                    }
-                                                >
-                                                    {payout.status}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-body-sm text-muted-foreground">
-                                                {payout.method} ·{' '}
-                                                {payout.account_name} ·{' '}
-                                                {payout.account_number} ·{' '}
-                                                {formatDateTime(
-                                                    payout.created_at,
-                                                )}
-                                                {payout.reference &&
-                                                    ` · ${payout.reference}`}
-                                            </p>
-                                            {payout.status === 'requested' && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    <Form
-                                                        action={
-                                                            updatePayout({
-                                                                payout: payout.id,
-                                                            }).url
-                                                        }
-                                                        method="put"
-                                                        className="flex flex-wrap gap-2"
-                                                    >
-                                                        {({ errors }) => (
-                                                            <>
-                                                                <input
-                                                                    type="hidden"
-                                                                    name="status"
-                                                                    value="paid"
-                                                                />
-                                                                <Input
-                                                                    name="reference"
-                                                                    placeholder="Transfer reference"
-                                                                    aria-label="Transfer reference"
-                                                                    aria-invalid={
-                                                                        errors.reference
-                                                                            ? true
-                                                                            : undefined
-                                                                    }
-                                                                />
-                                                                <Button type="submit">
-                                                                    Mark paid
-                                                                </Button>
-                                                            </>
-                                                        )}
-                                                    </Form>
-                                                    <Form
-                                                        action={
-                                                            updatePayout({
-                                                                payout: payout.id,
-                                                            }).url
-                                                        }
-                                                        method="put"
-                                                    >
-                                                        <input
-                                                            type="hidden"
-                                                            name="status"
-                                                            value="rejected"
-                                                        />
-                                                        <Button
-                                                            type="submit"
-                                                            variant="outline"
-                                                        >
-                                                            Reject
-                                                        </Button>
-                                                    </Form>
-                                                </div>
-                                            )}
-                                        </li>
+                                            payout={payout}
+                                        />
                                     ))}
                                 </ul>
                             )}
@@ -799,5 +717,113 @@ export default function AdminPayouts({
                 )}
             </div>
         </AdminLayout>
+    );
+}
+
+function PayoutRequestItem({ payout }: { payout: PayoutRow }) {
+    const [reference, setReference] = useState(payout.reference ?? '');
+    const [confirming, setConfirming] = useState<
+        'paid' | 'rejected' | null
+    >(null);
+    const [processing, setProcessing] = useState(false);
+    const [invalidReference, setInvalidReference] = useState(false);
+
+    const resolve = () => {
+        if (!confirming) {
+            return;
+        }
+
+        setProcessing(true);
+        router.put(
+            updatePayout({ payout: payout.id }).url,
+            {
+                status: confirming,
+                ...(confirming === 'paid' ? { reference } : {}),
+            },
+            {
+                preserveScroll: true,
+                onError: (errors) =>
+                    setInvalidReference(Boolean(errors.reference)),
+                onFinish: () => {
+                    setProcessing(false);
+                    setConfirming(null);
+                },
+            },
+        );
+    };
+
+    return (
+        <li className="panel grid gap-3 p-4" data-test="payout-request">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-label">
+                    {payout.shop} · {formatPeso(payout.amount)}
+                </p>
+                <Badge variant={payoutVariant[payout.status]}>
+                    {payout.status}
+                </Badge>
+            </div>
+            <p className="text-body-sm text-muted-foreground">
+                {payout.method} · {payout.account_name} ·{' '}
+                {payout.account_number} · {formatDateTime(payout.created_at)}
+                {payout.reference && ` · ${payout.reference}`}
+            </p>
+            {payout.status === 'requested' && (
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        <Input
+                            name="reference"
+                            placeholder="Transfer reference"
+                            aria-label="Transfer reference"
+                            value={reference}
+                            onChange={(e) => {
+                                setReference(e.target.value);
+                                setInvalidReference(false);
+                            }}
+                            aria-invalid={invalidReference || undefined}
+                        />
+                        <Button
+                            type="button"
+                            className="shrink-0 whitespace-nowrap"
+                            onClick={() => setConfirming('paid')}
+                        >
+                            Mark paid
+                        </Button>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="ml-auto shrink-0"
+                        onClick={() => setConfirming('rejected')}
+                    >
+                        Reject
+                    </Button>
+                </div>
+            )}
+            <ConfirmDialog
+                open={confirming !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setConfirming(null);
+                    }
+                }}
+                title={
+                    confirming === 'paid'
+                        ? 'Mark payout as paid'
+                        : 'Reject payout'
+                }
+                text={
+                    confirming === 'paid'
+                        ? `Confirm the ${formatPeso(payout.amount)} payout to ${payout.shop} was sent${reference ? ` (ref: ${reference})` : ''}?`
+                        : `Reject the ${formatPeso(payout.amount)} payout to ${payout.shop}? The amount will be returned to the shop's available balance.`
+                }
+                confirmLabel={
+                    confirming === 'paid' ? 'Mark paid' : 'Reject'
+                }
+                cancelLabel="Cancel"
+                tone={confirming === 'rejected' ? 'danger' : 'primary'}
+                loading={processing}
+                onConfirm={resolve}
+            />
+        </li>
     );
 }
