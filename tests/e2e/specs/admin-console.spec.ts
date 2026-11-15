@@ -131,29 +131,44 @@ test.describe.serial('admin console', () => {
         expect(deleteResult.status).toBeLessThan(400);
     });
 
-    test('admin edits a category commission via the inline edit form', async ({
+    test('admin opens the new category modal from the header button', async ({
         page,
     }) => {
         await login(page, ADMIN);
         await page.goto('/admin/categories');
         await page.locator('main').waitFor();
 
-        // Open the first Edit disclosure (seeded categories: Halal Food etc.)
-        const firstEdit = page
-            .locator('details')
-            .filter({ hasText: 'Edit' })
-            .first();
-        await firstEdit.click();
-        await firstEdit.locator('summary').waitFor();
+        await page.locator('[data-test="new-category-button"]').click();
+        const dialog = page.getByRole('dialog', { name: 'New category' });
+        await expect(dialog).toBeVisible();
+        await expect(dialog.locator('input[name="slug"]')).toBeVisible();
+        await shot(page, 'admin-categories-02-new-form');
 
-        // Update commission to 5%.
-        const commissionInput = firstEdit.locator(
-            'input[name="commission_rate"]',
-        );
-        await commissionInput.fill('5');
-        await firstEdit.getByRole('button', { name: 'Save' }).click();
+        // An empty submit keeps the modal open and shows the field error inside it.
+        await dialog.getByRole('button', { name: 'Create category' }).click();
+        await expect(dialog.getByText(/name field is required/i)).toBeVisible();
+
+        await page.keyboard.press('Escape');
+        await expect(dialog).toBeHidden();
+    });
+
+    test('admin edits a category commission via the edit modal', async ({
+        page,
+    }) => {
+        await login(page, ADMIN);
+        await page.goto('/admin/categories');
         await page.locator('main').waitFor();
 
+        // The Edit icon button sits beside the card title (seeded: Halal Food etc.)
+        await page.locator('[data-test="edit-category"]').first().click();
+        const dialog = page.getByRole('dialog', { name: /^Edit / });
+        await expect(dialog).toBeVisible();
+
+        // Update commission to 5%.
+        await dialog.locator('input[name="commission_rate"]').fill('5');
+        await dialog.getByRole('button', { name: 'Save changes' }).click();
+
+        await expect(dialog).toBeHidden();
         await expect(page).toHaveURL(/admin\/categories/);
         await shot(page, 'admin-categories-03-updated');
     });
@@ -161,6 +176,34 @@ test.describe.serial('admin console', () => {
     // -------------------------------------------------------------------------
     // Vouchers
     // -------------------------------------------------------------------------
+
+    test('admin opens the new voucher modal and edit modal', async ({
+        page,
+    }) => {
+        await login(page, ADMIN);
+        await page.goto('/admin/vouchers');
+        await page.locator('main').waitFor();
+
+        await page.locator('[data-test="new-voucher-button"]').click();
+        const dialog = page.getByRole('dialog', { name: 'New voucher' });
+        await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', { name: 'Create voucher' }).click();
+        await expect(dialog.getByText(/code field is required/i)).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(dialog).toBeHidden();
+
+        const edit = page.locator('[data-test="edit-voucher"]').first();
+        if ((await edit.count()) > 0) {
+            await edit.click();
+            const editDialog = page.getByRole('dialog', { name: /^Edit / });
+            await expect(editDialog).toBeVisible();
+            await expect(
+                editDialog.getByRole('button', { name: 'Delete' }),
+            ).toBeVisible();
+            await page.keyboard.press('Escape');
+            await expect(editDialog).toBeHidden();
+        }
+    });
 
     test('admin creates, edits and deletes a platform voucher', async ({
         page,

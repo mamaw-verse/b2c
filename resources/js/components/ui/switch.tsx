@@ -4,9 +4,19 @@ import { cn } from '@/lib/utils';
 type SwitchProps = Omit<ComponentProps<'input'>, 'type'> & {
     label?: ReactNode;
     description?: ReactNode;
+    containerClassName?: string;
+    inline?: boolean;
 };
 
-function Switch({ className, label, description, id, ...props }: SwitchProps) {
+function Switch({
+    className,
+    containerClassName,
+    inline = false,
+    label,
+    description,
+    id,
+    ...props
+}: SwitchProps) {
     const input = (
         <input
             id={id}
@@ -27,7 +37,11 @@ function Switch({ className, label, description, id, ...props }: SwitchProps) {
     return (
         <label
             htmlFor={id}
-            className="flex min-h-touch items-center justify-between gap-4 py-2"
+            className={cn(
+                'flex min-h-touch cursor-pointer items-center justify-between gap-4 py-2',
+                inline && 'inline-flex justify-start gap-3',
+                containerClassName,
+            )}
         >
             <span className="grid gap-0.5">
                 {label && <span className="text-body">{label}</span>}

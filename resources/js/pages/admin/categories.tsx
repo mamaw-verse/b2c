@@ -1,10 +1,16 @@
-import { Form, Head } from '@inertiajs/react';
-import AdminLayout from '@/layouts/admin-layout';
+import { Head } from '@inertiajs/react';
+import { Pencil } from 'lucide-react';
+import { useState } from 'react';
+import { FormModal, ModalDeleteButton } from '@/components/form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
+import { IconButton } from '@/components/ui/icon-button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import AdminLayout from '@/layouts/admin-layout';
+import { cn } from '@/lib/utils';
 import {
     destroy as destroyCategory,
     store as storeCategory,
@@ -29,28 +35,35 @@ function CategoryFields({
     categories,
     category,
     errors,
-    includeSlug = false,
 }: {
     categories: Category[];
     category?: Category;
     errors: Record<string, string>;
-    includeSlug?: boolean;
 }) {
+    // Slug is generated on create and fixed afterwards, so only the create form allows editing it.
+    const isNew = category === undefined;
+
     return (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid items-start gap-x-3 gap-y-4 sm:grid-cols-2">
             <FormField label="Name" required error={errors.name}>
                 <Input name="name" defaultValue={category?.name ?? ''} />
             </FormField>
-            {includeSlug && (
-                <FormField
-                    label="Slug"
-                    optional
-                    help="Lowercase, hyphenated. Generated from the name when empty."
-                    error={errors.slug}
-                >
-                    <Input name="slug" defaultValue={category?.slug ?? ''} />
-                </FormField>
-            )}
+            <FormField
+                label="Slug"
+                optional
+                help={
+                    isNew
+                        ? 'Lowercase, hyphenated. Generated from the name when empty.'
+                        : undefined
+                }
+                error={errors.slug}
+            >
+                <Input
+                    name="slug"
+                    defaultValue={category?.slug ?? ''}
+                    readOnly={!isNew}
+                />
+            </FormField>
             <FormField label="Parent" optional error={errors.parent_id}>
                 <Select
                     name="parent_id"
@@ -97,35 +110,148 @@ function CategoryFields({
                     max={100}
                     step={0.01}
                     defaultValue={
-                        category?.commission_bps !== null &&
-                        category?.commission_bps !== undefined
+                        category?.commission_bps != null
                             ? category.commission_bps / 100
                             : ''
                     }
                 />
             </FormField>
-            <div className="flex items-center gap-2 sm:col-span-2">
-                <input
-                    id={category ? `cert-${category.id}` : 'cert-new'}
-                    type="checkbox"
+            <div className="border-t border-border pt-2 sm:col-span-2">
+                <Switch
+                    id="requires_certification"
                     name="requires_certification"
                     value="1"
                     defaultChecked={category?.requires_certification ?? true}
-                    className="size-4"
+                    label="Requires halal certification"
+                    inline
                 />
-                <label
-                    htmlFor={category ? `cert-${category.id}` : 'cert-new'}
-                    className="text-body-sm"
-                >
-                    Requires halal certification
-                </label>
+                {errors.category && (
+                    <p className="mt-1 text-body-sm font-bold text-danger-text">
+                        {errors.category}
+                    </p>
+                )}
             </div>
-            {errors.category && (
-                <p className="text-body-sm font-bold text-danger-text sm:col-span-2">
-                    {errors.category}
-                </p>
-            )}
         </div>
+    );
+}
+
+type CategoryNode = {
+    category: Category;
+    depth: number;
+    children: CategoryNode[];
+};
+
+function buildCategoryTree(categories: Category[]): CategoryNode[] {
+    const ids = new Set(categories.map((c) => c.id));
+    const buildNodes = (
+        parentId: string | null,
+        depth: number,
+    ): CategoryNode[] => {
+        return categories
+            .filter((c) => {
+                if (parentId === null) {
+                    return c.parent_id === null || !ids.has(c.parent_id);
+                }
+                return c.parent_id === parentId;
+            })
+            .map((category) => ({
+                category,
+                depth,
+                children: buildNodes(category.id, depth + 1),
+            }));
+    };
+
+    return buildNodes(null, 0);
+}
+
+function CategoryItem({
+    node,
+    onEdit,
+}: {
+    node: CategoryNode;
+    onEdit: (category: Category) => void;
+}) {
+    const { category, depth, children } = node;
+    const hasChildren = children.length > 0;
+    const metaText = `/${category.slug} · icon ${category.icon} · sort ${category.sort_order} · ${category.products_count} products${category.children_count > 0 ? ` · ${category.children_count} subcategories` : ''}`;
+
+    return (
+        <li className="relative">
+            {depth > 0 && (
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-[1.125rem] -left-2.5 w-2.5 border-t border-border sm:-left-4 sm:w-4"
+                />
+            )}
+
+            <div
+                className={cn(
+                    'panel flex flex-wrap items-center gap-x-3 gap-y-1 px-3.5 py-2.5 md:flex-nowrap',
+                    depth > 0 && 'border-border/80 bg-surface-subtle',
+                )}
+                data-test="category-row"
+            >
+                <div className="order-1 flex max-w-[calc(100%-2.5rem)] min-w-0 items-center md:max-w-none md:shrink-0">
+                    <p
+                        className={cn(
+                            'truncate',
+                            depth === 0
+                                ? 'text-label font-bold text-foreground'
+                                : 'text-body-sm font-medium text-foreground',
+                        )}
+                    >
+                        {category.name}
+                    </p>
+                </div>
+
+                <div className="order-2 ml-auto shrink-0 md:order-4 md:ml-0">
+                    <IconButton
+                        variant="plain"
+                        icon={<Pencil aria-hidden="true" className="size-4" />}
+                        label={`Edit ${category.name}`}
+                        onClick={() => onEdit(category)}
+                        data-test="edit-category"
+                    />
+                </div>
+
+                <p
+                    className="order-3 min-w-0 basis-full truncate text-body-sm text-muted-foreground md:order-2 md:flex-1 md:basis-auto"
+                    title={metaText}
+                >
+                    {metaText}
+                </p>
+
+                {(category.requires_certification ||
+                    category.commission_bps !== null) && (
+                    <div className="order-4 flex shrink-0 flex-wrap items-center gap-1.5 md:order-3">
+                        {category.requires_certification && (
+                            <Badge variant="info">certification</Badge>
+                        )}
+                        {category.commission_bps !== null && (
+                            <Badge variant="neutral">
+                                {category.commission_bps / 100}% commission
+                            </Badge>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {hasChildren && (
+                <ul
+                    role="group"
+                    aria-label={`Subcategories of ${category.name}`}
+                    className="relative mt-1.5 ml-2.5 space-y-1.5 border-l border-border pl-2.5 sm:ml-4 sm:pl-4"
+                >
+                    {children.map((child) => (
+                        <CategoryItem
+                            key={child.category.id}
+                            node={child}
+                            onEdit={onEdit}
+                        />
+                    ))}
+                </ul>
+            )}
+        </li>
     );
 }
 
@@ -134,140 +260,93 @@ export default function AdminCategories({
 }: {
     categories: Category[];
 }) {
-    const rows: { category: Category; depth: number }[] = [];
-    const walk = (parentId: string | null, depth: number) => {
-        categories
-            .filter((category) => category.parent_id === parentId)
-            .forEach((category) => {
-                rows.push({ category, depth });
-                walk(category.id, depth + 1);
-            });
-    };
-    walk(null, 0);
+    const [creating, setCreating] = useState(false);
+    const [editing, setEditing] = useState<Category | null>(null);
 
-    const renderRow = (category: Category, depth = 0) => (
-        <li key={category.id} className="panel grid gap-3 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-                <p
-                    className="text-label"
-                    style={{ paddingLeft: `${depth * 1.5}rem` }}
-                >
-                    {depth > 0 && '↳ '}
-                    {category.name}
-                </p>
-                <div className="flex items-center gap-2">
-                    {category.requires_certification && (
-                        <Badge variant="info">certification</Badge>
-                    )}
-                    {category.commission_bps !== null && (
-                        <Badge variant="neutral">
-                            {category.commission_bps / 100}% commission
-                        </Badge>
-                    )}
-                </div>
-            </div>
-            <p className="text-body-sm text-muted-foreground">
-                /{category.slug} · icon {category.icon} · sort{' '}
-                {category.sort_order} · {category.products_count} products
-                {category.children_count > 0 &&
-                    ` · ${category.children_count} subcategories`}
-            </p>
-            <details className="group">
-                <summary className="cursor-pointer text-body-sm font-medium text-primary-text">
-                    Edit
-                </summary>
-                <div className="mt-3 grid gap-3">
-                    <Form
-                        action={updateCategory({ category: category.id }).url}
-                        method="put"
-                        options={{ preserveScroll: true }}
-                    >
-                        {({ errors }) => (
-                            <div className="grid gap-3">
-                                <CategoryFields
-                                    categories={categories}
-                                    category={category}
-                                    errors={errors}
-                                />
-                                <div>
-                                    <Button type="submit" size="sm">
-                                        Save
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </Form>
-                    {category.products_count === 0 &&
-                        category.children_count === 0 && (
-                            <Form
-                                action={
-                                    destroyCategory({ category: category.id })
-                                        .url
-                                }
-                                method="delete"
-                                options={{ preserveScroll: true }}
-                            >
-                                {({ errors }) => (
-                                    <div className="grid gap-1">
-                                        <Button
-                                            type="submit"
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            Delete
-                                        </Button>
-                                        {errors.category && (
-                                            <p className="text-body-sm font-bold text-danger-text">
-                                                {errors.category}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            </Form>
-                        )}
-                </div>
-            </details>
-        </li>
-    );
+    const tree = buildCategoryTree(categories);
 
     return (
         <AdminLayout>
             <Head title="Categories" />
             <div className="mx-auto grid max-w-container gap-4 p-gutter py-8">
-                <h1 className="text-h1">Categories</h1>
-
-                <details className="panel p-4" data-test="new-category">
-                    <summary className="cursor-pointer text-label">
-                        New category
-                    </summary>
-                    <Form
-                        action={storeCategory().url}
-                        method="post"
-                        className="mt-3"
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <h1 className="text-h1">Categories</h1>
+                    <Button
+                        type="button"
+                        onClick={() => setCreating(true)}
+                        className="w-full md:w-auto"
+                        data-test="new-category-button"
                     >
-                        {({ errors }) => (
-                            <div className="grid gap-3">
-                                <CategoryFields
-                                    categories={categories}
-                                    errors={errors}
-                                    includeSlug
-                                />
-                                <div>
-                                    <Button type="submit" size="sm">
-                                        Create category
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </Form>
-                </details>
+                        New category
+                    </Button>
+                </div>
 
-                <ul className="grid gap-3">
-                    {rows.map(({ category, depth }) =>
-                        renderRow(category, depth),
-                    )}
-                </ul>
+                {tree.length === 0 ? (
+                    <p className="text-body text-muted-foreground">
+                        No categories yet.
+                    </p>
+                ) : (
+                    <ul className="space-y-4">
+                        {tree.map((node) => (
+                            <CategoryItem
+                                key={node.category.id}
+                                node={node}
+                                onEdit={setEditing}
+                            />
+                        ))}
+                    </ul>
+                )}
             </div>
+
+            {creating && (
+                <FormModal
+                    title="New category"
+                    action={storeCategory().url}
+                    method="post"
+                    submitLabel="Create category"
+                    onClose={() => setCreating(false)}
+                >
+                    {(errors) => (
+                        <CategoryFields
+                            categories={categories}
+                            errors={errors}
+                        />
+                    )}
+                </FormModal>
+            )}
+
+            {editing && (
+                <FormModal
+                    key={editing.id}
+                    title={`Edit ${editing.name}`}
+                    action={updateCategory({ category: editing.id }).url}
+                    method="put"
+                    submitLabel="Save changes"
+                    onClose={() => setEditing(null)}
+                    footerStart={
+                        editing.products_count === 0 &&
+                        editing.children_count === 0 ? (
+                            <ModalDeleteButton
+                                url={
+                                    destroyCategory({ category: editing.id })
+                                        .url
+                                }
+                                title="Delete category"
+                                text={`Delete ${editing.name}? This cannot be undone.`}
+                                onDone={() => setEditing(null)}
+                            />
+                        ) : undefined
+                    }
+                >
+                    {(errors) => (
+                        <CategoryFields
+                            categories={categories}
+                            category={editing}
+                            errors={errors}
+                        />
+                    )}
+                </FormModal>
+            )}
         </AdminLayout>
     );
 }

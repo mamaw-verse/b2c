@@ -1,6 +1,7 @@
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 
 export type Voucher = {
     id: string;
@@ -56,11 +57,16 @@ export function VoucherFields({
     includeKind?: boolean;
     fieldPrefix?: string;
 }) {
-    const id = (name: string) => `${fieldPrefix}${name}`;
-
+    // items-start: a field with help or error text must not stretch its grid row
+    // and push its input out of line with the field beside it.
     return (
-        <div className="grid gap-3 sm:grid-cols-2">
-            <FormField label="Code" required error={errors.code}>
+        <div className="grid items-start gap-x-3 gap-y-4 sm:grid-cols-2">
+            <FormField
+                label="Code"
+                required
+                error={errors.code}
+                className={includeKind ? undefined : 'sm:col-span-2'}
+            >
                 <Input name="code" defaultValue={voucher?.code ?? ''} />
             </FormField>
             {includeKind && (
@@ -132,19 +138,11 @@ export function VoucherFields({
                     defaultValue={pesos(voucher?.min_spend ?? null)}
                 />
             </FormField>
-            <FormField label="Max uses" optional error={errors.max_uses}>
-                <Input
-                    name="max_uses"
-                    type="number"
-                    min={1}
-                    defaultValue={voucher?.max_uses ?? ''}
-                />
-            </FormField>
             <FormField
                 label="Starts"
                 optional
-                error={errors.starts_at}
                 help="Active from the start of this day."
+                error={errors.starts_at}
             >
                 <Input
                     name="starts_at"
@@ -155,8 +153,8 @@ export function VoucherFields({
             <FormField
                 label="Expires"
                 optional
-                error={errors.expires_at}
                 help="Valid until the end of this day."
+                error={errors.expires_at}
             >
                 <Input
                     name="expires_at"
@@ -164,18 +162,28 @@ export function VoucherFields({
                     defaultValue={voucher?.expires_at ?? ''}
                 />
             </FormField>
-            <div className="flex items-center gap-2 sm:col-span-2">
-                <input
-                    id={id('is_active')}
-                    type="checkbox"
+            <FormField
+                label="Max uses"
+                optional
+                help="Leave blank for unlimited."
+                error={errors.max_uses}
+                className="sm:col-span-2"
+            >
+                <Input
+                    name="max_uses"
+                    type="number"
+                    min={1}
+                    defaultValue={voucher?.max_uses ?? ''}
+                />
+            </FormField>
+            <div className="border-t border-border pt-2 sm:col-span-2">
+                <Switch
+                    id={`${fieldPrefix}is_active`}
                     name="is_active"
                     value="1"
                     defaultChecked={voucher?.is_active ?? true}
-                    className="size-4"
+                    label="Active"
                 />
-                <label htmlFor={id('is_active')} className="text-body-sm">
-                    Active
-                </label>
             </div>
         </div>
     );

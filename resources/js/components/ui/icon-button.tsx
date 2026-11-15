@@ -20,12 +20,18 @@ function IconButton({
     ...props
 }: IconButtonProps) {
     const accessibleLabel = count ? `${label}, ${count}` : label;
+    const isPlain = variant === 'plain';
 
     return (
         <Button
             variant={variant}
-            size={size}
-            className={cn('btn-icon', className)}
+            size={isPlain ? 'default' : size}
+            className={cn(
+                isPlain
+                    ? 'relative inline-flex size-4 shrink-0 items-center justify-center rounded-xs transition-colors duration-token after:absolute after:-inset-3.5 after:content-[""] [&>svg]:size-4'
+                    : 'btn-icon',
+                className,
+            )}
             aria-label={accessibleLabel}
             aria-pressed={pressed}
             {...props}

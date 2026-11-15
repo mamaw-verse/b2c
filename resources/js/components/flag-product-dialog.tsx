@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { TextArea } from '@/components/ui/textarea';
 import { store as flagProduct } from '@/actions/App/Http/Controllers/Admin/ModerationFlagController';
 import { index as searchProducts } from '@/actions/App/Http/Controllers/Admin/ProductSearchController';
 
@@ -212,11 +216,7 @@ export function FlagProductDialog({
                 )}
 
                 {/* Product Selection */}
-                <div>
-                    <label className="mb-1 block text-label text-foreground">
-                        Product
-                    </label>
-
+                <FormField label="Product" id="flag-product">
                     {selectedProduct ? (
                         <div className="flex items-center justify-between gap-3 rounded-tile border border-border bg-surface-muted p-2.5">
                             <div className="flex min-w-0 items-center gap-2.5">
@@ -244,16 +244,18 @@ export function FlagProductDialog({
                             </div>
 
                             {!initialProduct && (
-                                <button
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => {
                                         setSelectedProduct(null);
                                         setSearchQuery('');
                                     }}
-                                    className="btn btn-ghost btn-sm shrink-0 text-muted-foreground hover:text-foreground"
+                                    className="shrink-0 text-muted-foreground hover:text-foreground"
                                 >
                                     Change
-                                </button>
+                                </Button>
                             )}
                         </div>
                     ) : (
@@ -263,14 +265,14 @@ export function FlagProductDialog({
                                     aria-hidden="true"
                                     className="pointer-events-none absolute left-3 size-4 text-muted-foreground"
                                 />
-                                <input
+                                <Input
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
                                     placeholder="Search by product name, slug, or shop..."
-                                    className="input w-full pr-9 pl-9 text-body-sm"
+                                    className="pr-9 pl-9"
                                     autoFocus
                                 />
                                 {searching && (
@@ -336,51 +338,29 @@ export function FlagProductDialog({
                                 )}
                         </div>
                     )}
-                </div>
+                </FormField>
 
                 {/* Reason Selection */}
-                <div>
-                    <label
-                        htmlFor="flag-reason-select"
-                        className="mb-1 block text-label text-foreground"
-                    >
-                        Reason <span className="text-danger">*</span>
-                    </label>
-                    <select
-                        id="flag-reason-select"
+                <FormField label="Reason" required>
+                    <Select
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
-                        className="select w-full text-body-sm"
-                        required
-                    >
-                        <option value="">Select a reason...</option>
-                        {Object.entries(reasons).map(([value, label]) => (
-                            <option key={value} value={value}>
-                                {label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                        placeholder="Select a reason..."
+                        options={Object.entries(reasons).map(
+                            ([value, label]) => ({ value, label }),
+                        )}
+                    />
+                </FormField>
 
                 {/* Note */}
-                <div>
-                    <label
-                        htmlFor="flag-note-textarea"
-                        className="mb-1 block text-label text-foreground"
-                    >
-                        Note / Explanation{' '}
-                        <span className="text-danger">*</span>
-                    </label>
-                    <textarea
-                        id="flag-note-textarea"
+                <FormField label="Note / Explanation" required>
+                    <TextArea
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="Explain why this product requires moderator action..."
                         rows={3}
-                        className="textarea w-full text-body-sm"
-                        required
                     />
-                </div>
+                </FormField>
             </form>
         </Modal>
     );
