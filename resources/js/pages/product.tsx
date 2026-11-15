@@ -17,6 +17,7 @@ import { Rating } from '@/components/rating';
 import { ReportDialog } from '@/components/report-dialog';
 import { FlagProductDialog } from '@/components/flag-product-dialog';
 import { ReviewCard, type ReviewData } from '@/components/review-card';
+import { ShareButtons } from '@/components/share-buttons';
 import { ShopHeader } from '@/components/shop-header';
 import { SoldCount } from '@/components/sold-count';
 import { StickyActionBar } from '@/components/sticky-action-bar';
@@ -29,6 +30,7 @@ import { show as shopShow } from '@/routes/shops';
 import type {
     ProductCardData,
     ProductDetail,
+    ProductShareData,
     ProductVariation,
 } from '@/types/catalogue';
 
@@ -36,10 +38,12 @@ export default function Product({
     product: p,
     reviews = [],
     related = [],
+    share,
 }: {
     product: ProductDetail;
     reviews?: ReviewData[];
     related?: ProductCardData[];
+    share?: ProductShareData;
 }) {
     const { auth, seller, workspaces } = usePage().props;
     // The sticky action bar replaces the bottom tab bar on this page.
@@ -235,6 +239,17 @@ export default function Product({
                                     </span>
                                 )}
                             </p>
+                            {share && (
+                                <ShareButtons
+                                    className="mt-3"
+                                    url={share.url}
+                                    title={p.name}
+                                    text={p.description ?? p.name}
+                                    count={share.count}
+                                    enabled={share.enabled}
+                                    slug={p.slug}
+                                />
+                            )}
                         </div>
                         {p.halal_status === 'certified' && (
                             <HalalFacts valid={certValid} frozen={p.frozen} />

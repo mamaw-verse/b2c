@@ -2,6 +2,7 @@ import { ImagePlus, X } from 'lucide-react';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
+import { getCsrfHeaders } from '@/lib/csrf';
 import { toast } from 'sonner';
 
 export interface ReportDialogProps {
@@ -106,19 +107,10 @@ export function ReportDialog({
         });
 
         try {
-            const raw = document.cookie
-                .split('; ')
-                .find((c) => c.startsWith('XSRF-TOKEN='))
-                ?.slice('XSRF-TOKEN='.length);
-            const meta = document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute('content');
-
             const res = await fetch('/reports', {
                 method: 'POST',
                 headers: {
-                    'X-XSRF-TOKEN': raw ? decodeURIComponent(raw) : '',
-                    ...(meta ? { 'X-CSRF-TOKEN': meta } : {}),
+                    ...getCsrfHeaders(),
                     Accept: 'application/json',
                 },
                 body: formData,

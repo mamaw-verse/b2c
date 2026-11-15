@@ -34,6 +34,56 @@ const audienceIcons: Record<string, LucideIcon> = {
     businesses: Building2,
 };
 
+/**
+ * Unsplash License photos, resized/compressed to WebP.
+ * buyers – Suhas Hanjar, https://unsplash.com/photos/red-cherry-tomatoes-in-a-white-bowl-l56PE-I9bXM
+ * sellers – Noah Buisson, https://unsplash.com/photos/fresh-vegetables-displayed-in-wooden-crates-at-market-XPltBlxfChk
+ * certified – Stephen Goldberg, https://unsplash.com/photos/woman-in-white-shirt-holding-pen-writing-on-white-paper-LBLc9M1YrwQ
+ * b2b – Ashley, https://unsplash.com/photos/a-warehouse-filled-with-lots-of-boxes-and-pallets-28b8xlTT5t4
+ */
+const audienceImages: Record<
+    string,
+    {
+        src: string;
+        srcSet: string;
+        width: number;
+        height: number;
+        position: string;
+    }
+> = {
+    buyers: {
+        src: '/images/home/why-cards/buyers.webp',
+        srcSet: '/images/home/why-cards/buyers-480.webp 480w, /images/home/why-cards/buyers.webp 900w',
+        width: 900,
+        height: 1350,
+        position: 'object-center lg:object-right-top',
+    },
+    sellers: {
+        src: '/images/home/why-cards/sellers.webp',
+        srcSet: '/images/home/why-cards/sellers-480.webp 480w, /images/home/why-cards/sellers.webp 900w',
+        width: 900,
+        height: 600,
+        position: 'object-top lg:object-right-top',
+    },
+    certification: {
+        src: '/images/home/why-cards/certified.webp',
+        srcSet: '/images/home/why-cards/certified-480.webp 480w, /images/home/why-cards/certified.webp 900w',
+        width: 900,
+        height: 601,
+        position: 'object-center lg:object-right-top',
+    },
+    businesses: {
+        src: '/images/home/why-cards/b2b.webp',
+        srcSet: '/images/home/why-cards/b2b-480.webp 480w, /images/home/why-cards/b2b.webp 900w',
+        width: 900,
+        height: 1195,
+        position: 'object-center lg:object-right-top',
+    },
+};
+
+const maskClasses =
+    '[mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_70%)] [-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_70%)] md:[mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_75%)] md:[-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_75%)] lg:[mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_85%)] lg:[-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_85%)]';
+
 export function HomeBenefits({
     variant = 'compact',
     canBecomeSeller = false,
@@ -152,13 +202,42 @@ export function HomeBenefits({
                 <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
                     {homeBenefitsContent.audiences.map((audience) => {
                         const Icon = audienceIcons[audience.id] ?? ShieldCheck;
+                        const image = audienceImages[audience.id];
 
                         return (
                             <div
                                 key={audience.id}
-                                className="panel flex flex-col justify-between gap-4 p-5 transition-all hover:border-primary/50 hover:shadow-xs md:p-6"
+                                className="panel group relative isolate flex flex-col justify-between gap-4 overflow-hidden p-5 transition-all hover:border-primary/50 hover:shadow-xs md:p-6"
                             >
-                                <div>
+                                {image && (
+                                    <div
+                                        aria-hidden="true"
+                                        className="pointer-events-none absolute inset-0 -z-10"
+                                    >
+                                        <img
+                                            src={image.src}
+                                            srcSet={image.srcSet}
+                                            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                                            alt=""
+                                            width={image.width}
+                                            height={image.height}
+                                            loading="lazy"
+                                            decoding="async"
+                                            className={cn(
+                                                'h-[45%] w-full object-cover opacity-[0.22] transition-[opacity,transform,scale] duration-500 ease-out md:h-[50%] md:opacity-[0.25] lg:h-[55%] lg:opacity-[0.28]',
+                                                'dark:opacity-[0.18] dark:group-focus-within:opacity-[0.28] dark:group-hover:opacity-[0.28]',
+                                                'group-focus-within:opacity-[0.38] group-hover:opacity-[0.38]',
+                                                'motion-safe:group-focus-within:scale-[1.04] motion-safe:group-hover:scale-[1.04]',
+                                                maskClasses,
+                                                image.position,
+                                            )}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/70 to-white dark:from-surface/10 dark:via-surface/70 dark:to-surface" />
+                                        <div className="absolute inset-0 bg-emerald-900/5" />
+                                    </div>
+                                )}
+
+                                <div className="relative z-10">
                                     <div className="flex items-center gap-2">
                                         <span className="grid size-11 shrink-0 place-items-center rounded-tile bg-halal-soft text-halal">
                                             <Icon
@@ -194,7 +273,7 @@ export function HomeBenefits({
                                     </ul>
                                 </div>
 
-                                <div className="flex flex-col items-start gap-2">
+                                <div className="relative z-10 flex flex-col items-start gap-2">
                                     {renderCta(audience)}
                                     <Link
                                         href={`/why-choose-us#${audience.id}`}

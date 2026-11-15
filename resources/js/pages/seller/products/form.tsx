@@ -42,12 +42,31 @@ type ProductData = {
     affiliate_commission_percent?: number | null;
 };
 
+type ShareBreakdown = {
+    total: number;
+    recent: number;
+    by_channel: Record<string, { all: number; recent: number }>;
+};
+
 type PageProps = {
     product: ProductData | null;
     categories: Category[];
+    sharing?: ShareBreakdown | null;
 };
 
-export default function SellerProductForm({ product, categories }: PageProps) {
+const channelLabels: Record<string, string> = {
+    copy: 'Copy link',
+    facebook: 'Facebook',
+    x: 'X',
+    messenger: 'Messenger',
+    native: 'Mobile share sheet (incl. Instagram)',
+};
+
+export default function SellerProductForm({
+    product,
+    categories,
+    sharing,
+}: PageProps) {
     const { props } = usePage<{
         seller?: { role?: 'owner' | 'staff' } | null;
         marketplace?: {
@@ -752,6 +771,70 @@ export default function SellerProductForm({ product, categories }: PageProps) {
                                     </FormField>
                                 </div>
                             </section>
+
+                            {/* Sharing */}
+                            {isEditing && sharing && (
+                                <section className="panel p-4 md:p-6">
+                                    <div className="flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <h2 className="text-h3">Sharing</h2>
+                                            <p className="text-body-sm text-muted-foreground">
+                                                Track how buyers share this
+                                                product.
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-6 text-body-sm">
+                                            <div>
+                                                <span className="text-caption text-muted-foreground">
+                                                    Last 30 days:{' '}
+                                                </span>
+                                                <span className="font-semibold text-foreground">
+                                                    {sharing.recent}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-caption text-muted-foreground">
+                                                    All time:{' '}
+                                                </span>
+                                                <span className="font-semibold text-foreground">
+                                                    {sharing.total}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="divide-y divide-border">
+                                        {Object.entries(sharing.by_channel).map(
+                                            ([channel, counts]) => (
+                                                <div
+                                                    key={channel}
+                                                    className="flex items-center justify-between py-3 text-body-sm"
+                                                >
+                                                    <span className="font-medium text-foreground">
+                                                        {channelLabels[
+                                                            channel
+                                                        ] ?? channel}
+                                                    </span>
+                                                    <div className="flex items-center gap-6 text-caption text-muted-foreground">
+                                                        <span>
+                                                            Last 30 days:{' '}
+                                                            <strong className="text-foreground">
+                                                                {counts.recent}
+                                                            </strong>
+                                                        </span>
+                                                        <span>
+                                                            All time:{' '}
+                                                            <strong className="text-foreground">
+                                                                {counts.all}
+                                                            </strong>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                </section>
+                            )}
                         </div>
 
                         {/* Sticky bottom bar */}

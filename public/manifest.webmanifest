@@ -1,0 +1,35 @@
+{
+  "name": "HalalBenta",
+  "short_name": "HalalBenta",
+  "description": "Certified halal marketplace in the Philippines",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#17643c",
+  "background_color": "#f7f8f6",
+  "icons": [
+    {
+      "src": "/brand/halalbenta-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/halalbenta-icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/brand/halalbenta-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/halalbenta-icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

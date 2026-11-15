@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Catalogue\BuildProductSeoMeta;
 use App\Http\Requests\ShowProductRequest;
 use App\Models\Product;
 use App\Models\Review;
@@ -15,12 +16,21 @@ final class ProductController
     /**
      * Show the product detail page.
      */
-    public function show(ShowProductRequest $request, Product $product): Response
+    public function show(ShowProductRequest $request, Product $product, BuildProductSeoMeta $buildSeoMeta): Response
     {
         $product->load(['shop', 'category', 'variations', 'images', 'halalCertification', 'video']);
 
+        $shareEnabled = (bool) config('marketplace.features.product_share_enabled', false);
+        $publicMin = (int) config('marketplace.share.public_min', 5);
+        $shareCount = $product->share_count >= $publicMin ? $product->share_count : null;
+
         return Inertia::render('product', [
             'product' => $product->toDetail(),
+            'share' => [
+                'enabled' => $shareEnabled,
+                'url' => route('products.show', $product),
+                'count' => $shareCount,
+            ],
             'reviews' => Inertia::defer(fn () => $product->reviews()
                 ->with(['user', 'orderItem', 'photos'])
                 ->limit(20)
@@ -45,6 +55,6 @@ final class ProductController
                 ->limit(8)
                 ->get()
                 ->map->toCard()),
-        ]);
+        ])->withViewData(['meta' => $buildSeoMeta->handle($product)]);
     }
 }

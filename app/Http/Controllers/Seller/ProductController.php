@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Seller;
 
 use App\Actions\Seller\CreateSellerProduct;
 use App\Actions\Seller\DeleteSellerProduct;
+use App\Actions\Seller\GetProductShareBreakdown;
 use App\Actions\Seller\ListSellerProducts;
 use App\Actions\Seller\UpdateSellerProduct;
 use App\Http\Requests\Seller\CreateSellerProductRequest;
@@ -51,7 +52,7 @@ final class ProductController
         return redirect()->route('seller.products.index')->with('success', 'Product listed successfully.');
     }
 
-    public function edit(EditSellerProductRequest $request, Product $product): Response
+    public function edit(EditSellerProductRequest $request, Product $product, GetProductShareBreakdown $shareBreakdown): Response
     {
         $product->load(['variations', 'images', 'category']);
 
@@ -103,9 +104,14 @@ final class ProductController
                 : null,
         ];
 
+        $sharing = config('marketplace.features.product_share_enabled', false)
+            ? $shareBreakdown->handle($product)
+            : null;
+
         return Inertia::render('seller/products/form', [
             'product' => $productData,
             'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'sharing' => $sharing,
         ]);
     }
 

@@ -13,11 +13,18 @@ export function BrandMark({
 }: BrandMarkProps) {
     if (!showName) {
         return (
-            <img
-                src="/images/brand/icon.png"
-                alt={name || 'Brand icon'}
-                className={cn('size-8 shrink-0 object-contain', className)}
-            />
+            <span className={cn('inline-flex shrink-0', className)}>
+                <img
+                    src="/brand/halalbenta-mark.svg"
+                    alt={name || 'Brand icon'}
+                    className="size-8 object-contain dark:hidden"
+                />
+                <img
+                    src="/brand/halalbenta-mark-dark.svg"
+                    alt={name || 'Brand icon'}
+                    className="hidden size-8 object-contain dark:block"
+                />
+            </span>
         );
     }
 
@@ -29,12 +36,12 @@ export function BrandMark({
             )}
         >
             <img
-                src="/images/brand/logo.png"
+                src="/brand/halalbenta-wordmark.svg"
                 alt={name}
                 className="h-8 w-auto object-contain dark:hidden"
             />
             <img
-                src="/images/brand/logo-dark.png"
+                src="/brand/halalbenta-wordmark-dark.svg"
                 alt={name}
                 className="hidden h-8 w-auto object-contain dark:block"
             />

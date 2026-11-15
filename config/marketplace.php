@@ -86,7 +86,7 @@ return [
        item additionally requires COD in `payments`. */
     'trust' => [
         'certificates' => (bool) env('MARKETPLACE_TRUST_CERTIFICATES', false),
-        'cold_chain' => (bool) env('MARKETPLACE_TRUST_COLD_CHAIN', true),
+        'cold_chain' => (bool) env('MARKETPLACE_TRUST_COLD_CHAIN', false),
         'cod' => (bool) env('MARKETPLACE_TRUST_COD', true),
     ],
 
@@ -138,8 +138,15 @@ return [
         'storage_prefix' => mb_trim((string) env('MARKETPLACE_VIDEO_STORAGE_PREFIX', 'media'), '/'),
     ],
 
+    'share' => [
+        'public_min' => (int) env('MARKETPLACE_SHARE_PUBLIC_MIN', 5),
+        'dedupe_minutes' => (int) env('MARKETPLACE_SHARE_DEDUPE_MINUTES', 10),
+        'channels' => ['copy', 'facebook', 'messenger', 'x', 'native'],
+    ],
+
     'features' => [
         'product_video_enabled' => (bool) env('MARKETPLACE_PRODUCT_VIDEO_ENABLED', false),
+        'product_share_enabled' => (bool) env('MARKETPLACE_PRODUCT_SHARE_ENABLED', false),
     ],
 
     'affiliate' => [

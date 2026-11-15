@@ -53,6 +53,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon|null $updated_at
  * @property bool $affiliate_enabled
  * @property int|null $affiliate_commission_bps
+ * @property int $share_count
  */
 #[Fillable(['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'was_price', 'rating', 'sold_count', 'location', 'free_shipping', 'frozen', 'halal_status', 'stock', 'option1_name', 'option2_name', 'published', 'hidden', 'ingredients', 'no_pork_alcohol_declared', 'weight', 'length', 'width', 'height', 'video_media_id', 'video_path', 'video_duration', 'affiliate_enabled', 'affiliate_commission_bps'])]
 final class Product extends Model
@@ -82,6 +83,12 @@ final class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /** @return HasMany<ProductShareStat, $this> */
+    public function shareStats(): HasMany
+    {
+        return $this->hasMany(ProductShareStat::class);
     }
 
     public function thumbnailUrl(): ?string
@@ -259,6 +266,7 @@ final class Product extends Model
             'halal_status' => HalalStatus::class,
             'video_duration' => 'integer',
             'affiliate_enabled' => 'boolean',
+            'share_count' => 'integer',
         ];
     }
 

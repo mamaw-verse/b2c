@@ -21,6 +21,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MediaViewController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductShareController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopDirectoryController;
@@ -32,6 +33,9 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('search', [SearchController::class, 'index'])->name('search');
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+Route::post('products/{product:slug}/shares', [ProductShareController::class, 'store'])
+    ->middleware('throttle:product-share')
+    ->name('products.shares.store');
 Route::get('shops/{shop:slug}', [ShopController::class, 'show'])->name('shops.show');
 Route::get('sellers', ShopDirectoryController::class)->name('shops.index');
 Route::get('why-choose-us', WhyChooseUsController::class)->name('why-choose-us');

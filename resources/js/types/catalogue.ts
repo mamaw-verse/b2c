@@ -90,6 +90,12 @@ export type ProductDetail = ProductCardData & {
     shop: ShopData;
 };
 
+export type ProductShareData = {
+    enabled: boolean;
+    url: string;
+    count: number | null;
+};
+
 export type CursorPage<T> = {
     data: T[];
     next_cursor: string | null;

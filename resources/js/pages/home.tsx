@@ -10,6 +10,7 @@ import { HomeBenefits } from '@/components/home-benefits';
 import { ProductGrid } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
 import { VoucherCard } from '@/components/voucher-card';
+import { cn } from '@/lib/utils';
 import { register as sellerRegister } from '@/routes/seller';
 import type {
     CategoryData,
@@ -152,11 +153,27 @@ export default function Home({
                         <h2 id="home-vouch" className="text-h3">
                             Vouchers for you
                         </h2>
-                        <ul className="bleed-x mt-3 flex [scrollbar-width:none] gap-3 overflow-x-auto pb-1 md:grid md:grid-cols-3">
+                        <ul
+                            className={cn(
+                                'bleed-x mt-3 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory',
+                                vouchers.length > 2
+                                    ? 'md:bleed-x md:flex md:gap-4 md:overflow-x-auto md:snap-x md:snap-mandatory'
+                                    : 'md:m-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:p-0',
+                                vouchers.length >= 4
+                                    ? 'lg:m-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible lg:p-0'
+                                    : 'lg:m-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:overflow-visible lg:p-0',
+                            )}
+                        >
                             {vouchers.map((v) => (
                                 <li
                                     key={v.title}
-                                    className="w-72 shrink-0 md:h-full md:w-auto"
+                                    className={cn(
+                                        'w-[85%] shrink-0 snap-start',
+                                        vouchers.length > 2
+                                            ? 'md:w-[calc(50%-8px)] md:shrink-0 md:snap-start'
+                                            : 'md:w-auto md:h-full',
+                                        'lg:w-auto lg:h-full',
+                                    )}
                                 >
                                     <VoucherCard
                                         title={v.title}
@@ -169,12 +186,6 @@ export default function Home({
                         </ul>
                     </section>
                 )}
-
-                <HomeBenefits
-                    canBecomeSeller={canBecomeSeller}
-                    halalCertificationUrl={halalCertificationUrl}
-                    b2bUrl={b2bUrl}
-                />
 
                 <section aria-labelledby="home-grid-h" className="mt-6 md:mt-8">
                     <h2 id="home-grid-h" className="text-h3">
@@ -201,6 +212,12 @@ export default function Home({
                             )}
                     </div>
                 </section>
+
+                <HomeBenefits
+                    canBecomeSeller={canBecomeSeller}
+                    halalCertificationUrl={halalCertificationUrl}
+                    b2bUrl={b2bUrl}
+                />
             </div>
         </>
     );

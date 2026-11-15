@@ -202,3 +202,4 @@ No package upgrades; no directories renamed; existing files only extended (User 
 - Seller Customers page stays v2 (PRD §4) unless overridden.
 - Structured PH region/province/city dataset for addresses: free text in MVP, dataset import flagged as v2 (US-21).
 - PWA offline depth (Q4): manifest now, richer offline later.
+- Product share tracking is `ProductShareController` -> `RecordProductShare`; counts are clicks, not completions; Instagram is reachable only through native share.

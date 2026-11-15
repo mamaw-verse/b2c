@@ -16,6 +16,7 @@ type Product = {
     category_name: string;
     price: number;
     stock: number;
+    share_count?: number;
     halal_status: string;
     published: boolean;
     affiliate_enabled?: boolean;
@@ -123,6 +124,14 @@ export default function SellerProductsIndex({
                 >
                     {p.stock}
                 </span>
+            ),
+        },
+        {
+            key: 'share_count',
+            label: 'Shares',
+            align: 'end',
+            render: (p) => (
+                <span className="tabular text-label">{p.share_count ?? 0}</span>
             ),
         },
         {
