@@ -11,7 +11,9 @@ use App\Models\Shop;
 use App\Models\User;
 use App\Notifications\SellerOrderNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -122,16 +124,24 @@ test('user can mark an order in to_receive as received', function () {
     Notification::assertSentTo($seller, SellerOrderNotification::class, fn (SellerOrderNotification $notification): bool => $notification->event === 'received');
 });
 
-test('user can request return/refund for a completed order', function () {
+test('user can request return/refund for a completed order with proofs', function () {
+    Storage::fake('public');
+
     $user = User::factory()->create();
     $order = Order::factory()->completed()->create(['user_id' => $user->id]);
     $product = Product::factory()->create(['shop_id' => $order->shop_id]);
     $item = OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id, 'qty' => 2]);
 
+    $photo1 = UploadedFile::fake()->image('proof1.jpg');
+    $photo2 = UploadedFile::fake()->image('proof2.jpg');
+    $video = UploadedFile::fake()->create('proof_video.mp4', 5000, 'video/mp4');
+
     $this->actingAs($user)
         ->post(route('orders.return', $order), [
             'reason' => 'Package arrived with damaged items.',
             'items' => [['order_item_id' => $item->id, 'qty' => 1]],
+            'photos' => [$photo1, $photo2],
+            'video' => $video,
         ])
         ->assertRedirect(route('orders.show', $order));
 
@@ -141,9 +151,33 @@ test('user can request return/refund for a completed order', function () {
         'title' => 'Return/refund requested',
         'detail' => 'Package arrived with damaged items.',
     ]);
-    expect($order->events()->latest()->first()->metadata['items'])->toBe([
+
+    $event = $order->events()->latest()->first();
+    expect($event->metadata['items'])->toBe([
         ['order_item_id' => $item->id, 'qty' => 1],
     ]);
+    expect($event->metadata['photos'])->toHaveCount(2);
+    expect($event->metadata['video'])->not->toBeNull();
+    Storage::disk('public')->assertExists($event->metadata['photos'][0]);
+    Storage::disk('public')->assertExists($event->metadata['photos'][1]);
+    Storage::disk('public')->assertExists($event->metadata['video']);
+});
+
+test('requesting return/refund requires at least two photos', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $order = Order::factory()->completed()->create(['user_id' => $user->id]);
+    $product = Product::factory()->create(['shop_id' => $order->shop_id]);
+    $item = OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id, 'qty' => 2]);
+
+    $this->actingAs($user)
+        ->post(route('orders.return', $order), [
+            'reason' => 'Damaged item',
+            'items' => [['order_item_id' => $item->id, 'qty' => 1]],
+            'photos' => [UploadedFile::fake()->image('only_one.jpg')],
+        ])
+        ->assertSessionHasErrors('photos');
 });
 
 test('tracking url resolves from courier templates or explicit url', function () {
@@ -201,5 +235,8 @@ test('order detail reflects refund approved and refunded with reference for cust
             ->component('account/order')
             ->where('return_outcome.status', 'processed')
             ->where('return_outcome.reference', 'REF-PAY-9876')
+            ->has('refunds', 1)
+            ->where('refunds.0.amount', 5000)
+            ->where('refunds.0.reference', 'REF-PAY-9876')
         );
 });

@@ -39,6 +39,9 @@ final class CreateOrderReturnRequest extends FormRequest
             'items' => ['nullable', 'array', 'min:1'],
             'items.*.order_item_id' => ['required', 'distinct', 'string', Rule::exists('order_items', 'id')->where('order_id', $order->id)],
             'items.*.qty' => ['required', 'integer', 'min:1'],
+            'photos' => ['required', 'array', 'min:2', 'max:5'],
+            'photos.*' => ['image', 'max:10240'],
+            'video' => ['nullable', 'mimetypes:video/mp4,video/quicktime,video/webm,video/x-matroska', 'max:51200'],
         ];
     }
 

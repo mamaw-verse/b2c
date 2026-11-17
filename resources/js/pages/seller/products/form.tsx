@@ -99,14 +99,12 @@ export default function SellerProductForm({
                 : 5),
     );
     const [imageFiles, setImageFiles] = useState<File[]>([]);
+    // Placeholder rows (url === '') are kept in the list so their ID is sent in
+    // keep_image_ids, preventing an unnecessary delete + re-create on every save.
+    // Only rows with a real URL are shown as thumbnails in the uploader.
     const [existingImages, setExistingImages] = useState<
         { id: string; url: string }[]
-    >(
-        () =>
-            product?.images
-                ?.filter((img) => !!img.url)
-                .map((img) => ({ id: img.id, url: img.url })) ?? [],
-    );
+    >(() => product?.images?.map((img) => ({ id: img.id, url: img.url ?? '' })) ?? []);
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [videoDuration, setVideoDuration] = useState<number | null>(
         product?.video?.duration ?? null,
@@ -164,6 +162,10 @@ export default function SellerProductForm({
                         sale_price: null,
                         stock: 0,
                         sku: null,
+                        weight: null,
+                        length: null,
+                        width: null,
+                        height: null,
                     }
                 );
             }),
@@ -309,7 +311,7 @@ export default function SellerProductForm({
                                 <ImageUploader
                                     files={imageFiles}
                                     onChange={setImageFiles}
-                                    existing={existingImages}
+                                    existing={existingImages.filter((img) => !!img.url)}
                                     onRemoveExisting={(id) =>
                                         setExistingImages((prev) =>
                                             prev.filter((img) => img.id !== id),
@@ -709,6 +711,34 @@ export default function SellerProductForm({
                                                             value={v.sku}
                                                         />
                                                     )}
+                                                    {v.weight != null && (
+                                                        <input
+                                                            type="hidden"
+                                                            name={`variations[${i}][weight]`}
+                                                            value={v.weight}
+                                                        />
+                                                    )}
+                                                    {v.length != null && (
+                                                        <input
+                                                            type="hidden"
+                                                            name={`variations[${i}][length]`}
+                                                            value={v.length}
+                                                        />
+                                                    )}
+                                                    {v.width != null && (
+                                                        <input
+                                                            type="hidden"
+                                                            name={`variations[${i}][width]`}
+                                                            value={v.width}
+                                                        />
+                                                    )}
+                                                    {v.height != null && (
+                                                        <input
+                                                            type="hidden"
+                                                            name={`variations[${i}][height]`}
+                                                            value={v.height}
+                                                        />
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -717,6 +747,7 @@ export default function SellerProductForm({
                             </section>
 
                             {/* Shipping */}
+                            {!hasVariations && (
                             <section className="panel p-4 md:p-6">
                                 <h2 className="mb-4 text-h3">Shipping</h2>
                                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -771,6 +802,7 @@ export default function SellerProductForm({
                                     </FormField>
                                 </div>
                             </section>
+                            )}
 
                             {/* Sharing */}
                             {isEditing && sharing && (

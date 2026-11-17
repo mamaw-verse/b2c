@@ -3,6 +3,7 @@ import { HalalBadge } from '@/components/halal-badge';
 import { Media } from '@/components/media';
 import { PriceBlock } from '@/components/price-block';
 import { QuantityStepper } from '@/components/quantity-stepper';
+import { formatPeso } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { HalalStatus, ProductVariation } from '@/types/catalogue';
 
@@ -147,6 +148,12 @@ export function CartItem({
                         }
                         onChange={(q) => onQty?.(q)}
                     />
+                </div>
+
+                <div className="flex justify-end">
+                    <p className="text-body-sm font-semibold text-foreground tabular-nums">
+                        {formatPeso(item.unit_price * item.qty)}
+                    </p>
                 </div>
 
                 {lowStock && (

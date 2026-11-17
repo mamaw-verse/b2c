@@ -11,6 +11,10 @@ export interface VariationItem {
     sale_price?: number | null;
     stock: number;
     sku?: string | null;
+    weight?: number | null;
+    length?: number | null;
+    width?: number | null;
+    height?: number | null;
 }
 
 export interface VariantMatrixProps {
@@ -46,13 +50,17 @@ export function VariantMatrix({
     const [applyPrice, setApplyPrice] = useState<string>('');
     const [applySalePrice, setApplySalePrice] = useState<string>('');
     const [applyStock, setApplyStock] = useState<string>('');
+    const [applyWeight, setApplyWeight] = useState<string>('');
+    const [applyLength, setApplyLength] = useState<string>('');
+    const [applyWidth, setApplyWidth] = useState<string>('');
+    const [applyHeight, setApplyHeight] = useState<string>('');
     const [newVal1, setNewVal1] = useState('');
     const [newVal2, setNewVal2] = useState('');
     const [showAddVal1, setShowAddVal1] = useState(false);
     const [showAddVal2, setShowAddVal2] = useState(false);
 
     const handleApplyAll = () => {
-        if (!applyPrice && !applySalePrice && !applyStock) return;
+        if (!applyPrice && !applySalePrice && !applyStock && !applyWeight && !applyLength && !applyWidth && !applyHeight) return;
 
         const updated = variations.map((v) => ({
             ...v,
@@ -69,13 +77,25 @@ export function VariantMatrix({
             ...(applyStock !== ''
                 ? { stock: parseInt(applyStock, 10) || 0 }
                 : {}),
+            ...(applyWeight !== ''
+                ? { weight: applyWeight ? parseFloat(applyWeight) : null }
+                : {}),
+            ...(applyLength !== ''
+                ? { length: applyLength ? parseFloat(applyLength) : null }
+                : {}),
+            ...(applyWidth !== ''
+                ? { width: applyWidth ? parseFloat(applyWidth) : null }
+                : {}),
+            ...(applyHeight !== ''
+                ? { height: applyHeight ? parseFloat(applyHeight) : null }
+                : {}),
         }));
         onChangeVariations(updated);
     };
 
     const handleCellChange = (
         index: number,
-        field: 'price' | 'sale_price' | 'stock' | 'sku',
+        field: 'price' | 'sale_price' | 'stock' | 'sku' | 'weight' | 'length' | 'width' | 'height',
         value: string,
     ) => {
         const updated = [...variations];
@@ -94,10 +114,15 @@ export function VariantMatrix({
                 ...updated[index],
                 stock: parseInt(value, 10) || 0,
             };
-        } else {
+        } else if (field === 'sku') {
             updated[index] = {
                 ...updated[index],
                 sku: value,
+            };
+        } else {
+            updated[index] = {
+                ...updated[index],
+                [field]: value === '' ? null : parseFloat(value) || null,
             };
         }
         onChangeVariations(updated);
@@ -339,6 +364,70 @@ export function VariantMatrix({
                         />
                     </div>
                 </div>
+                <div className="min-w-24 flex-1">
+                    <label className="sr-only" htmlFor={`${id}-weight-all`}>
+                        Weight (kg) for all variations
+                    </label>
+                    <input
+                        id={`${id}-weight-all`}
+                        inputMode="numeric"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={applyWeight}
+                        onChange={(e) => setApplyWeight(e.target.value)}
+                        placeholder="Weight (kg)"
+                        className="field tabular"
+                    />
+                </div>
+                <div className="min-w-24 flex-1">
+                    <label className="sr-only" htmlFor={`${id}-length-all`}>
+                        Length (cm) for all variations
+                    </label>
+                    <input
+                        id={`${id}-length-all`}
+                        inputMode="numeric"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={applyLength}
+                        onChange={(e) => setApplyLength(e.target.value)}
+                        placeholder="Length (cm)"
+                        className="field tabular"
+                    />
+                </div>
+                <div className="min-w-24 flex-1">
+                    <label className="sr-only" htmlFor={`${id}-width-all`}>
+                        Width (cm) for all variations
+                    </label>
+                    <input
+                        id={`${id}-width-all`}
+                        inputMode="numeric"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={applyWidth}
+                        onChange={(e) => setApplyWidth(e.target.value)}
+                        placeholder="Width (cm)"
+                        className="field tabular"
+                    />
+                </div>
+                <div className="min-w-24 flex-1">
+                    <label className="sr-only" htmlFor={`${id}-height-all`}>
+                        Height (cm) for all variations
+                    </label>
+                    <input
+                        id={`${id}-height-all`}
+                        inputMode="numeric"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={applyHeight}
+                        onChange={(e) => setApplyHeight(e.target.value)}
+                        placeholder="Height (cm)"
+                        className="field tabular"
+                    />
+                </div>
                 <Button
                     type="button"
                     variant="secondary"
@@ -406,6 +495,30 @@ export function VariantMatrix({
                                         className="w-40 px-3 py-2 text-left text-th text-muted-foreground uppercase"
                                     >
                                         SKU
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="w-28 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        Weight (kg)
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="w-28 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        Length (cm)
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="w-28 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        Width (cm)
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="w-28 px-3 py-2 text-left text-th text-muted-foreground uppercase"
+                                    >
+                                        Height (cm)
                                     </th>
                                 </tr>
                             </thead>
@@ -525,6 +638,110 @@ export function VariantMatrix({
                                                 className="field tabular"
                                             />
                                         </td>
+                                        <td className="w-28 px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-wt-${i}`}
+                                            >
+                                                Weight (kg), {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <input
+                                                id={`${id}-wt-${i}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min="0"
+                                                step="0.01"
+                                                value={v.weight ?? ''}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'weight',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="—"
+                                                className="field tabular"
+                                            />
+                                        </td>
+                                        <td className="w-28 px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-ln-${i}`}
+                                            >
+                                                Length (cm), {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <input
+                                                id={`${id}-ln-${i}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min="0"
+                                                step="0.1"
+                                                value={v.length ?? ''}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'length',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="—"
+                                                className="field tabular"
+                                            />
+                                        </td>
+                                        <td className="w-28 px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-wd-${i}`}
+                                            >
+                                                Width (cm), {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <input
+                                                id={`${id}-wd-${i}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min="0"
+                                                step="0.1"
+                                                value={v.width ?? ''}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'width',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="—"
+                                                className="field tabular"
+                                            />
+                                        </td>
+                                        <td className="w-28 px-3 py-2">
+                                            <label
+                                                className="sr-only"
+                                                htmlFor={`${id}-ht-${i}`}
+                                            >
+                                                Height (cm), {v.option1_value}{' '}
+                                                {v.option2_value}
+                                            </label>
+                                            <input
+                                                id={`${id}-ht-${i}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min="0"
+                                                step="0.1"
+                                                value={v.height ?? ''}
+                                                onChange={(e) =>
+                                                    handleCellChange(
+                                                        i,
+                                                        'height',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="—"
+                                                className="field tabular"
+                                            />
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -620,6 +837,108 @@ export function VariantMatrix({
                                             }
                                             className="field tabular"
                                             aria-label={`Stock, ${v.option1_value} ${v.option2_value ?? ''}`}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid gap-1">
+                                        <span
+                                            className="text-body-sm text-muted-foreground"
+                                            aria-hidden="true"
+                                        >
+                                            Weight (kg)
+                                        </span>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            min="0"
+                                            step="0.01"
+                                            value={v.weight ?? ''}
+                                            onChange={(e) =>
+                                                handleCellChange(
+                                                    i,
+                                                    'weight',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="—"
+                                            className="field tabular"
+                                            aria-label={`Weight, ${v.option1_value} ${v.option2_value ?? ''}`}
+                                        />
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <span
+                                            className="text-body-sm text-muted-foreground"
+                                            aria-hidden="true"
+                                        >
+                                            Length (cm)
+                                        </span>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            min="0"
+                                            step="0.1"
+                                            value={v.length ?? ''}
+                                            onChange={(e) =>
+                                                handleCellChange(
+                                                    i,
+                                                    'length',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="—"
+                                            className="field tabular"
+                                            aria-label={`Length, ${v.option1_value} ${v.option2_value ?? ''}`}
+                                        />
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <span
+                                            className="text-body-sm text-muted-foreground"
+                                            aria-hidden="true"
+                                        >
+                                            Width (cm)
+                                        </span>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            min="0"
+                                            step="0.1"
+                                            value={v.width ?? ''}
+                                            onChange={(e) =>
+                                                handleCellChange(
+                                                    i,
+                                                    'width',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="—"
+                                            className="field tabular"
+                                            aria-label={`Width, ${v.option1_value} ${v.option2_value ?? ''}`}
+                                        />
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <span
+                                            className="text-body-sm text-muted-foreground"
+                                            aria-hidden="true"
+                                        >
+                                            Height (cm)
+                                        </span>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            min="0"
+                                            step="0.1"
+                                            value={v.height ?? ''}
+                                            onChange={(e) =>
+                                                handleCellChange(
+                                                    i,
+                                                    'height',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="—"
+                                            className="field tabular"
+                                            aria-label={`Height, ${v.option1_value} ${v.option2_value ?? ''}`}
                                         />
                                     </div>
                                 </div>

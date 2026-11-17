@@ -1,5 +1,5 @@
 import { Form, Head, Link, router, useForm } from '@inertiajs/react';
-import { MessageCircle, Printer, Truck } from 'lucide-react';
+import { MessageCircle, PackageCheck, Printer, Truck, Image as ImageIcon, Video } from 'lucide-react';
 import { useState } from 'react';
 import { FulfillmentCard } from '@/components/fulfillment-card';
 import { Badge } from '@/components/ui/badge';
@@ -118,9 +118,12 @@ type OrderDetail = {
     return_request: {
         reason: string | null;
         requested_at: string | null;
+        photos: string[];
+        video?: string | null;
         items: {
             order_item_id: string;
             name: string;
+            variation?: string | null;
             qty_available: number;
             qty_requested: number;
             unit_price: number;
@@ -128,6 +131,18 @@ type OrderDetail = {
         refunded_gross: number;
         refunded_net: number;
     } | null;
+    refunds: {
+        id: string;
+        amount: number;
+        reference?: string | null;
+        processed_at?: string | null;
+        items: {
+            product_name?: string | null;
+            variation?: string | null;
+            unit_price: number;
+            qty: number;
+        }[];
+    }[];
 };
 
 type PageProps = {
@@ -140,6 +155,7 @@ export default function SellerOrderShow({ order }: PageProps) {
     const [declineModalOpen, setDeclineModalOpen] = useState(false);
     const [declineNote, setDeclineNote] = useState('');
     const [resolveProcessing, setResolveProcessing] = useState(false);
+    const [refundModalOpen, setRefundModalOpen] = useState(false);
     const [returnSelections, setReturnSelections] = useState<
         Record<string, number>
     >(
@@ -326,6 +342,47 @@ export default function SellerOrderShow({ order }: PageProps) {
                                     )}
                                 </p>
                             )}
+                            {/* Buyer-submitted proofs */}
+                            {(order.return_request.photos.length > 0 ||
+                                order.return_request.video) && (
+                                <div className="mb-4">
+                                    <p className="mb-2 text-label font-semibold">
+                                        Buyer proofs
+                                    </p>
+                                    {order.return_request.photos.length > 0 && (
+                                        <div className="mb-2 flex flex-wrap gap-2">
+                                            {order.return_request.photos.map(
+                                                (src, idx) => (
+                                                    <a
+                                                        key={idx}
+                                                        href={src}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="size-20 overflow-hidden rounded-tile border border-border"
+                                                    >
+                                                        <img
+                                                            src={src}
+                                                            alt={`Proof photo ${idx + 1}`}
+                                                            className="size-full object-cover"
+                                                        />
+                                                    </a>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
+                                    {order.return_request.video && (
+                                        <a
+                                            href={order.return_request.video}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-2 text-body-sm font-medium text-primary-text hover:underline"
+                                        >
+                                            <Video className="size-4" />
+                                            View video proof
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                             <fieldset className="mb-4 grid gap-2">
                                 <legend className="mb-2 text-label font-semibold">
                                     Items to refund
@@ -358,7 +415,14 @@ export default function SellerOrderShow({ order }: PageProps) {
                                                 }
                                             />
                                             <span className="min-w-0 flex-1 text-body-sm">
-                                                {item.name} ·{' '}
+                                                {item.name}
+                                                {item.variation && (
+                                                    <span className="text-muted-foreground">
+                                                        {' · '}
+                                                        {item.variation}
+                                                    </span>
+                                                )}
+                                                {' · '}
                                                 {formatPeso(item.unit_price)}{' '}
                                                 each
                                             </span>
@@ -474,6 +538,81 @@ export default function SellerOrderShow({ order }: PageProps) {
                             data-test="parcel"
                         />
                     ))}
+
+                    {/* Refund details */}
+                    {order.refunds.length > 0 && (
+                        <section className="panel p-4 md:p-6">
+                            <div className="mb-3 flex items-center justify-between">
+                                <h2 className="text-h3">Refunds</h2>
+                                <PackageCheck className="size-5 text-success-text" />
+                            </div>
+                            <div className="grid gap-3">
+                                {order.refunds.map((refund, i) => (
+                                    <div
+                                        key={refund.id}
+                                        className="rounded-panel border border-border p-3"
+                                    >
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                            <p className="text-label font-semibold">
+                                                Refund{' '}
+                                                {order.refunds.length > 1
+                                                    ? i + 1
+                                                    : ''}
+                                            </p>
+                                            <p className="tabular font-bold text-success-text">
+                                                {formatPeso(refund.amount)}
+                                            </p>
+                                        </div>
+                                        {refund.items.length > 0 && (
+                                            <ul className="mb-2 divide-y divide-border">
+                                                {refund.items.map((line, j) => (
+                                                    <li
+                                                        key={j}
+                                                        className="flex items-baseline justify-between gap-3 py-1 text-body-sm"
+                                                    >
+                                                        <span className="min-w-0 flex-1 text-foreground">
+                                                            {line.product_name}
+                                                            {line.variation && (
+                                                                <span className="text-muted-foreground">
+                                                                    {' · '}
+                                                                    {
+                                                                        line.variation
+                                                                    }
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                        <span className="shrink-0 text-muted-foreground">
+                                                            ×{line.qty} ·{' '}
+                                                            {formatPeso(
+                                                                line.unit_price *
+                                                                    line.qty,
+                                                            )}
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                        {refund.reference && (
+                                            <p className="text-body-sm text-muted-foreground">
+                                                Ref:{' '}
+                                                <span className="font-medium text-foreground">
+                                                    {refund.reference}
+                                                </span>
+                                            </p>
+                                        )}
+                                        {refund.processed_at && (
+                                            <p className="text-body-sm text-muted-foreground">
+                                                Processed:{' '}
+                                                {formatDateTime(
+                                                    refund.processed_at,
+                                                )}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
                     {/* Payment */}
                     <section className="panel p-4 md:p-6">
@@ -738,7 +877,7 @@ export default function SellerOrderShow({ order }: PageProps) {
                         return (
                             <FormField
                                 key={line.order_item_id}
-                                label={`${item?.name} (max ${item?.remaining})`}
+                                label={`${item?.name}${item?.variation ? ` · ${item.variation}` : ''} (max ${item?.remaining})`}
                                 error={
                                     shipForm.errors[
                                         `items.${index}.quantity` as keyof typeof shipForm.errors

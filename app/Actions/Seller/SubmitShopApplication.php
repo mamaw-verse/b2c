@@ -10,8 +10,10 @@ use App\Enums\ShopStatus;
 use App\Models\ModerationQueueItem;
 use App\Models\Shop;
 use App\Models\User;
+use App\Notifications\NewShopApplicationNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -115,6 +117,12 @@ final readonly class SubmitShopApplication
                     'flagged_by_type' => $user->getMorphClass(),
                     'flagged_by_id' => $user->id,
                 ]);
+
+            $notifiableShop = $shop;
+            DB::afterCommit(function () use ($notifiableShop): void {
+                $admins = User::query()->where('role', 'admin')->get();
+                Notification::send($admins, new NewShopApplicationNotification($notifiableShop));
+            });
 
             return $shop;
         });

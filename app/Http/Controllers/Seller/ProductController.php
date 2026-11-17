@@ -87,6 +87,10 @@ final class ProductController
                 'sale_price' => $v->was_price !== null ? $v->price / 100 : null,
                 'stock' => $v->stock,
                 'sku' => $v->sku,
+                'weight' => $v->weight,
+                'length' => $v->length,
+                'width' => $v->width,
+                'height' => $v->height,
             ]),
             'images' => $product->images->map(fn ($img) => [
                 'id' => $img->id,

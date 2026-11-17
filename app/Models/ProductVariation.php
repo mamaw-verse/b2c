@@ -22,10 +22,14 @@ use Illuminate\Support\Carbon;
  * @property int $stock
  * @property string|null $sku
  * @property int $sort_order
+ * @property float|null $weight
+ * @property float|null $length
+ * @property float|null $width
+ * @property float|null $height
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['product_id', 'option1_value', 'option2_value', 'price', 'was_price', 'stock', 'sku', 'sort_order'])]
+#[Fillable(['product_id', 'option1_value', 'option2_value', 'price', 'was_price', 'stock', 'sku', 'sort_order', 'weight', 'length', 'width', 'height'])]
 final class ProductVariation extends Model
 {
     /** @use HasFactory<ProductVariationFactory> */
@@ -35,5 +39,15 @@ final class ProductVariation extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'weight' => 'float',
+            'length' => 'float',
+            'width' => 'float',
+            'height' => 'float',
+        ];
     }
 }

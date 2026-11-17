@@ -1002,7 +1002,7 @@ export default function SellerRegister({
                                                                     maxLength={
                                                                         255
                                                                     }
-                                                                    placeholder="e.g. Islamic Da'wah Council of the Philippines"
+                                                                    placeholder="Maslaha Halal (MHCBI)"
                                                                     required
                                                                     aria-required="true"
                                                                 />

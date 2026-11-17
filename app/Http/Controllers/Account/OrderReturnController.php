@@ -13,7 +13,14 @@ final class OrderReturnController
 {
     public function store(CreateOrderReturnRequest $request, Order $order, RequestReturn $action): RedirectResponse
     {
-        $action->handle($request->user(), $order, $request->string('reason')->toString(), $request->validated('items', []));
+        $action->handle(
+            $request->user(),
+            $order,
+            $request->string('reason')->toString(),
+            $request->validated('items', []),
+            $request->file('photos', []),
+            $request->file('video'),
+        );
 
         return redirect()->route('orders.show', $order)->with('success', 'Return/refund request submitted.');
     }

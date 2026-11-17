@@ -142,6 +142,8 @@ trait ResolvesQueueItem
 
         // Approving the application verifies the certificates submitted with it.
         $shop->halalCertifications()->update(['checked_at' => now()]);
+
+        DB::afterCommit(fn () => $shop->owner?->notify(new ShopApplicationReviewedNotification($shop, 'approved', null)));
     }
 
     private function approveCertifiedProduct(Product $product): void

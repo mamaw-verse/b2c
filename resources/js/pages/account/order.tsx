@@ -3,13 +3,16 @@ import {
     AlertTriangle,
     CheckCircle2,
     ChevronLeft,
+    Image,
     MapPin,
     MessageCircle,
     MoonStar,
+    PackageCheck,
     Store,
     Truck,
+    Video,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FulfillmentCard } from '@/components/fulfillment-card';
 import { Media } from '@/components/media';
 import { PriceBlock } from '@/components/price-block';
@@ -20,6 +23,24 @@ import { Modal } from '@/components/ui/modal';
 import { TextArea } from '@/components/ui/textarea';
 import { formatDate, formatDateTime, formatPeso } from '@/lib/format';
 import { create as createReview } from '@/routes/reviews';
+
+type RefundLine = {
+    id: string;
+    amount: number;
+    reference?: string | null;
+    processed_at?: string | null;
+    items: {
+        product_name?: string | null;
+        variation?: string | null;
+        unit_price: number;
+        qty: number;
+    }[];
+};
+
+type ReturnProofs = {
+    photos: string[];
+    video?: string | null;
+} | null;
 
 type OrderDetailPageProps = {
     order: {
@@ -113,11 +134,15 @@ type OrderDetailPageProps = {
         reference?: string | null;
         note?: string | null;
     } | null;
+    refunds?: RefundLine[];
+    return_proofs?: ReturnProofs;
 };
 
 export default function OrderDetail({
     order,
     return_outcome,
+    refunds = [],
+    return_proofs,
 }: OrderDetailPageProps) {
     const [returnModalOpen, setReturnModalOpen] = useState(false);
     const [returnReason, setReturnReason] = useState('');
@@ -131,12 +156,20 @@ export default function OrderDetail({
     );
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [refundModalOpen, setRefundModalOpen] = useState(false);
+
+    // Proof file state
+    const [photos, setPhotos] = useState<File[]>([]);
+    const [video, setVideo] = useState<File | null>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
 
     const isCancellable =
         ['pending', 'to_pay', 'to_ship'].includes(order.status) &&
         (order.fulfillment_status ?? 'unfulfilled') === 'unfulfilled';
     const isReturnable = order.status === 'completed';
     const isToReceive = order.status === 'to_receive';
+    const hasRefunds = refunds.length > 0;
 
     const handleMarkReceived = () => {
         if (
@@ -165,26 +198,33 @@ export default function OrderDetail({
     const handleReturnSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!returnReason.trim()) return;
+        if (photos.length < 2) return;
 
         setProcessing(true);
-        router.post(
-            `/account/orders/${order.id}/return`,
-            {
-                reason: returnReason,
-                items: order.items
-                    .filter((item) => (returnItems[item.id] ?? 0) > 0)
-                    .map((item) => ({
-                        order_item_id: item.id,
-                        qty: returnItems[item.id],
-                    })),
+
+        const formData = new FormData();
+        formData.append('reason', returnReason);
+
+        order.items
+            .filter((item) => (returnItems[item.id] ?? 0) > 0)
+            .forEach((item, index) => {
+                formData.append(`items[${index}][order_item_id]`, item.id);
+                formData.append(
+                    `items[${index}][qty]`,
+                    String(returnItems[item.id]),
+                );
+            });
+
+        photos.forEach((photo) => formData.append('photos[]', photo));
+        if (video) formData.append('video', video);
+
+        router.post(`/account/orders/${order.id}/return`, formData, {
+            forceFormData: true,
+            onFinish: () => {
+                setProcessing(false);
+                setReturnModalOpen(false);
             },
-            {
-                onFinish: () => {
-                    setProcessing(false);
-                    setReturnModalOpen(false);
-                },
-            },
-        );
+        });
     };
 
     // Prepare timeline events
@@ -281,6 +321,15 @@ export default function OrderDetail({
                         return_outcome.reference
                             ? `Refunded (ref: ${return_outcome.reference})`
                             : 'Refund approved'}
+                        {hasRefunds && (
+                            <button
+                                type="button"
+                                onClick={() => setRefundModalOpen(true)}
+                                className="ml-2 font-bold underline"
+                            >
+                                View details
+                            </button>
+                        )}
                     </div>
                 ) : return_outcome?.status === 'processed' ? (
                     <div className="rounded-panel border border-success bg-success-soft p-3 text-body-sm text-success-text">
@@ -292,6 +341,15 @@ export default function OrderDetail({
                         {return_outcome.reference
                             ? ` (ref: ${return_outcome.reference})`
                             : ''}
+                        {hasRefunds && (
+                            <button
+                                type="button"
+                                onClick={() => setRefundModalOpen(true)}
+                                className="ml-2 font-bold underline"
+                            >
+                                View details
+                            </button>
+                        )}
                     </div>
                 ) : return_outcome?.status === 'declined' ? (
                     <div className="rounded-panel border border-danger bg-danger-soft p-3 text-body-sm text-danger-text">
@@ -629,6 +687,20 @@ export default function OrderDetail({
                                             (line as any).unit_price ?? 0,
                                         quantity: line.quantity,
                                     }))}
+                                    footer={
+                                        parcel.tracking_url ? (
+                                            <Button asChild size="sm">
+                                                <a
+                                                    href={parcel.tracking_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    <Truck className="size-4" />
+                                                    Track order
+                                                </a>
+                                            </Button>
+                                        ) : undefined
+                                    }
                                     data-test="parcel"
                                 />
                             ))}
@@ -664,6 +736,18 @@ export default function OrderDetail({
                                     className="w-full"
                                 >
                                     Return / refund
+                                </Button>
+                            )}
+
+                            {hasRefunds && !isReturnable && (
+                                <Button
+                                    variant="neutral"
+                                    size="lg"
+                                    onClick={() => setRefundModalOpen(true)}
+                                    className="w-full"
+                                >
+                                    <PackageCheck className="size-4" />
+                                    View refund details
                                 </Button>
                             )}
                         </div>
@@ -749,6 +833,12 @@ export default function OrderDetail({
                                         />
                                         <span className="min-w-0 flex-1 text-body-sm">
                                             {item.product_name}
+                                            {item.variation_label && (
+                                                <span className="text-muted-foreground">
+                                                    {' · '}
+                                                    {item.variation_label}
+                                                </span>
+                                            )}
                                         </span>
                                         <input
                                             type="number"
@@ -792,6 +882,131 @@ export default function OrderDetail({
                         required
                         maxLength={500}
                     />
+
+                    {/* Proof attachments */}
+                    <div className="grid gap-3">
+                        <div>
+                            <p className="text-label font-semibold">
+                                Photos{' '}
+                                <span className="text-danger-text">*</span>
+                            </p>
+                            <p className="mt-0.5 text-body-sm text-muted-foreground">
+                                At least 2 photos required (max 5, up to 10 MB
+                                each)
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {photos.map((photo, i) => (
+                                    <div
+                                        key={i}
+                                        className="relative size-20 overflow-hidden rounded-tile border border-border"
+                                    >
+                                        <img
+                                            src={URL.createObjectURL(photo)}
+                                            alt={`Proof photo ${i + 1}`}
+                                            className="size-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            aria-label={`Remove photo ${i + 1}`}
+                                            onClick={() =>
+                                                setPhotos((prev) =>
+                                                    prev.filter(
+                                                        (_, idx) => idx !== i,
+                                                    ),
+                                                )
+                                            }
+                                            className="absolute top-0.5 right-0.5 flex size-5 items-center justify-center rounded-full bg-black/60 text-white"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                                {photos.length < 5 && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            photoInputRef.current?.click()
+                                        }
+                                        className="flex size-20 flex-col items-center justify-center gap-1 rounded-tile border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary"
+                                    >
+                                        <Image className="size-5" />
+                                        <span className="text-caption">
+                                            Add photo
+                                        </span>
+                                    </button>
+                                )}
+                                <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="sr-only"
+                                    onChange={(e) => {
+                                        const files = Array.from(
+                                            e.target.files ?? [],
+                                        );
+                                        setPhotos((prev) =>
+                                            [
+                                                ...prev,
+                                                ...files,
+                                            ].slice(0, 5),
+                                        );
+                                        e.target.value = '';
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-label font-semibold">
+                                Video{' '}
+                                <span className="text-muted-foreground font-normal">
+                                    (optional)
+                                </span>
+                            </p>
+                            <p className="mt-0.5 text-body-sm text-muted-foreground">
+                                One video up to 50 MB (MP4, MOV, or WebM)
+                            </p>
+                            {video ? (
+                                <div className="mt-2 flex items-center gap-2 rounded-tile border border-border p-2">
+                                    <Video className="size-5 shrink-0 text-muted-foreground" />
+                                    <span className="min-w-0 flex-1 truncate text-body-sm">
+                                        {video.name}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setVideo(null)}
+                                        className="text-body-sm text-danger-text hover:underline"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        videoInputRef.current?.click()
+                                    }
+                                    className="mt-2 flex items-center gap-2 rounded-tile border border-dashed border-border p-2 text-body-sm text-muted-foreground hover:border-primary hover:text-primary"
+                                >
+                                    <Video className="size-4" />
+                                    Attach video
+                                </button>
+                            )}
+                            <input
+                                ref={videoInputRef}
+                                type="file"
+                                accept="video/mp4,video/quicktime,video/webm,video/x-matroska"
+                                className="sr-only"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) setVideo(file);
+                                    e.target.value = '';
+                                }}
+                            />
+                        </div>
+                    </div>
+
                     <div className="flex justify-end gap-2">
                         <Button
                             variant="neutral"
@@ -806,6 +1021,7 @@ export default function OrderDetail({
                             disabled={
                                 processing ||
                                 !returnReason.trim() ||
+                                photos.length < 2 ||
                                 Object.values(returnItems).every(
                                     (qty) => qty <= 0,
                                 )
@@ -815,6 +1031,139 @@ export default function OrderDetail({
                         </Button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Refund Details Modal */}
+            <Modal
+                open={refundModalOpen}
+                onOpenChange={setRefundModalOpen}
+                title="Refund Details"
+                kind="modal"
+            >
+                <div className="grid gap-4">
+                    {refunds.length === 0 ? (
+                        <p className="text-body text-muted-foreground">
+                            No refunds processed yet.
+                        </p>
+                    ) : (
+                        refunds.map((refund, i) => (
+                            <div
+                                key={refund.id}
+                                className="rounded-panel border border-border p-4"
+                            >
+                                <div className="mb-3 flex items-center justify-between gap-2">
+                                    <p className="text-label font-semibold">
+                                        Refund {refunds.length > 1 ? i + 1 : ''}
+                                    </p>
+                                    <p className="tabular text-price font-bold text-success-text">
+                                        {formatPeso(refund.amount)}
+                                    </p>
+                                </div>
+
+                                {refund.items.length > 0 && (
+                                    <ul className="mb-3 divide-y divide-border">
+                                        {refund.items.map((line, j) => (
+                                            <li
+                                                key={j}
+                                                className="flex items-baseline justify-between gap-3 py-1.5 text-body-sm"
+                                            >
+                                                <span className="min-w-0 flex-1 text-foreground">
+                                                    {line.product_name}
+                                                    {line.variation && (
+                                                        <span className="text-muted-foreground">
+                                                            {' · '}
+                                                            {line.variation}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                <span className="shrink-0 text-muted-foreground">
+                                                    ×{line.qty} ·{' '}
+                                                    {formatPeso(
+                                                        line.unit_price *
+                                                            line.qty,
+                                                    )}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                                <dl className="grid gap-1 text-body-sm text-muted-foreground">
+                                    {refund.reference && (
+                                        <div className="flex justify-between gap-2">
+                                            <dt>Reference</dt>
+                                            <dd className="tabular font-medium text-foreground">
+                                                {refund.reference}
+                                            </dd>
+                                        </div>
+                                    )}
+                                    {refund.processed_at && (
+                                        <div className="flex justify-between gap-2">
+                                            <dt>Processed</dt>
+                                            <dd>
+                                                {formatDateTime(
+                                                    refund.processed_at,
+                                                )}
+                                            </dd>
+                                        </div>
+                                    )}
+                                </dl>
+                            </div>
+                        ))
+                    )}
+
+                    {/* Show proofs if the buyer submitted them */}
+                    {return_proofs &&
+                        (return_proofs.photos.length > 0 ||
+                            return_proofs.video) && (
+                            <div>
+                                <p className="mb-2 text-label font-semibold">
+                                    Submitted proofs
+                                </p>
+                                {return_proofs.photos.length > 0 && (
+                                    <div className="mb-2 flex flex-wrap gap-2">
+                                        {return_proofs.photos.map(
+                                            (src, idx) => (
+                                                <a
+                                                    key={idx}
+                                                    href={src}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="size-20 overflow-hidden rounded-tile border border-border"
+                                                >
+                                                    <img
+                                                        src={src}
+                                                        alt={`Proof ${idx + 1}`}
+                                                        className="size-full object-cover"
+                                                    />
+                                                </a>
+                                            ),
+                                        )}
+                                    </div>
+                                )}
+                                {return_proofs.video && (
+                                    <a
+                                        href={return_proofs.video}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-2 text-body-sm font-medium text-primary-text hover:underline"
+                                    >
+                                        <Video className="size-4" />
+                                        View video proof
+                                    </a>
+                                )}
+                            </div>
+                        )}
+
+                    <div className="flex justify-end">
+                        <Button
+                            variant="neutral"
+                            onClick={() => setRefundModalOpen(false)}
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </>
     );

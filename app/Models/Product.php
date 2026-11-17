@@ -207,8 +207,8 @@ final class Product extends Model
             'in_stock' => $this->stock > 0,
             'halal_status' => $this->halal_status->value,
             'certifier' => $this->halalCertification?->certifying_body,
-            'image_url' => $this->images->first()?->url,
-            'icon' => $this->images->isEmpty() ? 'package' : $this->images->first()->icon,
+            'image_url' => $this->images->firstWhere('url', '!=', '')?->url,
+            'icon' => $this->images->firstWhere('url', '!=', '')?->icon ?? $this->images->first()?->icon ?? 'package',
             'created_at' => $this->created_at?->toISOString(),
         ];
     }
@@ -236,6 +236,10 @@ final class Product extends Model
                 'price' => $v->price,
                 'was_price' => $v->was_price,
                 'stock' => $v->stock,
+                'weight' => $v->weight,
+                'length' => $v->length,
+                'width' => $v->width,
+                'height' => $v->height,
             ])->all(),
             'certification' => $this->halalCertification ? [
                 'certifying_body' => $this->halalCertification->certifying_body,

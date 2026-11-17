@@ -8,7 +8,7 @@ use App\Enums\FulfillmentStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderEvent;
-use App\Notifications\OrderStatusNotification;
+use App\Notifications\OrderFulfilledNotification;
 use App\Support\CourierTracking;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -62,11 +62,7 @@ final readonly class FulfillSellerOrder
                 ],
             ]);
 
-            $order->user->notify(new OrderStatusNotification(
-                $order,
-                $fulfilled ? 'Order shipped' : 'Part of your order shipped',
-                "Order {$order->referenceNumber()} has a parcel on the way with {$fulfillment->courier_name}.",
-            ));
+            $order->user->notify(new OrderFulfilledNotification($order, $fulfillment, $fulfilled));
 
             return $order;
         });

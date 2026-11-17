@@ -132,6 +132,10 @@ final readonly class CreateSellerProduct
                         'stock' => isset($v['stock']) ? (int) $v['stock'] : 0,
                         'sku' => $v['sku'] ?? null,
                         'sort_order' => $i,
+                        'weight' => ! empty($v['weight']) ? (float) $v['weight'] : null,
+                        'length' => ! empty($v['length']) ? (float) $v['length'] : null,
+                        'width' => ! empty($v['width']) ? (float) $v['width'] : null,
+                        'height' => ! empty($v['height']) ? (float) $v['height'] : null,
                     ]);
                     $savedVariations[] = ['price' => $vPrice, 'was_price' => $vWasPrice];
                 }

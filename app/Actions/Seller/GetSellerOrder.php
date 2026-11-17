@@ -10,6 +10,7 @@ use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Support\CourierTracking;
+use Illuminate\Support\Facades\Storage;
 
 final readonly class GetSellerOrder
 {
@@ -137,6 +138,8 @@ final readonly class GetSellerOrder
                     return $event ? [
                         'reason' => $event->detail,
                         'requested_at' => $event->created_at?->toISOString(),
+                        'photos' => collect($event->metadata['photos'] ?? [])->map(fn (string $path) => Storage::disk('public')->url($path))->values()->all(),
+                        'video' => isset($event->metadata['video']) ? Storage::disk('public')->url($event->metadata['video']) : null,
                         'items' => $order->items->map(function ($item) use ($event): array {
                             $remaining = max(0, $item->qty - $item->refundedUnits());
                             $requestedItems = $event->metadata['items'] ?? [];
@@ -145,6 +148,7 @@ final readonly class GetSellerOrder
                             return [
                                 'order_item_id' => $item->id,
                                 'name' => $item->product_name,
+                                'variation' => $item->variation_label ?? ($item->variation ? mb_trim(($item->variation->option1_value ?? '').' '.($item->variation->option2_value ?? '')) : null),
                                 'qty_available' => $remaining,
                                 'qty_requested' => $requested['qty'] ?? $remaining,
                                 'unit_price' => $item->unit_price,
@@ -155,6 +159,18 @@ final readonly class GetSellerOrder
                     ] : null;
                 })()
                 : null,
+            'refunds' => $order->refunds->map(fn ($refund) => [
+                'id' => $refund->id,
+                'amount' => $refund->amount,
+                'reference' => $refund->reference,
+                'processed_at' => $refund->processed_at?->toISOString(),
+                'items' => $refund->items->map(fn ($line) => [
+                    'product_name' => $line->orderItem?->product_name,
+                    'variation' => $line->orderItem?->variation_label ?? ($line->orderItem?->variation ? mb_trim(($line->orderItem->variation->option1_value ?? '').' '.($line->orderItem->variation->option2_value ?? '')) : null),
+                    'unit_price' => $line->orderItem?->unit_price ?? 0,
+                    'qty' => $line->qty,
+                ])->values()->all(),
+            ])->values()->all(),
         ];
     }
 }

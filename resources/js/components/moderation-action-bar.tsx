@@ -10,6 +10,11 @@ import {
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ReasonPicker } from '@/components/reason-picker';
+import {
+    Dialog,
+    DialogContent,
+    DialogClose,
+} from '@/components/ui/dialog';
 
 export type ModerationAction =
     | 'approve'
@@ -343,12 +348,13 @@ export function ModerationActionBar({
             </div>
 
             {/* Reject reason dialog */}
-            {rejectOpen && (
-                <dialog
-                    open
-                    aria-labelledby="mab-reject-title"
-                    className="z-modal mt-auto mb-0 max-h-[90dvh] w-full rounded-t-panel bg-surface p-0 shadow-sheet transition-[translate,opacity,scale,display,overlay] transition-discrete duration-token md:m-auto md:max-h-[85dvh] md:w-[min(32rem,calc(100vw-2rem))] md:rounded-panel"
-                >
+            <Dialog
+                open={rejectOpen}
+                onOpenChange={(open) => {
+                    if (!open) setRejectOpen(false);
+                }}
+            >
+                <DialogContent kind="responsive" showClose={false}>
                     <form
                         onSubmit={handleRejectSubmit}
                         className="flex max-h-[inherit] flex-col"
@@ -360,20 +366,13 @@ export function ModerationActionBar({
                             />
                         </div>
                         <div className="flex items-center gap-2 border-b border-border py-1 pr-1 pl-4 md:py-2">
-                            <h2
-                                id="mab-reject-title"
-                                className="flex-1 text-h3"
-                            >
-                                Reject listing
-                            </h2>
-                            <button
-                                type="button"
+                            <h2 className="flex-1 text-h3">Reject listing</h2>
+                            <DialogClose
                                 className="btn btn-icon btn-ghost text-foreground"
                                 aria-label="Close"
-                                onClick={() => setRejectOpen(false)}
                             >
                                 <X aria-hidden="true" className="icon" />
-                            </button>
+                            </DialogClose>
                         </div>
                         <div className="flex-1 overflow-y-auto overscroll-contain p-4">
                             <ReasonPicker
@@ -389,13 +388,9 @@ export function ModerationActionBar({
                             />
                         </div>
                         <div className="flex flex-col gap-2 border-t border-border px-4 pt-3 pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:justify-end">
-                            <button
-                                type="button"
-                                className="btn btn-neutral"
-                                onClick={() => setRejectOpen(false)}
-                            >
+                            <DialogClose className="btn btn-neutral">
                                 <span>Cancel</span>
-                            </button>
+                            </DialogClose>
                             <button
                                 type="submit"
                                 disabled={processing}
@@ -405,81 +400,78 @@ export function ModerationActionBar({
                             </button>
                         </div>
                     </form>
-                </dialog>
-            )}
+                </DialogContent>
+            </Dialog>
 
             {/* Request changes / certificate dialog */}
-            {requestConfig && requestAction && (
-                <dialog
-                    open
-                    aria-labelledby="mab-request-title"
-                    className="z-modal mt-auto mb-0 max-h-[90dvh] w-full rounded-t-panel bg-surface p-0 shadow-sheet transition-[translate,opacity,scale,display,overlay] transition-discrete duration-token md:m-auto md:max-h-[85dvh] md:w-[min(32rem,calc(100vw-2rem))] md:rounded-panel"
-                >
-                    <form
-                        onSubmit={handleRequestSubmit}
-                        className="flex max-h-[inherit] flex-col"
-                    >
-                        <div className="flex justify-center pt-2 md:hidden">
-                            <span
-                                className="h-1.5 w-10 rounded-full bg-border-control"
-                                aria-hidden="true"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2 border-b border-border py-1 pr-1 pl-4 md:py-2">
-                            <h2
-                                id="mab-request-title"
-                                className="flex-1 text-h3"
-                            >
-                                {requestConfig.title}
-                            </h2>
-                            <button
-                                type="button"
-                                className="btn btn-icon btn-ghost text-foreground"
-                                aria-label="Close"
-                                onClick={() => setRequestAction(null)}
-                            >
-                                <X aria-hidden="true" className="icon" />
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto overscroll-contain p-4">
-                            <label
-                                htmlFor="mab-request-reason"
-                                className="mb-1.5 block text-label"
-                            >
-                                Message to seller{' '}
-                                <span aria-hidden="true">*</span>
-                            </label>
-                            <textarea
-                                id="mab-request-reason"
-                                required
-                                rows={4}
-                                className="field w-full resize-none text-input"
-                                value={requestReason}
-                                onChange={(e) =>
-                                    setRequestReason(e.target.value)
-                                }
-                                placeholder="Describe what the seller needs to provide or fix…"
-                            />
-                        </div>
-                        <div className="flex flex-col gap-2 border-t border-border px-4 pt-3 pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:justify-end">
-                            <button
-                                type="button"
-                                className="btn btn-neutral"
-                                onClick={() => setRequestAction(null)}
-                            >
-                                <span>Cancel</span>
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={processing || !requestReason.trim()}
-                                className="btn"
-                            >
-                                <span>{requestConfig.confirmLabel}</span>
-                            </button>
-                        </div>
-                    </form>
-                </dialog>
-            )}
+            <Dialog
+                open={requestAction !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setRequestAction(null);
+                        setRequestReason('');
+                    }
+                }}
+            >
+                <DialogContent kind="responsive" showClose={false}>
+                    {requestConfig && requestAction && (
+                        <form
+                            onSubmit={handleRequestSubmit}
+                            className="flex max-h-[inherit] flex-col"
+                        >
+                            <div className="flex justify-center pt-2 md:hidden">
+                                <span
+                                    className="h-1.5 w-10 rounded-full bg-border-control"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 border-b border-border py-1 pr-1 pl-4 md:py-2">
+                                <h2 className="flex-1 text-h3">
+                                    {requestConfig.title}
+                                </h2>
+                                <DialogClose
+                                    className="btn btn-icon btn-ghost text-foreground"
+                                    aria-label="Close"
+                                >
+                                    <X aria-hidden="true" className="icon" />
+                                </DialogClose>
+                            </div>
+                            <div className="flex-1 overflow-y-auto overscroll-contain p-4">
+                                <label
+                                    htmlFor="mab-request-reason"
+                                    className="mb-1.5 block text-label"
+                                >
+                                    Message to seller{' '}
+                                    <span aria-hidden="true">*</span>
+                                </label>
+                                <textarea
+                                    id="mab-request-reason"
+                                    required
+                                    rows={4}
+                                    className="field w-full resize-none text-input"
+                                    value={requestReason}
+                                    onChange={(e) =>
+                                        setRequestReason(e.target.value)
+                                    }
+                                    placeholder="Describe what the seller needs to provide or fix…"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2 border-t border-border px-4 pt-3 pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:justify-end">
+                                <DialogClose className="btn btn-neutral">
+                                    <span>Cancel</span>
+                                </DialogClose>
+                                <button
+                                    type="submit"
+                                    disabled={processing || !requestReason.trim()}
+                                    className="btn"
+                                >
+                                    <span>{requestConfig.confirmLabel}</span>
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             {/* Confirm dialog for approve / hide / suspend */}
             {confirmConfig && confirmAction && (

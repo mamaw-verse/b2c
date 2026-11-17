@@ -10,7 +10,9 @@ use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -99,6 +101,7 @@ test('seller can approve a partial refund and later refund the remaining quantit
         ->post(route('orders.return', $this->order), [
             'reason' => 'The remaining unit is also damaged.',
             'items' => [['order_item_id' => $this->orderItem->id, 'qty' => 1]],
+            'photos' => [UploadedFile::fake()->image('proof1.jpg'), UploadedFile::fake()->image('proof2.jpg')],
         ])
         ->assertRedirect();
 
@@ -126,4 +129,31 @@ test('a non-return order cannot be resolved', function () {
     $this->actingAs($this->seller)
         ->post(route('seller.orders.return.store', $order), ['decision' => 'approve'])
         ->assertNotFound();
+});
+
+test('seller order view exposes customer proofs and refund details', function () {
+    Storage::fake('public');
+
+    $photo1 = UploadedFile::fake()->image('proof1.jpg')->store('return-proofs/photos', 'public');
+    $photo2 = UploadedFile::fake()->image('proof2.jpg')->store('return-proofs/photos', 'public');
+    $video = UploadedFile::fake()->create('proof.mp4', 1000, 'video/mp4')->store('return-proofs/videos', 'public');
+
+    $this->order->events()->create([
+        'title' => 'Return/refund requested',
+        'detail' => 'Damaged items',
+        'metadata' => [
+            'items' => [['order_item_id' => $this->orderItem->id, 'qty' => 1]],
+            'photos' => [$photo1, $photo2],
+            'video' => $video,
+        ],
+    ]);
+
+    $this->actingAs($this->seller)
+        ->get(route('seller.orders.show', $this->order))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('seller/orders/show')
+            ->has('order.return_request.photos', 2)
+            ->where('order.return_request.video', Storage::disk('public')->url($video))
+        );
 });

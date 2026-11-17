@@ -33,15 +33,30 @@ final class ShopApplicationReviewedNotification extends Notification implements 
         return [
             'type' => 'shop_application',
             'workspace' => 'buyer',
-            'title' => $this->outcome === 'rejected' ? 'Application rejected' : 'Changes requested on your application',
+            'title' => match ($this->outcome) {
+                'approved' => 'Your shop application was approved',
+                'rejected' => 'Application rejected',
+                default => 'Changes requested on your application',
+            },
             'text' => $this->reason,
-            'url' => route('seller.register'),
+            'url' => $this->outcome === 'approved'
+                ? route('seller.dashboard')
+                : route('seller.register'),
         ];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         assert($notifiable instanceof User);
+
+        if ($this->outcome === 'approved') {
+            return (new MailMessage)
+                ->subject('Your shop application was approved')
+                ->greeting("Hi {$notifiable->name},")
+                ->line('Congratulations! Your shop application has been approved. You can now start selling on the marketplace.')
+                ->action('Go to your seller dashboard', route('seller.dashboard'));
+        }
+
         $rejected = $this->outcome === 'rejected';
 
         $mail = (new MailMessage)

@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Storage;
 
 final readonly class GetOrder
 {
@@ -23,7 +24,7 @@ final readonly class GetOrder
             'shippingOption',
             'payment',
             'events',
-            'refunds',
+            'refunds.items.orderItem.variation',
             'fulfillments.items.orderItem.variation',
             'fulfillments.items.orderItem.product.images',
             'items.product.images',
@@ -40,6 +41,23 @@ final readonly class GetOrder
                 $event->metadata = $meta;
             }
         });
+
+        // Build proof URLs from the return/refund request event metadata
+        $returnEvent = $order->events->where('title', 'Return/refund requested')->sortByDesc('created_at')->first();
+
+        if ($returnEvent) {
+            $photos = collect($returnEvent->metadata['photos'] ?? [])
+                ->map(fn (string $path) => Storage::disk('public')->url($path))
+                ->values()
+                ->all();
+            $video = isset($returnEvent->metadata['video'])
+                ? Storage::disk('public')->url($returnEvent->metadata['video'])
+                : null;
+
+            $order->setAttribute('return_proofs', ['photos' => $photos, 'video' => $video]);
+        } else {
+            $order->setAttribute('return_proofs', null);
+        }
 
         return $order;
     }

@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
@@ -107,4 +108,45 @@ test('customers list contains only the shops buyers', function () {
 
     $this->actingAs($this->seller)->get(route('seller.customers.index'))->assertOk()
         ->assertInertia(fn ($page) => $page->component('seller/customers')->has('customers', 1)->where('customers.0.email', $this->order->user->email));
+});
+
+test('fulfilling an order sends an email notification to the customer', function () {
+    Notification::fake();
+
+    $this->actingAs($this->seller)
+        ->post(route('seller.orders.fulfillments.store', $this->order), [
+            'courier_name' => 'J&T Express',
+            'tracking_number' => 'JT99887766',
+        ])
+        ->assertRedirect();
+
+    Notification::assertSentTo(
+        $this->order->user,
+        App\Notifications\OrderFulfilledNotification::class,
+        function (App\Notifications\OrderFulfilledNotification $notification): bool {
+            return $notification->fulfillment->courier_name === 'J&T Express'
+                && $notification->fulfillment->tracking_number === 'JT99887766'
+                && $notification->fullyFulfilled === true;
+        },
+    );
+});
+
+test('partial fulfillment sends an email notification flagged as not fully fulfilled', function () {
+    Notification::fake();
+
+    $this->actingAs($this->seller)
+        ->post(route('seller.orders.fulfillments.store', $this->order), [
+            'courier_name' => 'LBC',
+            'tracking_number' => 'LBC001',
+            'items' => [['order_item_id' => $this->itemA->id, 'quantity' => 1]],
+        ])
+        ->assertRedirect();
+
+    Notification::assertSentTo(
+        $this->order->user,
+        App\Notifications\OrderFulfilledNotification::class,
+        function (App\Notifications\OrderFulfilledNotification $notification): bool {
+            return $notification->fullyFulfilled === false;
+        },
+    );
 });

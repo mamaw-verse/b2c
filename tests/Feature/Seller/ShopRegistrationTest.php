@@ -16,6 +16,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -627,4 +628,49 @@ test('isSeller reflects shop status only', function () {
     $rejected = User::factory()->create();
     Shop::factory()->rejected()->create(['user_id' => $rejected->id]);
     expect($rejected->isSeller())->toBeFalse();
+});
+
+test('seller receives an approval email when their application is approved', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $applicant = User::factory()->create();
+    $shop = Shop::factory()->pending()->create(['user_id' => $applicant->id]);
+
+    $item = ModerationQueueItem::factory()->create([
+        'target_type' => $shop->getMorphClass(),
+        'target_id' => $shop->id,
+        'type' => ModerationItemType::ShopApplication->value,
+        'state' => ModerationState::Pending->value,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.moderation.decisions.store', $item), [
+            'action' => 'approved',
+            'reason' => 'All documents verified.',
+        ])
+        ->assertRedirect(route('admin.moderation.index'));
+
+    Notification::assertSentTo(
+        $applicant,
+        App\Notifications\ShopApplicationReviewedNotification::class,
+        fn ($notification) => $notification->outcome === 'approved',
+    );
+});
+
+test('all admin users receive an email when a new shop application is submitted', function () {
+    Notification::fake();
+    Storage::fake('public');
+
+    $admin1 = User::factory()->create(['role' => 'admin']);
+    $admin2 = User::factory()->create(['role' => 'admin']);
+    $buyer = User::factory()->create(['role' => 'buyer']);
+
+    $this->actingAs($buyer)
+        ->post(route('seller.register.store'), validApplicationPayload())
+        ->assertRedirect(route('seller.register'));
+
+    Notification::assertSentTo($admin1, App\Notifications\NewShopApplicationNotification::class);
+    Notification::assertSentTo($admin2, App\Notifications\NewShopApplicationNotification::class);
+    Notification::assertNotSentTo($buyer, App\Notifications\NewShopApplicationNotification::class);
 });
