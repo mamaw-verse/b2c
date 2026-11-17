@@ -19,6 +19,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Media Storage Disk
+    |--------------------------------------------------------------------------
+    |
+    | The disk used for uploaded media files (videos, documents). Defaults to
+    | "s3" when AWS credentials are configured, or "minio" for local Sail
+    | development. Set MEDIA_DISK=public to use the local public disk.
+    |
+    */
+
+    'media_disk' => env('MEDIA_DISK', 's3'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -59,6 +72,20 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             'temporary_url' => env('AWS_TEMPORARY_URL', env('AWS_ENDPOINT')),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'minio' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ROOT_USER', 'sail'),
+            'secret' => env('MINIO_ROOT_PASSWORD', 'password'),
+            'region' => 'us-east-1',
+            'bucket' => env('MINIO_BUCKET', 'local'),
+            'url' => env('MINIO_URL'),
+            'endpoint' => env('MINIO_ENDPOINT', 'http://minio:9000'),
+            'temporary_url' => env('MINIO_URL'),
+            'use_path_style_endpoint' => true,
             'throw' => false,
             'report' => false,
         ],

@@ -49,7 +49,7 @@ final class ScanUploadedFileJob implements ShouldQueue
             return;
         }
 
-        $fileStream = Storage::disk('s3')->readStream($this->media->storage_path);
+        $fileStream = Storage::disk(config('filesystems.media_disk'))->readStream($this->media->storage_path);
 
         if (! is_resource($fileStream)) {
             Log::warning('ScanUploadedFileJob: File not found in S3.', [

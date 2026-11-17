@@ -46,7 +46,7 @@ final class ReconcileMediaOrphansJob implements ShouldQueue
         $orphans
             ->chunk(100, function ($mediaRecords): void {
                 foreach ($mediaRecords as $media) {
-                    Storage::disk('s3')->delete($media->storage_path);
+                    Storage::disk(config('filesystems.media_disk'))->delete($media->storage_path);
                     $media->delete();
                 }
             });

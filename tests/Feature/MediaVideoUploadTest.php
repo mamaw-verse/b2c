@@ -14,6 +14,10 @@ use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    Config::set('filesystems.media_disk', 's3');
+});
+
 function videoUploadFile(string $filename, string $mimeType, int $bytes = 1024, ?string $clientMimeType = null): UploadedFile
 {
     $path = tempnam(sys_get_temp_dir(), 'video-upload-');

@@ -15,14 +15,14 @@ final class MediaViewController
     public function __invoke(ShowMediaViewRequest $request, Media $media): RedirectResponse|StreamedResponse
     {
         if (str_starts_with($media->mime_type, 'video/')) {
-            $url = Storage::disk('s3')->temporaryUrl($media->storage_path, now()->addMinutes(30), [
+            $url = Storage::disk(config('filesystems.media_disk'))->temporaryUrl($media->storage_path, now()->addMinutes(30), [
                 'ResponseContentType' => $media->mime_type,
             ]);
 
             return redirect()->away($url)->header('Cache-Control', 'private, max-age=300');
         }
 
-        $response = Storage::disk('s3')->response(
+        $response = Storage::disk(config('filesystems.media_disk'))->response(
             $media->storage_path,
             $media->original_filename
         );

@@ -126,7 +126,7 @@ final class MediaUploadService
         $originalFilename = $file->getClientOriginalName();
         $storagePath = $this->generateStoragePath($extension, $storagePrefix);
 
-        Storage::disk('s3')->putFileAs(
+        Storage::disk(config('filesystems.media_disk'))->putFileAs(
             dirname($storagePath),
             $file,
             basename($storagePath),

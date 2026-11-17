@@ -36,7 +36,7 @@ final readonly class SyncProductVideo
 
             if ($oldMedia !== null) {
                 DB::afterCommit(static function () use ($oldMedia): void {
-                    Storage::disk('s3')->delete($oldMedia->storage_path);
+                    Storage::disk(config('filesystems.media_disk'))->delete($oldMedia->storage_path);
                     $oldMedia->delete();
                 });
             }
@@ -58,7 +58,7 @@ final readonly class SyncProductVideo
 
             Event::listen(TransactionRolledBack::class, static function () use ($media, $state): void {
                 if (! $state->committed) {
-                    Storage::disk('s3')->delete($media->storage_path);
+                    Storage::disk(config('filesystems.media_disk'))->delete($media->storage_path);
                     $media->delete();
                 }
             });
@@ -66,7 +66,7 @@ final readonly class SyncProductVideo
             DB::afterCommit(static function () use ($state, $oldMedia, $oldPath): void {
                 $state->committed = true;
                 if ($oldMedia !== null) {
-                    Storage::disk('s3')->delete($oldMedia->storage_path);
+                    Storage::disk(config('filesystems.media_disk'))->delete($oldMedia->storage_path);
                     $oldMedia->delete();
                 }
                 if ($oldPath !== null) {
@@ -81,7 +81,7 @@ final readonly class SyncProductVideo
                     'video_duration' => $duration,
                 ]);
             } catch (Throwable $e) {
-                Storage::disk('s3')->delete($media->storage_path);
+                Storage::disk(config('filesystems.media_disk'))->delete($media->storage_path);
                 $media->delete();
                 throw $e;
             }

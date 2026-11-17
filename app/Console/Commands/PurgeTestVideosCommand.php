@@ -50,13 +50,13 @@ final class PurgeTestVideosCommand extends Command
                 ->whereIn('video_media_id', $ids)
                 ->update(['video_media_id' => null]);
 
-            Storage::disk('s3')->delete($paths);
+            Storage::disk(config('filesystems.media_disk'))->delete($paths);
             Media::query()->whereKey($ids)->delete();
 
             $deleted += $ids->count();
         });
 
-        Storage::disk('s3')->deleteDirectory($prefix);
+        Storage::disk(config('filesystems.media_disk'))->deleteDirectory($prefix);
 
         $this->info("Deleted {$deleted} video(s) and every object under [{$prefix}].");
 

@@ -37,7 +37,7 @@ final readonly class DeleteSellerProduct
 
             DB::afterCommit(static function () use ($videoPath, $videoMedia, $imagePaths): void {
                 if ($videoMedia !== null) {
-                    Storage::disk('s3')->delete($videoMedia->storage_path);
+                    Storage::disk(config('filesystems.media_disk'))->delete($videoMedia->storage_path);
                     $videoMedia->delete();
                 }
 

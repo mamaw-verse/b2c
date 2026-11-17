@@ -22,6 +22,7 @@ uses(RefreshDatabase::class);
 beforeEach(function (): void {
     Config::set('marketplace.features.product_video_enabled', true);
     Config::set('services.clamav.enabled', false);
+    Config::set('filesystems.media_disk', 's3');
     Storage::fake('s3');
     Storage::fake('public');
 });
