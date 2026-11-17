@@ -13,12 +13,17 @@ use App\Models\User;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    Config::set('filesystems.media_disk', 's3');
+    Config::set('marketplace.features.product_video_enabled', true);
+    Config::set('services.clamav.enabled', false);
+    Storage::fake('s3');
     Storage::fake('public');
 
     $this->seller = User::factory()->create();
@@ -34,6 +39,7 @@ beforeEach(function () {
 test('sync product video stores file and updates columns', function () {
     $product = Product::factory()->create([
         'shop_id' => $this->shop->id,
+        'video_media_id' => null,
         'video_path' => null,
         'video_duration' => null,
     ]);
@@ -43,10 +49,11 @@ test('sync product video stores file and updates columns', function () {
     app(SyncProductVideo::class)->handle($product, $file, false, 25);
 
     $product->refresh();
-    expect($product->video_path)->not->toBeNull()
+    expect($product->video_media_id)->not->toBeNull()
+        ->and($product->video_path)->toBeNull()
         ->and($product->video_duration)->toBe(25);
 
-    Storage::disk('public')->assertExists($product->video_path);
+    Storage::disk('s3')->assertExists($product->video->storage_path);
 });
 
 test('sync product video replaces existing file and deletes the old one', function () {
@@ -55,19 +62,19 @@ test('sync product video replaces existing file and deletes the old one', functi
     $file1 = UploadedFile::fake()->create('first.mp4', 500, 'video/mp4');
     app(SyncProductVideo::class)->handle($product, $file1, false, 15);
     $product->refresh();
-    $oldPath = $product->video_path;
-    Storage::disk('public')->assertExists($oldPath);
+    $oldMediaId = $product->video_media_id;
+    $oldPath = $product->video->storage_path;
+    Storage::disk('s3')->assertExists($oldPath);
 
     $file2 = UploadedFile::fake()->create('second.mp4', 800, 'video/mp4');
     app(SyncProductVideo::class)->handle($product, $file2, false, 30);
     $product->refresh();
-    $newPath = $product->video_path;
 
-    expect($newPath)->not->toBe($oldPath)
+    expect($product->video_media_id)->not->toBe($oldMediaId)
         ->and($product->video_duration)->toBe(30);
 
-    Storage::disk('public')->assertExists($newPath);
-    Storage::disk('public')->assertMissing($oldPath);
+    Storage::disk('s3')->assertExists($product->video->storage_path);
+    Storage::disk('s3')->assertMissing($oldPath);
 });
 
 test('sync product video remove clears columns and deletes file', function () {
@@ -76,16 +83,17 @@ test('sync product video remove clears columns and deletes file', function () {
     $file = UploadedFile::fake()->create('video.mp4', 500, 'video/mp4');
     app(SyncProductVideo::class)->handle($product, $file, false, 20);
     $product->refresh();
-    $path = $product->video_path;
-    Storage::disk('public')->assertExists($path);
+    $path = $product->video->storage_path;
+    Storage::disk('s3')->assertExists($path);
 
     app(SyncProductVideo::class)->handle($product, null, true);
     $product->refresh();
 
-    expect($product->video_path)->toBeNull()
+    expect($product->video_media_id)->toBeNull()
+        ->and($product->video_path)->toBeNull()
         ->and($product->video_duration)->toBeNull();
 
-    Storage::disk('public')->assertMissing($path);
+    Storage::disk('s3')->assertMissing($path);
 });
 
 test('sync product video cleans up file if transaction rolls back', function () {
@@ -97,7 +105,7 @@ test('sync product video cleans up file if transaction rolls back', function () 
         DB::transaction(function () use ($product, $file, &$capturedPath) {
             app(SyncProductVideo::class)->handle($product, $file, false, 10);
             $product->refresh();
-            $capturedPath = $product->video_path;
+            $capturedPath = $product->video->storage_path;
             throw new Exception('Rollback test');
         });
     } catch (Exception) {
@@ -105,7 +113,7 @@ test('sync product video cleans up file if transaction rolls back', function () 
     }
 
     expect($capturedPath)->not->toBeNull();
-    Storage::disk('public')->assertMissing($capturedPath);
+    Storage::disk('s3')->assertMissing($capturedPath);
 });
 
 test('creating product rejects bad video mime type', function () {
@@ -124,7 +132,8 @@ test('creating product rejects bad video mime type', function () {
     $response->assertSessionHasErrors(['video']);
 });
 
-test('creating product rejects video over 30MB', function () {
+test('creating product rejects video over the configured size limit', function () {
+    Config::set('marketplace.video.max_kb', 30720);
     // 31MB = 31 * 1024 = 31744 KB
     $file = UploadedFile::fake()->create('oversize.mp4', 31744, 'video/mp4');
 
@@ -175,10 +184,11 @@ test('creating product with valid video stores file and metadata', function () {
     $response->assertRedirect(route('seller.products.index'));
 
     $product = Product::where('name', 'Valid Video Product')->firstOrFail();
-    expect($product->video_path)->not->toBeNull()
+    expect($product->video_media_id)->not->toBeNull()
+        ->and($product->video_path)->toBeNull()
         ->and($product->video_duration)->toBe(45);
 
-    Storage::disk('public')->assertExists($product->video_path);
+    Storage::disk('s3')->assertExists($product->video->storage_path);
 });
 
 test('updating product of another shop returns 404', function () {

@@ -281,26 +281,20 @@ test('owner can configure affiliate commission within limits and toggle keeps ra
         ->and($product->affiliate_commission_bps)->toBe(750);
 });
 
-test('staff is blocked by guards from registering a shop, following their shop, or checking out own items', function () {
+test('staff may apply to open their own shop but cannot follow or check out from the shop they staff', function () {
     $data = createShopWithStaff();
     $staff = $data['staff'];
     $shop = $data['shop'];
     $product = $data['product'];
 
-    // 1. Staff cannot register a new shop
-    $this->actingAs($staff)->post('/seller/register', [
-        'shop_name' => 'Staff Rogue Shop',
-        'description' => 'Trying to create second shop',
-        'address_line' => '123 Test St',
-        'city' => 'Manila',
-        'state' => 'Metro Manila',
-    ])->assertNotFound();
+    // Multi-shop staff: staffing one shop no longer blocks applying for another.
+    $this->actingAs($staff)->get('/seller/register')->assertOk();
 
-    // 2. Staff cannot follow their operated shop
+    // Staff cannot follow their operated shop
     $this->actingAs($staff)->post("/shops/{$shop->slug}/follow")->assertNotFound();
 
-    // 3. Staff cannot checkout items from their operated shop
-    $cartItem = \App\Models\CartItem::factory()->create([
+    // Staff cannot checkout items from their operated shop
+    \App\Models\CartItem::factory()->create([
         'user_id' => $staff->id,
         'product_id' => $product->id,
         'selected' => true,

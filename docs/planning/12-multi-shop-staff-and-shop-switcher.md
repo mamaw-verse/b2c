@@ -51,14 +51,14 @@
 - [x] B7. **Switcher UI:** show a small unread count next to each non-active shop in `ShopSwitcher` (text label, e.g. "3 new", not colour alone); add the combined total of non-active shops to the trigger's `aria-label`, and show the same count as a visible badge on the trigger so sighted and screen-reader users get the same information.
 - [x] B8. **Mark read:** `MarkNotificationRead` takes an optional scope. From the seller workspace, "mark all read" only clears the active shop's seller notifications; a single id must belong to the scope (otherwise no-op). From the buyer inbox, "mark all read" now clears only buyer notifications (it previously also cleared seller ones, which would defeat per-shop scoping). `NotificationReadController` takes a new validated `workspace` field (`buyer` or `seller`); `seller` is honoured only when the user operates a shop, otherwise 404.
 - [x] B9. **Frontend wiring:** `pages/notifications.tsx` sends `workspace` with the read requests.
-- [ ] B10. **Tests** (`tests/Feature/Notification/PerShopNotificationsTest.php`):
+- [x] B10. **Tests** (`tests/Feature/Notification/PerShopNotificationsTest.php`):
   - a user who owns A and staffs B receives order notifications for both; the seller list and bell count show only the active shop's, and switching changes them;
   - `seller.shops[].unread_notifications` reports the other shop's count;
   - "mark all read" in shop A leaves shop B's and the buyer notifications unread;
   - marking a notification id from a non-active shop is a no-op;
   - the backfill assigns `shop_id` to legacy rows and leaves orphaned rows out of the list;
   - removed from shop B, its notifications no longer appear or count.
-- [ ] B11. **Docs/e2e:** update `tests/e2e/scenarios.json` only if a notification scenario exists; no other change.
+- [x] B11. **Docs/e2e:** no dedicated notification scenario in `tests/e2e/scenarios.json` (only shell visits to `/account/notifications`); left unchanged.
 
 Dependencies: B1 → B2 → B3 → (B4, B5, B6, B8) → (B7, B9) → B10. Part B needs no new tables and is reversible (the migration only adds a JSON key).
 

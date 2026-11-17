@@ -26,7 +26,8 @@ function joinAsStaff(User $user, Shop $shop): ShopStaff
         'user_id' => $user->id,
         'email' => $user->email,
         'status' => ShopStaffStatus::Active,
-        'invited_by' => $shop->user_id,
+        // Shop factory leaves user_id null unless an owner is set.
+        'invited_by' => $shop->user_id ?? User::factory()->create()->id,
         'accepted_at' => now(),
     ]);
 }
