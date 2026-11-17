@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Models\Message;
 use App\Models\ModerationQueueItem;
 use App\Models\Product;
+use App\Support\NotificationScope;
 use App\Support\Settings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -116,9 +117,11 @@ final class HandleInertiaRequests extends Middleware
                         $q->where('sender_id', '!=', $request->user()->id)->orWhereNull('sender_id');
                     }
                 })->whereNull('read_at')->count(),
-                'notifications' => $request->user()->unreadNotifications()
-                    ->whereRaw("COALESCE(data::jsonb->>'workspace', 'buyer') = ?", [$countScope->value])
-                    ->count(),
+                'notifications' => NotificationScope::apply(
+                    $request->user()->unreadNotifications(),
+                    $countScope,
+                    $request->user()->operatedShop(),
+                )->count(),
             ] : null,
             'cartCount' => fn () => $request->user()?->cartItems()->count() ?? 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

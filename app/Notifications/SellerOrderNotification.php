@@ -35,6 +35,9 @@ final class SellerOrderNotification extends Notification implements ShouldQueue
         return [
             'type' => 'order',
             'workspace' => 'seller',
+            // Seller notifications belong to one shop; the seller list and
+            // unread counts are scoped by this (see NotificationScope).
+            'shop_id' => $this->order->shop_id,
             'order_id' => $this->order->id,
             'title' => $title,
             'text' => $text,

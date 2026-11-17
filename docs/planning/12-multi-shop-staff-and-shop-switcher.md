@@ -42,11 +42,11 @@
 
 ### Part B — per-shop notification scoping (new, merged into this plan)
 
-- [ ] B1. **Payload:** in `SellerOrderNotification::toArray()` add `'shop_id' => $this->order->shop_id`.
-- [ ] B2. **Backfill migration** `2026_11_17_000100_backfill_shop_id_on_seller_notifications`: for `notifications` rows with `data->>'workspace' = 'seller'` and no `shop_id`, set `shop_id` from `orders.shop_id` via `data->>'order_id'` (pgsql only, `data` is text cast through `::jsonb`). Rows whose order no longer exists stay untagged and are dropped from seller lists (they are unreachable anyway).
-- [ ] B3. **Query helper:** add `App\Support\SellerNotificationScope` (or a `User::sellerNotifications(Shop $shop)` relation helper) that applies `workspace = 'seller' AND shop_id = :shop`, so the list, count and mark-read share one definition.
-- [ ] B4. **List:** `GetNotifications::handle()` takes the active shop when `$workspace === Workspace::Seller` and uses the helper; no active shop returns an empty collection.
-- [ ] B5. **Header count:** in `HandleInertiaRequests`, replace the seller branch of `unreadCounts.notifications` with the helper for the active shop.
+- [x] B1. **Payload:** in `SellerOrderNotification::toArray()` add `'shop_id' => $this->order->shop_id`.
+- [x] B2. **Backfill migration** `2026_11_17_000100_backfill_shop_id_on_seller_notifications`: for `notifications` rows with `data->>'workspace' = 'seller'` and no `shop_id`, set `shop_id` from `orders.shop_id` via `data->>'order_id'` (pgsql only, `data` is text cast through `::jsonb`). Rows whose order no longer exists stay untagged and are dropped from seller lists (they are unreachable anyway).
+- [x] B3. **Query helper:** `App\Support\NotificationScope::apply($query, $workspace, $activeShop)` is the single definition of a workspace's notifications (seller = `workspace = 'seller' AND shop_id = :active shop`; no active shop matches nothing; buyer unchanged). The list and count use it now; B8 (mark read) reuses it.
+- [x] B4. **List:** `GetNotifications::handle()` takes the active shop when `$workspace === Workspace::Seller` and uses the helper; no active shop returns an empty collection.
+- [x] B5. **Header count:** in `HandleInertiaRequests`, replace the seller branch of `unreadCounts.notifications` with the helper for the active shop.
 - [ ] B6. **Per-shop unread:** add `unread_notifications` to each entry of `seller.shops[]` (single grouped query: `shop_id` => count of unread seller notifications for the user, not N queries); extend `SellerShop` in `types/navigation.ts`.
 - [ ] B7. **Switcher UI:** show a small unread count next to each non-active shop in `ShopSwitcher` (text label, e.g. "3 new", not colour alone); add the combined total of non-active shops to the trigger's `aria-label`.
 - [ ] B8. **Mark read:** `MarkNotificationRead` takes an optional scope. From the seller workspace, "mark all read" only clears the active shop's seller notifications; a single id must belong to the scope (otherwise no-op). Buyer behaviour unchanged. `NotificationReadController` takes a new validated `workspace` field (`buyer` or `seller`); `seller` is honoured only when the user operates a shop, otherwise 404.
