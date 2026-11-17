@@ -26,8 +26,8 @@
 
 Forged session id, switching to a stranger's/pending/unknown shop, guests/buyers/admins, removal from the active shop mid-session (fallback + flash, or back to application flow), leaving a shop, suspended active shop, owner-only routes while acting as staff in a managed shop, order/chat/customer scoping on both sides of a switch.
 
-## Open questions
+## Decisions on the open questions
 
-- Customer details expose email, phone numbers and shipping addresses; staff now see them. Mask email for staff if that is not intended.
-- Per-shop unread counts for notifications are still account-wide for the seller workspace.
-- Deep links to a resource in a non-active shop return 404 until the user switches.
+1. **Customer email for staff:** accepted as is. Staff see the same customer details as owners (email, phone numbers, shipping addresses); no masking.
+2. **Notification counts:** accepted as is for now. Unread notification counts in the seller workspace remain account-wide rather than per shop. Scoping them per shop is a possible follow-up.
+3. **Deep links to a non-active shop:** accepted as is. A link to an order, chat or customer in a shop that is not the active one returns 404 until the user switches shops.
