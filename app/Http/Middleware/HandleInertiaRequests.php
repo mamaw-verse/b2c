@@ -53,6 +53,9 @@ final class HandleInertiaRequests extends Middleware
         // counts always reflect the account (buyer) scope even on /admin/*.
         $countScope = $workspace === Workspace::Admin ? Workspace::Buyer : $workspace;
         $allowed = $user === null ? [] : Workspace::allowedFor($user);
+        $unreadByShop = $shop === null
+            ? []
+            : NotificationScope::unreadSellerCountsByShop($user, $user->operatedShops()->pluck('shop.id')->all());
 
         return [
             ...parent::share($request),
@@ -88,6 +91,7 @@ final class HandleInertiaRequests extends Middleware
                         'role' => $m['role']->value,
                         'suspended' => (bool) $m['shop']->suspended,
                         'active' => $m['shop']->id === $shop->id,
+                        'unread_notifications' => $unreadByShop[$m['shop']->id] ?? 0,
                     ])
                     ->values()
                     ->all(),

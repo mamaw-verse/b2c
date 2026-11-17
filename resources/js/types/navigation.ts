@@ -35,6 +35,8 @@ export type SellerShop = {
     role: 'owner' | 'staff';
     suspended: boolean;
     active: boolean;
+    /** Unread seller notifications for this shop. */
+    unread_notifications: number;
 };
 
 export type WorkspaceEntry = {

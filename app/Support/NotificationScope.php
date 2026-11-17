@@ -6,8 +6,10 @@ namespace App\Support;
 
 use App\Enums\Workspace;
 use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The one definition of "which notifications belong to this workspace".
@@ -40,5 +42,29 @@ final class NotificationScope
         }
 
         return $query->whereRaw("COALESCE(data::jsonb->>'workspace', 'buyer') = ?", [$workspace->value]);
+    }
+
+    /**
+     * Unread seller notifications per shop, in one grouped query, so the
+     * shop switcher can flag activity in shops the user is not looking at.
+     *
+     * @param  array<int, string>  $shopIds
+     * @return array<string, int> shop id => unread count (shops with none are absent)
+     */
+    public static function unreadSellerCountsByShop(User $user, array $shopIds): array
+    {
+        if ($shopIds === []) {
+            return [];
+        }
+
+        return $user->unreadNotifications()
+            ->reorder()
+            ->whereRaw("data::jsonb->>'workspace' = ?", [Workspace::Seller->value])
+            ->whereIn(DB::raw("data::jsonb->>'shop_id'"), $shopIds)
+            ->selectRaw("data::jsonb->>'shop_id' as shop_id, count(*) as total")
+            ->groupByRaw("data::jsonb->>'shop_id'")
+            ->pluck('total', 'shop_id')
+            ->map(fn ($total) => (int) $total)
+            ->all();
     }
 }

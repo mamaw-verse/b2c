@@ -23,7 +23,7 @@ export default function NotificationsPage({
     const handleMarkAllRead = () => {
         router.post(
             '/notifications/read',
-            {},
+            { workspace },
             {
                 preserveScroll: true,
                 preserveState: true,
@@ -44,7 +44,7 @@ export default function NotificationsPage({
         event.preventDefault();
         router.post(
             '/notifications/read',
-            { id: n.id },
+            { id: n.id, workspace },
             {
                 preserveScroll: true,
                 onSuccess: () => {

@@ -65,6 +65,10 @@ export function ShopSwitcher() {
 
     const shops: SellerShop[] = seller.shops ?? [];
     const role = seller.role ?? 'staff';
+    // Unread alerts in shops the user is not currently looking at.
+    const othersUnread = shops
+        .filter((shop) => !shop.active)
+        .reduce((total, shop) => total + shop.unread_notifications, 0);
     const owned = shops.filter((shop) => shop.role === 'owner');
     const managed = shops.filter((shop) => shop.role === 'staff');
 
@@ -131,6 +135,11 @@ export function ShopSwitcher() {
                             )}
                         </span>
                         <RoleBadge role={shop.role} />
+                        {!shop.active && shop.unread_notifications > 0 && (
+                            <span className="badge shrink-0">
+                                {shop.unread_notifications} new
+                            </span>
+                        )}
                         {shop.active && (
                             <Check aria-hidden="true" className="size-4" />
                         )}
@@ -143,10 +152,19 @@ export function ShopSwitcher() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger
-                aria-label={`Switch shop. Active: ${seller.shop_name} (${role})`}
+                aria-label={`Switch shop. Active: ${seller.shop_name} (${role}).${
+                    othersUnread > 0
+                        ? ` ${othersUnread} unread notifications in other shops.`
+                        : ''
+                }`}
                 className="flex min-h-touch items-center gap-2 rounded-button border border-border px-2 text-label hover:bg-surface-muted"
             >
                 {trigger}
+                {othersUnread > 0 && (
+                    <span className="badge shrink-0" aria-hidden="true">
+                        {othersUnread > 99 ? '99+' : othersUnread}
+                    </span>
+                )}
                 <ChevronsUpDown aria-hidden="true" className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-64">
