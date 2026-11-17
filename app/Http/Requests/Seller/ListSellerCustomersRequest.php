@@ -19,7 +19,7 @@ final class ListSellerCustomersRequest extends FormRequest
 
         $operatedShop = $user->operatedShop();
 
-        return ($operatedShop !== null && ! $operatedShop->suspended && $user->ownsShop())
+        return ($operatedShop !== null && ! $operatedShop->suspended)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

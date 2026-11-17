@@ -210,7 +210,6 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                         href: sellerCustomers().url,
                         icon: Users,
                         matchPrefix: '/seller/customers',
-                        roles: ['owner'],
                     },
                     {
                         label: 'Marketing',

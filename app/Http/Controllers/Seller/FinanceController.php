@@ -13,6 +13,6 @@ final class FinanceController
 {
     public function index(ListSellerFinanceRequest $request, ListSellerFinance $action): Response
     {
-        return Inertia::render('seller/finance', $action->handle($request->user()->shop, $request->type()));
+        return Inertia::render('seller/finance', $action->handle($request->user()->operatedShop(), $request->type()));
     }
 }

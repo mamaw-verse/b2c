@@ -20,7 +20,7 @@ final class CreateSellerVoucherRequest extends FormRequest
             return Response::denyAsNotFound();
         }
 
-        return ($user->ownsShop() && ! $user->shop?->suspended) ? Response::allow() : Response::denyAsNotFound();
+        return ($user->ownsShop() && ! $user->operatedShop()?->suspended) ? Response::allow() : Response::denyAsNotFound();
     }
 
     /**

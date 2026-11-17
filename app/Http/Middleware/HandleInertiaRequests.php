@@ -70,12 +70,26 @@ final class HandleInertiaRequests extends Middleware
                     'current' => $w === $workspace || count($allowed) === 1,
                 ])->all(),
             'seller' => $shop === null ? null : [
-                'role' => $user->ownsShop() ? 'owner' : 'staff',
+                'role' => $user->activeShopRole()?->value ?? 'staff',
                 'status' => $shop->status->value,
                 'suspended' => (bool) $shop->suspended,
                 'shop_name' => $shop->name,
                 'shop_id' => $shop->id,
                 'shop_slug' => $shop->slug,
+                // Every shop the user operates, for the shop switcher.
+                // `role` is per shop: owned shops are 'owner', managed ones 'staff'.
+                'shops' => $user->operatedShops()
+                    ->map(fn (array $m) => [
+                        'id' => $m['shop']->id,
+                        'name' => $m['shop']->name,
+                        'slug' => $m['shop']->slug,
+                        'logo_url' => $m['shop']->logo_url,
+                        'role' => $m['role']->value,
+                        'suspended' => (bool) $m['shop']->suspended,
+                        'active' => $m['shop']->id === $shop->id,
+                    ])
+                    ->values()
+                    ->all(),
             ],
             // Pending + flagged moderation items, shared on every page so the
             // admin sidebar badge stays visible outside the admin pages too.

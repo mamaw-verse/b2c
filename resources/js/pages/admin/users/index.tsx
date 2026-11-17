@@ -27,6 +27,7 @@ type Row = {
     suspended_at: string | null;
     shop: { name: string; status: string } | null;
     staff_at?: { name: string; status: string } | null;
+    staff_shops?: { name: string; status: string }[];
     orders_count: number;
     created_at: string;
 };
@@ -363,8 +364,13 @@ export default function AdminUsers({
                                         {user.email} · {user.role}
                                         {user.shop &&
                                             ` · ${user.shop.name} (${user.shop.status})`}
-                                        {user.staff_at &&
-                                            ` · Staff at ${user.staff_at.name} (${user.staff_at.status})`}
+                                        {(user.staff_shops?.length ?? 0) > 0 &&
+                                            ` · Staff at ${user.staff_shops
+                                                ?.map(
+                                                    (s) =>
+                                                        `${s.name} (${s.status})`,
+                                                )
+                                                .join(', ')}`}
                                         {` · ${user.orders_count} orders · joined ${formatDateTime(user.created_at)}`}
                                     </p>
                                 </div>

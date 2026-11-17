@@ -1,5 +1,9 @@
 import type { Auth } from '@/types/auth';
-import type { Marketplace, SharedWorkspace } from '@/types/navigation';
+import type {
+    Marketplace,
+    SellerShop,
+    SharedWorkspace,
+} from '@/types/navigation';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -31,6 +35,8 @@ declare module '@inertiajs/core' {
                 shop_name: string;
                 shop_id: string;
                 shop_slug: string;
+                /** Every shop the user operates; `role` is per shop. */
+                shops?: SellerShop[];
             } | null;
             marketplace: Marketplace;
             [key: string]: unknown;

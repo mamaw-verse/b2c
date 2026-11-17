@@ -82,19 +82,19 @@ test('owner cannot invite themselves or an existing staff email', function () {
     ])->assertSessionHasErrors(['email']);
 });
 
-test('cannot invite someone who is already a shop owner or active staff elsewhere', function () {
+test('can invite someone who already owns or staffs another shop', function () {
     $owner = User::factory()->create();
-    $shop = Shop::factory()->create(['user_id' => $owner->id]);
+    Shop::factory()->create(['user_id' => $owner->id]);
 
-    // Another shop owner
+    // Another shop's owner
     $otherOwner = User::factory()->create(['email' => 'otherowner@example.com']);
     Shop::factory()->create(['user_id' => $otherOwner->id]);
 
     $this->actingAs($owner)->post('/seller/staff', [
         'email' => 'otherowner@example.com',
-    ])->assertSessionHasErrors(['email']);
+    ])->assertSessionHasNoErrors()->assertRedirect();
 
-    // Another shop active staff
+    // Active staff at another shop
     $otherShop = Shop::factory()->create();
     $existingStaff = User::factory()->create(['email' => 'active_staff@example.com']);
     ShopStaff::factory()->create([
@@ -107,6 +107,24 @@ test('cannot invite someone who is already a shop owner or active staff elsewher
 
     $this->actingAs($owner)->post('/seller/staff', [
         'email' => 'active_staff@example.com',
+    ])->assertSessionHasNoErrors()->assertRedirect();
+});
+
+test('cannot invite someone who is already active staff at this same shop', function () {
+    $owner = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $owner->id]);
+
+    $member = User::factory()->create(['email' => 'member@example.com']);
+    ShopStaff::factory()->create([
+        'shop_id' => $shop->id,
+        'user_id' => $member->id,
+        'email' => 'member@example.com',
+        'status' => ShopStaffStatus::Active,
+        'accepted_at' => now(),
+    ]);
+
+    $this->actingAs($owner)->post('/seller/staff', [
+        'email' => 'member@example.com',
     ])->assertSessionHasErrors(['email']);
 });
 

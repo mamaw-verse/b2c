@@ -34,6 +34,13 @@ type Detail = {
         status: string;
         suspended: boolean;
     } | null;
+    staff_shops?: {
+        id: string;
+        name: string;
+        slug: string;
+        status: string;
+        suspended: boolean;
+    }[];
     orders_count: number;
     reports_count: number;
     created_at: string;
@@ -111,22 +118,27 @@ export default function AdminUserShow({ user }: { user: Detail }) {
                     </div>
                 )}
 
-                {user.staff_at && (
+                {(user.staff_shops?.length ?? 0) > 0 && (
                     <div className="panel grid gap-2 p-4">
                         <p className="text-label">Shop Staff</p>
-                        <p className="text-body-sm text-muted-foreground">
-                            Staff at{' '}
-                            <a
-                                href={
-                                    showShop({ shop: user.staff_at.slug }).url
-                                }
-                                className="text-primary-text underline"
+                        {user.staff_shops?.map((staffShop) => (
+                            <p
+                                key={staffShop.id}
+                                className="text-body-sm text-muted-foreground"
                             >
-                                {user.staff_at.name}
-                            </a>{' '}
-                            · {user.staff_at.status}
-                            {user.staff_at.suspended && ' · shop suspended'}
-                        </p>
+                                Staff at{' '}
+                                <a
+                                    href={
+                                        showShop({ shop: staffShop.slug }).url
+                                    }
+                                    className="text-primary-text underline"
+                                >
+                                    {staffShop.name}
+                                </a>{' '}
+                                · {staffShop.status}
+                                {staffShop.suspended && ' · shop suspended'}
+                            </p>
+                        ))}
                     </div>
                 )}
 

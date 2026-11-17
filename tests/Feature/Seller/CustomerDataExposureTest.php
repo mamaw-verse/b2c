@@ -118,13 +118,27 @@ test('seller chat payload does not contain buyer email for owner or staff', func
     }
 });
 
-test('staff is denied with 404 from customer pages protecting customer profiles', function () {
-    $this->actingAs($this->staff)
-        ->get(route('seller.customers.show', $this->buyer))
-        ->assertNotFound();
-
+test('staff can read the customer pages of the shop they are working in', function () {
     $this->actingAs($this->staff)
         ->get(route('seller.customers.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('seller/customers')->has('customers', 1));
+
+    $this->actingAs($this->staff)
+        ->get(route('seller.customers.show', $this->buyer))
+        ->assertOk()
+        ->assertInertia(
+            fn ($page) => $page
+                ->component('seller/customer')
+                ->where('customer.id', $this->buyer->id)
+        );
+});
+
+test('staff gets 404 for a customer who never ordered from their shop', function () {
+    $stranger = User::factory()->create();
+
+    $this->actingAs($this->staff)
+        ->get(route('seller.customers.show', $stranger))
         ->assertNotFound();
 });
 

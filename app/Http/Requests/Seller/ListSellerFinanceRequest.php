@@ -18,7 +18,7 @@ final class ListSellerFinanceRequest extends FormRequest
             return Response::denyAsNotFound();
         }
 
-        return ($user->ownsShop() && ! $user->shop?->suspended)
+        return ($user->ownsShop() && ! $user->operatedShop()?->suspended)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

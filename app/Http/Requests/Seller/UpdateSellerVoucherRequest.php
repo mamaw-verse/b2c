@@ -24,7 +24,7 @@ final class UpdateSellerVoucherRequest extends FormRequest
         $voucher = $this->route('voucher');
         assert($voucher instanceof Voucher);
 
-        return ($user->ownsShop() && ! $user->shop?->suspended && $voucher->shop_id === $user->shop?->id)
+        return ($user->ownsShop() && ! $user->operatedShop()?->suspended && $voucher->shop_id === $user->operatedShop()?->id)
             ? Response::allow()
             : Response::denyAsNotFound();
     }

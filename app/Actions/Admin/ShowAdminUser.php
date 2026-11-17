@@ -15,7 +15,7 @@ final readonly class ShowAdminUser
     {
         $user->loadMissing([
             'shop:id,user_id,name,slug,status,suspended',
-            'staffMembership.shop:id,name,slug,status,suspended',
+            'staffMemberships.shop:id,name,slug,status,suspended',
         ]);
         $user->loadCount(['orders', 'reports']);
 
@@ -35,13 +35,24 @@ final readonly class ShowAdminUser
                     'status' => $user->shop->status->value,
                     'suspended' => (bool) $user->shop->suspended,
                 ],
-                'staff_at' => $user->staffMembership?->shop === null ? null : [
-                    'id' => $user->staffMembership->shop->id,
-                    'name' => $user->staffMembership->shop->name,
-                    'slug' => $user->staffMembership->shop->slug,
-                    'status' => $user->staffMembership->shop->status->value,
-                    'suspended' => (bool) $user->staffMembership->shop->suspended,
+                'staff_at' => $user->staffMemberships->first()?->shop === null ? null : [
+                    'id' => $user->staffMemberships->first()->shop->id,
+                    'name' => $user->staffMemberships->first()->shop->name,
+                    'slug' => $user->staffMemberships->first()->shop->slug,
+                    'status' => $user->staffMemberships->first()->shop->status->value,
+                    'suspended' => (bool) $user->staffMemberships->first()->shop->suspended,
                 ],
+                'staff_shops' => $user->staffMemberships
+                    ->filter(fn ($m) => $m->shop !== null)
+                    ->map(fn ($m) => [
+                        'id' => $m->shop->id,
+                        'name' => $m->shop->name,
+                        'slug' => $m->shop->slug,
+                        'status' => $m->shop->status->value,
+                        'suspended' => (bool) $m->shop->suspended,
+                    ])
+                    ->values()
+                    ->all(),
                 'orders_count' => $user->orders_count,
                 'reports_count' => $user->reports_count,
                 'created_at' => $user->created_at?->toISOString(),

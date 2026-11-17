@@ -12,7 +12,7 @@ final class PayoutAccountController
 {
     public function update(UpdatePayoutAccountRequest $request, UpdatePayoutAccount $action): RedirectResponse
     {
-        $action->handle($request->user()->shop, $request->validated());
+        $action->handle($request->user()->operatedShop(), $request->validated());
 
         return redirect()->route('seller.finance.index')->with('success', 'Payout account saved.');
     }

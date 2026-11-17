@@ -17,10 +17,8 @@ final class CreateShopRegistrationRequest extends FormRequest
         $user = $this->user();
         assert($user instanceof User);
 
-        if ($user->isShopStaff()) {
-            return Response::denyAsNotFound();
-        }
-
+        // Being staff at other shops does not block owning one: roles are
+        // per shop, so only the user's own application state matters here.
         $shop = $user->shop;
 
         return match (true) {

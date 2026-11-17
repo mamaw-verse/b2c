@@ -20,7 +20,7 @@ final readonly class ListAdminUsers
                 'suspended' => $suspended,
             ],
             'users' => User::query()
-                ->with(['shop:id,user_id,name,status', 'staffMembership.shop:id,name,status'])
+                ->with(['shop:id,user_id,name,status', 'staffMemberships.shop:id,name,status'])
                 ->withCount('orders')
                 ->when($search, fn ($query) => $query->where(fn ($inner) => $inner
                     ->where('name', 'ilike', "%{$search}%")
@@ -43,10 +43,17 @@ final readonly class ListAdminUsers
                         'name' => $user->shop->name,
                         'status' => $user->shop->status->value,
                     ],
-                    'staff_at' => $user->staffMembership?->shop === null ? null : [
-                        'name' => $user->staffMembership->shop->name,
-                        'status' => $user->staffMembership->shop->status->value,
+                    // First membership, kept for existing consumers; a user may
+                    // now be active staff at several shops (see staff_shops).
+                    'staff_at' => $user->staffMemberships->first()?->shop === null ? null : [
+                        'name' => $user->staffMemberships->first()->shop->name,
+                        'status' => $user->staffMemberships->first()->shop->status->value,
                     ],
+                    'staff_shops' => $user->staffMemberships
+                        ->filter(fn ($m) => $m->shop !== null)
+                        ->map(fn ($m) => ['name' => $m->shop->name, 'status' => $m->shop->status->value])
+                        ->values()
+                        ->all(),
                     'orders_count' => $user->orders_count,
                     'created_at' => $user->created_at?->toISOString(),
                 ]),

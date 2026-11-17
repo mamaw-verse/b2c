@@ -21,12 +21,12 @@ final class VoucherController
 {
     public function index(ListSellerVouchersRequest $request, ListVouchers $action): Response
     {
-        return Inertia::render('seller/vouchers', $action->handle($request->user()->shop));
+        return Inertia::render('seller/vouchers', $action->handle($request->user()->operatedShop()));
     }
 
     public function store(CreateSellerVoucherRequest $request, CreateVoucher $action): RedirectResponse
     {
-        $action->handle($request->user(), $request->user()->shop, $request->voucherPayload(), $request->ip());
+        $action->handle($request->user(), $request->user()->operatedShop(), $request->voucherPayload(), $request->ip());
 
         return redirect()->route('seller.vouchers.index')->with('success', 'Voucher created.');
     }

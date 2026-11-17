@@ -16,7 +16,7 @@ final class CreateBulkProductAffiliateRequest extends FormRequest
         $user = $this->user();
         assert($user instanceof User);
 
-        return $user->ownsShop() && $user->shop?->isApproved()
+        return $user->ownsShop() && $user->operatedShop()?->isApproved()
             ? Response::allow()
             : Response::denyAsNotFound();
     }
@@ -26,7 +26,7 @@ final class CreateBulkProductAffiliateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $shop = $this->user()?->shop;
+        $shop = $this->user()?->operatedShop();
 
         return [
             'product_ids' => ['required', 'array', 'min:1'],

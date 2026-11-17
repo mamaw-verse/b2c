@@ -23,7 +23,7 @@ final class CreateShopStaffRequest extends FormRequest
             return Response::denyAsNotFound();
         }
 
-        return ($user->ownsShop() && ! $user->shop?->suspended)
+        return ($user->ownsShop() && ! $user->operatedShop()?->suspended)
             ? Response::allow()
             : Response::denyAsNotFound();
     }
@@ -35,7 +35,7 @@ final class CreateShopStaffRequest extends FormRequest
     {
         $user = $this->user();
         assert($user instanceof User);
-        $shop = $user->shop;
+        $shop = $user->operatedShop();
         assert($shop instanceof Shop);
 
         return [
@@ -50,28 +50,21 @@ final class CreateShopStaffRequest extends FormRequest
                     }
                 },
                 Rule::unique('shop_staff', 'email')->where('shop_id', $shop->id),
-                function (string $attribute, mixed $value, Closure $fail): void {
+                // Membership is per shop: the same person may already staff
+                // (or own) other shops. Only this shop's roster matters, and
+                // that is covered by the unique (shop_id, email) rule above
+                // plus the self-invite check.
+                function (string $attribute, mixed $value, Closure $fail) use ($shop): void {
                     $email = mb_strtolower(mb_trim((string) $value));
-                    $existingUser = User::whereRaw('LOWER(email) = ?', [$email])->first();
-                    if ($existingUser !== null) {
-                        if ($existingUser->ownsShop()) {
-                            $fail('This user is already the owner of a shop.');
 
-                            return;
-                        }
-                        if ($existingUser->isShopStaff()) {
-                            $fail('This user is already staff at another shop.');
-
-                            return;
-                        }
-                    }
-
-                    $hasActiveElsewhere = ShopStaff::whereRaw('LOWER(email) = ?', [$email])
+                    $alreadyActiveHere = ShopStaff::query()
+                        ->where('shop_id', $shop->id)
                         ->where('status', ShopStaffStatus::Active->value)
+                        ->whereHas('user', fn ($q) => $q->whereRaw('LOWER(email) = ?', [$email]))
                         ->exists();
 
-                    if ($hasActiveElsewhere) {
-                        $fail('This user is already staff at another shop.');
+                    if ($alreadyActiveHere) {
+                        $fail('This user is already staff at your shop.');
                     }
                 },
                 new ShopStaffLimit($shop),

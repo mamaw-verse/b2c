@@ -24,7 +24,7 @@ final class CreatePayoutRequest extends FormRequest
             return Response::denyAsNotFound();
         }
 
-        return ($user->ownsShop() && ! $user->shop?->suspended) ? Response::allow() : Response::denyAsNotFound();
+        return ($user->ownsShop() && ! $user->operatedShop()?->suspended) ? Response::allow() : Response::denyAsNotFound();
     }
 
     /**
@@ -32,7 +32,7 @@ final class CreatePayoutRequest extends FormRequest
      */
     public function rules(): array
     {
-        $shop = $this->user()->shop;
+        $shop = $this->user()->operatedShop();
 
         return [
             'amount' => ['required', 'integer', 'min:'.$this->settings->marketplaceInt('payouts.minimum')],

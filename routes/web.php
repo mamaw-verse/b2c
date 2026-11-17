@@ -120,6 +120,11 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
         Route::resource('staff-invitations', App\Http\Controllers\ShopStaffInvitationController::class)->parameters(['staff-invitations' => 'staffInvitation'])->only(['update', 'destroy'])->names('staff-invitations');
     });
 
+    // Switching shops must work from a suspended shop too (otherwise a
+    // user stuck on one could never leave it), so it sits outside the
+    // workspace:seller guard; the controller validates membership itself.
+    Route::put('seller/active-shop', [App\Http\Controllers\Seller\ActiveShopController::class, 'update'])->name('seller.active-shop.update');
+
     Route::prefix('seller')->name('seller.')->middleware('workspace:seller')->group(function () {
         Route::get('dashboard', App\Http\Controllers\Seller\DashboardController::class)->name('dashboard');
         Route::resource('products', App\Http\Controllers\Seller\ProductController::class)->names('products');

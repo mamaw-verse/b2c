@@ -36,7 +36,7 @@ final class UpdateShopStaffInvitationRequest extends FormRequest
             return Response::denyAsNotFound();
         }
 
-        if ($user->ownsShop() || $user->isShopStaff()) {
+        if ($staffInvitation->shop->isOperatedBy($user)) {
             return Response::denyAsNotFound();
         }
 

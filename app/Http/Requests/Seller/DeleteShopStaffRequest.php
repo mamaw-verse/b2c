@@ -21,7 +21,7 @@ final class DeleteShopStaffRequest extends FormRequest
         $staff = $this->route('staff');
         assert($staff instanceof ShopStaff);
 
-        $isOwner = $user->ownsShop() && $user->shop?->id === $staff->shop_id;
+        $isOwner = $user->ownsShop() && $user->operatedShop()?->id === $staff->shop_id;
         $isSelf = $staff->user_id === $user->id;
 
         return ($isOwner || $isSelf)

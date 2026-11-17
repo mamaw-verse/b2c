@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ShopRole;
 use App\Enums\ShopStaffStatus;
+use App\Support\ActiveShop;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -49,10 +52,22 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasOne(Shop::class);
     }
 
-    /** @return HasOne<ShopStaff, $this> */
+    /**
+     * The first active staff membership. Kept for places that only need
+     * "is this person staff anywhere"; use `staffMemberships()` for the
+     * full set.
+     *
+     * @return HasOne<ShopStaff, $this>
+     */
     public function staffMembership(): HasOne
     {
         return $this->hasOne(ShopStaff::class)->where('status', ShopStaffStatus::Active->value);
+    }
+
+    /** @return HasMany<ShopStaff, $this> */
+    public function staffMemberships(): HasMany
+    {
+        return $this->hasMany(ShopStaff::class)->where('status', ShopStaffStatus::Active->value);
     }
 
     public function isSeller(): bool
@@ -60,26 +75,56 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->shop?->isApproved() ?? false;
     }
 
+    /**
+     * The shop the current request acts on: the active shop chosen in the
+     * seller workspace, validated against live memberships. Every seller
+     * query and authorization check must go through this, never through
+     * `$user->shop`, which is only the shop the user *owns*.
+     */
     public function operatedShop(): ?Shop
     {
-        if ($this->shop?->isApproved()) {
-            return $this->shop;
-        }
-
-        $staffShop = $this->staffMembership?->shop;
-        if ($staffShop?->isApproved()) {
-            return $staffShop;
-        }
-
-        return null;
+        return resolve(ActiveShop::class)->shop($this);
     }
 
+    /**
+     * Approved shops the user operates, each with the role they hold there.
+     *
+     * @return Collection<int, array{shop: Shop, role: ShopRole}>
+     */
+    public function operatedShops(): Collection
+    {
+        return resolve(ActiveShop::class)->memberships($this);
+    }
+
+    /** The user's role in the active shop (null when they operate none). */
+    public function activeShopRole(): ?ShopRole
+    {
+        return resolve(ActiveShop::class)->role($this);
+    }
+
+    public function roleIn(Shop $shop): ?ShopRole
+    {
+        return resolve(ActiveShop::class)->roleIn($this, $shop);
+    }
+
+    /** True when acting as staff (not owner) in the active shop. */
     public function isShopStaff(): bool
     {
-        return $this->staffMembership?->shop?->isApproved() ?? false;
+        return $this->activeShopRole() === ShopRole::Staff;
     }
 
+    /**
+     * True when the user owns the *active* shop. Owner-only pages and
+     * actions use this, so an account that owns one shop and manages
+     * another never carries owner privileges into the managed shop.
+     */
     public function ownsShop(): bool
+    {
+        return $this->activeShopRole() === ShopRole::Owner;
+    }
+
+    /** True when the user owns an approved shop, whichever is active. */
+    public function ownsAnyShop(): bool
     {
         return $this->shop?->isApproved() ?? false;
     }

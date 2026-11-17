@@ -25,6 +25,18 @@ export type SharedWorkspace = {
     current: boolean;
 };
 
+/** One shop the signed-in user operates. `role` is per shop: owned shops
+ * are 'owner', shops they manage as staff are 'staff'. */
+export type SellerShop = {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+    role: 'owner' | 'staff';
+    suspended: boolean;
+    active: boolean;
+};
+
 export type WorkspaceEntry = {
     key: 'buyer' | 'seller' | 'admin';
     label: string;

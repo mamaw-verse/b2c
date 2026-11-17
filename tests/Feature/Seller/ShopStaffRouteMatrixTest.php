@@ -85,14 +85,11 @@ test('owner can access owner-only get routes', function (string $routeKey) {
 
 test('staff is denied with 404 from owner-only get routes', function (string $routeKey) {
     $data = createShopWithStaff();
-    $buyer = $data['buyer'];
     $url = match ($routeKey) {
         'dashboard' => '/seller/dashboard',
         'finance' => '/seller/finance',
         'vouchers' => '/seller/vouchers',
         'settings' => '/seller/settings',
-        'customers_index' => '/seller/customers',
-        'customers_show' => "/seller/customers/{$buyer->id}",
     };
 
     $this->actingAs($data['staff'])->get($url)->assertNotFound();
@@ -101,8 +98,6 @@ test('staff is denied with 404 from owner-only get routes', function (string $ro
     'finance',
     'vouchers',
     'settings',
-    'customers_index',
-    'customers_show',
 ]);
 
 test('staff is denied with 404 from owner-only mutating routes', function () {
@@ -172,6 +167,8 @@ test('staff and owner can access all operated get routes for their shop', functi
         'chat_index' => '/seller/chat',
         'chat_show' => "/seller/chat/{$conversation->id}",
         'notifications_index' => '/seller/notifications',
+        'customers_index' => '/seller/customers',
+        'customers_show' => "/seller/customers/{$data['buyer']->id}",
     };
 
     // Both owner and staff can access
@@ -186,6 +183,8 @@ test('staff and owner can access all operated get routes for their shop', functi
     'chat_index',
     'chat_show',
     'notifications_index',
+    'customers_index',
+    'customers_show',
 ]);
 
 test('staff cannot access operated routes belonging to another shop', function () {

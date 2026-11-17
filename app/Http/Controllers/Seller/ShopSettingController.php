@@ -16,7 +16,7 @@ final class ShopSettingController
 {
     public function edit(EditShopSettingRequest $request, GetShopSettings $action): Response
     {
-        $shop = $request->user()->shop;
+        $shop = $request->user()->operatedShop();
         $settings = $action->handle($shop);
 
         return Inertia::render('seller/settings', [
@@ -26,7 +26,7 @@ final class ShopSettingController
 
     public function update(UpdateShopSettingRequest $request, UpdateShopSettings $action): RedirectResponse
     {
-        $shop = $request->user()->shop;
+        $shop = $request->user()->operatedShop();
         $action->handle($shop, $request->validated());
 
         return redirect()->route('seller.settings.edit')->with('success', 'Shop settings saved.');

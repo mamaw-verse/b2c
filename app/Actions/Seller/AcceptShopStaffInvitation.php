@@ -26,6 +26,12 @@ final readonly class AcceptShopStaffInvitation
                 ]);
             }
 
+            if ($locked->shop->isOperatedBy($user)) {
+                throw ValidationException::withMessages([
+                    'invitation' => 'You already work at this shop.',
+                ]);
+            }
+
             $locked->update([
                 'user_id' => $user->id,
                 'status' => ShopStaffStatus::Active,

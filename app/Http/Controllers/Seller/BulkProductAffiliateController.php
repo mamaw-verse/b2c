@@ -14,7 +14,7 @@ final class BulkProductAffiliateController
         CreateBulkProductAffiliateRequest $request,
         BulkUpdateProductAffiliate $action,
     ): RedirectResponse {
-        $shop = $request->user()?->shop;
+        $shop = $request->user()?->operatedShop();
         assert($shop !== null);
 
         $action->handle(

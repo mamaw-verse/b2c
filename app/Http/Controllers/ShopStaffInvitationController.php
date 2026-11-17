@@ -10,6 +10,7 @@ use App\Http\Requests\ShowShopStaffInvitationRequest;
 use App\Http\Requests\UpdateShopStaffInvitationRequest;
 use App\Models\ShopStaff;
 use App\Models\User;
+use App\Support\ActiveShop;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -51,12 +52,17 @@ final class ShopStaffInvitationController
     public function update(
         UpdateShopStaffInvitationRequest $request,
         ShopStaff $staffInvitation,
-        AcceptShopStaffInvitation $action
+        AcceptShopStaffInvitation $action,
+        ActiveShop $activeShop
     ): RedirectResponse {
         $user = $request->user();
         assert($user instanceof User);
 
         $action->handle($staffInvitation, $user, $request->ip());
+
+        // Open the shop they just joined, even when they already work in others.
+        $activeShop->refresh($user);
+        $activeShop->switchTo($user, $staffInvitation->shop_id);
 
         return redirect()->route('seller.orders.index')->with('success', "Welcome to the {$staffInvitation->shop->name} team!");
     }
