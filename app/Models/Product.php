@@ -115,6 +115,20 @@ final class Product extends Model
         return $this->hasMany(ProductShareStat::class);
     }
 
+    /**
+     * Images to show in a gallery: real photos only. A placeholder row
+     * (empty url) is returned only when it is all the product has, so the
+     * gallery still renders its icon.
+     *
+     * @return \Illuminate\Support\Collection<int, ProductImage>
+     */
+    public function galleryImages(): \Illuminate\Support\Collection
+    {
+        $real = $this->images->filter(fn (ProductImage $image) => $image->url !== '')->values();
+
+        return $real->isNotEmpty() ? $real : $this->images->take(1)->values();
+    }
+
     public function thumbnailUrl(): ?string
     {
         return $this->images->firstWhere('url', '!=', '')?->url;
@@ -222,7 +236,7 @@ final class Product extends Model
             'in_stock' => $this->stock > 0,
             'review_count' => $this->reviews()->count(),
             'ships_from' => $this->location ?? $this->shop->location,
-            'images' => $this->images->map(fn (ProductImage $image) => [
+            'images' => $this->galleryImages()->map(fn (ProductImage $image) => [
                 'url' => $image->url,
                 'icon' => $image->icon,
             ])->all(),

@@ -99,12 +99,17 @@ export default function SellerProductForm({
                 : 5),
     );
     const [imageFiles, setImageFiles] = useState<File[]>([]);
-    // Placeholder rows (url === '') are kept in the list so their ID is sent in
-    // keep_image_ids, preventing an unnecessary delete + re-create on every save.
-    // Only rows with a real URL are shown as thumbnails in the uploader.
+    // Only rows with a real URL are tracked: placeholder rows (url === '')
+    // must not be sent in keep_image_ids, or they linger in the gallery
+    // after real photos are added.
     const [existingImages, setExistingImages] = useState<
         { id: string; url: string }[]
-    >(() => product?.images?.map((img) => ({ id: img.id, url: img.url ?? '' })) ?? []);
+    >(
+        () =>
+            product?.images
+                ?.filter((img) => (img.url ?? '') !== '')
+                .map((img) => ({ id: img.id, url: img.url as string })) ?? [],
+    );
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [videoDuration, setVideoDuration] = useState<number | null>(
         product?.video?.duration ?? null,

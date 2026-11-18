@@ -92,12 +92,15 @@ final class ProductController
                 'width' => $v->width,
                 'height' => $v->height,
             ]),
-            'images' => $product->images->map(fn ($img) => [
-                'id' => $img->id,
-                'url' => $img->url,
-                'name' => 'Image '.($img->sort_order + 1),
-                'icon' => $img->icon,
-            ]),
+            'images' => $product->images
+                ->filter(fn ($img) => $img->url !== '')
+                ->values()
+                ->map(fn ($img, $i) => [
+                    'id' => $img->id,
+                    'url' => $img->url,
+                    'name' => 'Image '.($i + 1),
+                    'icon' => $img->icon,
+                ]),
             'video' => ($product->video_media_id !== null || $product->video_path !== null) ? [
                 'url' => $product->videoUrl(),
                 'duration' => $product->video_duration,

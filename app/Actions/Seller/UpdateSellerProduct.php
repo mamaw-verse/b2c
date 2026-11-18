@@ -210,6 +210,12 @@ final readonly class UpdateSellerProduct
                     }
                 }
 
+                // A placeholder row (url = '') only exists so the product has an
+                // icon to show; drop it as soon as a real photo is present.
+                if ($product->images()->where('url', '!=', '')->exists()) {
+                    $product->images()->where('url', '')->delete();
+                }
+
                 if ($product->images()->count() === 0) {
                     $product->images()->create([
                         'url' => '',
