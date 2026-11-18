@@ -80,6 +80,10 @@ final class HandleInertiaRequests extends Middleware
                 'shop_name' => $shop->name,
                 'shop_id' => $shop->id,
                 'shop_slug' => $shop->slug,
+                // The user's own shop (the one they own, not the operated shop).
+                // null when the user does not own any shop. Used to decide
+                // whether to show the "Register my own shop" link for staff.
+                'own_shop' => $user->shop === null ? null : ['status' => $user->shop->status->value],
                 // Every shop the user operates, for the shop switcher.
                 // `role` is per shop: owned shops are 'owner', managed ones 'staff'.
                 'shops' => $user->operatedShops()

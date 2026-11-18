@@ -426,3 +426,35 @@ test('customer pages stay read-only and owner-only actions stay denied for staff
     $this->actingAs($staff)->delete("/seller/customers/{$buyer->id}")->assertStatus(405);
     $this->actingAs($staff)->get('/seller/finance')->assertNotFound();
 });
+
+test('staff with no shop of their own have own_shop null in shared props', function () {
+    $owner = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $owner->id]);
+    $staff = User::factory()->create();
+    joinAsStaff($staff, $shop);
+
+    $this->actingAs($staff)->get('/seller/orders')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('seller.own_shop', null)
+            ->where('seller.role', 'staff'));
+});
+
+test('staff with a pending shop application have own_shop.status pending in shared props', function () {
+    $owner = User::factory()->create();
+    $operatedShop = Shop::factory()->create(['user_id' => $owner->id]);
+    $staff = User::factory()->create();
+    joinAsStaff($staff, $operatedShop);
+
+    // Staff member also has their own shop in a pending state
+    $ownShop = Shop::factory()->create([
+        'user_id' => $staff->id,
+        'status' => App\Enums\ShopStatus::Pending,
+    ]);
+
+    $this->actingAs($staff)->get('/seller/orders')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('seller.own_shop.status', 'pending')
+            ->where('seller.role', 'staff'));
+});

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Check, Shield, ShoppingBag, Store } from 'lucide-react';
+import { Check, PlusCircle, Shield, ShoppingBag, Store } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -34,6 +34,7 @@ export function useWorkspaceEntries(): WorkspaceEntry[] {
             status: string;
             suspended: boolean;
             shop_name: string;
+            own_shop?: { status: string } | null;
         } | null;
     }>().props;
 
@@ -105,6 +106,36 @@ export function useWorkspaceEntries(): WorkspaceEntry[] {
         };
     }
     entries.push(sellerEntry);
+
+    // Staff members who don't own an approved shop see a "Register my own
+    // shop" entry directly under "Seller Centre". This lets them start their
+    // own application without leaving the workspace switcher.
+    if (seller?.role === 'staff') {
+        const ownShop = seller.own_shop;
+        if (ownShop === null || ownShop === undefined) {
+            entries.push({
+                key: 'seller-register',
+                label: 'Register my own shop',
+                href: sellerRegister().url,
+                icon: PlusCircle,
+                current: false,
+            });
+        } else if (ownShop.status !== 'approved') {
+            entries.push({
+                key: 'seller-register',
+                label: 'Register my own shop',
+                note:
+                    ownShop.status === 'pending'
+                        ? 'Application pending'
+                        : ownShop.status === 'changes_requested'
+                          ? 'Changes requested'
+                          : 'Application rejected',
+                href: sellerRegister().url,
+                icon: PlusCircle,
+                current: false,
+            });
+        }
+    }
 
     if (allowed.has('admin')) {
         entries.push({

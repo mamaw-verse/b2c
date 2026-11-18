@@ -40,7 +40,7 @@ export type SellerShop = {
 };
 
 export type WorkspaceEntry = {
-    key: 'buyer' | 'seller' | 'admin';
+    key: 'buyer' | 'seller' | 'admin' | 'seller-register';
     label: string;
     href: string;
     icon: LucideIcon;
