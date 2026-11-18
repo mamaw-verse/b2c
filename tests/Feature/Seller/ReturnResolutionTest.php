@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
+use App\Notifications\RefundDecisionNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -48,7 +49,9 @@ test('seller approves a return and order becomes refunded with ledger entry', fu
 
     expect($this->order->ledgerEntries()->where('type', LedgerEntryType::Refund)->exists())->toBeTrue();
 
-    Notification::assertSentTo($this->buyer, App\Notifications\OrderStatusNotification::class);
+    Notification::assertSentTo($this->buyer, RefundDecisionNotification::class, function (RefundDecisionNotification $n) {
+        return $n->outcome === 'approved';
+    });
 });
 
 test('seller rejects a return and order returns to completed with no ledger entry', function () {
@@ -66,7 +69,9 @@ test('seller rejects a return and order returns to completed with no ledger entr
 
     expect($this->order->ledgerEntries()->where('type', LedgerEntryType::Refund)->exists())->toBeFalse();
 
-    Notification::assertSentTo($this->buyer, App\Notifications\OrderStatusNotification::class);
+    Notification::assertSentTo($this->buyer, RefundDecisionNotification::class, function (RefundDecisionNotification $n) {
+        return $n->outcome === 'declined';
+    });
 });
 
 test('reject requires a note', function () {

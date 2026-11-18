@@ -13,7 +13,7 @@ use App\Models\OrderEvent;
 use App\Models\OrderRefund;
 use App\Models\OrderRefundItem;
 use App\Models\User;
-use App\Notifications\OrderStatusNotification;
+use App\Notifications\RefundDecisionNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -129,10 +129,10 @@ final readonly class ResolveReturn
                     'metadata' => ['refund_id' => $refund->id, 'amount' => $amount],
                 ]);
 
-                DB::afterCommit(fn () => $order->user->notify(new OrderStatusNotification(
+                DB::afterCommit(fn () => $order->user->notify(new RefundDecisionNotification(
                     $order,
-                    $fullyRefunded ? 'Refund approved' : 'Partial refund approved',
-                    'Your refund of '.\App\Support\Money::format($amount)." for order {$order->referenceNumber()} has been approved.",
+                    $fullyRefunded ? 'approved' : 'partially_approved',
+                    $amount,
                 )));
             } else {
                 $order->update(['status' => OrderStatus::Completed]);
@@ -147,10 +147,11 @@ final readonly class ResolveReturn
                     ],
                 ]);
 
-                DB::afterCommit(fn () => $order->user->notify(new OrderStatusNotification(
+                DB::afterCommit(fn () => $order->user->notify(new RefundDecisionNotification(
                     $order,
-                    'Return/refund declined',
-                    "Your return/refund request for order {$order->referenceNumber()} was declined. Reason: {$note}",
+                    'declined',
+                    null,
+                    $note,
                 )));
             }
         });

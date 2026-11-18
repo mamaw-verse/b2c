@@ -8,7 +8,10 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Models\User;
+use App\Notifications\SellerReturnRequestedNotification;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 final readonly class RequestReturn
@@ -36,17 +39,24 @@ final readonly class RequestReturn
             ? $video->store('return-proofs/videos', 'public')
             : null;
 
-        $order->update(['status' => OrderStatus::ReturnRefund]);
+        DB::transaction(function () use ($order, $reason, $items, $photoPaths, $videoPath): void {
+            $order->update(['status' => OrderStatus::ReturnRefund]);
 
-        OrderEvent::create([
-            'order_id' => $order->id,
-            'title' => 'Return/refund requested',
-            'detail' => $reason,
-            'metadata' => [
-                'items' => $items,
-                'photos' => $photoPaths,
-                'video' => $videoPath,
-            ],
-        ]);
+            OrderEvent::create([
+                'order_id' => $order->id,
+                'title' => 'Return/refund requested',
+                'detail' => $reason,
+                'metadata' => [
+                    'items' => $items,
+                    'photos' => $photoPaths,
+                    'video' => $videoPath,
+                ],
+            ]);
+
+            DB::afterCommit(fn () => Notification::send(
+                $order->shop->operators(),
+                new SellerReturnRequestedNotification($order, $reason),
+            ));
+        });
     }
 }
