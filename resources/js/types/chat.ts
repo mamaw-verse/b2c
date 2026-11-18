@@ -47,6 +47,7 @@ export interface Conversation {
     unread_count?: number;
     shop: ChatShop;
     latest_message?: Message | null;
+    customer?: { id: string; name: string } | null;
 }
 
 export interface AppNotification {

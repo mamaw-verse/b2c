@@ -11,6 +11,7 @@ export interface ChatListProps {
     conversationUrl: (conversationId: string) => string;
     onSelect?: (conversation: Conversation) => void;
     className?: string;
+    workspace?: 'buyer' | 'seller';
 }
 
 export function ChatList({
@@ -19,13 +20,18 @@ export function ChatList({
     conversationUrl,
     onSelect,
     className,
+    workspace = 'buyer',
 }: ChatListProps) {
     const [search, setSearch] = useState('');
 
     const filtered = search.trim()
-        ? conversations.filter((c) =>
-              c.shop.name.toLowerCase().includes(search.toLowerCase()),
-          )
+        ? conversations.filter((c) => {
+              const displayName =
+                  workspace === 'seller'
+                      ? (c.customer?.name ?? 'Customer')
+                      : c.shop.name;
+              return displayName.toLowerCase().includes(search.toLowerCase());
+          })
         : conversations;
 
     return (
@@ -72,6 +78,10 @@ export function ChatList({
                             const unreadCount = c.unread_count ?? 0;
                             const isUnread = unreadCount > 0;
                             const latest = c.latest_message;
+                            const displayName =
+                                workspace === 'seller'
+                                    ? (c.customer?.name ?? 'Customer')
+                                    : c.shop.name;
                             const timeText = latest?.created_at
                                 ? new Date(
                                       latest.created_at,
@@ -110,11 +120,11 @@ export function ChatList({
                                     >
                                         <div className="relative shrink-0">
                                             <NameAvatar
-                                                name={c.shop.name}
+                                                name={displayName}
                                                 size="md"
                                                 label={false}
                                             />
-                                            {c.shop.online !== false && (
+                                            {workspace !== 'seller' && c.shop.online !== false && (
                                                 <>
                                                     <span
                                                         aria-hidden="true"
@@ -129,7 +139,7 @@ export function ChatList({
                                         <span className="grid min-w-0 flex-1 grid-cols-1 gap-0.5">
                                             <span className="flex items-baseline justify-between gap-2">
                                                 <span className="truncate text-label">
-                                                    {c.shop.name}
+                                                    {displayName}
                                                 </span>
                                                 {timeText && (
                                                     <time className="shrink-0 text-caption text-muted-foreground">

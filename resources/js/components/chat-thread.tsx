@@ -8,7 +8,7 @@ import { NameAvatar } from '@/components/name-avatar';
 import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/utils';
 import { show as shopShow } from '@/routes/shops';
-import type { ChatShop, Message } from '@/types/chat';
+import type { ChatShop, Conversation, Message } from '@/types/chat';
 
 export interface ChatThreadProps {
     shop: ChatShop;
@@ -19,6 +19,8 @@ export interface ChatThreadProps {
     onReport?: () => void;
     onRetry?: (message: Message) => void;
     className?: string;
+    workspace?: 'buyer' | 'seller';
+    customer?: Conversation['customer'];
 }
 
 export function ChatThread({
@@ -30,6 +32,8 @@ export function ChatThread({
     onReport,
     onRetry,
     className,
+    workspace = 'buyer',
+    customer,
 }: ChatThreadProps) {
     const listRef = useRef<HTMLOListElement>(null);
 
@@ -58,8 +62,12 @@ export function ChatThread({
                     />
                 )}
                 <div className="relative shrink-0">
-                    <NameAvatar name={shop.name} size="sm" label={false} />
-                    {shop.online !== false && (
+                    <NameAvatar
+                        name={workspace === 'seller' ? (customer?.name ?? 'Customer') : shop.name}
+                        size="sm"
+                        label={false}
+                    />
+                    {workspace !== 'seller' && shop.online !== false && (
                         <span
                             aria-hidden="true"
                             className="absolute right-0 bottom-0 size-2.5 rounded-full border border-surface bg-success"
@@ -67,14 +75,20 @@ export function ChatThread({
                     )}
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-label">{shop.name}</p>
-                    <p className="text-caption text-success-text">
-                        {shop.online !== false ? 'Online' : 'Offline'}
+                    <p className="truncate text-label">
+                        {workspace === 'seller' ? (customer?.name ?? 'Customer') : shop.name}
                     </p>
+                    {workspace !== 'seller' && (
+                        <p className="text-caption text-success-text">
+                            {shop.online !== false ? 'Online' : 'Offline'}
+                        </p>
+                    )}
                 </div>
-                <ButtonLink href={shopShow.url(shop.slug)} label="Visit shop">
-                    <Store aria-hidden="true" className="size-5" />
-                </ButtonLink>
+                {workspace !== 'seller' && (
+                    <ButtonLink href={shopShow.url(shop.slug)} label="Visit shop">
+                        <Store aria-hidden="true" className="size-5" />
+                    </ButtonLink>
+                )}
                 {onReport && (
                     <IconButton
                         icon={<Flag aria-hidden="true" />}
@@ -100,9 +114,11 @@ export function ChatThread({
 
                     {messages.map((m) => {
                         const isOut =
-                            m.sender_role === 'buyer' ||
-                            (currentUserId != null &&
-                                m.sender_id === currentUserId);
+                            workspace === 'seller'
+                                ? m.sender_role === 'seller'
+                                : m.sender_role === 'buyer' ||
+                                  (currentUserId != null &&
+                                      m.sender_id === currentUserId);
                         const status = m.failed
                             ? 'failed'
                             : m.read_at
@@ -152,7 +168,6 @@ export function ChatThread({
                                     ? `Replied by ${m.sender.name}`
                                     : 'Owner'
                                 : undefined;
-
                         return (
                             <ChatBubble
                                 key={m.id}

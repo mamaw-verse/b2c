@@ -164,6 +164,7 @@ export default function ChatPage({
                         activeId={selectedConv?.id}
                         conversationUrl={conversationUrl}
                         onSelect={handleSelectConversation}
+                        workspace={workspace}
                     />
                 </div>
 
@@ -182,6 +183,8 @@ export default function ChatPage({
                             onSend={handleSendMessage}
                             onReport={() => setShowReport(true)}
                             onRetry={handleRetry}
+                            workspace={workspace}
+                            customer={selectedConv.customer}
                         />
                     ) : (
                         <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">

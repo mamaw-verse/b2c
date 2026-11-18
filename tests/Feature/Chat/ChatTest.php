@@ -163,3 +163,61 @@ test('explicit mark read endpoint updates read status', function () {
 
     expect($message->fresh()->read_at)->not->toBeNull();
 });
+
+test('seller conversation list includes customer name in payload', function () {
+    $buyer = User::factory()->create(['name' => 'Alice Buyer']);
+    $seller = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $seller->id]);
+
+    $conversation = Conversation::factory()->create([
+        'user_id' => $buyer->id,
+        'shop_id' => $shop->id,
+    ]);
+
+    $response = $this->actingAs($seller)->getJson(route('seller.chat.index'));
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'conversations')
+        ->assertJsonPath('conversations.0.id', $conversation->id)
+        ->assertJsonPath('conversations.0.customer.name', 'Alice Buyer')
+        ->assertJsonMissing(['email']);
+});
+
+test('seller can search conversations by customer name', function () {
+    $alice = User::factory()->create(['name' => 'Alice Buyer']);
+    $bob = User::factory()->create(['name' => 'Bob Shopper']);
+    $seller = User::factory()->create();
+    $shop = Shop::factory()->create(['user_id' => $seller->id]);
+
+    $aliceConversation = Conversation::factory()->create([
+        'user_id' => $alice->id,
+        'shop_id' => $shop->id,
+    ]);
+
+    Conversation::factory()->create([
+        'user_id' => $bob->id,
+        'shop_id' => $shop->id,
+    ]);
+
+    $response = $this->actingAs($seller)->getJson(route('seller.chat.index', ['q' => 'Alice']));
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'conversations')
+        ->assertJsonPath('conversations.0.id', $aliceConversation->id);
+});
+
+test('buyer conversation list does not include customer field', function () {
+    $buyer = User::factory()->create();
+    $shop = Shop::factory()->create();
+
+    Conversation::factory()->create([
+        'user_id' => $buyer->id,
+        'shop_id' => $shop->id,
+    ]);
+
+    $response = $this->actingAs($buyer)->getJson(route('chat.index'));
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'conversations')
+        ->assertJsonMissingPath('conversations.0.customer');
+});

@@ -82,6 +82,14 @@ final class ConversationController
 
         $conversation->load('shop');
 
+        if ($workspace === Workspace::Seller) {
+            $conversation->load('user:id,name');
+            $customer = $conversation->user;
+            $conversation->setAttribute('customer', $customer !== null
+                ? ['id' => (string) $customer->id, 'name' => $customer->name]
+                : null);
+        }
+
         if ($request->wantsJson()) {
             return response()->json([
                 'conversation' => $conversation,

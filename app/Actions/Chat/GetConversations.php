@@ -25,6 +25,7 @@ final readonly class GetConversations
         $relations = ['shop', 'latestMessage.product', 'latestMessage.order'];
         if ($workspace === Workspace::Seller) {
             $relations[] = 'latestMessage.sender:id,name';
+            $relations[] = 'user:id,name';
         }
 
         $query = Conversation::query()
@@ -54,10 +55,17 @@ final readonly class GetConversations
         }
 
         if ($search !== null && mb_trim($search) !== '') {
-            $term = '%'.mb_trim($search).'%';
-            $query->whereHas('shop', function ($sq) use ($term): void {
-                $sq->where('name', 'like', $term);
-            });
+            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], mb_trim($search));
+            $term = '%'.$escaped.'%';
+            if ($workspace === Workspace::Seller) {
+                $query->whereHas('user', function ($sq) use ($term): void {
+                    $sq->where('name', 'like', $term);
+                });
+            } else {
+                $query->whereHas('shop', function ($sq) use ($term): void {
+                    $sq->where('name', 'like', $term);
+                });
+            }
         }
 
         $conversations = $query->orderByDesc('last_message_at')
@@ -66,6 +74,11 @@ final readonly class GetConversations
 
         if ($workspace === Workspace::Seller) {
             foreach ($conversations as $conversation) {
+                $customer = $conversation->user;
+                $conversation->setAttribute('customer', $customer !== null
+                    ? ['id' => (string) $customer->id, 'name' => $customer->name]
+                    : null);
+
                 $latest = $conversation->latestMessage;
                 if ($latest !== null) {
                     if ($latest->sender_role === MessageSenderRole::Seller && $latest->sender !== null) {
