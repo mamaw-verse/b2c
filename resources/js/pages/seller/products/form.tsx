@@ -1,5 +1,5 @@
 import { Form, Head, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ImageUploader } from '@/components/image-uploader';
 import { VideoUploader } from '@/components/video-uploader';
 import { VariantMatrix, type VariationItem } from '@/components/variant-matrix';
@@ -62,6 +62,52 @@ const channelLabels: Record<string, string> = {
     native: 'Mobile share sheet (incl. Instagram)',
 };
 
+/**
+ * Lists every validation error at the top of the form and moves focus to it
+ * after a failed submit. Some errors belong to fields that are collapsed or
+ * off-screen (a variation row, default shipping), so this guarantees a failed
+ * save is never silent.
+ */
+function ErrorSummary({ errors }: { errors: Record<string, string> }) {
+    const ref = useRef<HTMLDivElement>(null);
+    const messages = Object.values(errors);
+    const signature = Object.keys(errors).join('|');
+
+    useEffect(() => {
+        if (signature !== '') {
+            ref.current?.focus();
+            ref.current?.scrollIntoView({
+                block: 'center',
+                behavior: 'smooth',
+            });
+        }
+    }, [signature]);
+
+    if (messages.length === 0) {
+        return null;
+    }
+
+    return (
+        <div
+            ref={ref}
+            role="alert"
+            tabIndex={-1}
+            className="mb-6 rounded-panel border border-danger bg-danger-soft p-4 text-danger-text"
+        >
+            <p className="text-label">
+                {messages.length === 1
+                    ? 'Fix this issue before saving:'
+                    : `Fix these ${messages.length} issues before saving:`}
+            </p>
+            <ul className="mt-2 list-disc pl-5 text-body-sm">
+                {messages.map((message, i) => (
+                    <li key={i}>{message}</li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
 export default function SellerProductForm({
     product,
     categories,
@@ -89,6 +135,14 @@ export default function SellerProductForm({
     const [salePrice, setSalePrice] = useState<string | number>(
         product?.sale_price ?? product?.variations?.[0]?.sale_price ?? '',
     );
+    // Product-level shipping values. With variations enabled they act as the
+    // defaults every variation inherits unless it sets its own.
+    const [shipping, setShipping] = useState({
+        weight: String(product?.weight ?? ''),
+        length: String(product?.length ?? ''),
+        width: String(product?.width ?? ''),
+        height: String(product?.height ?? ''),
+    });
     const [affiliateEnabled, setAffiliateEnabled] = useState(
         product?.affiliate_enabled ?? false,
     );
@@ -236,6 +290,8 @@ export default function SellerProductForm({
                     <div className="mx-auto max-w-container p-gutter py-8 pb-28 lg:pb-8">
                         <h1 className="mb-6 text-h1">{title}</h1>
 
+                        <ErrorSummary errors={errors} />
+
                         <div className="grid gap-6">
                             {/* Basic information */}
                             <section className="panel p-4 md:p-6">
@@ -316,7 +372,9 @@ export default function SellerProductForm({
                                 <ImageUploader
                                     files={imageFiles}
                                     onChange={setImageFiles}
-                                    existing={existingImages.filter((img) => !!img.url)}
+                                    existing={existingImages.filter(
+                                        (img) => !!img.url,
+                                    )}
                                     onRemoveExisting={(id) =>
                                         setExistingImages((prev) =>
                                             prev.filter((img) => img.id !== id),
@@ -672,6 +730,8 @@ export default function SellerProductForm({
                                                     );
                                                 }}
                                                 error={errors.variations}
+                                                errors={errors}
+                                                defaults={shipping}
                                             />
                                             {/* Hidden inputs for variations */}
                                             {variations.map((v, i) => (
@@ -751,11 +811,27 @@ export default function SellerProductForm({
                                 </div>
                             </section>
 
-                            {/* Shipping */}
-                            {!hasVariations && (
+                            {/* Shipping. With variations enabled these are the defaults
+                                every variation inherits; a variation can override
+                                them in the variations table. */}
                             <section className="panel p-4 md:p-6">
-                                <h2 className="mb-4 text-h3">Shipping</h2>
-                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                <h2 className="mb-1 text-h3">
+                                    {hasVariations
+                                        ? 'Default shipping'
+                                        : 'Shipping'}
+                                </h2>
+                                {hasVariations && (
+                                    <p className="mb-4 text-body-sm text-muted-foreground">
+                                        Applies to every variation unless you
+                                        set its own weight or size in the
+                                        variations table above.
+                                    </p>
+                                )}
+                                <div
+                                    className={`grid grid-cols-2 gap-4 sm:grid-cols-4 ${
+                                        hasVariations ? '' : 'mt-3'
+                                    }`}
+                                >
                                     <FormField
                                         label="Weight (kg)"
                                         error={errors.weight}
@@ -766,7 +842,13 @@ export default function SellerProductForm({
                                             name="weight"
                                             min="0"
                                             step="0.01"
-                                            defaultValue={product?.weight ?? ''}
+                                            value={shipping.weight}
+                                            onChange={(e) =>
+                                                setShipping((s) => ({
+                                                    ...s,
+                                                    weight: e.target.value,
+                                                }))
+                                            }
                                         />
                                     </FormField>
                                     <FormField
@@ -778,7 +860,13 @@ export default function SellerProductForm({
                                             name="length"
                                             min="0"
                                             step="0.1"
-                                            defaultValue={product?.length ?? ''}
+                                            value={shipping.length}
+                                            onChange={(e) =>
+                                                setShipping((s) => ({
+                                                    ...s,
+                                                    length: e.target.value,
+                                                }))
+                                            }
                                         />
                                     </FormField>
                                     <FormField
@@ -790,7 +878,13 @@ export default function SellerProductForm({
                                             name="width"
                                             min="0"
                                             step="0.1"
-                                            defaultValue={product?.width ?? ''}
+                                            value={shipping.width}
+                                            onChange={(e) =>
+                                                setShipping((s) => ({
+                                                    ...s,
+                                                    width: e.target.value,
+                                                }))
+                                            }
                                         />
                                     </FormField>
                                     <FormField
@@ -802,12 +896,17 @@ export default function SellerProductForm({
                                             name="height"
                                             min="0"
                                             step="0.1"
-                                            defaultValue={product?.height ?? ''}
+                                            value={shipping.height}
+                                            onChange={(e) =>
+                                                setShipping((s) => ({
+                                                    ...s,
+                                                    height: e.target.value,
+                                                }))
+                                            }
                                         />
                                     </FormField>
                                 </div>
                             </section>
-                            )}
 
                             {/* Sharing */}
                             {isEditing && sharing && (

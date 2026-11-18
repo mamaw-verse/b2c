@@ -6,13 +6,13 @@ Work is grouped so each group ships as one commit and one push, in this order: *
 
 ## Decisions (confirmed with the requester)
 
-| # | Topic | Decision |
-|---|-------|----------|
-| 1 | Placeholder thumbnail | Reproduce with: create a product with no images, then edit it and add image(s). The placeholder row stays in the gallery, the catalog card and the PDP. |
-| 2 | Variant shipping | Parent weight/dimensions stay visible when variants are enabled and act as defaults for every variant. Each variant may override them. |
-| 3 | Return/refund request notifications | Sent to every shop operator (owner + active staff), the same recipients as new-order notifications today (`Shop::operators()`). Channels: in-app (`database`) and e-mail (`mail`). |
-| 4 | Register-shop link for staff | Add a "Register my own shop" entry in the workspace switcher, next to the "Seller Centre" entry. |
-| 5 | Seller chat naming | Sellers see the customer's full name in the conversation list and in the thread header. |
+| #   | Topic                               | Decision                                                                                                                                                                           |
+| --- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Placeholder thumbnail               | Reproduce with: create a product with no images, then edit it and add image(s). The placeholder row stays in the gallery, the catalog card and the PDP.                            |
+| 2   | Variant shipping                    | Parent weight/dimensions stay visible when variants are enabled and act as defaults for every variant. Each variant may override them.                                             |
+| 3   | Return/refund request notifications | Sent to every shop operator (owner + active staff), the same recipients as new-order notifications today (`Shop::operators()`). Channels: in-app (`database`) and e-mail (`mail`). |
+| 4   | Register-shop link for staff        | Add a "Register my own shop" entry in the workspace switcher, next to the "Seller Centre" entry.                                                                                   |
+| 5   | Seller chat naming                  | Sellers see the customer's full name in the conversation list and in the thread header.                                                                                            |
 
 ---
 
@@ -106,7 +106,7 @@ Work is grouped so each group ships as one commit and one push, in this order: *
         1. `form.tsx`: always render the shipping section. When `hasVariations` is true, retitle it "Default shipping (applies to all variations unless overridden)" and show helper text. Remove the `!hasVariations` gate. Keep the `errors.weight|length|width|height` display.
         2. `VariantMatrix`: per-variant weight/length/width/height inputs already exist. Change the placeholders to show the parent default (for example `placeholder={defaultWeight ?? '—'}`) by passing `defaults={{weight,length,width,height}}` from the form (controlled by the parent inputs' state). An empty cell means "use the default".
         3. "Apply to all" keeps working and only overwrites the per-variant overrides.
-        4. Backend stays as is for the parent rule (`weight` required), because the parent weight is now always submitted. A variant value of `null` means inherit.
+        4. Backend keeps the parent rule (`weight` required), because the parent weight is now always submitted. A variant value of `null` means inherit. **Found while implementing:** neither request validated `variations.*.weight|length|width|height`, so `validated()` silently dropped every per-variant override. Both requests now validate them (shared `HasProductVariationRules` trait), which also holds the per-row error messages from B.2.
         5. `ProductVariation`: add `effectiveWeight()`, `effectiveLength()`, `effectiveWidth()`, `effectiveHeight()` that fall back to the parent product. Use them wherever a variation's shipping dimensions are read (the `Product::toDetail()` variation payload keeps the raw override and adds the effective values).
         6. `Seller\ProductController::edit` returns the parent values and the raw variant overrides so editing round-trips.
         7. Block the silent failure class generally: in `form.tsx`, if the server returns an error key that is not mapped to a rendered field, the summary from B.2 lists it.
@@ -210,7 +210,10 @@ Work is grouped so each group ships as one commit and one push, in this order: *
     - **Exact Code Changes:**
         1. Replace the rule with a workspace-aware helper:
             ```ts
-            export function isOutgoing(m: Message, workspace: 'buyer' | 'seller'): boolean {
+            export function isOutgoing(
+                m: Message,
+                workspace: 'buyer' | 'seller',
+            ): boolean {
                 return workspace === 'seller'
                     ? m.sender_role === 'seller'
                     : m.sender_role === 'buyer';

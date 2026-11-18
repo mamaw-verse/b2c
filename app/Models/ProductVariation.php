@@ -41,6 +41,30 @@ final class ProductVariation extends Model
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * Shipping values are optional per-variation overrides; a null value
+     * means the variation uses the product's default.
+     */
+    public function effectiveWeight(): ?float
+    {
+        return $this->weight ?? $this->product->weight;
+    }
+
+    public function effectiveLength(): ?float
+    {
+        return $this->length ?? $this->product->length;
+    }
+
+    public function effectiveWidth(): ?float
+    {
+        return $this->width ?? $this->product->width;
+    }
+
+    public function effectiveHeight(): ?float
+    {
+        return $this->height ?? $this->product->height;
+    }
+
     protected function casts(): array
     {
         return [

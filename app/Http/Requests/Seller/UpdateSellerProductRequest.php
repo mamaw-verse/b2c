@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Requests\Seller;
 
 use App\Models\Product;
+use App\Http\Requests\Seller\Concerns\HasProductVariationRules;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class UpdateSellerProductRequest extends FormRequest
 {
+    use HasProductVariationRules;
+
     public function authorize(): Response
     {
         $user = $this->user();
@@ -63,6 +66,7 @@ final class UpdateSellerProductRequest extends FormRequest
             'variations.*.was_price' => ['nullable', 'numeric'],
             'variations.*.stock' => ['required_with:variations', 'integer', 'min:0'],
             'variations.*.sku' => ['nullable', 'string', 'max:50'],
+            ...$this->variationShippingRules(),
             'images' => ['nullable', 'array', 'max:9'],
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'keep_image_ids' => ['nullable', 'array'],
