@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Enums\ShopStaffStatus;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\PasswordResetLinkRequest;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\RegisterResponse;
 use App\Models\ShopStaff;
@@ -24,6 +26,8 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Requests\LoginRequest as FortifyLoginRequest;
+use Laravel\Fortify\Http\Requests\SendPasswordResetLinkRequest;
 
 final class FortifyServiceProvider extends ServiceProvider
 {
@@ -34,6 +38,10 @@ final class FortifyServiceProvider extends ServiceProvider
     {
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
         $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
+
+        // Require a verified Turnstile token on login and password-reset requests.
+        $this->app->bind(FortifyLoginRequest::class, LoginRequest::class);
+        $this->app->bind(SendPasswordResetLinkRequest::class, PasswordResetLinkRequest::class);
     }
 
     /**
@@ -59,7 +67,8 @@ final class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateUsing(function (Request $request): ?User {
             $user = User::query()->where('email', $request->input(Fortify::username()))->first();
 
-            if ($user === null || ! Hash::check($request->input('password'), $user->password)) {
+            // Google-only accounts have no password and can never match here.
+            if ($user === null || ! $user->hasPassword() || ! Hash::check((string) $request->input('password'), $user->password)) {
                 return null;
             }
 
@@ -127,7 +136,9 @@ final class FortifyServiceProvider extends ServiceProvider
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 
-        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
+        Fortify::confirmPasswordView(fn (Request $request) => Inertia::render('auth/confirm-password', [
+            'hasGoogleIdentity' => $request->user()?->hasGoogleIdentity() ?? false,
+        ]));
     }
 
     /**

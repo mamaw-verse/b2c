@@ -1,15 +1,18 @@
-import { Form, Head } from '@inertiajs/react';
-import PasskeyVerify from '@/components/passkey-verify';
-import PasswordInput from '@/components/password-input';
-import TextLink from '@/components/text-link';
-import { Banner } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FormField } from '@/components/ui/form-field';
-import { Input } from '@/components/ui/input';
-import { register } from '@/routes';
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
+import { Form, Head, usePage } from "@inertiajs/react";
+import PasskeyVerify from "@/components/passkey-verify";
+import PasswordInput from "@/components/password-input";
+import TextLink from "@/components/text-link";
+import GoogleAuthButton from "@/components/google-auth-button";
+import TurnstileField from "@/components/turnstile-field";
+import { Banner } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
+import { resetTurnstile } from "@/lib/turnstile";
+import { register } from "@/routes";
+import { store } from "@/routes/login";
+import { request } from "@/routes/password";
 
 type Props = {
     status?: string;
@@ -18,13 +21,20 @@ type Props = {
 };
 
 export default function Login({ status, canResetPassword, email }: Props) {
+    const googleError = (usePage().props.errors as Record<string, string>)
+        ?.google;
+
     return (
         <>
             <Head title="Log in" />
             <div className="grid gap-6">
                 <PasskeyVerify />
 
-                <Form {...store.form()} resetOnSuccess={['password']}>
+                <Form
+                    {...store.form()}
+                    resetOnSuccess={["password"]}
+                    onFinish={resetTurnstile}
+                >
                     {({ processing, errors }) => (
                         <div className="grid gap-5">
                             <FormField
@@ -39,7 +49,7 @@ export default function Login({ status, canResetPassword, email }: Props) {
                                     autoFocus={!email}
                                     tabIndex={1}
                                     autoComplete="email"
-                                    defaultValue={email ?? ''}
+                                    defaultValue={email ?? ""}
                                     placeholder="email@example.com"
                                 />
                             </FormField>
@@ -82,6 +92,10 @@ export default function Login({ status, canResetPassword, email }: Props) {
                                 <span className="text-body">Remember me</span>
                             </label>
 
+                            <TurnstileField
+                                error={errors["cf-turnstile-response"]}
+                            />
+
                             <Button
                                 type="submit"
                                 size="lg"
@@ -96,8 +110,25 @@ export default function Login({ status, canResetPassword, email }: Props) {
                     )}
                 </Form>
 
+                <div className="relative" aria-hidden="true">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-border" />
+                    </div>
+                    <p className="relative flex justify-center text-caption uppercase">
+                        <span className="bg-surface px-2 text-muted-foreground">
+                            Or
+                        </span>
+                    </p>
+                </div>
+                <GoogleAuthButton />
+                {googleError && (
+                    <Banner tone="danger" live>
+                        {googleError}
+                    </Banner>
+                )}
+
                 <p className="text-center text-body-sm text-muted-foreground">
-                    Don't have an account?{' '}
+                    Don't have an account?{" "}
                     <TextLink href={register()} tabIndex={5}>
                         Sign up
                     </TextLink>
@@ -114,6 +145,6 @@ export default function Login({ status, canResetPassword, email }: Props) {
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: "Log in to your account",
+    description: "Enter your email and password below to log in",
 };

@@ -14,6 +14,9 @@ export type User = {
 
 export type Auth = {
     user: User;
+    /** false for Google-only accounts that have not set a password. */
+    has_password?: boolean | null;
+    has_google?: boolean | null;
 };
 
 /* @chisel-passkeys */

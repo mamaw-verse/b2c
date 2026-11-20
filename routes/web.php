@@ -17,8 +17,10 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartSelectionController;
 use App\Http\Controllers\CartVoucherController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\HumanCheckController;
 use App\Http\Controllers\MediaViewController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductShareController;
@@ -37,6 +39,23 @@ use App\Http\Controllers\WhyChooseUsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::post('human-check', HumanCheckController::class)
+    ->middleware('throttle:human-check')
+    ->name('human-check');
+
+// Google Sign-In (guests): sign in / sign up.
+Route::middleware(['guest', 'throttle:6,1'])->group(function () {
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+});
+
+// Google Sign-In (authenticated): confirm identity with Google instead of a password.
+Route::middleware(['auth', 'throttle:6,1'])->group(function () {
+    Route::get('auth/google/confirm', [GoogleAuthController::class, 'confirmRedirect'])->name('auth.google.confirm');
+    Route::get('auth/google/confirm/callback', [GoogleAuthController::class, 'confirmCallback'])->name('auth.google.confirm.callback');
+});
+
 Route::get('search', [SearchController::class, 'index'])->name('search');
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('products/{product:slug}', [ProductController::class, 'show'])->name('products.show');

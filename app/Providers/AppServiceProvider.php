@@ -22,6 +22,12 @@ final class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(\App\Support\Seo::class);
+
+        $this->app->singleton(\App\Services\TurnstileVerifier::class, fn (): \App\Services\TurnstileVerifier => new \App\Services\TurnstileVerifier(
+            secret: (string) config('services.turnstile.secret'),
+            expectedHostname: config('humancheck.expected_hostname'),
+            expectedAction: config('humancheck.expected_action'),
+        ));
     }
 
     /**
@@ -37,6 +43,10 @@ final class AppServiceProvider extends ServiceProvider
 
     protected function configureRateLimiting(): void
     {
+        RateLimiter::for('human-check', static function (Request $request): Limit {
+            return Limit::perMinute(20)->by($request->ip());
+        });
+
         RateLimiter::for('product-share', static function (Request $request): Limit {
             return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });

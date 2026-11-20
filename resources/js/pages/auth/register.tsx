@@ -1,12 +1,15 @@
-import { Form, Head } from '@inertiajs/react';
-import PasswordInput from '@/components/password-input';
-import TextLink from '@/components/text-link';
-import { Banner } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { FormField } from '@/components/ui/form-field';
-import { Input } from '@/components/ui/input';
-import { login } from '@/routes';
-import { store } from '@/routes/register';
+import { Form, Head } from "@inertiajs/react";
+import PasswordInput from "@/components/password-input";
+import TextLink from "@/components/text-link";
+import GoogleAuthButton from "@/components/google-auth-button";
+import TurnstileField from "@/components/turnstile-field";
+import { Banner } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
+import { resetTurnstile } from "@/lib/turnstile";
+import { login } from "@/routes";
+import { store } from "@/routes/register";
 
 type Invitation = {
     id: string;
@@ -31,15 +34,32 @@ export default function Register({ passwordRules, invitation, email }: Props) {
                         tone="info"
                         title={`Staff invitation from ${invitation.shop_name}`}
                     >
-                        Complete your registration to automatically join the{' '}
+                        Complete your registration to automatically join the{" "}
                         <strong>{invitation.shop_name}</strong> team.
                     </Banner>
                 </div>
             )}
 
+            {!invitation && (
+                <div className="mb-5 grid gap-5">
+                    <GoogleAuthButton label="Sign up with Google" />
+                    <div className="relative" aria-hidden="true">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-border" />
+                        </div>
+                        <p className="relative flex justify-center text-caption uppercase">
+                            <span className="bg-surface px-2 text-muted-foreground">
+                                Or
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <Form
                 {...store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
+                onFinish={resetTurnstile}
+                resetOnSuccess={["password", "password_confirmation"]}
                 disableWhileProcessing
             >
                 {({ processing, errors }) => (
@@ -79,7 +99,7 @@ export default function Register({ passwordRules, invitation, email }: Props) {
                                 tabIndex={2}
                                 autoComplete="email"
                                 name="email"
-                                defaultValue={invitation?.email ?? email ?? ''}
+                                defaultValue={invitation?.email ?? email ?? ""}
                                 readOnly={Boolean(invitation)}
                                 placeholder="email@example.com"
                             />
@@ -115,6 +135,10 @@ export default function Register({ passwordRules, invitation, email }: Props) {
                             />
                         </FormField>
 
+                        <TurnstileField
+                            error={errors["cf-turnstile-response"]}
+                        />
+
                         <Button
                             type="submit"
                             size="lg"
@@ -130,7 +154,7 @@ export default function Register({ passwordRules, invitation, email }: Props) {
             </Form>
 
             <p className="mt-6 text-center text-body-sm text-muted-foreground">
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <TextLink href={login()} tabIndex={6}>
                     Log in
                 </TextLink>
@@ -140,6 +164,6 @@ export default function Register({ passwordRules, invitation, email }: Props) {
 }
 
 Register.layout = {
-    title: 'Create an account',
-    description: 'Enter your details below to create your account',
+    title: "Create an account",
+    description: "Enter your details below to create your account",
 };

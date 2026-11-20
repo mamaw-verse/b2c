@@ -18,7 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(App\Http\Middleware\EnforceSeoStandards::class);
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        // human_pass is encrypted by App\Support\HumanPass itself.
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', App\Support\HumanPass::COOKIE_NAME]);
 
         $middleware->web(append: [
             HandleAppearance::class,
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'workspace' => App\Http\Middleware\EnsureWorkspaceAccess::class,
             'feature' => App\Http\Middleware\EnsureFeatureEnabled::class,
+            'human' => App\Http\Middleware\EnsureHumanPass::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

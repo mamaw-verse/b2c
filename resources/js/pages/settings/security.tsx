@@ -1,15 +1,15 @@
-import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
-import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
-import Heading from '@/components/heading';
-import type { Props as ManagePasskeysProps } from '@/components/manage-passkeys';
-import ManagePasskeys from '@/components/manage-passkeys';
-import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
-import ManageTwoFactor from '@/components/manage-two-factor';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { FormField } from '@/components/ui/form-field';
-import { edit } from '@/routes/security';
+import { Form, Head, usePage } from "@inertiajs/react";
+import { useRef } from "react";
+import SecurityController from "@/actions/App/Http/Controllers/Settings/SecurityController";
+import Heading from "@/components/heading";
+import type { Props as ManagePasskeysProps } from "@/components/manage-passkeys";
+import ManagePasskeys from "@/components/manage-passkeys";
+import type { Props as ManageTwoFactorProps } from "@/components/manage-two-factor";
+import ManageTwoFactor from "@/components/manage-two-factor";
+import PasswordInput from "@/components/password-input";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
+import { edit } from "@/routes/security";
 
 type Props = {
     passwordRules: string;
@@ -17,6 +17,7 @@ type Props = {
     ManageTwoFactorProps;
 
 export default function Security(props: Props) {
+    const hasPassword = usePage().props.auth.has_password !== false;
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
@@ -36,9 +37,9 @@ export default function Security(props: Props) {
                     {...SecurityController.update.form()}
                     options={{ preserveScroll: true }}
                     resetOnError={[
-                        'password',
-                        'password_confirmation',
-                        'current_password',
+                        "password",
+                        "password_confirmation",
+                        "current_password",
                     ]}
                     resetOnSuccess
                     onError={(errors) => {
@@ -53,19 +54,21 @@ export default function Security(props: Props) {
                 >
                     {({ errors, processing }) => (
                         <>
-                            <FormField
-                                id="current_password"
-                                label="Current password"
-                                required
-                                error={errors.current_password}
-                            >
-                                <PasswordInput
-                                    ref={currentPasswordInput}
-                                    name="current_password"
-                                    autoComplete="current-password"
-                                    placeholder="Current password"
-                                />
-                            </FormField>
+                            {hasPassword && (
+                                <FormField
+                                    id="current_password"
+                                    label="Current password"
+                                    required
+                                    error={errors.current_password}
+                                >
+                                    <PasswordInput
+                                        ref={currentPasswordInput}
+                                        name="current_password"
+                                        autoComplete="current-password"
+                                        placeholder="Current password"
+                                    />
+                                </FormField>
+                            )}
 
                             <FormField
                                 id="password"
@@ -126,7 +129,7 @@ export default function Security(props: Props) {
 Security.layout = {
     breadcrumbs: [
         {
-            title: 'Security settings',
+            title: "Security settings",
             href: edit(),
         },
     ],

@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link } from "@inertiajs/react";
 import {
     Clock,
     FileBadge,
@@ -6,18 +6,37 @@ import {
     Inbox,
     ShieldAlert,
     TriangleAlert,
-} from 'lucide-react';
-import AdminLayout from '@/layouts/admin-layout';
-import { StatCard } from '@/components/stat-card';
+} from "lucide-react";
+import AdminLayout from "@/layouts/admin-layout";
+import { StatCard } from "@/components/stat-card";
 
 type DashboardCounts = Record<string, Record<string, number>>;
+
+type AnalyticsOverview = {
+    active_users: number;
+    sessions: number;
+    page_views: number;
+    bounce_rate: number;
+    avg_session_duration: number;
+};
+
+function formatDuration(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+
+    return `${minutes}m ${Math.round(seconds % 60)}s`;
+}
 
 export default function AdminDashboard({
     counts = {},
     expiringCertificatesCount = 0,
+    analyticsConfigured = false,
+    analytics,
 }: {
     counts?: DashboardCounts;
     expiringCertificatesCount?: number;
+    analyticsConfigured?: boolean;
+    /** Deferred: undefined while loading, null when GA4 could not be reached. */
+    analytics?: AnalyticsOverview | null;
 }) {
     // Calculate totals
     const pendingTotal = Object.values(counts.pending ?? {}).reduce(
@@ -77,10 +96,10 @@ export default function AdminDashboard({
                                 Halal Certificate Action Required
                             </h2>
                             <p className="mt-0.5 text-body-sm text-foreground">
-                                {expiringCertificatesCount}{' '}
+                                {expiringCertificatesCount}{" "}
                                 {expiringCertificatesCount === 1
-                                    ? 'certificate has expired or is expiring'
-                                    : 'certificates have expired or are expiring'}{' '}
+                                    ? "certificate has expired or is expiring"
+                                    : "certificates have expired or are expiring"}{" "}
                                 soon. Listings may be automatically hidden upon
                                 expiration.
                             </p>
@@ -111,16 +130,16 @@ export default function AdminDashboard({
                     <div
                         className={
                             expiringCertificatesCount > 0
-                                ? 'card grid gap-1 border-warning/40 bg-warning-soft/30 p-4'
-                                : 'card grid gap-1 p-4'
+                                ? "card grid gap-1 border-warning/40 bg-warning-soft/30 p-4"
+                                : "card grid gap-1 p-4"
                         }
                     >
                         <p className="flex items-center gap-2 text-body-sm text-muted-foreground">
                             <FileBadge
                                 className={
                                     expiringCertificatesCount > 0
-                                        ? 'size-4 text-warning-text'
-                                        : 'size-4'
+                                        ? "size-4 text-warning-text"
+                                        : "size-4"
                                 }
                             />
                             Expiring Certificates
@@ -139,6 +158,49 @@ export default function AdminDashboard({
                         hint="Decisions applied"
                     />
                 </div>
+
+                {/* Google Analytics (last 30 days) */}
+                {analyticsConfigured && (
+                    <section className="mt-6" aria-labelledby="ga-heading">
+                        <h2 id="ga-heading" className="mb-3 text-h3">
+                            Site traffic (last 30 days)
+                        </h2>
+                        {analytics === undefined ? (
+                            <p className="text-body text-muted-foreground">
+                                Loading analytics…
+                            </p>
+                        ) : analytics === null ? (
+                            <p className="text-body text-muted-foreground">
+                                Google Analytics data is unavailable right now.
+                            </p>
+                        ) : (
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <StatCard
+                                    label="Active users"
+                                    value={analytics.active_users.toLocaleString()}
+                                    hint="Google Analytics"
+                                />
+                                <StatCard
+                                    label="Sessions"
+                                    value={analytics.sessions.toLocaleString()}
+                                    hint="Google Analytics"
+                                />
+                                <StatCard
+                                    label="Page views"
+                                    value={analytics.page_views.toLocaleString()}
+                                    hint="Google Analytics"
+                                />
+                                <StatCard
+                                    label="Avg. session"
+                                    value={formatDuration(
+                                        analytics.avg_session_duration,
+                                    )}
+                                    hint={`Bounce rate ${(analytics.bounce_rate * 100).toFixed(1)}%`}
+                                />
+                            </div>
+                        )}
+                    </section>
+                )}
 
                 {/* Secondary breakdown grid */}
                 <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -204,7 +266,7 @@ export default function AdminDashboard({
                                     className="font-bold text-primary-text hover:underline"
                                 >
                                     {(counts.pending?.general ?? 0) +
-                                        (counts.flagged?.general ?? 0)}{' '}
+                                        (counts.flagged?.general ?? 0)}{" "}
                                     pending
                                 </Link>
                             </li>

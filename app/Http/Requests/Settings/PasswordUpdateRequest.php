@@ -20,7 +20,8 @@ final class PasswordUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_password' => $this->currentPasswordRules(),
+            // Google-only accounts have no password yet, so they set one without confirming.
+            'current_password' => $this->user()?->hasPassword() === false ? ['nullable'] : $this->currentPasswordRules(),
             'password' => $this->passwordRules(),
         ];
     }

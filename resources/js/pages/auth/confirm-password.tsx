@@ -1,15 +1,23 @@
-import { Form, Head } from '@inertiajs/react';
-import PasskeyVerify from '@/components/passkey-verify';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { FormField } from '@/components/ui/form-field';
-import { store } from '@/routes/password/confirm';
+import { Form, Head, usePage } from "@inertiajs/react";
+import GoogleAuthButton from "@/components/google-auth-button";
+import PasskeyVerify from "@/components/passkey-verify";
+import PasswordInput from "@/components/password-input";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
+import { store } from "@/routes/password/confirm";
 import {
     index as confirmOptions,
     store as confirmStore,
-} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
+} from "@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController";
 
-export default function ConfirmPassword() {
+export default function ConfirmPassword({
+    hasGoogleIdentity = false,
+}: {
+    hasGoogleIdentity?: boolean;
+}) {
+    const googleError = (usePage().props.errors as Record<string, string>)
+        ?.google;
+
     return (
         <>
             <Head title="Confirm password" />
@@ -24,7 +32,24 @@ export default function ConfirmPassword() {
                     separator="Or confirm with password"
                 />
 
-                <Form {...store.form()} resetOnSuccess={['password']}>
+                {hasGoogleIdentity && (
+                    <div className="grid gap-2">
+                        <GoogleAuthButton
+                            href="/auth/google/confirm"
+                            label="Confirm with Google"
+                        />
+                        {googleError && (
+                            <p
+                                role="alert"
+                                className="text-body-sm text-danger-text"
+                            >
+                                {googleError}
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                <Form {...store.form()} resetOnSuccess={["password"]}>
                     {({ processing, errors }) => (
                         <div className="grid gap-5">
                             <FormField
@@ -59,7 +84,7 @@ export default function ConfirmPassword() {
 }
 
 ConfirmPassword.layout = {
-    title: 'Confirm password',
+    title: "Confirm password",
     description:
-        'This is a secure area of the application. Please confirm your password before continuing.',
+        "This is a secure area of the application. Please confirm your password before continuing.",
 };

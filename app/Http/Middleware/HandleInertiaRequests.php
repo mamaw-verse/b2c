@@ -65,7 +65,13 @@ final class HandleInertiaRequests extends Middleware
             'marketplace' => fn () => app(Settings::class)->marketplaceConfig(),
             'auth' => [
                 'user' => $request->user(),
+                'has_password' => $request->user()?->hasPassword(),
+                'has_google' => $request->user()?->hasGoogleIdentity(),
             ],
+            // Cloudflare Turnstile site key; null disables the widget.
+            'turnstileSiteKey' => config('humancheck.enabled')
+                ? config('services.turnstile.key')
+                : null,
             'workspaces' => fn () => collect($allowed)
                 ->map(fn (Workspace $w) => [
                     'key' => $w->value,

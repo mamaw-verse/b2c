@@ -29,7 +29,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $name
  * @property string $email
  * @property Carbon|null $email_verified_at
- * @property string $password
+ * @property string|null $google_id
+ * @property string|null $password
  * @property string $role
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
@@ -40,7 +41,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['name', 'email', 'password', 'role', 'suspended_at', 'email_verified_at'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Hidden(['password', 'google_id', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
@@ -132,6 +133,17 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /** Google-only accounts are created without a password. */
+    public function hasPassword(): bool
+    {
+        return $this->password !== null;
+    }
+
+    public function hasGoogleIdentity(): bool
+    {
+        return $this->google_id !== null;
     }
 
     public function isSuspended(): bool

@@ -17,6 +17,8 @@ declare module '@inertiajs/core' {
             name: string;
             brand: string;
             auth: Auth;
+            /** Cloudflare Turnstile site key; null when the check is disabled. */
+            turnstileSiteKey?: string | null;
             sidebarOpen: boolean;
             navCategories: { id: string; name: string; slug: string }[];
             searchSuggestions?: string[];

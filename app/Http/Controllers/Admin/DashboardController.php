@@ -8,13 +8,14 @@ use App\Enums\ModerationItemType;
 use App\Enums\ModerationState;
 use App\Http\Requests\Admin\ShowAdminDashboardRequest;
 use App\Models\ModerationQueueItem;
+use App\Services\GoogleAnalyticsService;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class DashboardController
 {
-    public function __invoke(ShowAdminDashboardRequest $request): Response
+    public function __invoke(ShowAdminDashboardRequest $request, GoogleAnalyticsService $analytics): Response
     {
         $counts = ModerationQueueItem::query()
             ->select('state', 'type', DB::raw('count(*) as total'))
@@ -34,6 +35,12 @@ final class DashboardController
         return Inertia::render('admin/dashboard', [
             'counts' => $counts,
             'expiringCertificatesCount' => $expiringCount,
+            'analyticsConfigured' => $analytics->isConfigured(),
+            // Remote GA4 call is deferred so it never blocks the dashboard.
+            'analytics' => Inertia::defer(fn () => $analytics->getOverview(
+                now()->subDays(30)->format('Y-m-d'),
+                now()->format('Y-m-d'),
+            )),
         ]);
     }
 }

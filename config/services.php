@@ -37,6 +37,27 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', rtrim((string) env('APP_URL', 'http://localhost'), '/').'/auth/google/callback'),
+    ],
+
+    // Cloudflare Turnstile. Outside production the public always-pass dummy
+    // keys are used so local development works without a Cloudflare account.
+    'turnstile' => [
+        'key' => env('TURNSTILE_SITE_KEY', env('APP_ENV') === 'production' ? null : '1x00000000000000000000AA'),
+        'secret' => env('TURNSTILE_SECRET_KEY', env('APP_ENV') === 'production' ? null : '1x0000000000000000000000000000000AA'),
+    ],
+
+    'google_analytics' => [
+        // GA4 web measurement ID (G-XXXXXXXXXX) for the gtag.js snippet.
+        'measurement_id' => env('GOOGLE_ANALYTICS_ID'),
+        // GA4 Data API (admin dashboard): numeric property ID + service-account key file.
+        'property_id' => env('GA4_PROPERTY_ID'),
+        'credentials' => env('GOOGLE_ANALYTICS_CREDENTIALS'),
+    ],
+
     'halal_certification' => [
         'url' => env('HALAL_CERTIFICATION_URL'),
     ],

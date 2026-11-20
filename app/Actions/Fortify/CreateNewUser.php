@@ -10,6 +10,7 @@ use App\Concerns\ProfileValidationRules;
 use App\Enums\ShopStaffStatus;
 use App\Models\ShopStaff;
 use App\Models\User;
+use App\Rules\TurnstileRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -34,6 +35,9 @@ final readonly class CreateNewUser implements CreatesNewUsers
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
             'invitation' => ['nullable', 'string'],
+            'cf-turnstile-response' => TurnstileRule::rules(),
+        ], [
+            'cf-turnstile-response.required' => __('Please complete the security check.'),
         ])->validate();
 
         $invitationId = $input['invitation'] ?? session()->get('staff_invitation_id');
