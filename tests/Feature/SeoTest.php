@@ -88,7 +88,7 @@ test('out of stock product remains indexable with out of stock schema and meta',
     $response = $this->get('/products/'.$this->product->slug);
 
     $response->assertOk();
-    $response->assertSee('<meta name="robots" content="index, follow">', false);
+    $response->assertSee('<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">', false);
     $response->assertSee('<meta property="product:availability" content="out of stock">', false);
     $response->assertSee('<meta name="twitter:data2" content="Out of stock">', false);
     $response->assertSee('https://schema.org/OutOfStock', false);
@@ -206,7 +206,7 @@ test('seller terms page is indexable', function () {
     $response->assertOk();
     $response->assertSee('Seller Terms &amp; Merchant Agreement | HalalBenta', false);
     $response->assertSee('<link rel="canonical" href="http://localhost:8000/seller/terms">', false);
-    $response->assertSee('<meta name="robots" content="index, follow">', false);
+    $response->assertSee('<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">', false);
 });
 
 test('uppercase and trailing slash URLs are 301 redirected to canonical format', function () {

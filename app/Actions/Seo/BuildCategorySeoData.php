@@ -44,7 +44,7 @@ final readonly class BuildCategorySeoData
         // Robots
         $robots = (SeoData::isStaging() || $hasFilters)
             ? 'noindex, follow'
-            : 'index, follow';
+            : SeoData::INDEXABLE_ROBOTS;
 
         // Social image
         $socialImage = "{$origin}/social/category/{$category->slug}.jpg";
@@ -117,6 +117,7 @@ final readonly class BuildCategorySeoData
                 'description' => $description,
                 'image' => $socialImage,
                 'image_alt' => "Halal {$category->name} on HalalBenta",
+                'labels' => $totalCount > 0 ? [['label' => 'Items', 'data' => (string) $totalCount]] : [],
             ],
             jsonLd: $graph->toArray(),
         );

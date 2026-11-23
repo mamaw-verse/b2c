@@ -111,13 +111,16 @@ final readonly class BuildProductSeoData
         // Product tags
         $inStock = $product->stock > 0;
         $decimalPrice = number_format($pesos, 2, '.', '');
+        $onSale = $product->was_price !== null && $product->was_price > $activePrice;
         $productMeta = [
-            'price_amount' => $decimalPrice,
+            'price_amount' => $onSale ? number_format($product->was_price / 100, 2, '.', '') : $decimalPrice,
             'price_currency' => 'PHP',
             'availability' => $inStock ? 'in stock' : 'out of stock',
             'condition' => 'new',
             'retailer_item_id' => (string) $product->id,
             'brand' => $shopName,
+            'category' => $category?->name,
+            'sale_price_amount' => $onSale ? $decimalPrice : null,
         ];
 
         // Twitter tags
@@ -187,7 +190,7 @@ final readonly class BuildProductSeoData
             title: $metaTitle,
             description: $description,
             canonical: $canonical,
-            robots: SeoData::isStaging() ? 'noindex, nofollow' : 'index, follow',
+            robots: SeoData::isStaging() ? 'noindex, nofollow' : SeoData::INDEXABLE_ROBOTS,
             og: [
                 'site_name' => 'HalalBenta',
                 'locale' => 'en_PH',
@@ -200,6 +203,7 @@ final readonly class BuildProductSeoData
                 'image_height' => 630,
                 'image_alt' => $product->name,
                 'image_type' => 'image/jpeg',
+                'updated_time' => $product->updated_at?->toIso8601String(),
             ],
             twitter: $twitter,
             product: $productMeta,

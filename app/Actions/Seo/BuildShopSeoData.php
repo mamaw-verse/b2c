@@ -45,7 +45,7 @@ final readonly class BuildShopSeoData
         $isInactive = $shop->suspended || $shop->status !== ShopStatus::Approved;
         $robots = (SeoData::isStaging() || $isInactive)
             ? 'noindex, nofollow'
-            : 'index, follow';
+            : SeoData::INDEXABLE_ROBOTS;
 
         // Social image
         $timestamp = $shop->updated_at?->timestamp ?? time();
@@ -96,6 +96,7 @@ final readonly class BuildShopSeoData
                 'description' => $description,
                 'image' => $socialImage,
                 'image_alt' => "{$shop->name} on HalalBenta",
+                'labels' => $city !== '' ? [['label' => 'Location', 'data' => $city]] : [],
             ],
             jsonLd: $graph->toArray(),
         );

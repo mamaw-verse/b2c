@@ -40,7 +40,7 @@ final readonly class BuildSellersSeoData
 
         $robots = (SeoData::isStaging() || $hasSearchOrFilters)
             ? 'noindex, follow'
-            : 'index, follow';
+            : SeoData::INDEXABLE_ROBOTS;
 
         $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($cleanCanonical, [
             ['name' => 'Home', 'url' => "{$origin}/"],

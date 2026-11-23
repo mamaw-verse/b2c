@@ -40,7 +40,7 @@ final readonly class BuildSellerTermsSeoData
             title: $title,
             description: $description,
             canonical: $canonical,
-            robots: SeoData::isStaging() ? 'noindex, nofollow' : 'index, follow',
+            robots: SeoData::isStaging() ? 'noindex, nofollow' : SeoData::INDEXABLE_ROBOTS,
             og: [
                 'site_name' => 'HalalBenta',
                 'locale' => 'en_PH',

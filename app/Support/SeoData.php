@@ -12,9 +12,14 @@ use Illuminate\Support\Str;
 
 final readonly class SeoData
 {
+    /** Robots value for indexable pages: allows large previews and unrestricted snippets for search and AI answer engines. */
+    public const string INDEXABLE_ROBOTS = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+
     /**
      * @param  array{
      *     type: string,
+     *     updated_time?: string,
+     *     article?: array{published_time?: string, modified_time?: string, section?: string, author?: string},
      *     title: string,
      *     description: string,
      *     url: string,
@@ -32,6 +37,7 @@ final readonly class SeoData
      *     description: string,
      *     image: string,
      *     image_alt: string,
+     *     site?: string,
      *     labels?: array<int, array{label: string, data: string}>
      * }  $twitter
      * @param  array{
@@ -40,7 +46,9 @@ final readonly class SeoData
      *     availability: string,
      *     condition: string,
      *     retailer_item_id: string,
-     *     brand: string
+     *     brand: string,
+     *     category?: string,
+     *     sale_price_amount?: string
      * }|null  $product
      * @param  array<string, mixed>  $jsonLd
      */
@@ -162,7 +170,7 @@ final readonly class SeoData
             return 'noindex, follow';
         }
 
-        return 'index, follow, max-image-preview:large';
+        return self::INDEXABLE_ROBOTS;
     }
 
     public static function fallback(?string $path = null): self

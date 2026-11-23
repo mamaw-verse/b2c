@@ -23,13 +23,33 @@
         <meta property="og:description" content="{{ $seo->og['description'] }}">
         <meta property="og:url" content="{{ $seo->og['url'] }}">
         <meta property="og:image" content="{{ $seo->og['image'] }}">
+        @if (str_starts_with($seo->og['image'], 'https://'))
+            <meta property="og:image:secure_url" content="{{ $seo->og['image'] }}">
+        @endif
         <meta property="og:image:width" content="{{ $seo->og['image_width'] }}">
         <meta property="og:image:height" content="{{ $seo->og['image_height'] }}">
         <meta property="og:image:alt" content="{{ $seo->og['image_alt'] }}">
         <meta property="og:image:type" content="{{ $seo->og['image_type'] }}">
+        @if (!empty($seo->og['updated_time']))
+            <meta property="og:updated_time" content="{{ $seo->og['updated_time'] }}">
+        @endif
+        @if (!empty($seo->og['article']))
+            @foreach (['published_time', 'modified_time', 'section', 'author'] as $articleKey)
+                @if (!empty($seo->og['article'][$articleKey]))
+                    <meta property="article:{{ $articleKey }}" content="{{ $seo->og['article'][$articleKey] }}">
+                @endif
+            @endforeach
+        @endif
 
         {{-- Twitter --}}
         <meta name="twitter:card" content="{{ $seo->twitter['card'] }}">
+        @php
+            $twitterHandle = config('seo.twitter_handle');
+            $twitterSite = $seo->twitter['site'] ?? ($twitterHandle ? '@'.ltrim((string) $twitterHandle, '@') : null);
+        @endphp
+        @if (!empty($twitterSite))
+            <meta name="twitter:site" content="{{ $twitterSite }}">
+        @endif
         <meta name="twitter:title" content="{{ $seo->twitter['title'] }}">
         <meta name="twitter:description" content="{{ $seo->twitter['description'] }}">
         <meta name="twitter:image" content="{{ $seo->twitter['image'] }}">
@@ -49,6 +69,13 @@
             <meta property="product:condition" content="{{ $seo->product['condition'] }}">
             <meta property="product:retailer_item_id" content="{{ $seo->product['retailer_item_id'] }}">
             <meta property="product:brand" content="{{ $seo->product['brand'] }}">
+            @if (!empty($seo->product['category']))
+                <meta property="product:category" content="{{ $seo->product['category'] }}">
+            @endif
+            @if (!empty($seo->product['sale_price_amount']))
+                <meta property="product:sale_price:amount" content="{{ $seo->product['sale_price_amount'] }}">
+                <meta property="product:sale_price:currency" content="{{ $seo->product['price_currency'] }}">
+            @endif
             <meta property="og:price:amount" content="{{ $seo->product['price_amount'] }}">
             <meta property="og:price:currency" content="{{ $seo->product['price_currency'] }}">
         @endif

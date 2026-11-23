@@ -59,11 +59,11 @@ final readonly class BuildContentPageSeoData
             title: $title,
             description: $description,
             canonical: $canonical,
-            robots: SeoData::isStaging() ? 'noindex, nofollow' : 'index, follow',
+            robots: SeoData::isStaging() ? 'noindex, nofollow' : SeoData::INDEXABLE_ROBOTS,
             og: [
                 'site_name' => 'HalalBenta',
                 'locale' => 'en_PH',
-                'type' => 'website',
+                'type' => $pageKey === 'halal-verification' ? 'article' : 'website',
                 'title' => $title,
                 'description' => $description,
                 'url' => $canonical,

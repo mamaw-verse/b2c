@@ -8,10 +8,10 @@
 
 ## 0. Implementation status
 
-Phase 0, Phase 1 and Phase 2 (rich entity schema) are implemented. Everything below is **un-run in CI**: it was written
+Phase 0, Phase 1, Phase 2 (rich entity schema) and most of Phase 3 (social/AI preview tags) are implemented. Everything below is **un-run in CI**: it was written
 and linted (`php -l`, Pint) but the Pest suite still needs to be run locally
 (`php artisan test --compact --filter=Seo` and `tests/Unit/SchemaGraphTest.php`).
-Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`.
+Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in `tests/Feature/SeoSocialTagsTest.php`.
 
 | Task | Status | Notes |
 |---|---|---|
@@ -37,7 +37,14 @@ Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`.
 | T2.6 Category and listing pages | Done | `BuildItemListNode` can emit typed `ListItem.item` stubs sharing the detail page's `@id`: Product stubs on categories, Store stubs on the sellers directory. Self-referencing canonicals and prev/next were already in place. |
 | T2.7 Shared breadcrumb | Done | Product breadcrumbs and `Product.category` now include every category ancestor (root first). |
 | T2.8 Video | **Deferred** | `VideoObject` needs a stable public `contentUrl` and a `thumbnailUrl`. Product videos are served through `media.view`, a short-lived signed redirect with `private` caching, and no thumbnail is stored. Revisit once videos have a stable public URL and poster image. |
-| Phases 3, 4 (rest), 5 | Not started | |
+| T3.1 Complete OG/Twitter set | Done (partly) | Added `og:image:secure_url` (https only), `og:updated_time` (products), `twitter:site` (from `SEO_TWITTER_HANDLE`, omitted when unset), `product:category`, and `product:sale_price:*` (with `product:price:amount` now the list price when discounted). `article:*` tags are supported by the template, but no content page has real published/modified dates yet, so none are emitted. Facebook Debugger / LinkedIn / X validators still need a manual pass (T5.2). |
+| T3.2 Real product photo as `og:image` | Not started | Needs a decision and image cropping work. |
+| T3.3 Harden `GenerateSocialImage` | Not started | Bundled fonts, disk cache and pre-warm. |
+| T3.4 `og:type` and labels | Done | `halal-verification` is `article`; shops get a Location label and categories an Items label. Home, category and shop stay `website`. |
+| T3.5 Share-link hygiene | Not started | Not yet audited against `ProductShareController`. |
+| T3.6 AI preview meta | Done (partly) | Every indexable page now sends `max-image-preview:large, max-snippet:-1, max-video-preview:-1` via `SeoData::INDEXABLE_ROBOTS`; `noindex` pages are unchanged. Title/description length audit and `<meta name="author">` are not done. |
+| T3.7 Favicon and app signals | Not started | |
+| Phases 4 (rest), 5 | Not started | |
 
 **Erratum to G3.** `public/images/brand/logo.png` does exist (a 959×246 wordmark), so it was not a 404. It was still
 the wrong asset for `Organization.logo` (not square, and inconsistent with the other references), so all references
@@ -255,7 +262,7 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 
 ### Phase 3 — Open Graph, social and AI preview signals
 
-**T3.1 (P0) — Complete the OG/Twitter set**
+**✅ T3.1 (P0) — Complete the OG/Twitter set**
 - Add `og:image:secure_url`; `og:updated_time` on content/product pages; `article:published_time`, `article:modified_time`, `article:section` on `Article` content pages (type `article`).
 - Product pages: keep `product:*` tags; verify `product:availability` values against Meta's accepted vocabulary (`in stock`, `out of stock`, etc.), and add `product:category`, `product:sale_price:amount` when `was_price` exists.
 - Twitter: add `twitter:site` (from config) when a handle exists. Keep `summary_large_image`.
@@ -272,14 +279,14 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 - Escape/limit text to avoid overflow; test long names, emoji and non-Latin text.
 - **AC:** image endpoint p95 < 500 ms warm, < 2 s cold; never returns 500 for a valid slug.
 
-**T3.4 (P1) — Correct `og:type` and per-type labels**
+**✅ T3.4 (P1) — Correct `og:type` and per-type labels**
 - Home/category/shop: `website` (or `profile` is **not** appropriate for shops); content pages: `article`; product: `og:product` (already `product`).
 - Add Twitter `label1/data1` for shops (Location, Rating) and categories (Items) in the same pattern as products.
 
 **T3.5 (P1) — Share-link hygiene**
 - Ensure the share buttons (`ProductShareController`, `docs/planning/10-product-share-buttons.md`) always share the **clean canonical URL**, and that UTM/`fbclid` are stripped from canonicals (already handled by `buildCanonical`).
 
-**T3.6 (P1) — Meta for AI previews (ChatGPT, Gemini, Perplexity, Copilot link cards)**
+**◐ T3.6 (P1) — Meta for AI previews (ChatGPT, Gemini, Perplexity, Copilot link cards)**
 - Keep `<title>` ≤ ~60 chars, description 140–160 chars, `robots` with `max-image-preview:large, max-snippet:-1, max-video-preview:-1` on all indexable pages (currently only the fallback includes `max-image-preview:large`).
 - Ensure every public page has a unique, descriptive `<title>` and `<meta name="description">` (search results page stays `noindex, follow`).
 - Add `<meta name="author">`/`<link rel="author">` on content pages.
