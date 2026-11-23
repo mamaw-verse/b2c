@@ -283,6 +283,26 @@ test.describe.serial('seller registration', () => {
         await shot(page, 'seller-reg-08-request-sent');
     });
 
+    // Wave 4 (T8, qa3 task 4.2): the applicant is told in-app when changes
+    // are requested. The notification is queued, so poll with reloads.
+    test('the applicant is notified that changes were requested', async ({
+        page,
+    }) => {
+        await login(page, applicantEmail);
+
+        await expect(async () => {
+            await page.goto('/account/notifications');
+            await expect(
+                page.getByText('Changes requested on your application').first(),
+            ).toBeVisible({ timeout: 2_000 });
+        }).toPass({ timeout: 30_000, intervals: [2_000] });
+
+        await expect(
+            page.getByText(/clearer business permit scan/).first(),
+        ).toBeVisible();
+        await shot(page, 'seller-reg-11-applicant-notification');
+    });
+
     test('the seller sees the requested changes and resubmits', async ({
         page,
     }) => {
@@ -295,6 +315,22 @@ test.describe.serial('seller registration', () => {
         await expect(
             page.getByText(/clearer business permit scan/),
         ).toBeVisible();
+
+        // The notice is a prominent alert (qa3 task 3.1): role=alert, a
+        // heavy left border, the admin's note quoted under its own label,
+        // and scrolled into view on load.
+        const banner = page.locator('[role="alert"]').filter({
+            hasText: 'Changes were requested on your application',
+        });
+        await expect(banner).toBeVisible();
+        await expect(banner).toHaveClass(/border-l-4/);
+        await expect(banner.getByText("Admin's note")).toBeVisible();
+        await expect(
+            banner.locator('blockquote', {
+                hasText: /clearer business permit scan/,
+            }),
+        ).toBeVisible();
+        await expect(banner).toBeInViewport();
         await expect(page.locator('#f-shop-name')).toHaveValue(shopName);
 
         // PSGC codes, the street address and every uploaded file are kept
