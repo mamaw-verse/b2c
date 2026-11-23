@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { login, shot } from '../helpers';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { login, seedPhp, shot } from '../helpers';
 
 const SELLER = 'seller@example.com';
 
@@ -263,5 +263,271 @@ test.describe.serial('seller products', () => {
             page.locator('[data-ds-video-uploader] video'),
         ).toHaveCount(0);
         await shot(page, 'products-10-video-removed');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Wave 4 (T6): placeholder photos, sale price validation, variant errors and
+// default shipping. Selectors come from reading the source (qa3 1.1-1.3,
+// qa4 A and B); not yet run against the app.
+// ---------------------------------------------------------------------------
+
+/** Form-level error summary (role="alert" with "Fix these N issues"). */
+const errorSummary = (page: Page) =>
+    page.locator('[role="alert"]').filter({ hasText: /Fix (this|these)/ });
+
+/**
+ * A variant matrix input by field and row index. Desktop (`-field-N`) and
+ * mobile (`-m-field-N`) ids both end with `-field-N`; only one is visible.
+ */
+const cell = (page: Page, field: string, row: number) =>
+    page.locator(`input[id$="-${field}-${row}"]:visible`).first();
+
+async function fillBasics(page: Page, name: string): Promise<void> {
+    await page.fill('input[name="name"]', name);
+    await page.selectOption('select[name="category_id"]', { index: 1 });
+    await page.fill('textarea[name="description"]', 'Automated e2e product.');
+}
+
+/** Enable variations and generate 2 sizes x 2 colours (4 rows). */
+async function generateVariants(page: Page): Promise<Locator> {
+    await page.locator('#has_variations').check();
+    await page.fill('input[name="option1_name"]', 'Size');
+    await page.fill('input[name="option2_name"]', 'Colour');
+
+    const matrix = page.locator('section').filter({
+        has: page.getByRole('heading', { name: 'Sales information' }),
+    });
+    const optionAdd = matrix.getByRole('button', {
+        name: 'Add',
+        exact: true,
+    });
+    const addValue = async (option: number, value: string) => {
+        await optionAdd.nth(option).click();
+        const input = page.getByPlaceholder('New value');
+        await input.fill(value);
+        await input
+            .locator('xpath=..')
+            .getByRole('button', { name: 'Add' })
+            .click();
+    };
+
+    await addValue(0, 'S');
+    await addValue(0, 'M');
+    await addValue(1, 'Red');
+    await addValue(1, 'Blue');
+    await expect(page.locator('input[name*="[option1_value]"]')).toHaveCount(4);
+
+    await matrix.getByPlaceholder('Regular price').fill('50');
+    await matrix.getByPlaceholder('Stock').fill('10');
+    await matrix.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(page.locator('input[name*="[price]"]').first()).toHaveValue(
+        '50',
+    );
+
+    return matrix;
+}
+
+test.describe.serial('seller products: photos and placeholder (qa4 A)', () => {
+    test('a product without photos has no thumbnail, then only the uploaded photo after editing', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        await page.goto('/seller/products/create');
+
+        const name = `E2E Placeholder ${stamp()}`;
+        await fillBasics(page, name);
+        await page.fill('input[name="price"]', '120');
+        await page.fill('input[name="stock"]', '5');
+        await page.fill('input[name="weight"]', '0.2');
+        await page.getByRole('button', { name: 'Publish' }).click();
+        await expect(page).toHaveURL(/seller\/products$/, { timeout: 15_000 });
+
+        // No photo: the list shows the icon, not an image.
+        await expect(productRow(page, name)).toBeVisible();
+        await expect(productRow(page, name).locator('img')).toHaveCount(0);
+
+        const slug = seedPhp<string>(
+            `return \\App\\Models\\Product::where('name', '${name}')->value('slug');`,
+        );
+        await page.goto(`/products/${slug}`);
+        await expect(page.locator('[aria-roledescription="slide"]')).toHaveCount(
+            1,
+        );
+        await expect(
+            page.locator('[aria-roledescription="slide"] img'),
+        ).toHaveCount(0);
+        await shot(page, 'products-11-no-photo-pdp');
+
+        // Edit: the uploader must not receive the placeholder row.
+        await page.goto('/seller/products');
+        await productRow(page, name).getByRole('link', { name: 'Edit' }).click();
+        await expect(page).toHaveURL(/\/edit$/);
+        await expect(page.locator('[data-ds-uploader] img')).toHaveCount(0);
+
+        await page
+            .locator('[data-ds-uploader] input[type="file"]')
+            .setInputFiles(PNG_1PX);
+        await expect(
+            page.locator(`[data-ds-uploader] li[data-name="${PNG_1PX.name}"]`),
+        ).toBeVisible();
+        await page.getByRole('button', { name: 'Publish' }).click();
+        await expect(page).toHaveURL(/seller\/products$/, { timeout: 15_000 });
+
+        // List: real thumbnail. PDP: one slide, and it is the photo.
+        await expect(
+            productRow(page, name).locator('img').first(),
+        ).toBeVisible();
+        await page.goto(`/products/${slug}`);
+        await expect(page.locator('[aria-roledescription="slide"]')).toHaveCount(
+            1,
+        );
+        await expect(
+            page.locator('[aria-roledescription="slide"] img').first(),
+        ).toBeVisible();
+        await shot(page, 'products-12-photo-pdp');
+
+        // Edit again: exactly one image, no second (placeholder) tile.
+        await page.goto('/seller/products');
+        await productRow(page, name).getByRole('link', { name: 'Edit' }).click();
+        await expect(page.locator('[data-ds-uploader] img')).toHaveCount(1);
+        await expect(
+            page.getByRole('button', { name: 'Remove image 2' }),
+        ).toHaveCount(0);
+        await shot(page, 'products-13-edit-one-photo');
+    });
+});
+
+test.describe.serial('seller products: sale price validation (qa3 1.3)', () => {
+    test('a sale price at or above the regular price is rejected, below is accepted', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        await page.goto('/seller/products/create');
+
+        const name = `E2E Sale ${stamp()}`;
+        await fillBasics(page, name);
+        await page.fill('input[name="price"]', '100');
+        await page.fill('input[name="stock"]', '5');
+        await page.fill('input[name="weight"]', '0.2');
+
+        for (const bad of ['100', '120']) {
+            await page.fill('input[name="sale_price"]', bad);
+            await page.getByRole('button', { name: 'Publish' }).click();
+            await expect(errorSummary(page)).toContainText(/sale price/i);
+            await expect(page).toHaveURL(/seller\/products\/create$/);
+            await shot(page, `products-14-sale-rejected-${bad}`);
+        }
+
+        await page.fill('input[name="sale_price"]', '80');
+        await page.getByRole('button', { name: 'Publish' }).click();
+        await expect(page).toHaveURL(/seller\/products$/, { timeout: 15_000 });
+        await expect(productRow(page, name)).toBeVisible();
+    });
+});
+
+test.describe.serial('seller products: variants and shipping (qa4 B)', () => {
+    test('a variant sale price above its regular price shows an inline error before and after submit', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        await page.goto('/seller/products/create');
+        await generateVariants(page);
+
+        // Client-side check: the row is flagged before any submit.
+        await cell(page, 'sale_price', 2).fill('60');
+        await expect(
+            page
+                .getByText('The sale price must be lower than the regular price.')
+                .filter({ visible: true })
+                .first(),
+        ).toBeVisible();
+        await expect(cell(page, 'sale_price', 2)).toHaveAttribute(
+            'aria-invalid',
+            'true',
+        );
+        await expect(cell(page, 'sale_price', 1)).not.toHaveAttribute(
+            'aria-invalid',
+            'true',
+        );
+        await shot(page, 'products-15-variant-inline-error');
+
+        // Server rejection names the variation in the error summary.
+        const name = `E2E Variant Errors ${stamp()}`;
+        await fillBasics(page, name);
+        await page.fill('input[name="weight"]', '0.3');
+        await page.getByRole('button', { name: 'Publish' }).click();
+        await expect(errorSummary(page)).toContainText(
+            /Variation \d+: the sale price must be lower than the regular price/,
+        );
+        await expect(page).toHaveURL(/seller\/products\/create$/);
+        await shot(page, 'products-16-variant-summary');
+
+        // Fixing the value clears the inline error and the save goes through.
+        await cell(page, 'sale_price', 2).fill('40');
+        await expect(
+            page.getByText(
+                'The sale price must be lower than the regular price.',
+            ),
+        ).toHaveCount(0);
+        await page.getByRole('button', { name: 'Publish' }).click();
+        await expect(page).toHaveURL(/seller\/products$/, { timeout: 15_000 });
+        await expect(productRow(page, name)).toBeVisible();
+    });
+
+    test('default shipping stays visible with variants; empty weight errors; overrides round-trip', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        await page.goto('/seller/products/create');
+
+        await expect(
+            page.getByRole('heading', { name: 'Shipping', exact: true }),
+        ).toBeVisible();
+        await generateVariants(page);
+
+        await expect(
+            page.getByRole('heading', { name: 'Default shipping' }),
+        ).toBeVisible();
+        await expect(page.locator('input[name="weight"]')).toBeVisible();
+        await expect(
+            page.getByText(/Applies to every variation unless you set its own/),
+        ).toBeVisible();
+
+        // Empty default weight: the save fails visibly, not silently.
+        const name = `E2E Variant Shipping ${stamp()}`;
+        await fillBasics(page, name);
+        await page.getByRole('button', { name: 'Save draft' }).click();
+        await expect(errorSummary(page)).toContainText(
+            /Enter the default weight in kg/,
+        );
+        await expect(
+            page.getByText(/Enter the default weight in kg/).last(),
+        ).toBeVisible();
+        await expect(page).toHaveURL(/seller\/products\/create$/);
+        await shot(page, 'products-17-default-weight-error');
+
+        // The default shows as the placeholder of every variant weight.
+        await page.fill('input[name="weight"]', '0.5');
+        await expect(cell(page, 'weight', 0)).toHaveAttribute(
+            'placeholder',
+            '0.5',
+        );
+        await cell(page, 'weight', 1).fill('1.2');
+        await page.getByRole('button', { name: 'Save draft' }).click();
+        await expect(page).toHaveURL(/seller\/products$/, { timeout: 15_000 });
+
+        // One override and the default come back on edit.
+        await productRow(page, name).getByRole('link', { name: 'Edit' }).click();
+        await expect(page).toHaveURL(/\/edit$/);
+        await expect(page.locator('input[name="weight"]')).toHaveValue('0.5');
+
+        const weights: string[] = [];
+        for (let row = 0; row < 4; row++) {
+            weights.push(await cell(page, 'weight', row).inputValue());
+        }
+        expect(weights.filter((w) => w === '1.2')).toHaveLength(1);
+        expect(weights.filter((w) => w === '')).toHaveLength(3);
+        await shot(page, 'products-18-variant-shipping-edit');
     });
 });

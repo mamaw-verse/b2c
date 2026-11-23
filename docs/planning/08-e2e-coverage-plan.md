@@ -281,7 +281,7 @@ Order matters: T1 → T2 → rest. Each task is one commit.
 - [x] T3 `auth-google-turnstile.spec.ts`
 - [x] T4 `seo.spec.ts`
 - [x] T5 `multi-shop.spec.ts`
-- [ ] T6 `seller-products.spec.ts` extension
+- [x] T6 `seller-products.spec.ts` extension
 - [ ] T7 PDP and cart extensions
 - [ ] T8 `seller-registration.spec.ts` extension
 - [ ] T9 `order-lifecycle.spec.ts` extension
