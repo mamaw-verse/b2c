@@ -102,7 +102,7 @@
         {
             "id": "order-lifecycle",
             "spec": "specs/order-lifecycle.spec.ts",
-            "description": "Full order lifecycle across the three roles: buyer checkout (qty 2), seller fulfilment, admin moderation, and a return/refund flow covering item selection, decline, partial refund and final full refund. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints.",
+            "description": "Full order lifecycle across the three roles: buyer checkout (qty 2), seller fulfilment, admin moderation, and a return/refund flow covering item selection, decline, partial refund and final full refund. Tests run serially and share one database; the buyer test seeds cart/address/report through the app's own endpoints. Wave 4: no per-parcel Confirm received, plus seller and buyer notifications for orders, receipts and refund decisions.",
             "steps": [
                 {
                     "action": "login",
@@ -237,7 +237,7 @@
         {
             "id": "storefront",
             "spec": "specs/storefront.spec.ts",
-            "description": "Storefront chrome: product-card states (regular, discounted, frozen/halal, sold out, long name) snapshotted at 360/768/1280 in light and dark; category-nav states (default/hover/active/focus, no current item on home); WCAG contrast on price, old price, promo tag and nav text in both themes; footer trust strip, link groups, legal bar and sub-640px disclosures.",
+            "description": "Storefront chrome: product-card states (regular, discounted, frozen/halal, sold out, long name) snapshotted at 360/768/1280 in light and dark; category-nav states (default/hover/active/focus, no current item on home); WCAG contrast on price, old price, promo tag and nav text in both themes; footer trust strip, link groups, legal bar and sub-640px disclosures. Wave 4: public /sellers directory (search, sort, halal-only filter, only approved unsuspended shops).",
             "steps": [
                 {
                     "action": "goto",
@@ -273,7 +273,7 @@
         {
             "id": "seller-registration",
             "spec": "specs/seller-registration.spec.ts",
-            "description": "Seller application lifecycle: error summary on empty submit, PSGC cascading selects with auto-filled postal code, file uploads (logo PNG, permit/cert PDFs), certificate add/remove, client-side checklist completion, submit into pending state, admin requests changes (item flagged, shop changes_requested), seller sees the note and resubmits, admin approval via the moderation queue (type=shop_application) behind a confirm dialog, and the applicant entering the seller workspace. Once approved, /seller/register 404s for the applicant.",
+            "description": "Seller application lifecycle: error summary on empty submit, PSGC cascading selects with auto-filled postal code, file uploads (logo PNG, permit/cert PDFs), certificate add/remove, client-side checklist completion, submit into pending state, admin requests changes (item flagged, shop changes_requested), seller sees the note and resubmits, admin approval via the moderation queue (type=shop_application) behind a confirm dialog, and the applicant entering the seller workspace. Once approved, /seller/register 404s for the applicant. Wave 4: prominent changes-requested banner and applicant in-app notification.",
             "steps": [
                 {
                     "action": "login",
@@ -497,7 +497,7 @@
         {
             "id": "seller-products",
             "spec": "specs/seller-products.spec.ts",
-            "description": "Seller product CRUD: list with the View shop button, create a simple published product with photo upload and sale price, generate variant rows from option values with named options and apply-to-all regular/sale price and stock, filter by name, edit (photo and price mapping round-trip) and save as draft, then delete the product.",
+            "description": "Seller product CRUD: list with the View shop button, create a simple published product with photo upload and sale price, generate variant rows from option values with named options and apply-to-all regular/sale price and stock, filter by name, edit (photo and price mapping round-trip) and save as draft, then delete the product. Wave 4: placeholder photos, sale price validation, per-variant inline errors and default shipping (QA3 1.1-1.3, QA4 A and B).",
             "steps": [
                 {
                     "action": "login",
@@ -580,7 +580,7 @@
         {
             "id": "product-detail",
             "spec": "specs/product-detail.spec.ts",
-            "description": "Buyer product detail page: price and review sections, halal certification facts, variation picker selection, shop profile link, report dialog, anonymous chat redirect and the sold-out state.",
+            "description": "Buyer product detail page: price and review sections, halal certification facts, variation picker selection, shop profile link, report dialog, anonymous chat redirect and the sold-out state. Wave 4: the chosen variation updates the Variation row and price, sold-out combinations are disabled, and the shop name links to the profile.",
             "steps": [
                 {
                     "action": "goto",
@@ -628,7 +628,7 @@
         {
             "id": "cart",
             "spec": "specs/cart.spec.ts",
-            "description": "Cart variation editing: add a seeded variation product through the PDP picker, then change the variation from the cart line via the edit-mode picker.",
+            "description": "Cart variation editing: add a seeded variation product through the PDP picker, then change the variation from the cart line via the edit-mode picker. Wave 4: changing to a variation already in the cart merges the lines, and sold-out variations are disabled.",
             "steps": [
                 {
                     "action": "login as a fresh verified user and add Ajwa Standard · 1kg via the PDP picker",
@@ -648,7 +648,7 @@
         {
             "id": "shop-page",
             "spec": "specs/shop.spec.ts",
-            "description": "Shop page follow/chat gating: guests bounce to login, buyers toggle Follow (is_following prop flips) and start a chat, admins and the shop owner see neither button.",
+            "description": "Shop page follow/chat gating: guests bounce to login, buyers toggle Follow (is_following prop flips) and start a chat, admins and the shop owner see neither button. Wave 4: seller pages offer a View shop button that opens the storefront in a new tab.",
             "steps": [
                 {
                     "action": "goto",
@@ -844,6 +844,161 @@
                         "payables-04-refund-processed"
                     ],
                     "expect": "refund row disappears; summary total_refunds drops by the seeded amount and pending_count by one"
+                }
+            ]
+        },
+        {
+            "id": "auth-google-turnstile",
+            "spec": "specs/auth-google-turnstile.spec.ts",
+            "description": "Google sign-in entry points, failed-callback and Google-only account handling, Turnstile token enforcement (conditional on HUMANCHECK_ENABLED), and GA4 gtag on public pages only (docs 11 and 13).",
+            "steps": [
+                {
+                    "action": "goto /login and /register",
+                    "screenshot": "google-01-login",
+                    "expect": "Google buttons are offered"
+                },
+                {
+                    "action": "failed Google callback",
+                    "screenshot": "google-03-callback-failed",
+                    "expect": "returns to login with an error under the google key"
+                },
+                {
+                    "action": "Google-only account signs in with a password",
+                    "screenshot": "google-04-password-rejected",
+                    "expect": "password sign-in is rejected"
+                },
+                {
+                    "action": "confirm-password as linked and plain accounts",
+                    "screenshot": "google-05-confirm-linked",
+                    "expect": "Google offered only to linked accounts"
+                },
+                {
+                    "action": "submit login and forgot-password without a token",
+                    "screenshot": "turnstile-02-login-no-token",
+                    "expect": "rejected when the check is enabled"
+                },
+                {
+                    "action": "open auth and public pages",
+                    "expect": "gtag absent on auth pages; present on public pages only when GA4 is configured"
+                }
+            ]
+        },
+        {
+            "id": "seo",
+            "spec": "specs/seo.spec.ts",
+            "description": "robots.txt, sitemaps, llms.txt, indexing directives, canonical redirects, head metadata, JSON-LD graphs and FAQ markup (docs 14 and 14a). Assertions branch on production vs non-production.",
+            "steps": [
+                {
+                    "action": "fetch /robots.txt, sitemap index and /llms.txt",
+                    "expect": "environment-appropriate content; child sitemaps resolve"
+                },
+                {
+                    "action": "check private and public paths",
+                    "expect": "robots meta and X-Robots-Tag agree with the path policy"
+                },
+                {
+                    "action": "open public pages",
+                    "expect": "canonical, Open Graph, Twitter and language tags; one linked JSON-LD graph; FAQ text matches FAQPage markup"
+                }
+            ]
+        },
+        {
+            "id": "multi-shop",
+            "spec": "specs/multi-shop.spec.ts",
+            "description": "Seller workspace for an account that owns one shop and is staff at another (doc 12, QA4 D.1): switcher groups, per-shop unread counts, scoped mark-all-read, staff 404s, and the Register my own shop entry.",
+            "steps": [
+                {
+                    "action": "open switcher",
+                    "screenshot": "multishop-01-switcher",
+                    "expect": "My shops and Managed shops with Owner and Staff badges and per-shop unread counts"
+                },
+                {
+                    "action": "switch shops",
+                    "screenshot": "multishop-03-managed-notifications",
+                    "expect": "notification list and bell count follow the active shop"
+                },
+                {
+                    "action": "mark all as read",
+                    "screenshot": "multishop-04-after-mark-read",
+                    "expect": "only the active shop clears; other shop and buyer inbox keep unread items"
+                },
+                {
+                    "action": "staff opens owner-only pages",
+                    "screenshot": "multishop-05-staff-orders",
+                    "expect": "finance, staff, settings and vouchers return 404; orders, customers and chat open"
+                },
+                {
+                    "action": "staff without a shop opens the menu",
+                    "screenshot": "multishop-07-register-own-shop",
+                    "expect": "Register my own shop is offered and opens the application form"
+                }
+            ]
+        },
+        {
+            "id": "seller-chat",
+            "spec": "specs/seller-chat.spec.ts",
+            "description": "Seller chat shows the customer's name instead of the shop's (QA4 E): list, search, thread header, bubble alignment and the unchanged buyer view.",
+            "steps": [
+                {
+                    "action": "open /seller/chat",
+                    "screenshot": "seller-chat-01-list",
+                    "expect": "list shows customer names, not the shop and not email addresses"
+                },
+                {
+                    "action": "search by customer name",
+                    "screenshot": "seller-chat-02-search-empty",
+                    "expect": "matches customer names"
+                },
+                {
+                    "action": "open a thread",
+                    "screenshot": "seller-chat-04-alignment",
+                    "expect": "customer bubbles left, shop bubbles right"
+                },
+                {
+                    "action": "open the buyer's chat",
+                    "screenshot": "seller-chat-05-buyer-view",
+                    "expect": "buyer view unchanged"
+                }
+            ]
+        },
+        {
+            "id": "affiliate",
+            "spec": "specs/affiliate.spec.ts",
+            "description": "Affiliate program (doc 09): seller enables a commission on a product, bulk toggle, buyer affiliate profile, and staff cannot see the affiliate panel.",
+            "steps": [
+                {
+                    "action": "create product with affiliate enabled",
+                    "screenshot": "affiliate-01-product-form",
+                    "expect": "live commission breakdown shown"
+                },
+                {
+                    "action": "bulk toggle on the product list",
+                    "screenshot": "affiliate-03-bulk-disabled",
+                    "expect": "state follows the toggle"
+                },
+                {
+                    "action": "staff opens the product form",
+                    "screenshot": "affiliate-05-staff-no-affiliate",
+                    "expect": "no affiliate panel"
+                }
+            ]
+        },
+        {
+            "id": "header-brand-vouchers",
+            "spec": "specs/header-brand-vouchers.spec.ts",
+            "description": "Header brand placement at mobile and tablet widths, voucher card layout and brand assets, and dark-mode logo contrast.",
+            "steps": [
+                {
+                    "action": "check meta tags, brand assets and title",
+                    "expect": "assets resolve and the title is set"
+                },
+                {
+                    "action": "resize to mobile and tablet",
+                    "expect": "brand placement holds in collapsed and expanded states"
+                },
+                {
+                    "action": "open vouchers",
+                    "expect": "cards keep their anatomy without overflow"
                 }
             ]
         }

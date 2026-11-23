@@ -287,5 +287,5 @@ Order matters: T1 → T2 → rest. Each task is one commit.
 - [x] T9 `order-lifecycle.spec.ts` extension
 - [x] T10 storefront and shop extensions
 - [x] T11 `seller-chat.spec.ts`
-- [ ] T12 manifest and accessibility routes
+- [x] T12 manifest and accessibility routes (`/sellers`, `/seller/products/create` and `/seller/chat` were already in `accessibility.spec.ts`; `scenarios.json` now lists affiliate, auth-google-turnstile, header-brand-vouchers, multi-shop, seller-chat and seo)
 - [ ] T13 full run and push
