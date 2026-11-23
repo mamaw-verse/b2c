@@ -12,23 +12,6 @@ namespace App\Http\Requests\Seller\Concerns;
 trait HasProductVariationRules
 {
     /**
-     * A variation's shipping values are optional overrides: a blank value
-     * means "use the product's default". They must be listed here, or
-     * `validated()` drops them and the override is silently lost.
-     *
-     * @return array<string, array<int, string>>
-     */
-    protected function variationShippingRules(): array
-    {
-        return [
-            'variations.*.weight' => ['nullable', 'numeric', 'min:0.01'],
-            'variations.*.length' => ['nullable', 'numeric', 'min:0'],
-            'variations.*.width' => ['nullable', 'numeric', 'min:0'],
-            'variations.*.height' => ['nullable', 'numeric', 'min:0'],
-        ];
-    }
-
-    /**
      * @return array<string, string>
      */
     public function messages(): array
@@ -46,6 +29,23 @@ trait HasProductVariationRules
             'variations.*.stock.min' => 'Variation :position: stock cannot be negative.',
             'variations.*.stock.integer' => 'Variation :position: stock must be a whole number.',
             'variations.*.weight.min' => 'Variation :position: the weight must be at least 0.01 kg.',
+        ];
+    }
+
+    /**
+     * A variation's shipping values are optional overrides: a blank value
+     * means "use the product's default". They must be listed here, or
+     * `validated()` drops them and the override is silently lost.
+     *
+     * @return array<string, array<int, string>>
+     */
+    protected function variationShippingRules(): array
+    {
+        return [
+            'variations.*.weight' => ['nullable', 'numeric', 'min:0.01'],
+            'variations.*.length' => ['nullable', 'numeric', 'min:0'],
+            'variations.*.width' => ['nullable', 'numeric', 'min:0'],
+            'variations.*.height' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

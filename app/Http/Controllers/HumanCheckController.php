@@ -4,23 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateHumanCheckRequest;
 use App\Services\TurnstileVerifier;
 use App\Support\HumanPass;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
-final class HumanCheckController extends Controller
+final class HumanCheckController
 {
     public function __construct(
         private readonly TurnstileVerifier $verifier,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(CreateHumanCheckRequest $request): JsonResponse
     {
-        $request->validate([
-            'token' => ['required', 'string'],
-        ]);
-
         $token = (string) $request->input('token');
         $result = $this->verifier->verify($token, $request->ip());
 

@@ -7,6 +7,7 @@ namespace App\Support;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Symfony\Component\HttpFoundation\Cookie;
+use Throwable;
 
 final class HumanPass
 {
@@ -83,7 +84,7 @@ final class HumanPass
             }
 
             return true;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
@@ -106,7 +107,7 @@ final class HumanPass
             $payload = json_decode($decrypted, true, 512, JSON_THROW_ON_ERROR);
 
             return $payload['exp'] ?? null;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }

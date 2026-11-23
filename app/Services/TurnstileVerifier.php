@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use ReflectionProperty;
+use Throwable;
 
 final class TurnstileVerifier
 {
@@ -92,7 +93,7 @@ final class TurnstileVerifier
             }
 
             return TurnstileResult::success($responseHostname, $responseAction);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Turnstile verification exception: '.$e->getMessage());
 
             return TurnstileResult::failure(['timeout-or-connection-error']);
@@ -108,7 +109,7 @@ final class TurnstileVerifier
             $stubs = $ref->getValue($factory);
 
             return ! $stubs->isEmpty();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }

@@ -106,7 +106,7 @@ final class GoogleAuthController
     private function resolveUser(SocialiteUser $googleUser): User
     {
         $googleId = (string) $googleUser->getId();
-        $email = Str::lower(trim((string) $googleUser->getEmail()));
+        $email = Str::lower(mb_trim((string) $googleUser->getEmail()));
 
         $user = User::query()->where('google_id', $googleId)->lockForUpdate()->first();
 
@@ -145,9 +145,9 @@ final class GoogleAuthController
             return $name;
         }
 
-        $given = trim((string) data_get($googleUser->getRaw(), 'given_name'));
-        $family = trim((string) data_get($googleUser->getRaw(), 'family_name'));
-        $joined = trim($given.' '.$family);
+        $given = mb_trim((string) data_get($googleUser->getRaw(), 'given_name'));
+        $family = mb_trim((string) data_get($googleUser->getRaw(), 'family_name'));
+        $joined = mb_trim($given.' '.$family);
 
         return $joined !== '' ? $joined : Str::before($email, '@');
     }
