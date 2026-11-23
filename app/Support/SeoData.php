@@ -135,7 +135,7 @@ final readonly class SeoData
         }
 
         foreach (config()->array('seo.private_path_patterns', []) as $pattern) {
-            if (Str::is((string) $pattern, $path)) {
+            if (Str::is((string) $pattern, $path) || Str::is((string) $pattern, $path.'/')) {
                 return true;
             }
         }
