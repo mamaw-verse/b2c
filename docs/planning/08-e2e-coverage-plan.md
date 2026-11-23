@@ -276,8 +276,8 @@ Order matters: T1 → T2 → rest. Each task is one commit.
 
 ### 6.4 Progress tracker
 
-- [ ] T1 Turnstile helper and smoke fix
-- [ ] T2 seed helpers
+- [x] T1 Turnstile helper and smoke fix
+- [x] T2 seed helpers
 - [ ] T3 `auth-google-turnstile.spec.ts`
 - [ ] T4 `seo.spec.ts`
 - [ ] T5 `multi-shop.spec.ts`

@@ -1,5 +1,6 @@
-import { test, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { execSync } from 'node:child_process';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -138,6 +139,72 @@ export function seedPayablesFixtures(): {
     return { payoutAccountName, refundReason, refundAmount: 25000 };
 }
 
+/**
+ * Wait for the invisible Cloudflare Turnstile widget to fill its hidden
+ * `cf-turnstile-response` input. Login, register and forgot-password
+ * require the token whenever HUMANCHECK_ENABLED is true (the default), so
+ * submitting right after load would race the widget. Returns immediately
+ * when the page has no Turnstile field (check disabled or other page).
+ */
+export async function awaitHumanCheck(
+    page: Page,
+    timeout = 15_000,
+): Promise<void> {
+    const field = page.locator('input[name="cf-turnstile-response"]');
+
+    try {
+        // The field mounts after hydration; give it a short window to appear.
+        await field.first().waitFor({ state: 'attached', timeout: 3_000 });
+    } catch {
+        return;
+    }
+
+    await expect(field.first()).not.toHaveValue('', { timeout });
+}
+
+/**
+ * Run PHP inside the app (Sail + artisan tinker) and return its output.
+ * The code goes through a temp file under storage/framework so it avoids the
+ * shell-escaping problems of inline `--execute` snippets.
+ */
+export function tinker(php: string): string {
+    const rel = `storage/framework/e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.php`;
+    const abs = path.join(repoRoot, rel);
+
+    mkdirSync(path.dirname(abs), { recursive: true });
+    writeFileSync(abs, '<?php\n' + php + '\n');
+
+    try {
+        return execSync(
+            `vendor/bin/sail artisan tinker --execute "require base_path('${rel}');"`,
+            { cwd: repoRoot, stdio: 'pipe' },
+        ).toString();
+    } finally {
+        rmSync(abs, { force: true });
+    }
+}
+
+/**
+ * Run a PHP function body that returns an array/scalar and get it back as
+ * JSON, e.g. `seedPhp<{ id: string }>("return ['id' => User::first()->id];")`.
+ * Use it for fixtures the UI cannot create (staff memberships, notifications).
+ */
+export function seedPhp<T = unknown>(body: string): T {
+    const output = tinker(
+        '$__e2e = (function () {\n' +
+            body +
+            '\n})();\n' +
+            "echo '__E2E_JSON__' . json_encode($__e2e) . '__E2E_END__';",
+    );
+    const match = output.match(/__E2E_JSON__([\s\S]*?)__E2E_END__/);
+
+    if (!match) {
+        throw new Error(`seedPhp produced no JSON. Output was:\n${output}`);
+    }
+
+    return JSON.parse(match[1]) as T;
+}
+
 /** Log in through the real Fortify form and wait for the redirect away. */
 export async function login(
     page: Page,
@@ -147,6 +214,7 @@ export async function login(
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
+    await awaitHumanCheck(page);
     await page.click('[data-test="login-button"]');
     await page.waitForURL((url) => !url.pathname.startsWith('/login'), {
         timeout: 15_000,

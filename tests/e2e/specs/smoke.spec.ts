@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { shot, uniqueEmail } from '../helpers';
+import { awaitHumanCheck, shot, uniqueEmail } from '../helpers';
 
 const PASSWORD = 'E2e-password-123!';
 
@@ -118,6 +118,7 @@ test.describe('auth journey', () => {
         await page.fill('input[name="password_confirmation"]', PASSWORD);
         await shot(page, '10-register-filled');
 
+        await awaitHumanCheck(page);
         await page.click('[data-test="register-user-button"]');
         // Verified middleware may send fresh accounts to /email/verify instead.
         await expect(page).toHaveURL(/account|email\/verify/, {
@@ -132,6 +133,7 @@ test.describe('auth journey', () => {
         await page.goto('/login');
         await page.fill('input[name="email"]', uniqueEmail('missing'));
         await page.fill('input[name="password"]', 'wrong-password');
+        await awaitHumanCheck(page);
         await page.click('[data-test="login-button"]');
         await expect(page).toHaveURL(/login/);
         await shot(page, '20-login-failed');
