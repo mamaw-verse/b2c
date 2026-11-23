@@ -284,7 +284,7 @@ Order matters: T1 → T2 → rest. Each task is one commit.
 - [x] T6 `seller-products.spec.ts` extension
 - [x] T7 PDP and cart extensions
 - [x] T8 `seller-registration.spec.ts` extension
-- [ ] T9 `order-lifecycle.spec.ts` extension
+- [x] T9 `order-lifecycle.spec.ts` extension
 - [ ] T10 storefront and shop extensions
 - [x] T11 `seller-chat.spec.ts`
 - [ ] T12 manifest and accessibility routes

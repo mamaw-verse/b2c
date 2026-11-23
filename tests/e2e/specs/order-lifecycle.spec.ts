@@ -211,6 +211,17 @@ test.describe.serial('full order lifecycle', () => {
         ).toBeVisible();
         await shot(page, 'buyer-07-tracking');
 
+        // Receipt is confirmed once for the whole order: parcels have no
+        // per-parcel "Confirm received" button (qa3 task 6.4).
+        await expect(
+            page
+                .locator('[data-test="parcel"]')
+                .getByRole('button', { name: /Confirm received/i }),
+        ).toHaveCount(0);
+        await expect(
+            page.getByRole('button', { name: 'Order received', exact: true }),
+        ).toHaveCount(1);
+
         page.once('dialog', (dialog) => dialog.accept());
         await page
             .getByRole('button', { name: 'Order received', exact: true })
@@ -446,6 +457,58 @@ test.describe.serial('full order lifecycle', () => {
             page.getByRole('link', { name: /How refunds work/ }).first(),
         ).toBeVisible();
         await shot(page, 'buyer-14-refunded');
+    });
+
+    // Wave 4 (T9, qa3 tasks 4.3 and 7.x, qa4 C): the order flow above must
+    // have notified both sides. Notifications are queued, so poll with
+    // reloads. The order reference is `#` plus the last 8 id characters.
+    test('seller is notified of the order, receipt, completion and return requests', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+        const ref = `#${orderId.slice(-8).toUpperCase()}`;
+
+        for (const title of [
+            'New order',
+            'Buyer confirmed receipt',
+            'Order completed',
+            'Return/refund requested',
+        ]) {
+            await expect(async () => {
+                await page.goto('/seller/notifications');
+                await expect(
+                    page
+                        .locator('li')
+                        .filter({ hasText: ref })
+                        .filter({ hasText: title })
+                        .first(),
+                ).toBeVisible({ timeout: 2_000 });
+            }).toPass({ timeout: 30_000, intervals: [2_000] });
+        }
+        await shot(page, 'seller-11-notifications');
+    });
+
+    test('buyer is notified of each refund decision', async ({ page }) => {
+        await login(page, BUYER);
+        const ref = `#${orderId.slice(-8).toUpperCase()}`;
+
+        for (const title of [
+            'Return/refund declined',
+            'Partial refund approved',
+            'Refund approved',
+        ]) {
+            await expect(async () => {
+                await page.goto('/account/notifications');
+                await expect(
+                    page
+                        .locator('li')
+                        .filter({ hasText: ref })
+                        .filter({ hasText: title })
+                        .first(),
+                ).toBeVisible({ timeout: 2_000 });
+            }).toPass({ timeout: 30_000, intervals: [2_000] });
+        }
+        await shot(page, 'buyer-15-notifications');
     });
 });
 
