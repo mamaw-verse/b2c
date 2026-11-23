@@ -280,12 +280,12 @@ Order matters: T1 → T2 → rest. Each task is one commit.
 - [x] T2 seed helpers
 - [x] T3 `auth-google-turnstile.spec.ts`
 - [x] T4 `seo.spec.ts`
-- [ ] T5 `multi-shop.spec.ts`
+- [x] T5 `multi-shop.spec.ts`
 - [ ] T6 `seller-products.spec.ts` extension
 - [ ] T7 PDP and cart extensions
 - [ ] T8 `seller-registration.spec.ts` extension
 - [ ] T9 `order-lifecycle.spec.ts` extension
 - [ ] T10 storefront and shop extensions
-- [ ] T11 `seller-chat.spec.ts`
+- [x] T11 `seller-chat.spec.ts`
 - [ ] T12 manifest and accessibility routes
 - [ ] T13 full run and push
