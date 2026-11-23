@@ -50,12 +50,20 @@ final readonly class BuildProductNode
             'name' => $product->name,
             'description' => $this->description($product) ?: $fallbackDescription,
             'image' => $images,
-            'brand' => ['@type' => 'Brand', 'name' => $brandName],
+            'brand' => ['@type' => 'Brand', 'name' => $product->brand ?: $brandName],
             'category' => $categoryPath !== [] ? implode(' > ', $categoryPath) : null,
             'weight' => $this->weight($product->weight),
             'additionalProperty' => $this->additionalProperties($product),
             'hasCertification' => $this->certification($product->halalCertification),
         ];
+
+        if ($product->gtin !== null && $product->gtin !== '') {
+            $node['gtin'] = $product->gtin;
+        }
+
+        if ($product->country_of_origin !== null && $product->country_of_origin !== '') {
+            $node['countryOfOrigin'] = ['@type' => 'Country', 'name' => $product->country_of_origin];
+        }
 
         if ($hasVariants) {
             $node['productGroupID'] = (string) $product->id;
@@ -135,6 +143,21 @@ final readonly class BuildProductNode
         $ingredients = $product->ingredients !== null ? mb_trim(strip_tags($product->ingredients)) : '';
         if ($ingredients !== '') {
             $properties[] = $this->property('Ingredients', $ingredients);
+        }
+
+        $allergens = $product->allergens !== null ? mb_trim(strip_tags($product->allergens)) : '';
+        if ($allergens !== '') {
+            $properties[] = $this->property('Allergens', $allergens);
+        }
+
+        $storage = $product->storage_condition !== null ? mb_trim(strip_tags($product->storage_condition)) : '';
+        if ($storage !== '') {
+            $properties[] = $this->property('Storage condition', $storage);
+        }
+
+        $origin = $product->country_of_origin !== null ? mb_trim(strip_tags($product->country_of_origin)) : '';
+        if ($origin !== '') {
+            $properties[] = $this->property('Country of origin', $origin);
         }
 
         return $properties;

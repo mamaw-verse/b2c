@@ -30,6 +30,8 @@ final class CreateSellerProductRequest extends FormRequest
     {
         $rules = [
             'name' => ['required', 'string', 'max:120'],
+            'brand' => ['nullable', 'string', 'max:100'],
+            'gtin' => ['nullable', 'string', 'max:50'],
             'category_id' => ['required', 'string', 'exists:categories,id'],
             'description' => ['required', 'string', 'max:3000'],
             'price' => ['required_without:variations', 'nullable', 'numeric', 'min:1'],
@@ -41,6 +43,9 @@ final class CreateSellerProductRequest extends FormRequest
             'certificate_number' => ['nullable', 'string', 'max:100'],
             'valid_until' => ['nullable', 'date'],
             'ingredients' => ['nullable', 'string', 'max:2000'],
+            'allergens' => ['nullable', 'string', 'max:500'],
+            'storage_condition' => ['nullable', 'string', 'max:100'],
+            'country_of_origin' => ['nullable', 'string', 'max:50'],
             'no_pork_alcohol_declared' => ['boolean'],
             'document_path' => ['nullable', 'string', 'max:255'],
             'weight' => ['required', 'numeric', 'min:0.01'],

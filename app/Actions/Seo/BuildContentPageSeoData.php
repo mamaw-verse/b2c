@@ -8,10 +8,10 @@ use App\Actions\Seo\Schema\BuildBreadcrumbNode;
 use App\Actions\Seo\Schema\BuildFaqNode;
 use App\Actions\Seo\Schema\BuildOrganizationNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
-use App\Support\Schema\SchemaGraph;
-use App\Support\Schema\SchemaId;
 use App\Support\ContentPageDates;
 use App\Support\FaqEntries;
+use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 use App\Support\TrustFacts;
 

@@ -680,6 +680,12 @@ export default function Product({
                                         cols={2}
                                         rows={[
                                             ['Category', p.category.name],
+                                            ...(p.brand
+                                                ? ([['Brand', p.brand]] as [
+                                                      string,
+                                                      React.ReactNode,
+                                                  ][])
+                                                : []),
                                             [
                                                 'Stock',
                                                 inStock
@@ -688,16 +694,59 @@ export default function Product({
                                             ],
                                             ['Ships from', p.ships_from],
                                             ['Sold by', p.shop.name],
-                                            ...(p.frozen
-                                                ? [
+                                            ...(p.country_of_origin
+                                                ? ([
                                                       [
-                                                          'Handling',
-                                                          'Frozen (-18°C)',
-                                                      ] as [
-                                                          string,
-                                                          React.ReactNode,
+                                                          'Origin',
+                                                          p.country_of_origin,
                                                       ],
-                                                  ]
+                                                  ] as [
+                                                      string,
+                                                      React.ReactNode,
+                                                  ][])
+                                                : []),
+                                            ...(p.storage_condition
+                                                ? ([
+                                                      [
+                                                          'Storage',
+                                                          p.storage_condition,
+                                                      ],
+                                                  ] as [
+                                                      string,
+                                                      React.ReactNode,
+                                                  ][])
+                                                : p.frozen
+                                                  ? ([
+                                                        [
+                                                            'Handling',
+                                                            'Frozen (-18°C)',
+                                                        ],
+                                                    ] as [
+                                                        string,
+                                                        React.ReactNode,
+                                                    ][])
+                                                  : []),
+                                            ...(p.gtin
+                                                ? ([
+                                                      [
+                                                          'GTIN / Barcode',
+                                                          p.gtin,
+                                                      ],
+                                                  ] as [
+                                                      string,
+                                                      React.ReactNode,
+                                                  ][])
+                                                : []),
+                                            ...(p.allergens
+                                                ? ([
+                                                      [
+                                                          'Allergens',
+                                                          p.allergens,
+                                                      ],
+                                                  ] as [
+                                                      string,
+                                                      React.ReactNode,
+                                                  ][])
                                                 : []),
                                             ...(p.certification
                                                 ? [

@@ -36,6 +36,8 @@ final class UpdateSellerProductRequest extends FormRequest
     {
         $rules = [
             'name' => ['sometimes', 'required', 'string', 'max:120'],
+            'brand' => ['nullable', 'string', 'max:100'],
+            'gtin' => ['nullable', 'string', 'max:50'],
             'category_id' => ['sometimes', 'required', 'string', 'exists:categories,id'],
             'description' => ['sometimes', 'required', 'string', 'max:3000'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:1'],
@@ -47,6 +49,9 @@ final class UpdateSellerProductRequest extends FormRequest
             'certificate_number' => ['required_if:halal_status,certified', 'nullable', 'string', 'max:100'],
             'valid_until' => ['required_if:halal_status,certified', 'nullable', 'date'],
             'ingredients' => ['required_if:halal_status,certified', 'nullable', 'string', 'max:2000'],
+            'allergens' => ['nullable', 'string', 'max:500'],
+            'storage_condition' => ['nullable', 'string', 'max:100'],
+            'country_of_origin' => ['nullable', 'string', 'max:50'],
             'no_pork_alcohol_declared' => ['accepted_if:halal_status,certified', 'boolean'],
             'document_path' => ['nullable', 'string', 'max:255'],
             'weight' => ['sometimes', 'required', 'numeric', 'min:0.01'],

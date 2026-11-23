@@ -75,6 +75,12 @@ export type HalalCertificationData = {
 };
 
 export type ProductDetail = ProductCardData & {
+    brand?: string | null;
+    gtin?: string | null;
+    ingredients?: string | null;
+    allergens?: string | null;
+    storage_condition?: string | null;
+    country_of_origin?: string | null;
     description: string | null;
     stock: number;
     in_stock: boolean;

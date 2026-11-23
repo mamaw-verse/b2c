@@ -19,8 +19,14 @@ type Category = { id: number; name: string };
 type ProductData = {
     id: string;
     name: string;
+    brand?: string | null;
+    gtin?: string | null;
     category_id: number | null;
     description: string;
+    ingredients?: string | null;
+    allergens?: string | null;
+    storage_condition?: string | null;
+    country_of_origin?: string | null;
     price: number | null;
     sale_price?: number | null;
     was_price?: number | null;
@@ -128,6 +134,16 @@ export default function SellerProductForm({
 
     const isEditing = product !== null;
     const [name, setName] = useState(product?.name ?? '');
+    const [brand, setBrand] = useState(product?.brand ?? '');
+    const [gtin, setGtin] = useState(product?.gtin ?? '');
+    const [countryOfOrigin, setCountryOfOrigin] = useState(
+        product?.country_of_origin ?? '',
+    );
+    const [storageCondition, setStorageCondition] = useState(
+        product?.storage_condition ?? '',
+    );
+    const [ingredients, setIngredients] = useState(product?.ingredients ?? '');
+    const [allergens, setAllergens] = useState(product?.allergens ?? '');
     const [description, setDescription] = useState(product?.description ?? '');
     const [regularPrice, setRegularPrice] = useState<string | number>(
         product?.price ?? product?.variations?.[0]?.price ?? '',
@@ -269,6 +285,12 @@ export default function SellerProductForm({
                 encType="multipart/form-data"
                 transform={(data) => ({
                     ...data,
+                    brand: brand || null,
+                    gtin: gtin || null,
+                    country_of_origin: countryOfOrigin || null,
+                    storage_condition: storageCondition || null,
+                    ingredients: ingredients || null,
+                    allergens: allergens || null,
                     images: imageFiles,
                     keep_image_ids: existingImages.map((img) => img.id),
                     video: videoFile,
@@ -363,6 +385,132 @@ export default function SellerProductForm({
                                             maxLength={3000}
                                         />
                                     </FormField>
+                                </div>
+                            </section>
+
+                            {/* Product specifications (GEO / Answer engines - T4.8) */}
+                            <section className="panel p-4 md:p-6">
+                                <div className="mb-4">
+                                    <h2 className="text-h3">
+                                        Specifications & details
+                                    </h2>
+                                    <p className="text-body-sm text-muted-foreground">
+                                        Optional structured data used by search
+                                        engines, AI answer engines, and buyer
+                                        product filters.
+                                    </p>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <FormField
+                                        label="Brand"
+                                        error={errors.brand}
+                                    >
+                                        <Input
+                                            name="brand"
+                                            value={brand}
+                                            onChange={(e) =>
+                                                setBrand(e.target.value)
+                                            }
+                                            maxLength={100}
+                                            placeholder="e.g. Al Kabeer, Indomie"
+                                        />
+                                    </FormField>
+
+                                    <FormField
+                                        label="GTIN / Barcode (EAN / UPC)"
+                                        error={errors.gtin}
+                                    >
+                                        <Input
+                                            name="gtin"
+                                            value={gtin}
+                                            onChange={(e) =>
+                                                setGtin(e.target.value)
+                                            }
+                                            maxLength={50}
+                                            placeholder="e.g. 8991234567890"
+                                        />
+                                    </FormField>
+
+                                    <FormField
+                                        label="Country of origin"
+                                        error={errors.country_of_origin}
+                                    >
+                                        <Input
+                                            name="country_of_origin"
+                                            value={countryOfOrigin}
+                                            onChange={(e) =>
+                                                setCountryOfOrigin(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            maxLength={50}
+                                            placeholder="e.g. Philippines, Malaysia, Saudi Arabia"
+                                        />
+                                    </FormField>
+
+                                    <FormField
+                                        label="Storage condition"
+                                        error={errors.storage_condition}
+                                    >
+                                        <Input
+                                            name="storage_condition"
+                                            value={storageCondition}
+                                            onChange={(e) =>
+                                                setStorageCondition(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            maxLength={100}
+                                            placeholder="e.g. Keep frozen at -18°C, Store in cool dry place"
+                                        />
+                                    </FormField>
+
+                                    <div className="sm:col-span-2">
+                                        <FormField
+                                            label="Ingredients"
+                                            error={errors.ingredients}
+                                            counter={
+                                                <span className="text-caption text-muted-foreground">
+                                                    {ingredients.length}/2000
+                                                </span>
+                                            }
+                                        >
+                                            <TextArea
+                                                name="ingredients"
+                                                value={ingredients}
+                                                onChange={(e) =>
+                                                    setIngredients(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                rows={3}
+                                                maxLength={2000}
+                                                placeholder="List product ingredients..."
+                                            />
+                                        </FormField>
+                                    </div>
+
+                                    <div className="sm:col-span-2">
+                                        <FormField
+                                            label="Allergens"
+                                            error={errors.allergens}
+                                            counter={
+                                                <span className="text-caption text-muted-foreground">
+                                                    {allergens.length}/500
+                                                </span>
+                                            }
+                                        >
+                                            <Input
+                                                name="allergens"
+                                                value={allergens}
+                                                onChange={(e) =>
+                                                    setAllergens(e.target.value)
+                                                }
+                                                maxLength={500}
+                                                placeholder="e.g. Contains wheat, soy; may contain traces of nuts"
+                                            />
+                                        </FormField>
+                                    </div>
                                 </div>
                             </section>
 

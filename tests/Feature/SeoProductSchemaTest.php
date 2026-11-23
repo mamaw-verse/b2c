@@ -301,3 +301,48 @@ test('category and sellers listings reference the same @ids as the detail pages'
     expect($shopItem['@type'])->toBe('Store')
         ->and($shopItem['@id'])->toBe('http://localhost:8000/shops/al-barakah-mart#store');
 });
+
+// ---- T4.8 Product data fields for answer engines -------------------------
+
+test('product schema emits structured brand, gtin, country of origin, allergens and storage when provided', function () {
+    $this->product->update([
+        'brand' => 'Al Barakah Dates',
+        'gtin' => '8991234567890',
+        'country_of_origin' => 'Saudi Arabia',
+        'storage_condition' => 'Store in a cool dry place',
+        'allergens' => 'May contain traces of nuts and sesame',
+    ]);
+
+    $node = productNode($this->get('/products/premium-medjool-dates-500g')->assertOk());
+
+    expect($node['brand'])->toBe(['@type' => 'Brand', 'name' => 'Al Barakah Dates'])
+        ->and($node['gtin'])->toBe('8991234567890')
+        ->and($node['countryOfOrigin'])->toBe(['@type' => 'Country', 'name' => 'Saudi Arabia']);
+
+    $properties = collect($node['additionalProperty'] ?? []);
+    $allergens = $properties->firstWhere('name', 'Allergens');
+    $storage = $properties->firstWhere('name', 'Storage condition');
+    $origin = $properties->firstWhere('name', 'Country of origin');
+
+    expect($allergens)->toBe(['@type' => 'PropertyValue', 'name' => 'Allergens', 'value' => 'May contain traces of nuts and sesame'])
+        ->and($storage)->toBe(['@type' => 'PropertyValue', 'name' => 'Storage condition', 'value' => 'Store in a cool dry place'])
+        ->and($origin)->toBe(['@type' => 'PropertyValue', 'name' => 'Country of origin', 'value' => 'Saudi Arabia']);
+});
+
+test('product detail props include all structured data fields for initial page render', function () {
+    $this->product->update([
+        'brand' => 'Madinah Organic',
+        'gtin' => '9551234567890',
+        'country_of_origin' => 'Saudi Arabia',
+        'storage_condition' => 'Keep refrigerated after opening',
+        'allergens' => 'None',
+    ]);
+
+    $detail = $this->product->fresh()->toDetail();
+
+    expect($detail['brand'])->toBe('Madinah Organic')
+        ->and($detail['gtin'])->toBe('9551234567890')
+        ->and($detail['country_of_origin'])->toBe('Saudi Arabia')
+        ->and($detail['storage_condition'])->toBe('Keep refrigerated after opening')
+        ->and($detail['allergens'])->toBe('None');
+});

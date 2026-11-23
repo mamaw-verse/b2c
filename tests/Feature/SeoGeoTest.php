@@ -222,3 +222,41 @@ test('disabling AI crawler groups leaves only the wildcard group', function () {
         ->and($robots)->not->toContain('User-agent: OAI-SearchBot')
         ->and($robots)->toContain('User-agent: *');
 });
+
+// ---- T4.7 Entity consistency (off-site) -----------------------------------
+
+test('home Organization sameAs contains all configured social profiles', function () {
+    config([
+        'seo.social_profiles' => [
+            'https://www.facebook.com/halalbenta',
+            'https://www.instagram.com/halalbenta',
+            'https://www.youtube.com/@halalbenta',
+            'https://www.tiktok.com/@halalbenta',
+            'https://www.linkedin.com/company/halalbenta',
+            'https://maps.google.com/?cid=123456789',
+        ],
+    ]);
+
+    $home = geoJsonLd($this->get('/')->assertOk());
+    $org = geoNode($home, 'Organization');
+
+    expect($org)->not->toBeNull()
+        ->and($org['sameAs'])->toBe([
+            'https://www.facebook.com/halalbenta',
+            'https://www.instagram.com/halalbenta',
+            'https://www.youtube.com/@halalbenta',
+            'https://www.tiktok.com/@halalbenta',
+            'https://www.linkedin.com/company/halalbenta',
+            'https://maps.google.com/?cid=123456789',
+        ]);
+});
+
+test('home Organization sameAs is omitted when no social profiles are configured', function () {
+    config(['seo.social_profiles' => []]);
+
+    $home = geoJsonLd($this->get('/')->assertOk());
+    $org = geoNode($home, 'Organization');
+
+    expect($org)->not->toBeNull()
+        ->and($org)->not->toHaveKey('sameAs');
+});

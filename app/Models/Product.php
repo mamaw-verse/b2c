@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Storage;
  * @property string $shop_id
  * @property string $category_id
  * @property string $name
+ * @property string|null $brand
+ * @property string|null $gtin
  * @property string $slug
  * @property string|null $description
  * @property int $price
@@ -32,8 +34,10 @@ use Illuminate\Support\Facades\Storage;
  * @property float $rating
  * @property int $sold_count
  * @property string $location
+ * @property string|null $country_of_origin
  * @property bool $free_shipping
  * @property bool $frozen
+ * @property string|null $storage_condition
  * @property HalalStatus $halal_status
  * @property int $stock
  * @property string|null $option1_name
@@ -41,6 +45,7 @@ use Illuminate\Support\Facades\Storage;
  * @property bool $published
  * @property bool $hidden
  * @property string|null $ingredients
+ * @property string|null $allergens
  * @property bool $no_pork_alcohol_declared
  * @property float|null $weight
  * @property float|null $length
@@ -55,7 +60,7 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $affiliate_commission_bps
  * @property int $share_count
  */
-#[Fillable(['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'was_price', 'rating', 'sold_count', 'location', 'free_shipping', 'frozen', 'halal_status', 'stock', 'option1_name', 'option2_name', 'published', 'hidden', 'ingredients', 'no_pork_alcohol_declared', 'weight', 'length', 'width', 'height', 'video_media_id', 'video_path', 'video_duration', 'affiliate_enabled', 'affiliate_commission_bps'])]
+#[Fillable(['shop_id', 'category_id', 'name', 'brand', 'gtin', 'slug', 'description', 'price', 'was_price', 'rating', 'sold_count', 'location', 'country_of_origin', 'free_shipping', 'frozen', 'storage_condition', 'halal_status', 'stock', 'option1_name', 'option2_name', 'published', 'hidden', 'ingredients', 'allergens', 'no_pork_alcohol_declared', 'weight', 'length', 'width', 'height', 'video_media_id', 'video_path', 'video_duration', 'affiliate_enabled', 'affiliate_commission_bps'])]
 final class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -231,6 +236,12 @@ final class Product extends Model
     public function toDetail(): array
     {
         return $this->toCard() + [
+            'brand' => $this->brand,
+            'gtin' => $this->gtin,
+            'ingredients' => $this->ingredients,
+            'allergens' => $this->allergens,
+            'storage_condition' => $this->storage_condition,
+            'country_of_origin' => $this->country_of_origin,
             'description' => $this->description,
             'stock' => $this->stock,
             'in_stock' => $this->stock > 0,
