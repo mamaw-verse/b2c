@@ -6,10 +6,11 @@
         "build": "vp build",
         "build:ssr": "vp build && vp build --ssr",
         "dev": "vp dev",
-        "check": "vp check && node scripts/scan-violations.mjs && node tests/Unit/contrast.test.mjs && node tests/Unit/workspaces.test.mjs",
-        "scan": "node scripts/scan-violations.mjs && node tests/Unit/contrast.test.mjs && node tests/Unit/workspaces.test.mjs",
+        "check": "vp check && node scripts/scan-violations.mjs && node tests/Unit/contrast.test.mjs && node tests/Unit/workspaces.test.mjs && node tests/Unit/jsonld-validator.test.mjs",
+        "scan": "node scripts/scan-violations.mjs && node tests/Unit/contrast.test.mjs && node tests/Unit/workspaces.test.mjs && node tests/Unit/jsonld-validator.test.mjs",
         "check:fix": "vp check --fix",
-        "types:check": "tsc --noEmit"
+        "types:check": "tsc --noEmit",
+        "validate:jsonld": "node scripts/validate-jsonld.mjs"
     },
     "dependencies": {
         "@inertiajs/react": "^3.0.0",
