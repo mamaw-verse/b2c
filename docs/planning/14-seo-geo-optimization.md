@@ -8,9 +8,10 @@
 
 ## 0. Implementation status
 
-Foundational work (Phase 0 + the Phase 1 core) is implemented. Everything below is **un-run in CI**: it was written
-and linted (`php -l`, Pint) but the Pest suite still needs to be run locally (`php artisan test --compact --filter=Seo`
-and `tests/Unit/SchemaGraphTest.php`).
+Phase 0, Phase 1 and Phase 2 (rich entity schema) are implemented. Everything below is **un-run in CI**: it was written
+and linted (`php -l`, Pint) but the Pest suite still needs to be run locally
+(`php artisan test --compact --filter=Seo` and `tests/Unit/SchemaGraphTest.php`).
+Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`.
 
 | Task | Status | Notes |
 |---|---|---|
@@ -28,7 +29,15 @@ and `tests/Unit/SchemaGraphTest.php`).
 | T1.5 `WebPage` wrapper | Done | `BuildWebPageNode` on every page (`isPartOf`, `breadcrumb`, `primaryImageOfPage`, `mainEntity`). |
 | T1.6 Regression tests | Done | `tests/Feature/SeoTest.php` (graph validity, `@id` resolution, XSS, shop ratings, robots parity, sitemap lastmod) and `tests/Unit/SchemaGraphTest.php`. |
 | T4.1 AI-crawler policy | **Partly pulled forward** | `config('seo.ai_crawlers')` + generated robots groups (each repeats private disallows). Default: allow search/answer bots and training bots; set `SEO_BLOCK_AI_TRAINING=true` to block training crawlers. **Business decision still required; verify bot names with each vendor.** |
-| Phases 2, 3, 4 (rest), 5 | Not started | |
+| T2.1 Product node | Done | `BuildProductNode`: `@id`, `url`, full sanitized description (5,000 char cap; falls back to the meta description when empty), absolute `image[]`, `sku`, `brand` (shop name; no brand field exists), `category` path text, `weight` (`KGM`), `additionalProperty` for halal status, ingredients and certificate details, `hasCertification`. Certificate details are published only while the certificate is valid. `gtin`/`mpn` omitted (not stored, T4.8). |
+| T2.2 Offers, shipping, returns | Done (3 deviations) | `BuildOfferNode`: price, `PHP`, availability, `itemCondition`, `seller` → shop `@id`, `hasMerchantReturnPolicy` from `config('marketplace.return_window_days')` (0 → `MerchantReturnNotPermitted`). **Deviations:** (1) `priceValidUntil` is omitted, there is no price-expiry field and a rolling date would be invented; (2) `shippingDetails` is emitted only for `free_shipping` (rate `0.00`) because no per-product rate exists; handling time comes from `seller_terms.ship_within_days` when set; (3) the sale price uses `priceType: StrikethroughPrice` (Google's documented value) instead of `ListPrice`. Re-check all three in the Rich Results Test. |
+| T2.3 Variants | Done | Decision: **`ProductGroup` + `hasVariant`** (per-variant `sku`, `size`/`color`, own `Offer`), `variesBy` mapped to schema.org `size`/`color` when the option name matches. Variant URLs stay as `?variant=` deep links; the page canonical stays clean. |
+| T2.4 Reviews and ratings | Done (see note) | `BuildReviewNodes`: `aggregateRating` and up to 5 recent `Review` nodes from non-hidden reviews only; anonymous reviewers are `Anonymous`; seller replies are never emitted. **Note:** this is one aggregate query per render, not a stored `reviews_count` column. The visible page still reads `products.rating` and counts hidden reviews in `toDetail()`, so the on-page number can differ from the schema until that is aligned (follow-up). |
+| T2.5 Shop node | Done (kept `Store`) | `BuildShopNode` (extracted from the builder). Kept `@type: Store` so existing `@id`s and tests stay stable; added `areaServed` and a `hasOfferCatalog` outline of the categories the shop really sells in. Only city/region are published, never street address, postal code, contact, permit or payout data (test covers head and JSON-LD). There is still no seller opt-in for a public address. |
+| T2.6 Category and listing pages | Done | `BuildItemListNode` can emit typed `ListItem.item` stubs sharing the detail page's `@id`: Product stubs on categories, Store stubs on the sellers directory. Self-referencing canonicals and prev/next were already in place. |
+| T2.7 Shared breadcrumb | Done | Product breadcrumbs and `Product.category` now include every category ancestor (root first). |
+| T2.8 Video | **Deferred** | `VideoObject` needs a stable public `contentUrl` and a `thumbnailUrl`. Product videos are served through `media.view`, a short-lived signed redirect with `private` caching, and no thumbnail is stored. Revisit once videos have a stable public URL and poster image. |
+| Phases 3, 4 (rest), 5 | Not started | |
 
 **Erratum to G3.** `public/images/brand/logo.png` does exist (a 959×246 wordmark), so it was not a 404. It was still
 the wrong asset for `Organization.logo` (not square, and inconsistent with the other references), so all references
@@ -142,35 +151,35 @@ Phases 0 → 1 are sequential; 2, 3 and 4 can run in parallel after Phase 1.
 
 ## 5. Tasks
 
-Legend: **P** = priority (P0 must-do, P1 should, P2 nice). Each task lists files, work, and **acceptance criteria (AC)**.
+Legend: ✅ = done, ◐ = partly done, no mark = not started (see section 0 for notes). **P** = priority (P0 must-do, P1 should, P2 nice). Each task lists files, work, and **acceptance criteria (AC)**.
 
 ### Phase 0 — Stabilize
 
-**T0.1 (P0) — Remove committed static SEO artifacts**
+**✅ T0.1 (P0) — Remove committed static SEO artifacts**
 - Delete `public/robots.txt`, `public/sitemap.xml`, `public/sitemap-pages.xml`, `public/sitemap-categories.xml`, `public/sitemap-shops.xml`, `public/sitemap-products-1.xml`.
 - Add them to `.gitignore` so a local `curl` dump is never committed again.
 - Confirm in the deployed environment (nginx/Caddy `try_files`) that `/sitemap.xml` and `/robots.txt` now reach Laravel.
 - **AC:** `curl -s https://<prod>/sitemap.xml` shows production-origin URLs; `git ls-files public | grep -E "sitemap|robots"` returns nothing.
 
-**T0.2 (P0) — Fix missing `@context` immediately (hotfix before the refactor)**
+**✅ T0.2 (P0) — Fix missing `@context` immediately (hotfix before the refactor)**
 - Short-term: in `app.blade.php`, wrap `$seo->jsonLd` so that a list of nodes becomes `{"@context":"https://schema.org","@graph":[...]}` unless it already has `@context`.
 - **AC:** every page's JSON-LD parses and contains `@context` and a `@graph`; add the Pest assertion in T1.6 now as a regression test.
 
-**T0.3 (P0) — Create `config/seo.php` and centralize indexability**
+**✅ T0.3 (P0) — Create `config/seo.php` and centralize indexability**
 - Keys: `force_noindex`, `site_name`, `locale`, `default_og_image`, `logo_url`, `social_profiles`, `private_path_patterns`, `disallowed_query_params`, `ai_crawlers` (allow/deny map), `contact` (email/phone for Organization).
 - Make `RobotsController`, `SeoData::isPrivatePath()` and `EnforceSeoStandards` read the same lists.
 - **AC:** changing a pattern in one place changes robots.txt, meta robots and `X-Robots-Tag` together; test proves parity.
 
-**T0.4 (P0) — Fix logo / brand image URLs**
+**✅ T0.4 (P0) — Fix logo / brand image URLs**
 - Pick one canonical logo (recommend a ≥112×112 square PNG; `public/brand/halalbenta-icon-512.png` already exists) and expose it via `config('seo.logo_url')`.
 - Replace `/images/brand/logo.png` in `BuildHomeSeoData`, `BuildProductSeoMeta` and any other reference.
 - **AC:** `grep -rn "images/brand/logo.png" app` is empty; a test does a `HEAD` on every image URL emitted on the home page and expects 200.
 
-**T0.5 (P0) — Stop using followers as review count**
+**✅ T0.5 (P0) — Stop using followers as review count**
 - `BuildShopSeoData`: emit `aggregateRating` only when the shop has real reviews (count from `reviews` joined through products/orders, or a stored `reviews_count`). Never fall back to `followers_count`.
 - **AC:** shop with followers but zero reviews has no `aggregateRating`; shop with N real reviews shows `reviewCount = N`.
 
-**T0.6 (P1) — Real `lastmod` in sitemaps**
+**✅ T0.6 (P1) — Real `lastmod` in sitemaps**
 - Index: use `max(updated_at)` per child sitemap, not `now()`.
 - Pages/categories/shops: use model `updated_at`.
 - Invalidate caches via the existing `InvalidateSitemapCache` on product/shop/category changes (verify it's wired to model events).
@@ -183,62 +192,62 @@ Legend: **P** = priority (P0 must-do, P1 should, P2 nice). Each task lists files
 
 ### Phase 1 — Schema graph foundation
 
-**T1.1 (P0) — `SchemaGraph` + `SchemaId`**
+**✅ T1.1 (P0) — `SchemaGraph` + `SchemaId`**
 - Implement `add(array $node)`, `ref(string $id)`, de-dupe by `@id`, strip null/empty values recursively, `toArray()` returning `@context` + `@graph`.
 - Unit tests: de-dupe, null stripping, stable ids.
 
-**T1.2 (P0) — Sitewide nodes (Organization, WebSite)**
+**✅ T1.2 (P0) — Sitewide nodes (Organization, WebSite)**
 - `Organization` with `@id`, `name`, `url`, `logo` (`ImageObject` with width/height), `sameAs` (from `config('seo.social_profiles')`), `contactPoint` (customer support), `areaServed: PH`, `knowsAbout` (halal food, modest fashion, prayer essentials), and `slogan`/`description`.
 - `WebSite` with `@id`, `publisher` → Organization `@id`, `inLanguage: en-PH`, and `SearchAction` using `EntryPoint` (the home builder already does this; the fallback in `SeoData` uses the older string form, so align both).
 - Emit on **home only** in full; other pages reference `{"@id": ".../#organization"}`.
 
-**T1.3 (P0) — Migrate all builders onto `SchemaGraph`**
+**✅ T1.3 (P0) — Migrate all builders onto `SchemaGraph`**
 Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCategorySeoData`, `BuildShopSeoData`, `BuildSellersSeoData`, `BuildContentPageSeoData`, `BuildWhyChooseUsSeoData`, `BuildSellerTermsSeoData`; keep `SeoData::$jsonLd` typed as `array<string,mixed>` (the full `@context` document).
 
-**T1.4 (P0) — Safe Blade output**
+**✅ T1.4 (P0) — Safe Blade output**
 - Render via a small Blade component/`@json`-style helper using the hex-escape flags in section 3.
 - **AC:** a product named `</script><script>alert(1)</script>` renders harmlessly (test).
 
-**T1.5 (P1) — `WebPage` wrapper node on every page**
+**✅ T1.5 (P1) — `WebPage` wrapper node on every page**
 - `WebPage` / `CollectionPage` / `ProfilePage`-style node with `@id`, `url`, `name`, `isPartOf` → WebSite, `breadcrumb` → BreadcrumbList `@id`, `primaryImageOfPage`, `datePublished`/`dateModified`, `inLanguage`.
 
-**T1.6 (P0) — Regression tests**
+**✅ T1.6 (P0) — Regression tests**
 - Extend `tests/Feature/SeoTest.php`: for each public route, parse the JSON-LD and assert `@context`, `@graph`, unique `@id`s, every `@id` reference resolves within the graph or to the sitewide ids, and no empty values.
 
 ### Phase 2 — Rich entity schema
 
-**T2.1 (P0) — Product node**
+**✅ T2.1 (P0) — Product node**
 - `@id`, `url`, `name`, **full** sanitized description (not the meta description), `image[]` (absolute, ≥3 sizes where available), `sku`, `mpn` only if stored, `gtin` only if stored, `brand` → Brand (shop name or real brand field), `category` (breadcrumb path text), `weight` (`QuantitativeValue`, from `weight` column), `material`/`ingredients` where present (the product has an `ingredients` field).
 - Halal signals: `additionalProperty` `PropertyValue` entries (`Halal status`, `Certifying body`, `Certificate number`, `Valid until`) from `halalCertification`, plus `hasCertification`/`Certification` where the certifying body is known. Only when the certificate is currently valid.
 - **AC:** Rich Results Test passes for Product snippets and Merchant listings with no errors.
 
-**T2.2 (P0) — Offers, availability, shipping and returns**
+**✅ T2.2 (P0) — Offers, availability, shipping and returns**
 - `Offer`: `price`, `priceCurrency: PHP`, `availability` (InStock/OutOfStock; map `frozen`/preorder if applicable), `itemCondition: NewCondition`, `priceValidUntil`, `url`, `seller` → shop `@id`.
 - `shippingDetails` (`OfferShippingDetails`): `shippingDestination` PH, `shippingRate` (`0` when `free_shipping`), `deliveryTime` from courier config if available.
 - `hasMerchantReturnPolicy`: `MerchantReturnPolicy` using `config('marketplace.return_window_days')` (7 by default), `applicableCountry: PH`, `returnPolicyCategory: MerchantReturnFiniteReturnWindow`.
 - Sale pricing: when `was_price` exists, emit `priceSpecification` with a `ListPrice`-type `UnitPriceSpecification` so strike-through pricing is represented.
 - **AC:** Offer values match the visible page values exactly (add a test comparing against `product->toDetail()`).
 
-**T2.3 (P1) — Variants**
+**✅ T2.3 (P1) — Variants**
 - Decision: use `ProductGroup` + `hasVariant` (with `variesBy`, one `Product` per variation with its own `sku`, `Offer`) instead of multiple Offers with `?variant=` URLs, *or* keep a single Product with `AggregateOffer` (`lowPrice`, `highPrice`, `offerCount`). Recommend `ProductGroup` since option names (`option1_name`, `option2_name`) exist.
 - Keep canonical on the clean product URL; do not index variant URLs.
 
-**T2.4 (P0) — Reviews and ratings (honest)**
+**✅ T2.4 (P0) — Reviews and ratings (honest)**
 - `aggregateRating` only when `reviews_count ≥ 1` (use a stored count or cached counter instead of `$product->reviews()->count()` on every render).
 - Add up to ~5 recent `Review` nodes (`author` Person or "Anonymous" respecting the existing `anonymous` flag, `datePublished`, `reviewRating`, `reviewBody`).
 - Do **not** emit seller replies as reviews. Do not self-serve ratings from the seller's own data.
 - **AC:** ratings match the visible page; anonymous reviewers never expose names.
 
-**T2.5 (P1) — Shop node**
+**✅ T2.5 (P1) — Shop node**
 - Type: `OnlineStore` (or `Store`) with `@id`, `url`, `name`, `description`, `logo`/`image`, `address` (`PostalAddress` from `address_line`, `city`, `state`, `postal_code`, `PH`; only publish if the shop opted in to a public address), `areaServed`, `parentOrganization`/`memberOf` → marketplace Organization, `makesOffer`/`hasOfferCatalog` linking to category ItemLists.
 - Never emit `contact_number`, bank, ID or business-permit data. Add a test proving none of the private registration fields appear in any JSON-LD or meta tag.
 
-**T2.6 (P1) — Category and listing pages**
+**✅ T2.6 (P1) — Category and listing pages**
 - Keep `CollectionPage` + `ItemList`; make `itemListElement` entries reference Product `@id`s with `ListItem.item` as `Product` stubs (`url`, `name`, `image`), and keep paginated pages (`?page=N`) with self-referencing canonicals (already done) and correct `prev`/`next`.
 - Note: Google no longer uses `rel=prev/next` for indexing, but it's harmless; keep it.
 - Sellers directory: `CollectionPage` with `ItemList` of shop `@id`s.
 
-**T2.7 (P1) — Breadcrumbs as a shared node**
+**✅ T2.7 (P1) — Breadcrumbs as a shared node**
 - One `BuildBreadcrumbNode` used everywhere. Include category ancestors for products (currently only the leaf category) and the parent category in category pages (already present).
 
 **T2.8 (P2) — Video**
@@ -280,7 +289,7 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 
 ### Phase 4 — GEO layer
 
-**T4.1 (P0) — AI-crawler policy in `robots.txt`**
+**◐ T4.1 (P0) — AI-crawler policy in `robots.txt`**
 - Decide policy with the business, then encode in `config/seo.php['ai_crawlers']`. Suggested default: **allow** search/answer bots and user-triggered fetchers so the marketplace can be cited (`OAI-SearchBot`, `ChatGPT-User`, `PerplexityBot`, `Perplexity-User`, `Claude-SearchBot`, `Claude-User`, `Googlebot`, `Bingbot`); make training crawlers a **toggle** (`GPTBot`, `ClaudeBot`, `Google-Extended`, `CCBot`, `Applebot-Extended`, `Bytespider`).
 - Keep `Disallow` for private routes under every named agent (a named `User-agent` group replaces the `*` group for that bot, so rules must be repeated).
 - Verify bot names against each vendor's current documentation before shipping; they change.
@@ -380,9 +389,9 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 |---|---|
 | AI-crawler policy | Allow-for-citation vs. block-for-training is a business decision (T4.1). |
 | Shop public address | Registration collects addresses; confirm sellers consent to publishing them in schema (T2.5). |
-| Review data model | Confirm whether a stored `reviews_count` exists or must be added for shops/products (T0.5, T2.4). |
+| Review data model | No stored `reviews_count` exists; schema aggregates non-hidden reviews per render (T0.5, T2.4). Decide whether to add a cached counter, and align the visible page's rating/count with it. |
 | Brand / GTIN data | Not collected today; schema will omit them until sellers can supply them (T4.8). |
-| Variant strategy | `ProductGroup` vs `AggregateOffer` (T2.3); pick before coding. |
+| Variant strategy | Decided: `ProductGroup` + `hasVariant` (T2.3). |
 | FAQ rich results | Not expected for a marketplace under current Google policy; value is for answer engines (T4.4). |
 | SSR in production | Verify it is actually running (T0.7); GEO value drops sharply without server-rendered body content. |
 | Search/vendor behavior drifts | Crawler names, Google structured-data requirements and Merchant Center rules change; re-verify against current docs when implementing each phase. |

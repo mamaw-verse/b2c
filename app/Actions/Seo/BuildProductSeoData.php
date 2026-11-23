@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildProductNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Enums\HalalStatus;
 use App\Models\Product;
@@ -146,62 +147,28 @@ final readonly class BuildProductSeoData
             ? ['@type' => 'Organization', '@id' => SchemaId::shop($shop->slug), 'name' => $shopName]
             : ['@type' => 'Organization', 'name' => $shopName];
 
-        $offers = [];
-        if ($product->variations->isNotEmpty()) {
-            foreach ($product->variations as $variation) {
-                $varPesos = ($variation->price ?? $product->price) / 100;
-                $varName = $variation->option1_value.($variation->option2_value ? " / {$variation->option2_value}" : '');
-                $offers[] = [
-                    '@type' => 'Offer',
-                    'name' => $varName,
-                    'price' => number_format($varPesos, 2, '.', ''),
-                    'priceCurrency' => 'PHP',
-                    'availability' => $variation->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-                    'url' => "{$canonical}?variant={$variation->id}",
-                    'seller' => $seller,
-                ];
-            }
-        } else {
-            $offers[] = [
-                '@type' => 'Offer',
-                'price' => $decimalPrice,
-                'priceCurrency' => 'PHP',
-                'availability' => $inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-                'url' => $canonical,
-                'seller' => $seller,
-            ];
-        }
-
-        $productSchema = [
-            '@type' => 'Product',
-            '@id' => SchemaId::product($product->slug),
-            'url' => $canonical,
-            'name' => $product->name,
-            'description' => $description,
-            'image' => $images,
-            'sku' => (string) $product->id,
-            'brand' => [
-                '@type' => 'Brand',
-                'name' => $shopName,
-            ],
-            'offers' => count($offers) === 1 ? $offers[0] : $offers,
-        ];
-
-        $reviewCount = $product->reviews()->count();
-        if ($reviewCount > 0 && $product->rating > 0) {
-            $productSchema['aggregateRating'] = [
-                '@type' => 'AggregateRating',
-                'ratingValue' => number_format((float) $product->rating, 1, '.', ''),
-                'reviewCount' => $reviewCount,
-            ];
+        // Category ancestors (root first) feed both the breadcrumb and Product.category.
+        $categoryChain = [];
+        for ($node = $category, $depth = 0; $node !== null && $depth < 6; $node = $node->parent, $depth++) {
+            array_unshift($categoryChain, $node);
         }
 
         $trail = [['name' => 'Home', 'url' => "{$origin}/"]];
-        if ($category !== null) {
-            $trail[] = ['name' => $category->name, 'url' => "{$origin}/categories/{$category->slug}"];
+        foreach ($categoryChain as $ancestor) {
+            $trail[] = ['name' => $ancestor->name, 'url' => "{$origin}/categories/{$ancestor->slug}"];
         }
         $trail[] = ['name' => $product->name, 'url' => $canonical];
         $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, $trail);
+
+        $productSchema = resolve(BuildProductNode::class)->handle(
+            product: $product,
+            canonical: $canonical,
+            images: $images,
+            fallbackDescription: $description,
+            seller: $seller,
+            categoryPath: array_map(fn ($c) => $c->name, $categoryChain),
+            brandName: $shopName,
+        );
 
         $graph = SchemaGraph::make()
             ->add(resolve(BuildWebPageNode::class)->handle(

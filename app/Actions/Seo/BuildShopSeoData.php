@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildShopNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Enums\ShopStatus;
-use App\Models\Product;
-use App\Models\Review;
 use App\Models\Shop;
 use App\Support\Schema\SchemaGraph;
-use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -59,41 +57,7 @@ final readonly class BuildShopSeoData
             ['name' => $shop->name, 'url' => $canonical],
         ]);
 
-        // JSON-LD Store, linked to the marketplace Organization
-        $storeSchema = [
-            '@type' => 'Store',
-            '@id' => SchemaId::shop($shop->slug),
-            'name' => $shop->name,
-            'url' => $canonical,
-            'description' => $description,
-            'image' => $socialImage,
-            'logo' => ($shop->logo_url !== null && $shop->logo_url !== '') ? SeoData::absoluteUrl($shop->logo_url) : null,
-            'parentOrganization' => SchemaGraph::ref(SchemaId::organization()),
-            'address' => $city !== '' ? [
-                '@type' => 'PostalAddress',
-                'addressLocality' => $city,
-                'addressCountry' => 'PH',
-            ] : null,
-        ];
-
-        // Ratings come from real, visible product reviews only. Followers are not reviews.
-        $reviewStats = Review::query()
-            ->where('hidden', false)
-            ->whereIn('product_id', Product::query()->where('shop_id', $shop->id)->select('id'))
-            ->selectRaw('COUNT(*) as review_count, AVG(rating) as average_rating')
-            ->toBase()
-            ->first();
-
-        $reviewCount = (int) ($reviewStats->review_count ?? 0);
-        if ($reviewCount > 0) {
-            $storeSchema['aggregateRating'] = [
-                '@type' => 'AggregateRating',
-                'ratingValue' => number_format((float) $reviewStats->average_rating, 1, '.', ''),
-                'reviewCount' => $reviewCount,
-                'bestRating' => 5,
-                'worstRating' => 1,
-            ];
-        }
+        $storeSchema = resolve(BuildShopNode::class)->handle($shop, $canonical, $description, $socialImage);
 
         $graph = SchemaGraph::make()
             ->add(resolve(BuildWebPageNode::class)->handle(

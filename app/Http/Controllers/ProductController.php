@@ -25,7 +25,7 @@ final class ProductController
         BuildProductSeoData $buildSeoData,
         Seo $seo
     ): Response {
-        $product->load(['shop', 'category', 'variations', 'images', 'halalCertification', 'video']);
+        $product->load(['shop', 'category.parent', 'variations', 'images', 'halalCertification', 'video']);
 
         $seoData = $buildSeoData->handle($product, $request);
         $seo->set($seoData);

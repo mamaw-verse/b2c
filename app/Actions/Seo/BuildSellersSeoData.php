@@ -10,6 +10,7 @@ use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Enums\ShopStatus;
 use App\Models\Shop;
 use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 use Illuminate\Http\Request;
 
@@ -57,6 +58,8 @@ final readonly class BuildSellersSeoData
         $items = [];
         foreach ($activeShops as $shop) {
             $items[] = [
+                'type' => 'Store',
+                'id' => SchemaId::shop($shop->slug),
                 'url' => "{$origin}/shops/{$shop->slug}",
                 'name' => $shop->name,
                 'image' => SeoData::absoluteUrl($shop->logo_url ?? "/social/shop/{$shop->slug}.jpg"),

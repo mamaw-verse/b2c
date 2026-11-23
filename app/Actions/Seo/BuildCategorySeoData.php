@@ -10,6 +10,7 @@ use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Models\Category;
 use App\Models\Product;
 use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 use Illuminate\Http\Request;
 
@@ -69,6 +70,8 @@ final readonly class BuildCategorySeoData
         $items = [];
         foreach ($products as $product) {
             $items[] = [
+                'type' => 'Product',
+                'id' => SchemaId::product($product->slug),
                 'url' => "{$origin}/products/{$product->slug}",
                 'name' => $product->name,
                 'image' => SeoData::absoluteUrl($product->images->firstWhere('url', '!=', '')?->url ?? "/social/product/{$product->slug}.jpg"),
