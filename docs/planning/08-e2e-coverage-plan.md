@@ -278,8 +278,8 @@ Order matters: T1 → T2 → rest. Each task is one commit.
 
 - [x] T1 Turnstile helper and smoke fix
 - [x] T2 seed helpers
-- [ ] T3 `auth-google-turnstile.spec.ts`
-- [ ] T4 `seo.spec.ts`
+- [x] T3 `auth-google-turnstile.spec.ts`
+- [x] T4 `seo.spec.ts`
 - [ ] T5 `multi-shop.spec.ts`
 - [ ] T6 `seller-products.spec.ts` extension
 - [ ] T7 PDP and cart extensions
