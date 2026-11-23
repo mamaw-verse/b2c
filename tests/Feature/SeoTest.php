@@ -46,7 +46,7 @@ test('home page renders complete SEO and social tags with Organization and WebSi
     $response = $this->get('/');
 
     $response->assertOk();
-    $response->assertSee('<title>HalalBenta – Verified Halal Marketplace in the Philippines</title>', false);
+    expect($response->getContent())->toMatch('/<title[^>]*>HalalBenta – Verified Halal Marketplace in the Philippines<\/title>/');
     $response->assertSee('<meta name="description" content="Shop verified halal food, meat &amp; seafood, dates &amp; sweets, modest fashion, prayer essentials and more. Escrow-protected checkout, delivered across the Philippines.">', false);
     $response->assertSee('<link rel="canonical" href="http://localhost:8000/">', false);
     $response->assertSee('<meta property="og:site_name" content="HalalBenta">', false);

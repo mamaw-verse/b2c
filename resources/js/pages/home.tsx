@@ -40,7 +40,7 @@ export default function Home({
     halalCertificationUrl?: string | null;
     b2bUrl?: string | null;
 }) {
-    const { marketplace: m, auth } = usePage().props;
+    const { marketplace: m, auth, seo } = usePage().props;
     const trust: [LucideIcon, string, string][] = [
         ...(m.claims.halal_verification && m.trust.certificates
             ? ([
@@ -71,7 +71,12 @@ export default function Home({
 
     return (
         <>
-            <Head title="Home" />
+            <Head
+                title={
+                    seo?.title ??
+                    'HalalBenta – Verified Halal Marketplace in the Philippines'
+                }
+            />
             <div>
                 <div className="pt-4">
                     <div className="relative overflow-hidden rounded-hero bg-surface-hero p-5 md:p-8">

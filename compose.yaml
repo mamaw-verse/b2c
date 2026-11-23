@@ -28,6 +28,22 @@ services:
             - redis
             - minio
             - typesense
+            - ssr
+    ssr:
+        image: 'sail-8.5/app'
+        command: ['node', '/var/www/html/bootstrap/ssr/app.js']
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - 'curl -sf http://localhost:13714/health || exit 1'
+            interval: 10s
+            retries: 5
+            start_period: 10s
+            timeout: 5s
     pgsql:
         image: 'postgres:18-alpine'
         ports:

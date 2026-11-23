@@ -24,25 +24,25 @@ final readonly class BuildItemListNode
                 $elements[] = [
                     '@type' => 'ListItem',
                     'position' => $position + 1,
-                    'item' => [
+                    'item' => array_filter([
                         '@type' => $item['type'],
                         '@id' => $item['id'],
                         'url' => $item['url'],
                         'name' => $item['name'],
                         'image' => $item['image'] ?? null,
-                    ],
+                    ], fn ($v) => $v !== null && $v !== ''),
                 ];
 
                 continue;
             }
 
-            $elements[] = [
+            $elements[] = array_filter([
                 '@type' => 'ListItem',
                 'position' => $position + 1,
                 'url' => $item['url'],
                 'name' => $item['name'],
                 'image' => $item['image'] ?? null,
-            ];
+            ], fn ($v) => $v !== null && $v !== '');
         }
 
         return [

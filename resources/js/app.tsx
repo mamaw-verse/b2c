@@ -11,7 +11,17 @@ import SettingsLayout from '@/layouts/settings/layout';
 const appName = import.meta.env.VITE_APP_NAME || 'HalalBenta';
 
 void createInertiaApp({
-    title: (title) => (title ? `${title} · ${appName}` : appName),
+    title: (title) => {
+        if (!title) {
+            return appName;
+        }
+
+        if (title === appName || title.includes(appName)) {
+            return title;
+        }
+
+        return `${title} · ${appName}`;
+    },
     layout: (name) => {
         switch (true) {
             case name.startsWith('auth/'):
