@@ -36,7 +36,7 @@ final readonly class BuildOfferNode
             'availability' => $inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
             'itemCondition' => 'https://schema.org/NewCondition',
             'seller' => $seller,
-            'hasMerchantReturnPolicy' => $this->returnPolicy(),
+            'hasMerchantReturnPolicy' => resolve(BuildReturnPolicyNode::class)->handle(),
             'shippingDetails' => $freeShipping ? $this->freeShipping() : null,
         ];
 
@@ -55,31 +55,6 @@ final readonly class BuildOfferNode
     private function decimal(int $centavos): string
     {
         return number_format($centavos / 100, 2, '.', '');
-    }
-
-    /**
-     * Window comes from config('marketplace.return_window_days') so page copy and schema cannot disagree.
-     *
-     * @return array<string, mixed>
-     */
-    private function returnPolicy(): array
-    {
-        $days = (int) config('marketplace.return_window_days', 7);
-
-        if ($days <= 0) {
-            return [
-                '@type' => 'MerchantReturnPolicy',
-                'applicableCountry' => 'PH',
-                'returnPolicyCategory' => 'https://schema.org/MerchantReturnNotPermitted',
-            ];
-        }
-
-        return [
-            '@type' => 'MerchantReturnPolicy',
-            'applicableCountry' => 'PH',
-            'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
-            'merchantReturnDays' => $days,
-        ];
     }
 
     /**

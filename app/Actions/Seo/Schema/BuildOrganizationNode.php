@@ -46,6 +46,7 @@ final readonly class BuildOrganizationNode
             'sameAs' => array_values(config()->array('seo.social_profiles', [])),
             'contactPoint' => $contactPoint,
             'areaServed' => config('seo.area_served'),
+            'hasMerchantReturnPolicy' => resolve(BuildReturnPolicyNode::class)->handle(),
             'knowsAbout' => config()->array('seo.knows_about', []),
         ];
     }

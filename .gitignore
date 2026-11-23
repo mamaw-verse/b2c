@@ -53,6 +53,8 @@ tests/e2e/package-lock.json
 
 # Generated SEO artifacts: served dynamically by Laravel (see docs/planning/14). Never commit curl dumps.
 /public/robots.txt
+/public/llms.txt
+/public/llms-full.txt
 /public/sitemap*.xml
 /public/llms.txt
 /public/llms-full.txt

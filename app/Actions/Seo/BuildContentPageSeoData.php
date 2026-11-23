@@ -9,6 +9,7 @@ use App\Actions\Seo\Schema\BuildOrganizationNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Support\Schema\SchemaGraph;
 use App\Support\SeoData;
+use App\Support\TrustFacts;
 
 final readonly class BuildContentPageSeoData
 {
@@ -23,8 +24,12 @@ final readonly class BuildContentPageSeoData
         $pageTitle = (string) ($pageData['title'] ?? ucfirst(str_replace('-', ' ', $pageKey)));
         $title = "{$pageTitle} | HalalBenta";
 
+        $returnsDescription = 'Learn about returns and refunds on HalalBenta. '
+            .(TrustFacts::returnWindowShort() ?? 'Check how return requests are handled')
+            .', resolve disputes, and enjoy escrow-protected buyer protection.';
+
         $descriptions = [
-            'returns' => 'Learn about returns and refunds on HalalBenta. Request returns within 7 days, resolve disputes, and enjoy escrow-protected buyer protection.',
+            'returns' => $returnsDescription,
             'help' => 'HalalBenta Help Centre. Find answers to frequently asked questions about orders, payments, shipping, halal verification, and customer support.',
             'about' => 'About HalalBenta – the Philippines’ verified halal online marketplace connecting conscious consumers with trusted halal sellers and official brands.',
             'terms' => 'Read the HalalBenta customer Terms of Service outlining marketplace guidelines, user obligations, escrow protection, and acceptable use policies.',

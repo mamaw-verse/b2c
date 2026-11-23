@@ -8,10 +8,10 @@
 
 ## 0. Implementation status
 
-Phase 0, Phase 1, Phase 2 (rich entity schema) and most of Phase 3 (social/AI preview tags) are implemented. Everything below is **un-run in CI**: it was written
+Phase 0, Phase 1, Phase 2 (rich entity schema), most of Phase 3 (social/AI preview tags) and the first Phase 4 group (T4.1–T4.3: AI-crawler policy, `/llms.txt`, shared trust facts) are implemented. Everything below is **un-run in CI**: it was written
 and linted (`php -l`, Pint) but the Pest suite still needs to be run locally
 (`php artisan test --compact --filter=Seo` and `tests/Unit/SchemaGraphTest.php`).
-Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in `tests/Feature/SeoSocialTagsTest.php`.
+Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in `tests/Feature/SeoSocialTagsTest.php`, Phase 4 tests in `tests/Feature/SeoGeoTest.php`.
 
 | Task | Status | Notes |
 |---|---|---|
@@ -28,7 +28,9 @@ Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in
 | T1.4 Safe Blade output | Done | `SchemaGraph::encode()` uses `JSON_HEX_TAG\|JSON_HEX_AMP`. |
 | T1.5 `WebPage` wrapper | Done | `BuildWebPageNode` on every page (`isPartOf`, `breadcrumb`, `primaryImageOfPage`, `mainEntity`). |
 | T1.6 Regression tests | Done | `tests/Feature/SeoTest.php` (graph validity, `@id` resolution, XSS, shop ratings, robots parity, sitemap lastmod) and `tests/Unit/SchemaGraphTest.php`. |
-| T4.1 AI-crawler policy | **Partly pulled forward** | `config('seo.ai_crawlers')` + generated robots groups (each repeats private disallows). Default: allow search/answer bots and training bots; set `SEO_BLOCK_AI_TRAINING=true` to block training crawlers. **Business decision still required; verify bot names with each vendor.** |
+| T4.1 AI-crawler policy | Done (business decision + vendor-name check still open) | `config('seo.ai_crawlers')` + generated robots groups (each repeats private disallows). Default: allow search/answer bots and training bots; set `SEO_BLOCK_AI_TRAINING=true` to block training crawlers, `SEO_AI_CRAWLER_GROUPS=false` to emit only the `*` group. Tests in `SeoTest.php` (private disallows per agent, training block) and `SeoGeoTest.php` (search bots allowed, groups off). **Business decision still required; verify bot names with each vendor before launch.** |
+| T4.2 `/llms.txt` | Done | `BuildLlmsTxt` + `LlmsTxtController`, route `llms.txt`. Markdown: site summary, key facts, top-level categories, enabled content pages, why-choose-us, seller terms, sellers directory, sitemap. Cached 1 h under `llms:txt` and cleared by `InvalidateSitemapCache` (so category/shop/product changes refresh it). **404 outside production or when `SEO_FORCE_NOINDEX` is on**, same rule as robots. Only public routes are linked and no private shop fields are ever read. `/public/llms*.txt` added to `.gitignore` and covered by a no-shadow test. `/llms-full.txt` not built (optional, no clear value yet). |
+| T4.3 Trust and policy facts | Done (see notes) | New `TrustFacts` is the single source for return window, escrow, coverage, couriers, payments, seller approval and (flag-gated) halal verification. It feeds `/llms.txt`, a new shared `BuildReturnPolicyNode` (used by `BuildOfferNode` and now `BuildOrganizationNode.hasMerchantReturnPolicy`) and the `returns` page meta description (which hard-coded "7 days" before). `Organization.areaServed` was already present. **Notes:** (1) the halal-verification fact is emitted only when `MARKETPLACE_CLAIM_HALAL_VERIFICATION=true`, matching how the footer gates it; (2) escrow is stated unconditionally because it is already advertised sitewide, but the static `config('seo.description')` and the other builders' hard-coded descriptions still say it in their own words, so a future escrow flag would need to cover those too; (3) delivery wording is deliberately generic ("across the Philippines", fees at checkout) because there is no per-region delivery-time data. |
 | T2.1 Product node | Done | `BuildProductNode`: `@id`, `url`, full sanitized description (5,000 char cap; falls back to the meta description when empty), absolute `image[]`, `sku`, `brand` (shop name; no brand field exists), `category` path text, `weight` (`KGM`), `additionalProperty` for halal status, ingredients and certificate details, `hasCertification`. Certificate details are published only while the certificate is valid. `gtin`/`mpn` omitted (not stored, T4.8). |
 | T2.2 Offers, shipping, returns | Done (3 deviations) | `BuildOfferNode`: price, `PHP`, availability, `itemCondition`, `seller` → shop `@id`, `hasMerchantReturnPolicy` from `config('marketplace.return_window_days')` (0 → `MerchantReturnNotPermitted`). **Deviations:** (1) `priceValidUntil` is omitted, there is no price-expiry field and a rolling date would be invented; (2) `shippingDetails` is emitted only for `free_shipping` (rate `0.00`) because no per-product rate exists; handling time comes from `seller_terms.ship_within_days` when set; (3) the sale price uses `priceType: StrikethroughPrice` (Google's documented value) instead of `ListPrice`. Re-check all three in the Rich Results Test. |
 | T2.3 Variants | Done | Decision: **`ProductGroup` + `hasVariant`** (per-variant `sku`, `size`/`color`, own `Offer`), `variesBy` mapped to schema.org `size`/`color` when the option name matches. Variant URLs stay as `?variant=` deep links; the page canonical stays clean. |
@@ -44,7 +46,7 @@ Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in
 | T3.5 Share-link hygiene | Done | Clean canonical route provided in Inertia share props; canonical URL builder strips tracking parameters (UTM, fbclid, etc.); test covers parity. |
 | T3.6 AI preview meta | Done | Added `<meta name="author">` on content and editorial pages (`halal-verification`, `about`, `terms`, `privacy`, `why-choose-us`); preview robots directives and titles active. |
 | T3.7 Favicon and app signals | Done | 180×180 apple-touch-icon verified, 32×32 PNG icon generated (`/favicon-32x32.png`), added `<meta name="application-name">`, and updated `manifest.webmanifest` with `id: "/"`, `lang: "en-PH"`, and `categories: ["shopping"]`. |
-| Phases 4 (rest), 5 | Not started | |
+| T4.4–T4.8, Phase 5 | Not started | Next Phase 4 group: T4.5 (`Article` fields, needs real dates), T4.4 (FAQ blocks, needs copy), T4.7 (env), then T4.6/T0.7 (SSR) and T4.8 (product data fields, needs a migration). |
 
 **Erratum to G3.** `public/images/brand/logo.png` does exist (a 959×246 wordmark), so it was not a 404. It was still
 the wrong asset for `Organization.logo` (not square, and inconsistent with the other references), so all references
@@ -52,7 +54,7 @@ were consolidated onto the 512×512 square icon.
 
 **New env vars:** `SEO_FORCE_NOINDEX`, `SEO_SITE_NAME`, `SEO_SOCIAL_TIKTOK`, `SEO_SOCIAL_LINKEDIN`,
 `SEO_SOCIAL_GOOGLE_BUSINESS`, `SEO_TWITTER_HANDLE`, `SEO_CONTACT_PHONE`, `SEO_AI_CRAWLER_GROUPS`,
-`SEO_BLOCK_AI_TRAINING` (all optional). Existing `MARKETPLACE_SOCIAL_*` and `MARKETPLACE_SUPPORT_EMAIL` feed `sameAs`/`contactPoint`.
+`SEO_BLOCK_AI_TRAINING` (all optional). Phase 4 added no new env vars; it reads `MARKETPLACE_RETURN_WINDOW_DAYS`, `MARKETPLACE_COURIERS`, `MARKETPLACE_PAYMENTS`, `MARKETPLACE_CLAIM_HALAL_VERIFICATION` and the enabled `MARKETPLACE_PAGE_*` flags. Existing `MARKETPLACE_SOCIAL_*` and `MARKETPLACE_SUPPORT_EMAIL` feed `sameAs`/`contactPoint`.
 
 ---
 
@@ -296,19 +298,19 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 
 ### Phase 4 — GEO layer
 
-**◐ T4.1 (P0) — AI-crawler policy in `robots.txt`**
+**✅ T4.1 (P0) — AI-crawler policy in `robots.txt`**
 - Decide policy with the business, then encode in `config/seo.php['ai_crawlers']`. Suggested default: **allow** search/answer bots and user-triggered fetchers so the marketplace can be cited (`OAI-SearchBot`, `ChatGPT-User`, `PerplexityBot`, `Perplexity-User`, `Claude-SearchBot`, `Claude-User`, `Googlebot`, `Bingbot`); make training crawlers a **toggle** (`GPTBot`, `ClaudeBot`, `Google-Extended`, `CCBot`, `Applebot-Extended`, `Bytespider`).
 - Keep `Disallow` for private routes under every named agent (a named `User-agent` group replaces the `*` group for that bot, so rules must be repeated).
 - Verify bot names against each vendor's current documentation before shipping; they change.
 - **AC:** `robots.txt` generated from config; a test asserts that each named agent also disallows `/cart`, `/checkout`, `/account`, `/admin`, `/api`.
 
-**T4.2 (P1) — `/llms.txt` (+ optional `/llms-full.txt`)**
+**✅ T4.2 (P1) — `/llms.txt` (+ optional `/llms-full.txt`)**
 - New `LlmsTxtController` + `BuildLlmsTxt` action, cached, production-only.
 - Content: one-paragraph description of HalalBenta (what it is, where it ships, how halal verification and escrow work), then curated link sections: Categories (top-level), How halal verification works, Shipping & returns, Seller terms, Sellers directory, Sitemap.
 - Treat it as a low-cost, unproven signal. Do not rely on it for ranking or citation; keep it accurate and cheap to maintain.
 - **AC:** returns `text/plain`/`text/markdown`, valid links, only public URLs.
 
-**T4.3 (P0) — Machine-readable trust and policy facts**
+**✅ T4.3 (P0) — Machine-readable trust and policy facts**
 - Expose, in both visible copy and schema: halal verification process, escrow-protected checkout, return window, shipping coverage, seller verification. Source the numbers from `config/marketplace.php` so page copy, JSON-LD and `llms.txt` can't disagree.
 - Add `Organization.hasMerchantReturnPolicy` and `Organization.areaServed`.
 

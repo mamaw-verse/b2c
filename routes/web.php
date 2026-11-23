@@ -24,6 +24,7 @@ use App\Http\Controllers\HumanCheckController;
 use App\Http\Controllers\MediaViewController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductShareController;
+use App\Http\Controllers\LlmsTxtController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ShopController;
@@ -77,6 +78,7 @@ Route::get('sitemap-categories.xml', SitemapCategoriesController::class)->name('
 Route::get('sitemap-shops.xml', SitemapShopsController::class)->name('sitemap.shops');
 Route::get('sitemap-products-{page}.xml', SitemapProductsController::class)->name('sitemap.products');
 Route::get('robots.txt', RobotsController::class)->name('robots');
+Route::get('llms.txt', LlmsTxtController::class)->name('llms');
 
 Route::prefix('api/psgc')->name('psgc.')->group(function () {
     Route::get('regions', PsgcRegionController::class)->name('regions');

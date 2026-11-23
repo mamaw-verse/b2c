@@ -14,6 +14,7 @@ final readonly class InvalidateSitemapCache
         Cache::forget('sitemap:pages');
         Cache::forget('sitemap:categories');
         Cache::forget('sitemap:shops');
+        Cache::forget(BuildLlmsTxt::CACHE_KEY);
 
         for ($i = 1; $i <= 50; $i++) {
             Cache::forget("sitemap:products:{$i}");
