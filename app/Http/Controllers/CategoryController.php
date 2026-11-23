@@ -8,6 +8,7 @@ use App\Actions\Catalogue\ListCategoryProducts;
 use App\Actions\Seo\BuildCategorySeoData;
 use App\Http\Requests\ShowCategoryRequest;
 use App\Models\Category;
+use App\Support\CategoryIntro;
 use App\Support\Seo;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -40,6 +41,7 @@ final class CategoryController
             ],
             'filters' => ['sort' => $sort, 'halal' => $halalOnly],
             'total' => $total,
+            'intro' => CategoryIntro::for($category, $halalOnly ? $products->total($category, false) : $total),
             'products' => Inertia::scroll(fn () => $products->handle($category, $sort, $halalOnly)),
         ])->withViewData(['seo' => $seoData]);
     }

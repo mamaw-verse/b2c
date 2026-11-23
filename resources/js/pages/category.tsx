@@ -23,11 +23,13 @@ export default function Category({
     category,
     filters,
     total,
+    intro,
     products,
 }: {
     category: CategoryData;
     filters: Filters;
     total: number;
+    intro?: string;
     products: CursorPage<ProductCardData>;
 }) {
     const [loading, setLoading] = useState(false);
@@ -128,6 +130,11 @@ export default function Category({
                     <p className="mt-1 text-body text-muted-foreground">
                         <span className="tabular">{count}</span>
                     </p>
+                    {intro && (
+                        <p className="mt-2 max-w-prose text-body text-muted-foreground">
+                            {intro}
+                        </p>
+                    )}
                 </div>
                 {chips}
                 <h2 className="sr-only">Products</h2>

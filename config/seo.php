@@ -58,6 +58,12 @@ return [
         'phone' => env('SEO_CONTACT_PHONE'),
     ],
 
+    /*
+     * Optional hand-written intro paragraphs for category pages, keyed by category slug
+     * (docs/planning/14 T4.6). Slugs without an entry get a short data-driven intro.
+     */
+    'category_intros' => [],
+
     'area_served' => 'PH',
 
     'knows_about' => ['Halal food', 'Modest fashion', 'Prayer essentials', 'Halal certification'],
