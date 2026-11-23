@@ -8,10 +8,10 @@
 
 ## 0. Implementation status
 
-Phase 0, Phase 1, Phase 2 (rich entity schema), most of Phase 3 (social/AI preview tags) and the first Phase 4 group (T4.1–T4.3: AI-crawler policy, `/llms.txt`, shared trust facts) are implemented. Everything below is **un-run in CI**: it was written
+Phase 0, Phase 1, Phase 2 (rich entity schema), most of Phase 3 (social/AI preview tags) and the first Phase 4 groups (T4.1–T4.4: AI-crawler policy, `/llms.txt`, shared trust facts, FAQ) are implemented. Everything below is **un-run in CI**: it was written
 and linted (`php -l`, Pint) but the Pest suite still needs to be run locally
 (`php artisan test --compact --filter=Seo` and `tests/Unit/SchemaGraphTest.php`).
-Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in `tests/Feature/SeoSocialTagsTest.php`, Phase 4 tests in `tests/Feature/SeoGeoTest.php`.
+Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in `tests/Feature/SeoSocialTagsTest.php`, Phase 4 tests in `tests/Feature/SeoGeoTest.php` and `tests/Feature/SeoFaqTest.php`.
 
 | Task | Status | Notes |
 |---|---|---|
@@ -46,7 +46,8 @@ Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in
 | T3.5 Share-link hygiene | Done | Clean canonical route provided in Inertia share props; canonical URL builder strips tracking parameters (UTM, fbclid, etc.); test covers parity. |
 | T3.6 AI preview meta | Done | Added `<meta name="author">` on content and editorial pages (`halal-verification`, `about`, `terms`, `privacy`, `why-choose-us`); preview robots directives and titles active. |
 | T3.7 Favicon and app signals | Done | 180×180 apple-touch-icon verified, 32×32 PNG icon generated (`/favicon-32x32.png`), added `<meta name="application-name">`, and updated `manifest.webmanifest` with `id: "/"`, `lang: "en-PH"`, and `categories: ["shopping"]`. |
-| T4.4–T4.8, Phase 5 | Not started | Next Phase 4 group: T4.5 (`Article` fields, needs real dates), T4.4 (FAQ blocks, needs copy), T4.7 (env), then T4.6/T0.7 (SSR) and T4.8 (product data fields, needs a migration). |
+| T4.4 FAQ and answer-first content | Done (3 pages; categories deferred) | `FaqEntries` is the single list per page, built from `TrustFacts`. It is passed to the page as the `faqs` prop (rendered by `resources/js/components/faq-list.tsx`) **and** emitted as `FAQPage` JSON-LD by `BuildFaqNode`, so markup always equals visible text (test asserts parity). Pages: **Why Choose Us** (escrow, returns, delivery, who can sell, + halal verification when claimed), **Returns** (window, how to request, partial refunds, declined requests; collapses to one entry when the window is 0), **Halal verification** (flag-gated, empty until `MARKETPLACE_CLAIM_HALAL_VERIFICATION=true`). Pages with no entries get no FAQ markup. **Not done:** top-category FAQs (needs reviewed per-category copy, e.g. delivery to Mindanao has no data behind it). Answers are 20–60 words, shorter than the 40–80 target in places rather than padded. Value is answer-engine extraction, not a Google rich result. |
+| T4.5–T4.8, Phase 5 | Not started | Next Phase 4 group: T4.5 (`Article` fields, needs real dates), T4.7 (env), then T4.6/T0.7 (SSR) and T4.8 (product data fields, needs a migration). |
 
 **Erratum to G3.** `public/images/brand/logo.png` does exist (a 959×246 wordmark), so it was not a 404. It was still
 the wrong asset for `Organization.logo` (not square, and inconsistent with the other references), so all references
@@ -314,7 +315,7 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 - Expose, in both visible copy and schema: halal verification process, escrow-protected checkout, return window, shipping coverage, seller verification. Source the numbers from `config/marketplace.php` so page copy, JSON-LD and `llms.txt` can't disagree.
 - Add `Organization.hasMerchantReturnPolicy` and `Organization.areaServed`.
 
-**T4.4 (P1) — FAQ and answer-first content**
+**◐ T4.4 (P1) — FAQ and answer-first content**
 - Add FAQ blocks to: Why Choose Us, halal-verification page, shipping/returns page, and top categories (e.g. "Is this meat halal-certified?", "How long does delivery take to Mindanao?").
 - Emit `FAQPage` JSON-LD **only where the Q&A is visible on the page**. Note Google restricted FAQ rich results to authoritative government/health sites in 2023, so the value here is machine readability and answer-engine extraction, not a rich result.
 - Write answers as short, self-contained, quotable paragraphs (40–80 words) with specific facts.

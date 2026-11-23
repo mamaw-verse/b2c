@@ -1,10 +1,12 @@
 import { Head } from '@inertiajs/react';
+import { FaqList, type FaqEntry } from '@/components/faq-list';
 
 type Props = {
     page: { title: string; sections: { heading: string; body: string }[] };
+    faqs?: FaqEntry[];
 };
 
-export default function Content({ page }: Props) {
+export default function Content({ page, faqs = [] }: Props) {
     return (
         <>
             <Head title={page.title} />
@@ -18,6 +20,7 @@ export default function Content({ page }: Props) {
                         </p>
                     </section>
                 ))}
+                <FaqList faqs={faqs} />
             </div>
         </>
     );

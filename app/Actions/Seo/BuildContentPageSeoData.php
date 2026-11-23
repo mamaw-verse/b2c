@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildFaqNode;
 use App\Actions\Seo\Schema\BuildOrganizationNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Support\Schema\SchemaGraph;
+use App\Support\FaqEntries;
 use App\Support\SeoData;
 use App\Support\TrustFacts;
 
@@ -55,6 +57,8 @@ final readonly class BuildContentPageSeoData
                 primaryImage: $socialImage,
             ))
             ->add($breadcrumb);
+
+        $graph->add(resolve(BuildFaqNode::class)->handle($canonical, FaqEntries::for($pageKey)));
 
         if ($pageKey === 'about') {
             $graph->add(resolve(BuildOrganizationNode::class)->handle());

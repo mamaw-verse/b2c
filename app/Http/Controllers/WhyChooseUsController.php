@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Seo\BuildWhyChooseUsSeoData;
+use App\Support\FaqEntries;
 use App\Support\Seo;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,6 +22,7 @@ final class WhyChooseUsController
             'canBecomeSeller' => $request->user()?->isSeller() !== true,
             'halalCertificationUrl' => config('services.halal_certification.url'),
             'b2bUrl' => config('services.b2b.url'),
+            'faqs' => FaqEntries::for('why-choose-us'),
         ])->withViewData(['seo' => $seoData]);
     }
 }

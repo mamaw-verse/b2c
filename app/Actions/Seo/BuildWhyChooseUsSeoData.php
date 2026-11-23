@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildFaqNode;
 use App\Actions\Seo\Schema\BuildOrganizationNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Support\Schema\SchemaGraph;
 use App\Support\Schema\SchemaId;
+use App\Support\FaqEntries;
 use App\Support\SeoData;
 
 final readonly class BuildWhyChooseUsSeoData
@@ -38,6 +40,7 @@ final readonly class BuildWhyChooseUsSeoData
                 extra: ['about' => SchemaGraph::ref(SchemaId::organization())],
             ))
             ->add($breadcrumb)
+            ->add(resolve(BuildFaqNode::class)->handle($canonical, FaqEntries::for('why-choose-us')))
             ->add(resolve(BuildOrganizationNode::class)->handle());
 
         return new SeoData(

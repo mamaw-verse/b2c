@@ -43,6 +43,11 @@ final class SchemaId
         return self::withFragment($url, 'breadcrumb');
     }
 
+    public static function faq(string $url): string
+    {
+        return self::withFragment($url, 'faq');
+    }
+
     public static function itemList(string $url): string
     {
         return self::withFragment($url, 'itemlist');
