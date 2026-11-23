@@ -104,9 +104,30 @@ final readonly class BuildProductSeoData
             $description = $factsString;
         }
 
-        // Social image
+        // Resolve product photos
+        $images = $product->images->pluck('url')->filter()->values()->all();
+        $images = array_map(function ($url) use ($origin) {
+            return Str::startsWith($url, ['http://', 'https://']) ? $url : $origin.'/'.mb_ltrim($url, '/');
+        }, $images);
+
+        // Social image: T3.2 prefers real product photography when available
         $timestamp = $product->updated_at?->timestamp ?? time();
-        $socialImage = "{$origin}/social/product/{$product->slug}.jpg?v={$timestamp}";
+        $generatedCard = "{$origin}/social/product/{$product->slug}.jpg?v={$timestamp}";
+        $preferPhoto = (bool) config('seo.prefer_photo_og.product', true);
+        $socialImage = ($preferPhoto && ! empty($images))
+            ? $images[0]
+            : $generatedCard;
+
+        if (empty($images)) {
+            $images = [$generatedCard];
+        }
+
+        $socialImageType = 'image/jpeg';
+        if (Str::endsWith(mb_strtolower($socialImage), '.png')) {
+            $socialImageType = 'image/png';
+        } elseif (Str::endsWith(mb_strtolower($socialImage), '.webp')) {
+            $socialImageType = 'image/webp';
+        }
 
         // Product tags
         $inStock = $product->stock > 0;
@@ -135,16 +156,6 @@ final readonly class BuildProductSeoData
                 ['label' => 'Availability', 'data' => $inStock ? 'In stock' : 'Out of stock'],
             ],
         ];
-
-        // JSON-LD @graph
-        $images = $product->images->pluck('url')->filter()->values()->all();
-        if (empty($images)) {
-            $images = [$socialImage];
-        } else {
-            $images = array_map(function ($url) use ($origin) {
-                return Str::startsWith($url, ['http://', 'https://']) ? $url : $origin.'/'.mb_ltrim($url, '/');
-            }, $images);
-        }
 
         $seller = $shop !== null
             ? ['@type' => 'Organization', '@id' => SchemaId::shop($shop->slug), 'name' => $shopName]
@@ -202,7 +213,7 @@ final readonly class BuildProductSeoData
                 'image_width' => 1200,
                 'image_height' => 630,
                 'image_alt' => $product->name,
-                'image_type' => 'image/jpeg',
+                'image_type' => $socialImageType,
                 'updated_time' => $product->updated_at?->toIso8601String(),
             ],
             twitter: $twitter,

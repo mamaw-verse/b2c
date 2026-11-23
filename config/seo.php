@@ -26,6 +26,15 @@ return [
     /* Paths are relative to the canonical origin (config('app.url')). */
     'default_og_image' => '/social/default-og.jpg',
 
+    /*
+     * Social image policy (docs/planning/14 T3.2).
+     * If true, og:image / twitter:image prefers the seller's first real photo
+     * and only falls back to the generated card when no photo is uploaded.
+     */
+    'prefer_photo_og' => [
+        'product' => (bool) env('SEO_PREFER_PRODUCT_PHOTO_OG', true),
+    ],
+
     /* Organization logo: must be square and >= 112x112 to satisfy Google's logo guidelines. */
     'logo_path' => '/brand/halalbenta-icon-512.png',
     'logo_size' => 512,

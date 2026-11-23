@@ -65,6 +65,7 @@ final readonly class BuildWhyChooseUsSeoData
                 'image' => $socialImage,
                 'image_alt' => 'Why Choose HalalBenta',
             ],
+            author: 'HalalBenta',
             jsonLd: $graph->toArray(),
         );
     }

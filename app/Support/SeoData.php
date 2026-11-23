@@ -63,6 +63,7 @@ final readonly class SeoData
         public array $jsonLd = [],
         public ?string $prev = null,
         public ?string $next = null,
+        public ?string $author = null,
     ) {}
 
     public static function canonicalOrigin(): string
@@ -238,6 +239,7 @@ final readonly class SeoData
             'jsonLd' => $this->jsonLd,
             'prev' => $this->prev,
             'next' => $this->next,
+            'author' => $this->author,
         ];
     }
 }

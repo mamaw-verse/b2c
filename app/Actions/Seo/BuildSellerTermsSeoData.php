@@ -61,6 +61,7 @@ final readonly class BuildSellerTermsSeoData
                 'image' => $socialImage,
                 'image_alt' => 'HalalBenta Seller Terms',
             ],
+            author: 'HalalBenta Legal & Compliance',
             jsonLd: $graph->toArray(),
         );
     }

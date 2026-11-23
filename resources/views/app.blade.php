@@ -5,6 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#17643c">
+        <meta name="application-name" content="{{ config('app.name', 'HalalBenta') }}">
+        <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'HalalBenta') }}">
 
         @php
             /** @var \App\Support\SeoData $seo */
@@ -14,6 +16,12 @@
         <meta name="description" content="{{ $seo->description }}">
         <link rel="canonical" href="{{ $seo->canonical }}">
         <meta name="robots" content="{{ $seo->robots }}">
+        @php
+            $author = $seo->author ?? $seo->og['article']['author'] ?? null;
+        @endphp
+        @if (!empty($author))
+            <meta name="author" content="{{ $author }}">
+        @endif
 
         {{-- Open Graph --}}
         <meta property="og:site_name" content="{{ $seo->og['site_name'] }}">
@@ -142,6 +150,7 @@
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
         <link rel="manifest" href="/manifest.webmanifest">
 

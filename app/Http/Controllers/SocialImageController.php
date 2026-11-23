@@ -12,11 +12,16 @@ final class SocialImageController
 {
     public function __invoke(ShowSocialImageRequest $request, GenerateSocialImage $generator): BinaryFileResponse
     {
-        $path = $generator->handle($request->type(), $request->slug(), $request->version());
+        $version = $request->version();
+        $path = $generator->handle($request->type(), $request->slug(), $version);
+
+        $cacheControl = ($version !== null && $version !== '')
+            ? 'public, max-age=31536000, immutable'
+            : 'public, max-age=86400, must-revalidate';
 
         return response()->file($path, [
             'Content-Type' => 'image/jpeg',
-            'Cache-Control' => 'public, max-age=31536000, immutable',
+            'Cache-Control' => $cacheControl,
         ]);
     }
 }

@@ -284,8 +284,16 @@ final class Product extends Model
 
     protected static function booted(): void
     {
-        self::saved(static function (): void {
+        self::saved(static function (self $product): void {
             resolve(\App\Actions\Seo\InvalidateSitemapCache::class)->handle();
+
+            if ($product->published && ! $product->hidden) {
+                dispatch(new \App\Jobs\PreWarmSocialImageJob(
+                    'product',
+                    $product->slug,
+                    (string) ($product->updated_at?->timestamp ?? time())
+                ));
+            }
         });
 
         self::deleted(static function (): void {

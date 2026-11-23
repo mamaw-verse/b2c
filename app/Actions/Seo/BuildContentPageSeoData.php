@@ -55,24 +55,37 @@ final readonly class BuildContentPageSeoData
             $graph->add(resolve(BuildOrganizationNode::class)->handle());
         }
 
+        $author = $pageKey === 'halal-verification'
+            ? 'HalalBenta Halal Assurance Team'
+            : 'HalalBenta';
+
+        $og = [
+            'site_name' => 'HalalBenta',
+            'locale' => 'en_PH',
+            'type' => $pageKey === 'halal-verification' ? 'article' : 'website',
+            'title' => $title,
+            'description' => $description,
+            'url' => $canonical,
+            'image' => $socialImage,
+            'image_width' => 1200,
+            'image_height' => 630,
+            'image_alt' => $title,
+            'image_type' => 'image/jpeg',
+        ];
+
+        if ($pageKey === 'halal-verification') {
+            $og['article'] = [
+                'author' => $author,
+                'section' => 'Halal Standards',
+            ];
+        }
+
         return new SeoData(
             title: $title,
             description: $description,
             canonical: $canonical,
             robots: SeoData::isStaging() ? 'noindex, nofollow' : SeoData::INDEXABLE_ROBOTS,
-            og: [
-                'site_name' => 'HalalBenta',
-                'locale' => 'en_PH',
-                'type' => $pageKey === 'halal-verification' ? 'article' : 'website',
-                'title' => $title,
-                'description' => $description,
-                'url' => $canonical,
-                'image' => $socialImage,
-                'image_width' => 1200,
-                'image_height' => 630,
-                'image_alt' => $title,
-                'image_type' => 'image/jpeg',
-            ],
+            og: $og,
             twitter: [
                 'card' => 'summary_large_image',
                 'title' => $title,
@@ -80,6 +93,7 @@ final readonly class BuildContentPageSeoData
                 'image' => $socialImage,
                 'image_alt' => $title,
             ],
+            author: $author,
             jsonLd: $graph->toArray(),
         );
     }

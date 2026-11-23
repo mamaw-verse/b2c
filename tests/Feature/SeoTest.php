@@ -270,7 +270,43 @@ test('social image generator route serves dynamic image with cache headers', fun
 
     $response->assertOk();
     $response->assertHeader('Content-Type', 'image/jpeg');
-    $response->assertHeader('Cache-Control');
+    expect($response->headers->get('Cache-Control'))->not->toContain('immutable');
+
+    $versionedResponse = $this->get("/social/product/{$this->product->slug}.jpg?v=12345");
+    $versionedResponse->assertOk();
+    expect($versionedResponse->headers->get('Cache-Control'))->toContain('immutable');
+});
+
+test('saving a published product dispatches pre-warm social image job', function () {
+    Illuminate\Support\Facades\Queue::fake();
+
+    $product = Product::factory()->create([
+        'shop_id' => $this->shop->id,
+        'category_id' => $this->category->id,
+        'published' => true,
+        'hidden' => false,
+    ]);
+
+    Illuminate\Support\Facades\Queue::assertPushed(App\Jobs\PreWarmSocialImageJob::class, function ($job) use ($product) {
+        return $job->type === 'product' && $job->slug === $product->slug;
+    });
+});
+
+test('GenerateSocialImage handles extreme titles, non-latin characters and emoji safely', function () {
+    $generator = resolve(App\Actions\Seo\GenerateSocialImage::class);
+
+    $longProduct = Product::factory()->create([
+        'shop_id' => $this->shop->id,
+        'category_id' => $this->category->id,
+        'name' => 'VeryLongProductTitleWithoutAnySpacesThatWouldNormallyBreakWordWrapping 🌟 Special Edition Halal Premium',
+        'published' => true,
+        'halal_status' => HalalStatus::Certified,
+        'price' => 19999,
+    ]);
+
+    $path = $generator->handle('product', $longProduct->slug, 'test-version');
+    expect(file_exists($path))->toBeTrue()
+        ->and(filesize($path))->toBeGreaterThan(0);
 });
 
 /**

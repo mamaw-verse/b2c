@@ -53,7 +53,9 @@ final readonly class GenerateSocialImage
             $generated = $this->renderCard($cardData, $cacheFile);
 
             return $generated ? $cacheFile : $fallbackPath;
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            report($e);
+
             return $fallbackPath;
         }
     }
@@ -178,9 +180,13 @@ final readonly class GenerateSocialImage
 
         imagefilledrectangle($im, 0, 0, self::WIDTH, self::HEIGHT, $bg);
 
-        // Fonts
-        $boldFont = '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf';
-        $regFont = '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf';
+        // Fonts: prefer bundled fonts in resources/fonts, fallback to system fonts
+        $boldFont = resource_path('fonts/LiberationSans-Bold.ttf');
+        $regFont = resource_path('fonts/LiberationSans-Regular.ttf');
+        if (! file_exists($boldFont) || ! file_exists($regFont)) {
+            $boldFont = '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf';
+            $regFont = '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf';
+        }
         $hasFonts = file_exists($boldFont) && file_exists($regFont);
 
         // 1. Logo mark top-left
@@ -233,8 +239,8 @@ final readonly class GenerateSocialImage
         }
 
         // 5. Halal Badge Pill
-        $badgeText = '✓ '.$data['badge'];
-        $pillW = mb_strlen($badgeText) * 11 + 30;
+        $badgeText = '✓ '.mb_strimwidth($data['badge'], 0, 24, '…');
+        $pillW = min(500, mb_strlen($badgeText) * 11 + 30);
         $pillH = 36;
         $pillX = 60;
         $this->drawFilledRoundedRect($im, $pillX, $badgeY - 26, $pillX + $pillW, $badgeY + 10, 8, $green);
@@ -288,6 +294,19 @@ final readonly class GenerateSocialImage
         $current = '';
 
         foreach ($words as $word) {
+            while (mb_strlen($word) > $maxChars) {
+                if ($current !== '') {
+                    $lines[] = $current;
+                    $current = '';
+                }
+                $lines[] = mb_substr($word, 0, $maxChars);
+                $word = mb_substr($word, $maxChars);
+            }
+
+            if ($word === '') {
+                continue;
+            }
+
             if (mb_strlen($current.' '.$word) <= $maxChars) {
                 $current = $current === '' ? $word : $current.' '.$word;
             } else {
@@ -300,6 +319,11 @@ final readonly class GenerateSocialImage
 
         if ($current !== '') {
             $lines[] = $current;
+        }
+
+        if (count($lines) > 3) {
+            $lines = array_slice($lines, 0, 3);
+            $lines[2] = mb_strimwidth($lines[2], 0, $maxChars - 1, '…');
         }
 
         return $lines;

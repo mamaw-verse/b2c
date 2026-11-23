@@ -260,7 +260,7 @@ test('ratings use real visible reviews, hide anonymous names and never emit sell
 test('private shop registration fields never appear in the head or JSON-LD', function () {
     $this->shop->forceFill([
         'address_line' => '77 Confidential Street',
-        'postal_code' => 'ZZ-POSTAL-4417',
+        'postal_code' => 'ZZ-4417',
         'business_permit_url' => 'permits/confidential-permit.pdf',
         'payout_account_name' => 'Confidential Payee',
         'payout_account_number' => '9876543210123',
@@ -272,7 +272,7 @@ test('private shop registration fields never appear in the head or JSON-LD', fun
         $head = $head[0] ?? '';
 
         expect($head)->not->toBe('');
-        foreach (['77 Confidential Street', 'ZZ-POSTAL-4417', 'confidential-permit', 'Confidential Payee', '9876543210123'] as $secret) {
+        foreach (['77 Confidential Street', 'ZZ-4417', 'confidential-permit', 'Confidential Payee', '9876543210123'] as $secret) {
             expect($head)->not->toContain($secret);
         }
     }

@@ -96,3 +96,64 @@ test('the halal verification page is typed as an article', function () {
     $this->get('/pages/halal-verification')->assertOk()
         ->assertSee('<meta property="og:type" content="article">', false);
 });
+
+test('content pages and article pages expose author meta tag', function () {
+    config(['marketplace.pages.halal-verification.enabled' => true]);
+
+    $this->get('/pages/halal-verification')->assertOk()
+        ->assertSee('<meta name="author" content="HalalBenta Halal Assurance Team">', false)
+        ->assertSee('<meta property="article:author" content="HalalBenta Halal Assurance Team">', false);
+
+    $this->get('/why-choose-us')->assertOk()
+        ->assertSee('<meta name="author" content="HalalBenta">', false);
+
+    $this->get('/seller/terms')->assertOk()
+        ->assertSee('<meta name="author" content="HalalBenta Legal &amp; Compliance">', false);
+});
+
+test('favicon, apple-touch-icon, and app manifest signals are configured correctly', function () {
+    $this->get('/')->assertOk()
+        ->assertSee('<meta name="application-name" content="HalalBenta">', false)
+        ->assertSee('<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">', false)
+        ->assertSee('<link rel="apple-touch-icon" href="/apple-touch-icon.png">', false)
+        ->assertSee('<link rel="manifest" href="/manifest.webmanifest">', false);
+
+    expect(file_exists(public_path('favicon-32x32.png')))->toBeTrue()
+        ->and(file_exists(public_path('apple-touch-icon.png')))->toBeTrue()
+        ->and(file_exists(public_path('manifest.webmanifest')))->toBeTrue();
+
+    $manifest = json_decode((string) file_get_contents(public_path('manifest.webmanifest')), true, flags: JSON_THROW_ON_ERROR);
+    expect($manifest['id'])->toBe('/')
+        ->and($manifest['lang'])->toBe('en-PH')
+        ->and($manifest['categories'])->toContain('shopping');
+});
+
+test('product og:image prefers the uploaded product photo when present', function () {
+    App\Models\ProductImage::factory()->create([
+        'product_id' => $this->product->id,
+        'url' => 'https://example.com/photos/dates.jpg',
+        'sort_order' => 1,
+    ]);
+
+    $this->get('/products/premium-medjool-dates-500g')->assertOk()
+        ->assertSee('<meta property="og:image" content="https://example.com/photos/dates.jpg">', false)
+        ->assertSee('<meta name="twitter:image" content="https://example.com/photos/dates.jpg">', false);
+});
+
+test('product og:image falls back to generated card when no photo is uploaded', function () {
+    $this->get('/products/premium-medjool-dates-500g')->assertOk()
+        ->assertSee('/social/product/premium-medjool-dates-500g.jpg', false);
+});
+
+test('product og:image uses generated card when prefer_photo_og is disabled', function () {
+    App\Models\ProductImage::factory()->create([
+        'product_id' => $this->product->id,
+        'url' => 'https://example.com/photos/dates.jpg',
+        'sort_order' => 1,
+    ]);
+
+    config(['seo.prefer_photo_og.product' => false]);
+
+    $this->get('/products/premium-medjool-dates-500g')->assertOk()
+        ->assertSee('/social/product/premium-medjool-dates-500g.jpg', false);
+});

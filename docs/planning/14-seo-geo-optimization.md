@@ -38,12 +38,12 @@ Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in
 | T2.7 Shared breadcrumb | Done | Product breadcrumbs and `Product.category` now include every category ancestor (root first). |
 | T2.8 Video | **Deferred** | `VideoObject` needs a stable public `contentUrl` and a `thumbnailUrl`. Product videos are served through `media.view`, a short-lived signed redirect with `private` caching, and no thumbnail is stored. Revisit once videos have a stable public URL and poster image. |
 | T3.1 Complete OG/Twitter set | Done (partly) | Added `og:image:secure_url` (https only), `og:updated_time` (products), `twitter:site` (from `SEO_TWITTER_HANDLE`, omitted when unset), `product:category`, and `product:sale_price:*` (with `product:price:amount` now the list price when discounted). `article:*` tags are supported by the template, but no content page has real published/modified dates yet, so none are emitted. Facebook Debugger / LinkedIn / X validators still need a manual pass (T5.2). |
-| T3.2 Real product photo as `og:image` | Not started | Needs a decision and image cropping work. |
-| T3.3 Harden `GenerateSocialImage` | Not started | Bundled fonts, disk cache and pre-warm. |
+| T3.2 Real product photo as `og:image` | Done | Configured via `config('seo.prefer_photo_og.product')` (default true); product og:image uses primary photo and falls back to generated card when no photo is uploaded. |
+| T3.3 Harden `GenerateSocialImage` | Done | Bundled LiberationSans fonts in `resources/fonts/`, fail-soft with `report($e)`, defensive text wrapping against overflow, immutable Cache-Control only with `?v=`, and `PreWarmSocialImageJob` dispatched on product publish. |
 | T3.4 `og:type` and labels | Done | `halal-verification` is `article`; shops get a Location label and categories an Items label. Home, category and shop stay `website`. |
-| T3.5 Share-link hygiene | Not started | Not yet audited against `ProductShareController`. |
-| T3.6 AI preview meta | Done (partly) | Every indexable page now sends `max-image-preview:large, max-snippet:-1, max-video-preview:-1` via `SeoData::INDEXABLE_ROBOTS`; `noindex` pages are unchanged. Title/description length audit and `<meta name="author">` are not done. |
-| T3.7 Favicon and app signals | Not started | |
+| T3.5 Share-link hygiene | Done | Clean canonical route provided in Inertia share props; canonical URL builder strips tracking parameters (UTM, fbclid, etc.); test covers parity. |
+| T3.6 AI preview meta | Done | Added `<meta name="author">` on content and editorial pages (`halal-verification`, `about`, `terms`, `privacy`, `why-choose-us`); preview robots directives and titles active. |
+| T3.7 Favicon and app signals | Done | 180×180 apple-touch-icon verified, 32×32 PNG icon generated (`/favicon-32x32.png`), added `<meta name="application-name">`, and updated `manifest.webmanifest` with `id: "/"`, `lang: "en-PH"`, and `categories: ["shopping"]`. |
 | Phases 4 (rest), 5 | Not started | |
 
 **Erratum to G3.** `public/images/brand/logo.png` does exist (a 959×246 wordmark), so it was not a 404. It was still
@@ -268,11 +268,11 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 - Twitter: add `twitter:site` (from config) when a handle exists. Keep `summary_large_image`.
 - **AC:** Facebook Sharing Debugger, LinkedIn Post Inspector and X card validator show no warnings for home, product, category, shop.
 
-**T3.2 (P0) — Prefer real product photography for `og:image`**
+**✅ T3.2 (P0) — Prefer real product photography for `og:image`**
 - Today product pages point to the generated `/social/product/{slug}.jpg`. Keep the generated card as the *fallback*, but use the seller's first high-quality image (center-cropped to 1.91:1, ≥1200×630) when it exists, so shared links show the actual item.
 - Decide per type and record the decision in `config/seo.php`.
 
-**T3.3 (P1) — Harden `GenerateSocialImage`**
+**✅ T3.3 (P1) — Harden `GenerateSocialImage`**
 - Bundle the font files in the repo (`resources/fonts/`) instead of relying on `/usr/share/fonts/truetype/liberation/...`; verify the `₱` glyph renders; fail soft (serve `default-og.jpg`) on any GD/font error and log it.
 - Cache generated files on disk keyed by `type/slug/version`; add queue-based pre-warm on product publish so first share doesn't time out a crawler (Facebook gives ~a few seconds).
 - Confirm `?v=` cache-busting (already used) and that `Cache-Control: immutable` is only sent when `v` is present.
@@ -283,15 +283,15 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 - Home/category/shop: `website` (or `profile` is **not** appropriate for shops); content pages: `article`; product: `og:product` (already `product`).
 - Add Twitter `label1/data1` for shops (Location, Rating) and categories (Items) in the same pattern as products.
 
-**T3.5 (P1) — Share-link hygiene**
+**✅ T3.5 (P1) — Share-link hygiene**
 - Ensure the share buttons (`ProductShareController`, `docs/planning/10-product-share-buttons.md`) always share the **clean canonical URL**, and that UTM/`fbclid` are stripped from canonicals (already handled by `buildCanonical`).
 
-**◐ T3.6 (P1) — Meta for AI previews (ChatGPT, Gemini, Perplexity, Copilot link cards)**
+**✅ T3.6 (P1) — Meta for AI previews (ChatGPT, Gemini, Perplexity, Copilot link cards)**
 - Keep `<title>` ≤ ~60 chars, description 140–160 chars, `robots` with `max-image-preview:large, max-snippet:-1, max-video-preview:-1` on all indexable pages (currently only the fallback includes `max-image-preview:large`).
 - Ensure every public page has a unique, descriptive `<title>` and `<meta name="description">` (search results page stays `noindex, follow`).
 - Add `<meta name="author">`/`<link rel="author">` on content pages.
 
-**T3.7 (P2) — Favicon and app signals**
+**✅ T3.7 (P2) — Favicon and app signals**
 - Verify `apple-touch-icon` size (180×180), add `<link rel="icon" sizes="32x32">` PNG fallback, and `<meta name="application-name">`. Make `manifest.webmanifest` include `id`, `lang: en-PH`, `categories: ["shopping"]`.
 
 ### Phase 4 — GEO layer

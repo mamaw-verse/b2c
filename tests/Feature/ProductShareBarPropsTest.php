@@ -78,3 +78,25 @@ test('share prop count is null below public_min and integer at or above it', fun
             ->where('share.count', 5)
         );
 });
+
+test('share.url always provides the clean canonical product URL without tracking parameters', function () {
+    Config::set('marketplace.features.product_share_enabled', true);
+
+    $product = Product::factory()->create([
+        'shop_id' => $this->shop->id,
+        'category_id' => $this->category->id,
+        'published' => true,
+        'halal_status' => HalalStatus::Certified,
+    ]);
+
+    $cleanUrl = route('products.show', $product);
+    $dirtyUrl = $cleanUrl.'?utm_source=facebook&utm_medium=cpc&fbclid=abc123xyz&ref=partner_123';
+
+    $this->get($dirtyUrl)
+        ->assertOk()
+        ->assertSee('<link rel="canonical" href="'.$cleanUrl.'">', false)
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('product')
+            ->where('share.url', $cleanUrl)
+        );
+});
