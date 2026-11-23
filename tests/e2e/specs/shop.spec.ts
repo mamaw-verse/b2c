@@ -105,4 +105,24 @@ test.describe('shop page', () => {
         ).toHaveCount(0);
         await shot(page, 'shop-06-owner');
     });
+
+    // Wave 4 (T10, qa3 task 6.1): every seller page carries the outlined
+    // "View shop" button, which opens the storefront in a new tab.
+    test('seller pages offer a View shop button that opens a new tab', async ({
+        page,
+    }) => {
+        await login(page, SELLER);
+
+        for (const url of [
+            '/seller/dashboard',
+            '/seller/orders',
+            '/seller/chat',
+        ]) {
+            await page.goto(url);
+            const viewShop = page.getByRole('link', { name: /View shop/ });
+            await expect(viewShop.first()).toHaveAttribute('href', SHOP);
+            await expect(viewShop.first()).toHaveAttribute('target', '_blank');
+        }
+        await shot(page, 'shop-07-seller-view-shop');
+    });
 });

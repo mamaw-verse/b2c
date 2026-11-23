@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { pageProps, shot } from '../helpers';
+import { pageProps, seedPhp, shot } from '../helpers';
 
 const outputDir = process.env.E2E_OUTPUT_DIR ?? 'output';
 
@@ -313,5 +313,133 @@ test.describe('footer', () => {
             page.locator('footer').getByRole('link', { name: 'Track order' }),
         ).toBeVisible();
         await shot(page, 'footer-02-accordion');
+    });
+});
+
+// Wave 4 (T10, qa3 task 5.2): the public /sellers directory. Shops are
+// seeded through seedPhp because the UI cannot create unapproved or
+// suspended shops. Selectors come from the source; not yet run.
+test.describe.serial('seller directory', () => {
+    const token = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    let names: Record<string, string>;
+    let slugs: Record<string, string>;
+
+    /** Card names in the grid, in display order. */
+    const cardNames = (page: Page) => page.locator('#seller-grid h3 a');
+
+    const search = async (page: Page, text: string) => {
+        const input = page.getByPlaceholder('Search sellers');
+        await input.fill(text);
+        await input.press('Enter');
+        await expect(page).toHaveURL(/q=/);
+    };
+
+    test.beforeAll(() => {
+        // Alpha/Beta/Gamma give three different orders: followers A,B,G;
+        // rating B,G,A; newest G,B,A. Beta is halal-only. The last three
+        // must never appear (pending, rejected, suspended).
+        const result = seedPhp<{
+            names: Record<string, string>;
+            slugs: Record<string, string>;
+        }>(`
+            $t = '${token}';
+            $rows = [
+                'alpha' => ['Alpha', 3000, 4.0, 0, 'approved', false, false],
+                'beta' => ['Beta', 2000, 4.9, 1, 'approved', false, true],
+                'gamma' => ['Gamma', 1000, 4.5, 2, 'approved', false, false],
+                'pending' => ['Pending', 5000, 5.0, 3, 'pending', false, false],
+                'rejected' => ['Rejected', 5000, 5.0, 3, 'rejected', false, false],
+                'suspended' => ['Suspended', 5000, 5.0, 3, 'approved', true, false],
+            ];
+            $names = [];
+            $slugs = [];
+            foreach ($rows as $key => [$label, $followers, $rating, $minutes, $status, $suspended, $halal]) {
+                $shop = \\App\\Models\\Shop::create([
+                    'name' => "E2E Dir $label $t",
+                    'slug' => strtolower("e2e-dir-$label-$t"),
+                    'location' => 'Davao City',
+                    'rating' => $rating,
+                    'followers_count' => $followers,
+                    'status' => $status,
+                    'suspended' => $suspended,
+                    'halal_only' => $halal,
+                ]);
+                $shop->forceFill(['created_at' => now()->addMinutes($minutes)])->save();
+                $names[$key] = $shop->name;
+                $slugs[$key] = $shop->slug;
+            }
+            return ['names' => $names, 'slugs' => $slugs];
+        `);
+        names = result.names;
+        slugs = result.slugs;
+    });
+
+    test('lists only approved, unsuspended shops and searches by name', async ({
+        page,
+    }) => {
+        await page.goto('/sellers');
+        await expect(
+            page.getByRole('heading', { level: 1, name: 'Discover sellers' }),
+        ).toBeVisible();
+        await shot(page, 'sellers-01-directory');
+
+        await search(page, token);
+
+        await expect(cardNames(page)).toHaveText([
+            names.alpha,
+            names.beta,
+            names.gamma,
+        ]);
+        for (const hidden of ['pending', 'rejected', 'suspended']) {
+            await expect(
+                page.getByRole('link', { name: names[hidden] }),
+            ).toHaveCount(0);
+        }
+        await shot(page, 'sellers-02-search');
+    });
+
+    test('sorts by followers, rating and newest', async ({ page }) => {
+        await page.goto(`/sellers?q=${token}`);
+        const order = async (sort: string, expected: string[]) => {
+            await page.getByLabel('Sort by').selectOption(sort);
+            await expect(page).toHaveURL(new RegExp(`sort=${sort}`));
+            await expect(cardNames(page)).toHaveText(expected);
+        };
+
+        await expect(cardNames(page)).toHaveText([
+            names.alpha,
+            names.beta,
+            names.gamma,
+        ]);
+        await order('rating', [names.beta, names.gamma, names.alpha]);
+        await shot(page, 'sellers-03-sort-rating');
+        await order('newest', [names.gamma, names.beta, names.alpha]);
+        await order('followers', [names.alpha, names.beta, names.gamma]);
+    });
+
+    test('halal-only filter, empty state and card link', async ({ page }) => {
+        await page.goto(`/sellers?q=${token}`);
+
+        await page.getByRole('button', { name: 'Halal-only shops' }).click();
+        await expect(page).toHaveURL(/halal_only=1/);
+        await expect(cardNames(page)).toHaveText([names.beta]);
+        await shot(page, 'sellers-04-halal-only');
+
+        // No match: empty state, and clearing the filters restores the grid.
+        await search(page, `no-such-seller-${token}`);
+        await expect(page.getByText('No sellers found')).toBeVisible();
+        await shot(page, 'sellers-05-empty');
+        await page.getByRole('button', { name: 'Clear filters' }).click();
+        await expect(page.locator('#seller-grid')).toBeVisible();
+
+        // A card opens the shop page.
+        await page.goto(`/sellers?q=${token}`);
+        await page.getByRole('link', { name: names.alpha }).click();
+        await expect(page).toHaveURL(new RegExp(`/shops/${slugs.alpha}$`));
+    });
+
+    test('the home page links to the directory', async ({ page }) => {
+        await page.goto('/');
+        await expect(page.locator('a[href="/sellers"]').first()).toBeAttached();
     });
 });
