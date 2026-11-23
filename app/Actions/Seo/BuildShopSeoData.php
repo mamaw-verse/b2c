@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Enums\ShopStatus;
+use App\Models\Product;
+use App\Models\Review;
 use App\Models\Shop;
+use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -47,67 +53,60 @@ final readonly class BuildShopSeoData
         $timestamp = $shop->updated_at?->timestamp ?? time();
         $socialImage = "{$origin}/social/shop/{$shop->slug}.jpg?v={$timestamp}";
 
-        // JSON-LD Breadcrumbs
-        $breadcrumbs = [
-            [
-                '@type' => 'ListItem',
-                'position' => 1,
-                'name' => 'Home',
-                'item' => "{$origin}/",
-            ],
-            [
-                '@type' => 'ListItem',
-                'position' => 2,
-                'name' => 'Sellers',
-                'item' => "{$origin}/sellers",
-            ],
-            [
-                '@type' => 'ListItem',
-                'position' => 3,
-                'name' => $shop->name,
-                'item' => $canonical,
-            ],
-        ];
+        $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, [
+            ['name' => 'Home', 'url' => "{$origin}/"],
+            ['name' => 'Sellers', 'url' => "{$origin}/sellers"],
+            ['name' => $shop->name, 'url' => $canonical],
+        ]);
 
-        // JSON-LD Store / Organization
+        // JSON-LD Store, linked to the marketplace Organization
         $storeSchema = [
             '@type' => 'Store',
+            '@id' => SchemaId::shop($shop->slug),
             'name' => $shop->name,
             'url' => $canonical,
             'description' => $description,
             'image' => $socialImage,
-        ];
-
-        if ($shop->logo_url !== null && $shop->logo_url !== '') {
-            $logoUrl = Str::startsWith($shop->logo_url, ['http://', 'https://'])
-                ? $shop->logo_url
-                : $origin.'/'.mb_ltrim($shop->logo_url, '/');
-            $storeSchema['logo'] = $logoUrl;
-        }
-
-        if ($city !== '') {
-            $storeSchema['address'] = [
+            'logo' => ($shop->logo_url !== null && $shop->logo_url !== '') ? SeoData::absoluteUrl($shop->logo_url) : null,
+            'parentOrganization' => SchemaGraph::ref(SchemaId::organization()),
+            'address' => $city !== '' ? [
                 '@type' => 'PostalAddress',
                 'addressLocality' => $city,
                 'addressCountry' => 'PH',
-            ];
-        }
+            ] : null,
+        ];
 
-        if ($shop->rating > 0) {
+        // Ratings come from real, visible product reviews only. Followers are not reviews.
+        $reviewStats = Review::query()
+            ->where('hidden', false)
+            ->whereIn('product_id', Product::query()->where('shop_id', $shop->id)->select('id'))
+            ->selectRaw('COUNT(*) as review_count, AVG(rating) as average_rating')
+            ->toBase()
+            ->first();
+
+        $reviewCount = (int) ($reviewStats->review_count ?? 0);
+        if ($reviewCount > 0) {
             $storeSchema['aggregateRating'] = [
                 '@type' => 'AggregateRating',
-                'ratingValue' => number_format((float) $shop->rating, 1, '.', ''),
-                'reviewCount' => max(1, $shop->followers_count),
+                'ratingValue' => number_format((float) $reviewStats->average_rating, 1, '.', ''),
+                'reviewCount' => $reviewCount,
+                'bestRating' => 5,
+                'worstRating' => 1,
             ];
         }
 
-        $jsonLd = [
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => $breadcrumbs,
-            ],
-            $storeSchema,
-        ];
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: 'WebPage',
+                url: $canonical,
+                name: $ogTitle,
+                description: $description,
+                breadcrumbId: $breadcrumb['@id'],
+                primaryImage: $socialImage,
+                extra: ['mainEntity' => SchemaGraph::ref($storeSchema['@id'])],
+            ))
+            ->add($breadcrumb)
+            ->add($storeSchema);
 
         return new SeoData(
             title: $title,
@@ -134,7 +133,7 @@ final readonly class BuildShopSeoData
                 'image' => $socialImage,
                 'image_alt' => "{$shop->name} on HalalBenta",
             ],
-            jsonLd: $jsonLd,
+            jsonLd: $graph->toArray(),
         );
     }
 }

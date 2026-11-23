@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Actions\Seo\Schema\BuildOrganizationNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
+use App\Actions\Seo\Schema\BuildWebSiteNode;
+use App\Support\Schema\SchemaGraph;
 use Illuminate\Support\Str;
 
 final readonly class SeoData
@@ -59,6 +63,31 @@ final readonly class SeoData
     }
 
     /**
+     * Absolute URL for a root-relative path or an already-absolute URL.
+     */
+    public static function absoluteUrl(string $pathOrUrl): string
+    {
+        if (Str::startsWith($pathOrUrl, ['http://', 'https://'])) {
+            return $pathOrUrl;
+        }
+
+        return self::canonicalOrigin().'/'.mb_ltrim($pathOrUrl, '/');
+    }
+
+    /**
+     * Canonical Organization logo (square PNG), configured in config/seo.php.
+     */
+    public static function logoUrl(): string
+    {
+        return self::absoluteUrl((string) config('seo.logo_path', '/brand/halalbenta-icon-512.png'));
+    }
+
+    public static function defaultOgImage(): string
+    {
+        return self::absoluteUrl((string) config('seo.default_og_image', '/social/default-og.jpg'));
+    }
+
+    /**
      * Generate an absolute, canonical URL without tracking parameters.
      */
     public static function buildCanonical(string $path = '/', array $params = []): string
@@ -100,38 +129,23 @@ final readonly class SeoData
     public static function isPrivatePath(string $path): bool
     {
         $path = mb_trim($path, '/');
-        if ($path === 'seller/terms') {
+
+        if (in_array($path, config()->array('seo.public_path_exceptions', []), true)) {
             return false;
         }
 
-        $patterns = [
-            'cart*',
-            'checkout*',
-            'order-confirmed*',
-            'account*',
-            'login',
-            'register',
-            'forgot-password',
-            'reset-password*',
-            'two-factor*',
-            'password*',
-            'confirm-password',
-            'verify-email*',
-            'seller/*',
-            'admin*',
-            'api*',
-            'orders*',
-            'reports*',
-            'staff-invitations*',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (Str::is($pattern, $path)) {
+        foreach (config()->array('seo.private_path_patterns', []) as $pattern) {
+            if (Str::is((string) $pattern, $path)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public static function isNoindexFollowPath(string $path): bool
+    {
+        return in_array(mb_trim($path, '/'), config()->array('seo.noindex_follow_paths', []), true);
     }
 
     public static function defaultRobots(string $path = '/'): string
@@ -144,8 +158,7 @@ final readonly class SeoData
             return 'noindex, nofollow';
         }
 
-        $cleanPath = mb_trim($path, '/');
-        if ($cleanPath === 'search') {
+        if (self::isNoindexFollowPath($path)) {
             return 'noindex, follow';
         }
 
@@ -157,8 +170,7 @@ final readonly class SeoData
         $currentPath = $path ?? (request()?->path() ? '/'.request()->path() : '/');
         $canonical = self::buildCanonical($currentPath);
         $robots = self::defaultRobots($currentPath);
-        $origin = self::canonicalOrigin();
-        $defaultImage = $origin.'/social/default-og.jpg';
+        $defaultImage = self::defaultOgImage();
 
         $title = 'HalalBenta – Verified Halal Marketplace in the Philippines';
         $description = 'Shop verified halal food, meat & seafood, dates & sweets, modest fashion, prayer essentials and more. Escrow-protected checkout, delivered across the Philippines.';
@@ -189,27 +201,16 @@ final readonly class SeoData
                 'image_alt' => 'HalalBenta Marketplace',
             ],
             product: null,
-            jsonLd: [
-                '@context' => 'https://schema.org',
-                '@graph' => [
-                    [
-                        '@type' => 'Organization',
-                        'name' => 'HalalBenta',
-                        'url' => $origin,
-                        'logo' => $origin.'/brand/halalbenta-icon-512.png',
-                    ],
-                    [
-                        '@type' => 'WebSite',
-                        'name' => 'HalalBenta',
-                        'url' => $origin,
-                        'potentialAction' => [
-                            '@type' => 'SearchAction',
-                            'target' => $origin.'/search?q={search_term_string}',
-                            'query-input' => 'required name=search_term_string',
-                        ],
-                    ],
-                ],
-            ],
+            jsonLd: SchemaGraph::make()
+                ->add(resolve(BuildOrganizationNode::class)->handle())
+                ->add(resolve(BuildWebSiteNode::class)->handle())
+                ->add(resolve(BuildWebPageNode::class)->handle(
+                    type: 'WebPage',
+                    url: $canonical,
+                    name: $title,
+                    description: $description,
+                ))
+                ->toArray(),
         );
     }
 

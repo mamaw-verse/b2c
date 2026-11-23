@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Enums\HalalStatus;
 use App\Models\Product;
 use App\Models\ProductVariation;
+use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -138,6 +142,10 @@ final readonly class BuildProductSeoData
             }, $images);
         }
 
+        $seller = $shop !== null
+            ? ['@type' => 'Organization', '@id' => SchemaId::shop($shop->slug), 'name' => $shopName]
+            : ['@type' => 'Organization', 'name' => $shopName];
+
         $offers = [];
         if ($product->variations->isNotEmpty()) {
             foreach ($product->variations as $variation) {
@@ -150,10 +158,7 @@ final readonly class BuildProductSeoData
                     'priceCurrency' => 'PHP',
                     'availability' => $variation->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                     'url' => "{$canonical}?variant={$variation->id}",
-                    'seller' => [
-                        '@type' => 'Organization',
-                        'name' => $shopName,
-                    ],
+                    'seller' => $seller,
                 ];
             }
         } else {
@@ -163,15 +168,14 @@ final readonly class BuildProductSeoData
                 'priceCurrency' => 'PHP',
                 'availability' => $inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                 'url' => $canonical,
-                'seller' => [
-                    '@type' => 'Organization',
-                    'name' => $shopName,
-                ],
+                'seller' => $seller,
             ];
         }
 
         $productSchema = [
             '@type' => 'Product',
+            '@id' => SchemaId::product($product->slug),
+            'url' => $canonical,
             'name' => $product->name,
             'description' => $description,
             'image' => $images,
@@ -192,41 +196,25 @@ final readonly class BuildProductSeoData
             ];
         }
 
-        $breadcrumbs = [
-            [
-                '@type' => 'ListItem',
-                'position' => 1,
-                'name' => 'Home',
-                'item' => "{$origin}/",
-            ],
-        ];
-
+        $trail = [['name' => 'Home', 'url' => "{$origin}/"]];
         if ($category !== null) {
-            $breadcrumbs[] = [
-                '@type' => 'ListItem',
-                'position' => 2,
-                'name' => $category->name,
-                'item' => "{$origin}/categories/{$category->slug}",
-            ];
-            $breadcrumbs[] = [
-                '@type' => 'ListItem',
-                'position' => 3,
-                'name' => $product->name,
-                'item' => $canonical,
-            ];
-        } else {
-            $breadcrumbs[] = [
-                '@type' => 'ListItem',
-                'position' => 2,
-                'name' => $product->name,
-                'item' => $canonical,
-            ];
+            $trail[] = ['name' => $category->name, 'url' => "{$origin}/categories/{$category->slug}"];
         }
+        $trail[] = ['name' => $product->name, 'url' => $canonical];
+        $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, $trail);
 
-        $breadcrumbSchema = [
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => $breadcrumbs,
-        ];
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: 'WebPage',
+                url: $canonical,
+                name: $product->name,
+                description: $description,
+                breadcrumbId: $breadcrumb['@id'],
+                primaryImage: $images[0] ?? null,
+                extra: ['mainEntity' => SchemaGraph::ref($productSchema['@id'])],
+            ))
+            ->add($breadcrumb)
+            ->add($productSchema);
 
         return new SeoData(
             title: $metaTitle,
@@ -248,7 +236,7 @@ final readonly class BuildProductSeoData
             ],
             twitter: $twitter,
             product: $productMeta,
-            jsonLd: [$breadcrumbSchema, $productSchema],
+            jsonLd: $graph->toArray(),
         );
     }
 }

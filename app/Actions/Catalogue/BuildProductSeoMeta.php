@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Catalogue;
 
 use App\Models\Product;
+use App\Support\SeoData;
 use Illuminate\Support\Str;
 
 final readonly class BuildProductSeoMeta
@@ -34,7 +35,7 @@ final readonly class BuildProductSeoMeta
                 ? $photoUrl
                 : url($photoUrl);
         } else {
-            $image = url('/images/brand/logo.png');
+            $image = SeoData::logoUrl();
         }
 
         return [

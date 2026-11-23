@@ -68,7 +68,7 @@
         {{-- JSON-LD --}}
         @if (!empty($seo->jsonLd))
             <script type="application/ld+json">
-{!! json_encode($seo->jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+{!! \App\Support\Schema\SchemaGraph::encode($seo->jsonLd) !!}
             </script>
         @endif
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Support\SeoData;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 final readonly class BuildPagesSitemap
@@ -14,19 +13,18 @@ final readonly class BuildPagesSitemap
     {
         return Cache::remember('sitemap:pages', 3600, function (): string {
             $origin = SeoData::canonicalOrigin();
-            $now = Carbon::now()->toIso8601String();
-
+            // Static pages have no modification date: omit <lastmod> instead of faking "now".
             $urls = [
-                $origin.'/' => $now,
-                $origin.'/sellers' => $now,
-                $origin.'/why-choose-us' => $now,
-                $origin.'/seller/terms' => $now,
+                $origin.'/' => null,
+                $origin.'/sellers' => null,
+                $origin.'/why-choose-us' => null,
+                $origin.'/seller/terms' => null,
             ];
 
             $pages = config()->array('marketplace.pages', []);
             foreach ($pages as $key => $pageConfig) {
                 if (is_array($pageConfig) && ($pageConfig['enabled'] ?? false) === true) {
-                    $urls[$origin."/pages/{$key}"] = $now;
+                    $urls[$origin."/pages/{$key}"] = null;
                 }
             }
 
@@ -36,7 +34,9 @@ final readonly class BuildPagesSitemap
             foreach ($urls as $loc => $lastmod) {
                 $xml .= "  <url>\n";
                 $xml .= '    <loc>'.htmlspecialchars($loc, ENT_XML1).'</loc>'."\n";
-                $xml .= '    <lastmod>'.$lastmod.'</lastmod>'."\n";
+                if ($lastmod !== null) {
+                    $xml .= '    <lastmod>'.$lastmod.'</lastmod>'."\n";
+                }
                 $xml .= "  </url>\n";
             }
 

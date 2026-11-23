@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildOrganizationNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
+use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 
 final readonly class BuildWhyChooseUsSeoData
@@ -15,35 +20,25 @@ final readonly class BuildWhyChooseUsSeoData
 
         $title = 'Why Choose HalalBenta – Trusted Halal Marketplace';
         $description = 'Discover why buyers across the Philippines trust HalalBenta: strictly verified halal certificates, escrow-protected payments, and fresh nationwide delivery.';
-        $socialImage = "{$origin}/social/default-og.jpg";
+        $socialImage = SeoData::defaultOgImage();
 
-        $breadcrumbs = [
-            [
-                '@type' => 'ListItem',
-                'position' => 1,
-                'name' => 'Home',
-                'item' => "{$origin}/",
-            ],
-            [
-                '@type' => 'ListItem',
-                'position' => 2,
-                'name' => 'Why Choose HalalBenta',
-                'item' => $canonical,
-            ],
-        ];
+        $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, [
+            ['name' => 'Home', 'url' => "{$origin}/"],
+            ['name' => 'Why Choose HalalBenta', 'url' => $canonical],
+        ]);
 
-        $jsonLd = [
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => $breadcrumbs,
-            ],
-            [
-                '@type' => 'Organization',
-                'name' => 'HalalBenta',
-                'url' => $origin,
-                'logo' => "{$origin}/images/brand/logo.png",
-            ],
-        ];
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: 'WebPage',
+                url: $canonical,
+                name: $title,
+                description: $description,
+                breadcrumbId: $breadcrumb['@id'],
+                primaryImage: $socialImage,
+                extra: ['about' => SchemaGraph::ref(SchemaId::organization())],
+            ))
+            ->add($breadcrumb)
+            ->add(resolve(BuildOrganizationNode::class)->handle());
 
         return new SeoData(
             title: $title,
@@ -70,7 +65,7 @@ final readonly class BuildWhyChooseUsSeoData
                 'image' => $socialImage,
                 'image_alt' => 'Why Choose HalalBenta',
             ],
-            jsonLd: $jsonLd,
+            jsonLd: $graph->toArray(),
         );
     }
 }

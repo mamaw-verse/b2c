@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildItemListNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Enums\ShopStatus;
 use App\Models\Shop;
+use App\Support\Schema\SchemaGraph;
 use App\Support\SeoData;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 final readonly class BuildSellersSeoData
 {
@@ -32,27 +35,16 @@ final readonly class BuildSellersSeoData
 
         $title = "Halal Sellers & Shops in the Philippines | HalalBenta{$titleSuffix}";
         $description = 'Browse verified halal shops and sellers in the Philippines on HalalBenta. Official halal brands, Muslim-owned shops, and nationwide delivery.';
-        $socialImage = "{$origin}/social/default-og.jpg";
+        $socialImage = SeoData::defaultOgImage();
 
         $robots = (SeoData::isStaging() || $hasSearchOrFilters)
             ? 'noindex, follow'
             : 'index, follow';
 
-        // Breadcrumbs
-        $breadcrumbs = [
-            [
-                '@type' => 'ListItem',
-                'position' => 1,
-                'name' => 'Home',
-                'item' => "{$origin}/",
-            ],
-            [
-                '@type' => 'ListItem',
-                'position' => 2,
-                'name' => 'Sellers',
-                'item' => $cleanCanonical,
-            ],
-        ];
+        $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($cleanCanonical, [
+            ['name' => 'Home', 'url' => "{$origin}/"],
+            ['name' => 'Sellers', 'url' => $cleanCanonical],
+        ]);
 
         // Fetch top 24 active shops for ItemList
         $activeShops = Shop::query()
@@ -62,40 +54,29 @@ final readonly class BuildSellersSeoData
             ->limit(24)
             ->get();
 
-        $itemList = [];
-        $pos = 1;
+        $items = [];
         foreach ($activeShops as $shop) {
-            $shopImage = $shop->logo_url ?? "{$origin}/social/shop/{$shop->slug}.jpg";
-            if (! Str::startsWith($shopImage, ['http://', 'https://'])) {
-                $shopImage = $origin.'/'.mb_ltrim($shopImage, '/');
-            }
-
-            $itemList[] = [
-                '@type' => 'ListItem',
-                'position' => $pos++,
+            $items[] = [
                 'url' => "{$origin}/shops/{$shop->slug}",
                 'name' => $shop->name,
-                'image' => $shopImage,
+                'image' => SeoData::absoluteUrl($shop->logo_url ?? "/social/shop/{$shop->slug}.jpg"),
             ];
         }
 
-        $jsonLd = [
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => $breadcrumbs,
-            ],
-            [
-                '@type' => 'CollectionPage',
-                'name' => 'Halal Sellers & Shops in the Philippines',
-                'description' => $description,
-                'url' => $canonical,
-                'mainEntity' => [
-                    '@type' => 'ItemList',
-                    'numberOfItems' => count($itemList),
-                    'itemListElement' => $itemList,
-                ],
-            ],
-        ];
+        $itemList = resolve(BuildItemListNode::class)->handle($canonical, $items);
+
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: 'CollectionPage',
+                url: $canonical,
+                name: 'Halal Sellers & Shops in the Philippines',
+                description: $description,
+                breadcrumbId: $breadcrumb['@id'],
+                primaryImage: $socialImage,
+                extra: ['mainEntity' => SchemaGraph::ref($itemList['@id'])],
+            ))
+            ->add($breadcrumb)
+            ->add($itemList);
 
         return new SeoData(
             title: $title,
@@ -122,7 +103,7 @@ final readonly class BuildSellersSeoData
                 'image' => $socialImage,
                 'image_alt' => 'Halal Sellers & Shops on HalalBenta',
             ],
-            jsonLd: $jsonLd,
+            jsonLd: $graph->toArray(),
         );
     }
 }

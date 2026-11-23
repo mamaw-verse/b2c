@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildItemListNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\Schema\SchemaGraph;
 use App\Support\SeoData;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 final readonly class BuildCategorySeoData
 {
@@ -45,32 +48,12 @@ final readonly class BuildCategorySeoData
         // Social image
         $socialImage = "{$origin}/social/category/{$category->slug}.jpg";
 
-        // JSON-LD Breadcrumbs
-        $breadcrumbs = [
-            [
-                '@type' => 'ListItem',
-                'position' => 1,
-                'name' => 'Home',
-                'item' => "{$origin}/",
-            ],
-        ];
-
-        $pos = 2;
+        $trail = [['name' => 'Home', 'url' => "{$origin}/"]];
         if ($category->parent !== null) {
-            $breadcrumbs[] = [
-                '@type' => 'ListItem',
-                'position' => $pos++,
-                'name' => $category->parent->name,
-                'item' => "{$origin}/categories/{$category->parent->slug}",
-            ];
+            $trail[] = ['name' => $category->parent->name, 'url' => "{$origin}/categories/{$category->parent->slug}"];
         }
-
-        $breadcrumbs[] = [
-            '@type' => 'ListItem',
-            'position' => $pos,
-            'name' => $category->name,
-            'item' => $cleanCanonical,
-        ];
+        $trail[] = ['name' => $category->name, 'url' => $cleanCanonical];
+        $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, $trail);
 
         // Fetch up to 24 products for ItemList schema
         $categoryIds = $category->descendantIds();
@@ -83,40 +66,29 @@ final readonly class BuildCategorySeoData
             ->limit(24)
             ->get();
 
-        $itemList = [];
-        $itemPos = 1;
+        $items = [];
         foreach ($products as $product) {
-            $prodImage = $product->images->firstWhere('url', '!=', '')?->url ?? "{$origin}/social/product/{$product->slug}.jpg";
-            if (! Str::startsWith($prodImage, ['http://', 'https://'])) {
-                $prodImage = $origin.'/'.mb_ltrim($prodImage, '/');
-            }
-
-            $itemList[] = [
-                '@type' => 'ListItem',
-                'position' => $itemPos++,
+            $items[] = [
                 'url' => "{$origin}/products/{$product->slug}",
                 'name' => $product->name,
-                'image' => $prodImage,
+                'image' => SeoData::absoluteUrl($product->images->firstWhere('url', '!=', '')?->url ?? "/social/product/{$product->slug}.jpg"),
             ];
         }
 
-        $jsonLd = [
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => $breadcrumbs,
-            ],
-            [
-                '@type' => 'CollectionPage',
-                'name' => "Halal {$category->name}",
-                'description' => $description,
-                'url' => $canonical,
-                'mainEntity' => [
-                    '@type' => 'ItemList',
-                    'numberOfItems' => count($itemList),
-                    'itemListElement' => $itemList,
-                ],
-            ],
-        ];
+        $itemList = resolve(BuildItemListNode::class)->handle($canonical, $items);
+
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: 'CollectionPage',
+                url: $canonical,
+                name: "Halal {$category->name}",
+                description: $description,
+                breadcrumbId: $breadcrumb['@id'],
+                primaryImage: $socialImage,
+                extra: ['mainEntity' => SchemaGraph::ref($itemList['@id'])],
+            ))
+            ->add($breadcrumb)
+            ->add($itemList);
 
         return new SeoData(
             title: $title,
@@ -143,7 +115,7 @@ final readonly class BuildCategorySeoData
                 'image' => $socialImage,
                 'image_alt' => "Halal {$category->name} on HalalBenta",
             ],
-            jsonLd: $jsonLd,
+            jsonLd: $graph->toArray(),
         );
     }
 }

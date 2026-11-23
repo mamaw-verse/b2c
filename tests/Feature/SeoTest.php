@@ -7,6 +7,7 @@ use App\Enums\ShopStatus;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariation;
+use App\Models\Review;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -270,4 +271,239 @@ test('social image generator route serves dynamic image with cache headers', fun
     $response->assertOk();
     $response->assertHeader('Content-Type', 'image/jpeg');
     $response->assertHeader('Cache-Control');
+});
+
+/**
+ * Extract and decode the page's JSON-LD document.
+ *
+ * @return array<string, mixed>
+ */
+function jsonLdFrom(Illuminate\Testing\TestResponse $response): array
+{
+    preg_match_all('#<script type="application/ld\+json">\s*(.*?)\s*</script>#s', $response->getContent(), $matches);
+
+    expect($matches[1])->toHaveCount(1);
+
+    $decoded = json_decode($matches[1][0], true, flags: JSON_THROW_ON_ERROR);
+    expect($decoded)->toBeArray();
+
+    return $decoded;
+}
+
+/** @param  array<mixed>  $value */
+function collectRefs(array $value, array &$refs, array &$ids): void
+{
+    foreach ($value as $key => $item) {
+        if (! is_array($item)) {
+            expect($item === '')->toBeFalse();
+
+            continue;
+        }
+        expect($item === [])->toBeFalse();
+
+        if (isset($item['@id']) && count($item) === 1) {
+            $refs[] = $item['@id'];
+        } elseif (isset($item['@id'])) {
+            $ids[] = $item['@id'];
+        }
+
+        collectRefs($item, $refs, $ids);
+    }
+}
+
+test('every public page emits one valid, linked JSON-LD @graph', function (string $path) {
+    $document = jsonLdFrom($this->get($path)->assertOk());
+
+    expect($document['@context'])->toBe('https://schema.org')
+        ->and($document['@graph'])->toBeArray()->not->toBeEmpty();
+
+    $topLevelIds = [];
+    foreach ($document['@graph'] as $node) {
+        expect($node)->toHaveKey('@type');
+        if (isset($node['@id'])) {
+            $topLevelIds[] = $node['@id'];
+        }
+    }
+
+    expect($topLevelIds)->toBe(array_values(array_unique($topLevelIds)));
+
+    $refs = [];
+    $ids = [];
+    collectRefs($document['@graph'], $refs, $ids);
+
+    $origin = 'http://localhost:8000';
+    $sitewide = ["{$origin}/#organization", "{$origin}/#website"];
+
+    foreach (array_unique($refs) as $ref) {
+        expect([...$topLevelIds, ...$ids, ...$sitewide])->toContain($ref);
+    }
+})->with([
+    'home' => '/',
+    'product' => '/products/premium-medjool-dates-500g',
+    'category' => '/categories/halal-food',
+    'shop' => '/shops/al-barakah-mart',
+    'sellers' => '/sellers',
+    'why choose us' => '/why-choose-us',
+    'seller terms' => '/seller/terms',
+]);
+
+test('home page links Organization, WebSite and WebPage by stable @id', function () {
+    $document = jsonLdFrom($this->get('/')->assertOk());
+    $byType = collect($document['@graph'])->keyBy('@type');
+
+    expect($byType['Organization']['@id'])->toBe('http://localhost:8000/#organization')
+        ->and($byType['Organization']['logo']['url'])->toBe('http://localhost:8000/brand/halalbenta-icon-512.png')
+        ->and($byType['WebSite']['@id'])->toBe('http://localhost:8000/#website')
+        ->and($byType['WebSite']['publisher'])->toBe(['@id' => 'http://localhost:8000/#organization'])
+        ->and($byType['WebSite']['potentialAction']['target']['@type'])->toBe('EntryPoint')
+        ->and($byType['WebPage']['isPartOf'])->toBe(['@id' => 'http://localhost:8000/#website']);
+});
+
+test('product JSON-LD links Product, seller store and breadcrumb', function () {
+    $document = jsonLdFrom($this->get('/products/premium-medjool-dates-500g')->assertOk());
+    $byType = collect($document['@graph'])->keyBy('@type');
+
+    expect($byType['Product']['@id'])->toBe('http://localhost:8000/products/premium-medjool-dates-500g#product')
+        ->and($byType['Product']['offers']['seller']['@id'])->toBe('http://localhost:8000/shops/al-barakah-mart#store')
+        ->and($byType['WebPage']['mainEntity'])->toBe(['@id' => $byType['Product']['@id']])
+        ->and($byType['WebPage']['breadcrumb'])->toBe(['@id' => $byType['BreadcrumbList']['@id']]);
+});
+
+test('hostile product names cannot break out of the JSON-LD script tag', function () {
+    $hostile = Product::factory()->create([
+        'shop_id' => $this->shop->id,
+        'category_id' => $this->category->id,
+        'name' => '</script><script>alert(1)</script>',
+        'slug' => 'hostile-product',
+        'published' => true,
+        'stock' => 5,
+    ]);
+
+    $response = $this->get("/products/{$hostile->slug}")->assertOk();
+
+    expect($response->getContent())->not->toContain('<script>alert(1)</script>');
+
+    $document = jsonLdFrom($response);
+    $product = collect($document['@graph'])->firstWhere('@type', 'Product');
+    expect($product['name'])->toBe('</script><script>alert(1)</script>');
+});
+
+test('shop with followers but no reviews has no aggregateRating', function () {
+    $this->shop->forceFill(['followers_count' => 250, 'rating' => 4.8])->save();
+
+    $document = jsonLdFrom($this->get('/shops/al-barakah-mart')->assertOk());
+    $store = collect($document['@graph'])->firstWhere('@type', 'Store');
+
+    expect($store)->not->toHaveKey('aggregateRating');
+});
+
+test('shop aggregateRating uses real visible review count and average, never followers', function () {
+    $this->shop->forceFill(['followers_count' => 250])->save();
+
+    Review::factory()->create(['product_id' => $this->product->id, 'rating' => 5, 'hidden' => false]);
+    Review::factory()->create(['product_id' => $this->product->id, 'rating' => 4, 'hidden' => false]);
+    Review::factory()->create(['product_id' => $this->product->id, 'rating' => 1, 'hidden' => true]);
+
+    $document = jsonLdFrom($this->get('/shops/al-barakah-mart')->assertOk());
+    $store = collect($document['@graph'])->firstWhere('@type', 'Store');
+
+    expect($store['aggregateRating']['reviewCount'])->toBe(2)
+        ->and($store['aggregateRating']['ratingValue'])->toBe('4.5');
+});
+
+test('the canonical logo and default social image are real, square-enough files', function () {
+    $logo = public_path(mb_ltrim((string) config('seo.logo_path'), '/'));
+    expect(file_exists($logo))->toBeTrue();
+
+    [$width, $height] = getimagesize($logo);
+    expect($width)->toBe($height)->and($width)->toBeGreaterThanOrEqual(112);
+});
+
+test('no builder references the removed /images/brand/logo.png schema logo', function () {
+    $matches = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path())) as $file) {
+        if ($file->isFile() && str_ends_with($file->getFilename(), '.php')
+            && str_contains((string) file_get_contents($file->getPathname()), 'images/brand/logo.png')) {
+            $matches[] = $file->getPathname();
+        }
+    }
+
+    expect($matches)->toBe([]);
+});
+
+test('no static robots.txt or sitemap files shadow the dynamic routes', function () {
+    expect(file_exists(public_path('robots.txt')))->toBeFalse()
+        ->and(glob(public_path('sitemap*.xml')))->toBe([]);
+});
+
+test('robots.txt, meta robots and X-Robots-Tag agree on every private path pattern', function () {
+    $this->app['env'] = 'production';
+
+    $robots = $this->get('/robots.txt')->assertOk()->getContent();
+
+    foreach (config('seo.private_path_patterns') as $pattern) {
+        $sample = mb_rtrim($pattern, '*');
+        $expectedRule = 'Disallow: /'.mb_ltrim($sample, '/');
+
+        expect($robots)->toContain($expectedRule);
+        expect(App\Support\SeoData::isPrivatePath($sample))->toBeTrue();
+        expect(App\Support\SeoData::defaultRobots($sample))->toBe('noindex, nofollow');
+    }
+
+    expect($robots)->toContain('Allow: /seller/terms')
+        ->and(App\Support\SeoData::isPrivatePath('seller/terms'))->toBeFalse()
+        ->and($robots)->toContain('Sitemap: http://localhost:8000/sitemap.xml');
+});
+
+test('robots.txt blocks everything outside production and when force_noindex is on', function () {
+    $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /', false)->assertDontSee('Sitemap:', false);
+
+    $this->app['env'] = 'production';
+    config(['seo.force_noindex' => true]);
+    $this->get('/robots.txt')->assertOk()->assertDontSee('Sitemap:', false);
+});
+
+test('each named AI crawler repeats the private path disallows', function () {
+    $this->app['env'] = 'production';
+    $robots = $this->get('/robots.txt')->assertOk()->getContent();
+
+    $groups = preg_split("/\n\n+/", mb_trim($robots));
+    $agents = [...config('seo.ai_crawlers.search'), ...config('seo.ai_crawlers.training')];
+
+    foreach ($agents as $agent) {
+        $group = collect($groups)->first(fn (string $g) => str_contains($g, "User-agent: {$agent}\n"));
+        expect($group)->not->toBeNull();
+
+        foreach (['/cart', '/checkout', '/account', '/admin', '/api'] as $path) {
+            expect($group)->toContain("Disallow: {$path}");
+        }
+    }
+});
+
+test('blocking AI training crawlers disallows everything for them only', function () {
+    $this->app['env'] = 'production';
+    config(['seo.ai_crawlers.block_training' => true]);
+
+    $robots = $this->get('/robots.txt')->assertOk()->getContent();
+    $groups = preg_split("/\n\n+/", mb_trim($robots));
+    $gptGroup = collect($groups)->first(fn (string $g) => str_contains($g, "User-agent: GPTBot\n"));
+    $searchGroup = collect($groups)->first(fn (string $g) => str_contains($g, "User-agent: OAI-SearchBot\n"));
+
+    expect($gptGroup)->toContain('Disallow: /')->not->toContain('Allow: /')
+        ->and($searchGroup)->toContain('Allow: /');
+});
+
+test('sitemap index uses real lastmod values and omits lastmod for static pages', function () {
+    $first = $this->get('/sitemap.xml')->assertOk()->getContent();
+    $second = $this->get('/sitemap.xml')->assertOk()->getContent();
+
+    expect($first)->toBe($second);
+
+    $xml = simplexml_load_string($first);
+    $entries = collect($xml->sitemap)->keyBy(fn ($s) => (string) $s->loc);
+
+    expect(isset($entries['http://localhost:8000/sitemap-pages.xml']->lastmod))->toBeFalse()
+        ->and(isset($entries['http://localhost:8000/sitemap-products-1.xml']->lastmod))->toBeTrue()
+        ->and((string) $entries['http://localhost:8000/sitemap-products-1.xml']->lastmod)
+        ->toBe($this->product->fresh()->updated_at->toIso8601String());
 });

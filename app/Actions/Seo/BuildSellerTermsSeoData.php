@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
+use App\Support\Schema\SchemaGraph;
 use App\Support\SeoData;
 
 final readonly class BuildSellerTermsSeoData
@@ -15,35 +18,23 @@ final readonly class BuildSellerTermsSeoData
 
         $title = 'Seller Terms & Merchant Agreement | HalalBenta';
         $description = 'Read the terms and conditions for verified sellers, halal merchants, and store operators on the HalalBenta marketplace in the Philippines.';
-        $socialImage = "{$origin}/social/default-og.jpg";
+        $socialImage = SeoData::defaultOgImage();
 
-        $breadcrumbs = [
-            [
-                '@type' => 'ListItem',
-                'position' => 1,
-                'name' => 'Home',
-                'item' => "{$origin}/",
-            ],
-            [
-                '@type' => 'ListItem',
-                'position' => 2,
-                'name' => 'Seller Terms',
-                'item' => $canonical,
-            ],
-        ];
+        $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, [
+            ['name' => 'Home', 'url' => "{$origin}/"],
+            ['name' => 'Seller Terms', 'url' => $canonical],
+        ]);
 
-        $jsonLd = [
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => $breadcrumbs,
-            ],
-            [
-                '@type' => 'WebPage',
-                'name' => 'Seller Terms & Conditions',
-                'description' => $description,
-                'url' => $canonical,
-            ],
-        ];
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: 'WebPage',
+                url: $canonical,
+                name: 'Seller Terms & Conditions',
+                description: $description,
+                breadcrumbId: $breadcrumb['@id'],
+                primaryImage: $socialImage,
+            ))
+            ->add($breadcrumb);
 
         return new SeoData(
             title: $title,
@@ -70,7 +61,7 @@ final readonly class BuildSellerTermsSeoData
                 'image' => $socialImage,
                 'image_alt' => 'HalalBenta Seller Terms',
             ],
-            jsonLd: $jsonLd,
+            jsonLd: $graph->toArray(),
         );
     }
 }

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildOrganizationNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
+use App\Support\Schema\SchemaGraph;
 use App\Support\SeoData;
 
 final readonly class BuildContentPageSeoData
@@ -29,45 +33,26 @@ final readonly class BuildContentPageSeoData
         ];
 
         $description = $descriptions[$pageKey] ?? "Read the {$pageTitle} guidelines and details for shopping and selling on HalalBenta in the Philippines.";
-        $socialImage = "{$origin}/social/default-og.jpg";
+        $socialImage = SeoData::defaultOgImage();
 
-        $breadcrumbs = [
-            [
-                '@type' => 'ListItem',
-                'position' => 1,
-                'name' => 'Home',
-                'item' => "{$origin}/",
-            ],
-            [
-                '@type' => 'ListItem',
-                'position' => 2,
-                'name' => $pageTitle,
-                'item' => $canonical,
-            ],
-        ];
+        $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, [
+            ['name' => 'Home', 'url' => "{$origin}/"],
+            ['name' => $pageTitle, 'url' => $canonical],
+        ]);
 
-        $webPageSchema = [
-            '@type' => $pageKey === 'halal-verification' ? 'Article' : 'WebPage',
-            'name' => $pageTitle,
-            'description' => $description,
-            'url' => $canonical,
-        ];
-
-        $jsonLd = [
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => $breadcrumbs,
-            ],
-            $webPageSchema,
-        ];
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: $pageKey === 'halal-verification' ? 'Article' : 'WebPage',
+                url: $canonical,
+                name: $pageTitle,
+                description: $description,
+                breadcrumbId: $breadcrumb['@id'],
+                primaryImage: $socialImage,
+            ))
+            ->add($breadcrumb);
 
         if ($pageKey === 'about') {
-            $jsonLd[] = [
-                '@type' => 'Organization',
-                'name' => 'HalalBenta',
-                'url' => $origin,
-                'logo' => "{$origin}/images/brand/logo.png",
-            ];
+            $graph->add(resolve(BuildOrganizationNode::class)->handle());
         }
 
         return new SeoData(
@@ -95,7 +80,7 @@ final readonly class BuildContentPageSeoData
                 'image' => $socialImage,
                 'image_alt' => $title,
             ],
-            jsonLd: $jsonLd,
+            jsonLd: $graph->toArray(),
         );
     }
 }

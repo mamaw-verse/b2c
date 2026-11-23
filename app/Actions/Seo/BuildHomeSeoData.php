@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildOrganizationNode;
+use App\Actions\Seo\Schema\BuildWebPageNode;
+use App\Actions\Seo\Schema\BuildWebSiteNode;
+use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 
 final readonly class BuildHomeSeoData
@@ -15,38 +20,19 @@ final readonly class BuildHomeSeoData
 
         $title = 'HalalBenta – Verified Halal Marketplace in the Philippines';
         $description = 'Shop verified halal food, meat & seafood, dates & sweets, modest fashion, prayer essentials and more. Escrow-protected checkout, delivered across the Philippines.';
-        $socialImage = "{$origin}/social/default-og.jpg";
+        $socialImage = SeoData::defaultOgImage();
 
-        $socialLinks = collect(config()->array('marketplace.socials', []))
-            ->pluck('href')
-            ->filter()
-            ->values()
-            ->all();
-
-        $organizationSchema = [
-            '@type' => 'Organization',
-            'name' => 'HalalBenta',
-            'url' => $origin,
-            'logo' => "{$origin}/images/brand/logo.png",
-        ];
-
-        if (! empty($socialLinks)) {
-            $organizationSchema['sameAs'] = $socialLinks;
-        }
-
-        $websiteSchema = [
-            '@type' => 'WebSite',
-            'name' => 'HalalBenta',
-            'url' => $origin,
-            'potentialAction' => [
-                '@type' => 'SearchAction',
-                'target' => [
-                    '@type' => 'EntryPoint',
-                    'urlTemplate' => "{$origin}/search?q={search_term_string}",
-                ],
-                'query-input' => 'required name=search_term_string',
-            ],
-        ];
+        $graph = SchemaGraph::make()
+            ->add(resolve(BuildOrganizationNode::class)->handle())
+            ->add(resolve(BuildWebSiteNode::class)->handle())
+            ->add(resolve(BuildWebPageNode::class)->handle(
+                type: 'WebPage',
+                url: $canonical,
+                name: $title,
+                description: $description,
+                primaryImage: $socialImage,
+                extra: ['about' => SchemaGraph::ref(SchemaId::organization())],
+            ));
 
         return new SeoData(
             title: $title,
@@ -73,7 +59,7 @@ final readonly class BuildHomeSeoData
                 'image' => $socialImage,
                 'image_alt' => 'HalalBenta – Verified Halal Marketplace in the Philippines',
             ],
-            jsonLd: [$organizationSchema, $websiteSchema],
+            jsonLd: $graph->toArray(),
         );
     }
 }
