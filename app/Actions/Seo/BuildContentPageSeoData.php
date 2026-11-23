@@ -9,6 +9,8 @@ use App\Actions\Seo\Schema\BuildFaqNode;
 use App\Actions\Seo\Schema\BuildOrganizationNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
+use App\Support\ContentPageDates;
 use App\Support\FaqEntries;
 use App\Support\SeoData;
 use App\Support\TrustFacts;
@@ -47,14 +49,35 @@ final readonly class BuildContentPageSeoData
             ['name' => $pageTitle, 'url' => $canonical],
         ]);
 
+        $isArticle = $pageKey === 'halal-verification';
+        $author = $isArticle ? 'HalalBenta Halal Assurance Team' : 'HalalBenta';
+        $dates = ContentPageDates::for($pageData);
+
+        // Article fields (T4.5). Dates are emitted only when configured, never invented.
+        $extra = array_filter([
+            'datePublished' => $dates['published'],
+            'dateModified' => $dates['modified'],
+        ]);
+
+        if ($isArticle) {
+            $extra += [
+                'headline' => $pageTitle,
+                'author' => ['@type' => 'Organization', 'name' => $author],
+                'publisher' => SchemaGraph::ref(SchemaId::organization()),
+                'image' => $socialImage,
+                'mainEntityOfPage' => $canonical,
+            ];
+        }
+
         $graph = SchemaGraph::make()
             ->add(resolve(BuildWebPageNode::class)->handle(
-                type: $pageKey === 'halal-verification' ? 'Article' : 'WebPage',
+                type: $isArticle ? 'Article' : 'WebPage',
                 url: $canonical,
                 name: $pageTitle,
                 description: $description,
                 breadcrumbId: $breadcrumb['@id'],
                 primaryImage: $socialImage,
+                extra: $extra,
             ))
             ->add($breadcrumb);
 
@@ -63,10 +86,6 @@ final readonly class BuildContentPageSeoData
         if ($pageKey === 'about') {
             $graph->add(resolve(BuildOrganizationNode::class)->handle());
         }
-
-        $author = $pageKey === 'halal-verification'
-            ? 'HalalBenta Halal Assurance Team'
-            : 'HalalBenta';
 
         $og = [
             'site_name' => 'HalalBenta',
@@ -83,10 +102,12 @@ final readonly class BuildContentPageSeoData
         ];
 
         if ($pageKey === 'halal-verification') {
-            $og['article'] = [
+            $og['article'] = array_filter([
                 'author' => $author,
                 'section' => 'Halal Standards',
-            ];
+                'published_time' => $dates['published'],
+                'modified_time' => $dates['modified'],
+            ]);
         }
 
         return new SeoData(

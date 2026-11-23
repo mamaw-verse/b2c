@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Seo\BuildContentPageSeoData;
 use App\Http\Requests\ShowContentPageRequest;
+use App\Support\ContentPageDates;
 use App\Support\FaqEntries;
 use App\Support\Seo;
 use Inertia\Inertia;
@@ -27,6 +28,7 @@ final class ContentPageController
         return Inertia::render('content', [
             'page' => $pageData,
             'faqs' => FaqEntries::for($pageKey),
+            'dates' => ContentPageDates::for($pageData),
         ])
             ->withViewData(['seo' => $seoData]);
     }

@@ -8,10 +8,10 @@
 
 ## 0. Implementation status
 
-Phase 0, Phase 1, Phase 2 (rich entity schema), most of Phase 3 (social/AI preview tags) and the first Phase 4 groups (T4.1–T4.4: AI-crawler policy, `/llms.txt`, shared trust facts, FAQ) are implemented. Everything below is **un-run in CI**: it was written
+Phase 0, Phase 1, Phase 2 (rich entity schema), most of Phase 3 (social/AI preview tags) and the first Phase 4 groups (T4.1–T4.5: AI-crawler policy, `/llms.txt`, shared trust facts, FAQ, Article) are implemented. Everything below is **un-run in CI**: it was written
 and linted (`php -l`, Pint) but the Pest suite still needs to be run locally
 (`php artisan test --compact --filter=Seo` and `tests/Unit/SchemaGraphTest.php`).
-Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in `tests/Feature/SeoSocialTagsTest.php`, Phase 4 tests in `tests/Feature/SeoGeoTest.php` and `tests/Feature/SeoFaqTest.php`.
+Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in `tests/Feature/SeoSocialTagsTest.php`, Phase 4 tests in `tests/Feature/SeoGeoTest.php` `tests/Feature/SeoFaqTest.php` and `tests/Feature/SeoArticleTest.php`.
 
 | Task | Status | Notes |
 |---|---|---|
@@ -47,7 +47,8 @@ Phase 2 tests live in `tests/Feature/SeoProductSchemaTest.php`, Phase 3 tests in
 | T3.6 AI preview meta | Done | Added `<meta name="author">` on content and editorial pages (`halal-verification`, `about`, `terms`, `privacy`, `why-choose-us`); preview robots directives and titles active. |
 | T3.7 Favicon and app signals | Done | 180×180 apple-touch-icon verified, 32×32 PNG icon generated (`/favicon-32x32.png`), added `<meta name="application-name">`, and updated `manifest.webmanifest` with `id: "/"`, `lang: "en-PH"`, and `categories: ["shopping"]`. |
 | T4.4 FAQ and answer-first content | Done (3 pages; categories deferred) | `FaqEntries` is the single list per page, built from `TrustFacts`. It is passed to the page as the `faqs` prop (rendered by `resources/js/components/faq-list.tsx`) **and** emitted as `FAQPage` JSON-LD by `BuildFaqNode`, so markup always equals visible text (test asserts parity). Pages: **Why Choose Us** (escrow, returns, delivery, who can sell, + halal verification when claimed), **Returns** (window, how to request, partial refunds, declined requests; collapses to one entry when the window is 0), **Halal verification** (flag-gated, empty until `MARKETPLACE_CLAIM_HALAL_VERIFICATION=true`). Pages with no entries get no FAQ markup. **Not done:** top-category FAQs (needs reviewed per-category copy, e.g. delivery to Mindanao has no data behind it). Answers are 20–60 words, shorter than the 40–80 target in places rather than padded. Value is answer-engine extraction, not a Google rich result. |
-| T4.5–T4.8, Phase 5 | Not started | Next Phase 4 group: T4.5 (`Article` fields, needs real dates), T4.7 (env), then T4.6/T0.7 (SSR) and T4.8 (product data fields, needs a migration). |
+| T4.5 `Article` for editorial pages | Done (dates need to be set) | The `halal-verification` node (type `Article`) now has `headline`, `author` (Organization, "HalalBenta Halal Assurance Team"), `publisher` → Organization `@id`, `image`, `mainEntityOfPage`, and `datePublished`/`dateModified`. Content pages live in config with no timestamps, so dates come from `MARKETPLACE_PAGE_HALAL_PUBLISHED` / `MARKETPLACE_PAGE_HALAL_UPDATED` (`YYYY-MM-DD`) via `ContentPageDates`. **Nothing is emitted until you set them**: unset, unparseable, future, or modified-before-published values are dropped. The same normalized dates feed the visible "Last updated" line (`content.tsx`, shown when a modified date exists), JSON-LD and `article:published_time`/`article:modified_time`. Update `…_UPDATED` whenever the page copy changes. The author is still a generic team name, not a named reviewer. Tests: `tests/Feature/SeoArticleTest.php`. |
+| T4.6–T4.8, Phase 5 | Not started | Next Phase 4 group: T4.7 (env), then T4.6/T0.7 (SSR) and T4.8 (product data fields, needs a migration). |
 
 **Erratum to G3.** `public/images/brand/logo.png` does exist (a 959×246 wordmark), so it was not a 404. It was still
 the wrong asset for `Organization.logo` (not square, and inconsistent with the other references), so all references
@@ -55,7 +56,7 @@ were consolidated onto the 512×512 square icon.
 
 **New env vars:** `SEO_FORCE_NOINDEX`, `SEO_SITE_NAME`, `SEO_SOCIAL_TIKTOK`, `SEO_SOCIAL_LINKEDIN`,
 `SEO_SOCIAL_GOOGLE_BUSINESS`, `SEO_TWITTER_HANDLE`, `SEO_CONTACT_PHONE`, `SEO_AI_CRAWLER_GROUPS`,
-`SEO_BLOCK_AI_TRAINING` (all optional). Phase 4 added no new env vars; it reads `MARKETPLACE_RETURN_WINDOW_DAYS`, `MARKETPLACE_COURIERS`, `MARKETPLACE_PAYMENTS`, `MARKETPLACE_CLAIM_HALAL_VERIFICATION` and the enabled `MARKETPLACE_PAGE_*` flags. Existing `MARKETPLACE_SOCIAL_*` and `MARKETPLACE_SUPPORT_EMAIL` feed `sameAs`/`contactPoint`.
+`SEO_BLOCK_AI_TRAINING` (all optional). Phase 4 added two optional env vars (the halal page dates) and reads `MARKETPLACE_RETURN_WINDOW_DAYS`, `MARKETPLACE_COURIERS`, `MARKETPLACE_PAYMENTS`, `MARKETPLACE_CLAIM_HALAL_VERIFICATION`, `MARKETPLACE_PAGE_HALAL_PUBLISHED`, `MARKETPLACE_PAGE_HALAL_UPDATED` and the enabled `MARKETPLACE_PAGE_*` flags. Existing `MARKETPLACE_SOCIAL_*` and `MARKETPLACE_SUPPORT_EMAIL` feed `sameAs`/`contactPoint`.
 
 ---
 
@@ -320,7 +321,7 @@ Replace inline arrays in: `BuildHomeSeoData`, `BuildProductSeoData`, `BuildCateg
 - Emit `FAQPage` JSON-LD **only where the Q&A is visible on the page**. Note Google restricted FAQ rich results to authoritative government/health sites in 2023, so the value here is machine readability and answer-engine extraction, not a rich result.
 - Write answers as short, self-contained, quotable paragraphs (40–80 words) with specific facts.
 
-**T4.5 (P1) — `Article` for editorial pages**
+**✅ T4.5 (P1) — `Article` for editorial pages**
 - `halal-verification` is already typed `Article`: add `headline`, `datePublished`, `dateModified`, `author` (Organization or a named reviewer), `publisher` → Organization `@id`, `image`, `mainEntityOfPage`.
 - Add a visible "Last updated" date on the page and keep it in sync with `dateModified`.
 

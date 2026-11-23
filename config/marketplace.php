@@ -74,6 +74,9 @@ return [
         'halal-verification' => [
             'enabled' => (bool) env('MARKETPLACE_PAGE_HALAL', false),
             'title' => 'Halal verification',
+            /* Editorial dates (YYYY-MM-DD). Left unset until a real date exists: none is invented. */
+            'published' => env('MARKETPLACE_PAGE_HALAL_PUBLISHED'),
+            'updated' => env('MARKETPLACE_PAGE_HALAL_UPDATED'),
             'sections' => [],
         ],
     ],
