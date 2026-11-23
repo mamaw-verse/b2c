@@ -282,7 +282,7 @@ Order matters: T1 → T2 → rest. Each task is one commit.
 - [x] T4 `seo.spec.ts`
 - [x] T5 `multi-shop.spec.ts`
 - [x] T6 `seller-products.spec.ts` extension
-- [ ] T7 PDP and cart extensions
+- [x] T7 PDP and cart extensions
 - [ ] T8 `seller-registration.spec.ts` extension
 - [ ] T9 `order-lifecycle.spec.ts` extension
 - [ ] T10 storefront and shop extensions

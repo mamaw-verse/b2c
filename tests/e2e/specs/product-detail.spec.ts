@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, shot } from '../helpers';
+import { createVerifiedUser, login, shot, uniqueEmail } from '../helpers';
 
 const BUYER = 'test@example.com';
 const QURAN = '/products/quran-with-english-translation-hardcover';
@@ -63,11 +63,67 @@ test.describe('product detail', () => {
         await expect(dialog).toHaveCount(0);
     });
 
+    // Wave 4 (T7, qa3 1.2): the chosen variation drives the Variation row and
+    // price on the page. Selectors from the source; not yet run.
+    test('a variation picked in the picker updates the Variation row and price', async ({
+        page,
+    }) => {
+        const email = uniqueEmail('pdp-variation');
+        createVerifiedUser(email, 'PDP Variation E2E');
+        await login(page, email);
+        await page.goto(AJWA);
+
+        const row = page.getByRole('button', { name: /^Variation:/ });
+        const price = page.locator('div.rounded-panel.bg-surface-cta').first();
+
+        // Defaults to the first in-stock variation.
+        await expect(row).toContainText('Premium · 250g');
+        const before = await price.innerText();
+        await shot(page, 'pdp-10-variation-default');
+
+        await row.click();
+        const dialog = page.locator('dialog[open]');
+        await expect(dialog).toContainText('Select variation');
+        await dialog.getByText('Standard', { exact: true }).click();
+        await dialog.getByText('1kg', { exact: true }).click();
+        await dialog
+            .getByRole('button', { name: 'Add to cart', exact: true })
+            .click();
+
+        await expect(row).toContainText('Standard · 1kg', { timeout: 15_000 });
+        await expect(price).toContainText('999');
+        expect(await price.innerText()).not.toBe(before);
+        await shot(page, 'pdp-11-variation-chosen');
+    });
+
+    test('sold-out variation combinations are disabled in the picker', async ({
+        page,
+    }) => {
+        await page.goto(AJWA);
+        await page.getByRole('button', { name: 'Add to cart' }).first().click();
+
+        const dialog = page.locator('dialog[open]');
+        await expect(dialog).toContainText('Select variation');
+
+        // Sukkari 500g is the seeded sold-out combination.
+        await dialog.getByText('Sukkari', { exact: true }).click();
+        await expect(dialog.getByRole('radio', { name: /500g/ })).toBeDisabled();
+        await expect(dialog).toContainText('(sold out)');
+        await shot(page, 'pdp-12-sold-out-variation');
+    });
+
     test('links the shop header to the shop profile', async ({ page }) => {
         await page.goto(QURAN);
 
         const viewShop = page.getByRole('link', { name: 'View shop' });
         await expect(viewShop).toHaveAttribute('href', '/shops/barakah-pantry');
+        // The shop name itself is a link to the profile too (qa3 task 5.1).
+        await expect(
+            page
+                .locator('a[href="/shops/barakah-pantry"]')
+                .filter({ hasText: 'Barakah' })
+                .first(),
+        ).toBeVisible();
         await viewShop.click();
         await expect(page).toHaveURL(/\/shops\/barakah-pantry/);
         await shot(page, 'pdp-08-shop-profile');
