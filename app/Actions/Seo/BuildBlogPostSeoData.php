@@ -64,7 +64,7 @@ final readonly class BuildBlogPostSeoData
             image: $image,
             article: array_filter([
                 'published_time' => $post->published_at?->toIso8601String(),
-                'modified_time' => $post->updated_at?->toIso8601String(),
+                'modified_time' => $post->updated_at->toIso8601String(),
                 'section' => $post->category->name,
                 // The author page URL for people; the house author has no page, so no `article:author`.
                 'author' => $author->is_house || ! $author->is_active ? null : BlogSeo::url("author/{$author->slug}"),

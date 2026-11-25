@@ -1,20 +1,20 @@
-import { Head, Link, router } from "@inertiajs/react";
-import { Breadcrumb } from "@/components/breadcrumb";
-import { BlogCardGrid, BlogCard } from "@/components/blog/blog-card";
-import { BlogCategoryChips } from "@/components/blog/blog-category-chips";
-import { BlogHero } from "@/components/blog/blog-hero";
-import { Pagination } from "@/components/pagination";
-import { SearchInput } from "@/components/search-input";
-import { EmptyState } from "@/components/ui/empty-state";
-import { home } from "@/routes";
-import { index as blogIndex } from "@/routes/blog";
-import { show as blogCategoryShow } from "@/routes/blog/categories";
-import { show as blogTagShow } from "@/routes/blog/tags";
-import type { BlogCardData, BlogCategoryChip, BlogPaged } from "@/types/blog";
+import { Head, Link, router } from '@inertiajs/react';
+import { Breadcrumb } from '@/components/breadcrumb';
+import { BlogCardGrid, BlogCard } from '@/components/blog/blog-card';
+import { BlogCategoryChips } from '@/components/blog/blog-category-chips';
+import { BlogHero } from '@/components/blog/blog-hero';
+import { Pagination } from '@/components/pagination';
+import { SearchInput } from '@/components/search-input';
+import { EmptyState } from '@/components/ui/empty-state';
+import { home } from '@/routes';
+import { index as blogIndex } from '@/routes/blog';
+import { show as blogCategoryShow } from '@/routes/blog/categories';
+import { show as blogTagShow } from '@/routes/blog/tags';
+import type { BlogCardData, BlogCategoryChip, BlogPaged } from '@/types/blog';
 
 type Props = {
     /** One page component serves the index, a category and a tag. */
-    mode: "index" | "category" | "tag";
+    mode: 'index' | 'category' | 'tag';
     heading: string;
     intro: string | null;
     slug: string | null;
@@ -48,10 +48,10 @@ export default function BlogIndex({
             ...(page > 1 ? { page } : {}),
         };
 
-        if (mode === "category" && slug) {
+        if (mode === 'category' && slug) {
             return blogCategoryShow(slug, { query }).url;
         }
-        if (mode === "tag" && slug) {
+        if (mode === 'tag' && slug) {
             return blogTagShow(slug, { query }).url;
         }
 
@@ -59,15 +59,19 @@ export default function BlogIndex({
     };
 
     const crumbs =
-        mode === "index"
+        mode === 'index'
             ? []
             : [
-                  { label: "Home", href: home().url },
-                  { label: "Blog", href: blogIndex.url() },
+                  { label: 'Home', href: home().url },
+                  { label: 'Blog', href: blogIndex.url() },
                   { label: heading },
               ];
 
-    const sectionTitle = q ? `Results for “${q}”` : mode === "index" ? "Latest stories" : "Stories";
+    const sectionTitle = q
+        ? `Results for “${q}”`
+        : mode === 'index'
+          ? 'Latest stories'
+          : 'Stories';
 
     return (
         <>
@@ -76,32 +80,44 @@ export default function BlogIndex({
                 <div className="pt-4 md:pt-6">
                     {crumbs.length > 0 && <Breadcrumb items={crumbs} />}
                     <h1 className="mt-2 text-h1" data-edge="start">
-                        {mode === "tag" ? `Stories tagged ${heading}` : heading}
+                        {mode === 'tag' ? `Stories tagged ${heading}` : heading}
                     </h1>
                     {intro && (
-                        <p className="mt-2 max-w-prose text-body text-muted-foreground">{intro}</p>
+                        <p className="mt-2 max-w-prose text-body text-muted-foreground">
+                            {intro}
+                        </p>
                     )}
                 </div>
 
-                {mode === "index" && (
+                {mode === 'index' && (
                     <SearchInput
                         id="blog-search"
-                        value={q ?? ""}
+                        value={q ?? ''}
                         label="Search the blog"
                         placeholder="Search the blog"
                         className="mt-4"
-                        onSearch={(term) => router.get(blogIndex.url(), term ? { q: term } : {})}
+                        onSearch={(term) =>
+                            router.get(blogIndex.url(), term ? { q: term } : {})
+                        }
                     />
                 )}
 
-                {mode !== "tag" && (
-                    <BlogCategoryChips categories={categories} active={active_category} />
+                {mode !== 'tag' && (
+                    <BlogCategoryChips
+                        categories={categories}
+                        active={active_category}
+                    />
                 )}
 
                 <BlogHero posts={hero} />
 
                 <section aria-labelledby="blog-latest" className="mt-6">
-                    <h2 id="blog-latest" className={mode === "index" ? "mb-3 text-h2" : "sr-only"}>
+                    <h2
+                        id="blog-latest"
+                        className={
+                            mode === 'index' ? 'mb-3 text-h2' : 'sr-only'
+                        }
+                    >
                         {sectionTitle}
                     </h2>
                     {posts.data.length > 0 ? (
@@ -111,12 +127,15 @@ export default function BlogIndex({
                             title={`No stories match “${q}”`}
                             text="Try a different word, or browse everything we have published."
                             action={
-                                <Link href={blogIndex.url()} className="btn btn-neutral">
+                                <Link
+                                    href={blogIndex.url()}
+                                    className="btn btn-neutral"
+                                >
                                     See all stories
                                 </Link>
                             }
                         />
-                    ) : mode === "index" && total_live === 0 ? (
+                    ) : mode === 'index' && total_live === 0 ? (
                         <EmptyState
                             title="No stories yet"
                             text="We’re getting our first stories ready. In the meantime, the shop is open."
@@ -130,7 +149,10 @@ export default function BlogIndex({
                         <EmptyState
                             title="No stories here yet"
                             action={
-                                <Link href={blogIndex.url()} className="btn btn-neutral">
+                                <Link
+                                    href={blogIndex.url()}
+                                    className="btn btn-neutral"
+                                >
                                     See all stories
                                 </Link>
                             }

@@ -13,7 +13,7 @@ final readonly class ShowBlogAuthor
     public function __construct(private PaginateLiveBlogPosts $paginate) {}
 
     /**
-     * @return array{author: array<string, mixed>, posts: array{data: list<array<string, mixed>>, meta: array<string, int>}}
+     * @return array{author: array<string, mixed>, posts: array{data: list<array<string, mixed>>, meta: array{current_page: int, last_page: int, total: int, per_page: int}}}
      */
     public function handle(BlogAuthor $author): array
     {
@@ -34,9 +34,8 @@ final readonly class ShowBlogAuthor
     {
         $links = [];
         foreach ((array) $author->links as $link) {
-            $url = (string) ($link['url'] ?? '');
-            if (str_starts_with(mb_strtolower($url), 'https://')) {
-                $links[] = ['label' => (string) ($link['label'] ?? $url), 'url' => $url];
+            if (str_starts_with(mb_strtolower($link['url']), 'https://')) {
+                $links[] = ['label' => $link['label'], 'url' => $link['url']];
             }
         }
 

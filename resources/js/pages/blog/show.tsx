@@ -1,17 +1,22 @@
-import { Head, Link } from "@inertiajs/react";
-import { Breadcrumb } from "@/components/breadcrumb";
-import { BlogAuthorBox } from "@/components/blog/blog-author-box";
-import { BlogAuthorByline } from "@/components/blog/blog-author-byline";
-import { BlogBody } from "@/components/blog/blog-body";
-import { BlogImage } from "@/components/blog/blog-image";
-import { BlogRelated } from "@/components/blog/blog-related";
-import { BlogToc } from "@/components/blog/blog-toc";
-import { home } from "@/routes";
-import { show as categoryShow } from "@/routes/categories";
-import { index as blogIndex } from "@/routes/blog";
-import { show as blogCategoryShow } from "@/routes/blog/categories";
-import { show as blogTagShow } from "@/routes/blog/tags";
-import type { BlogCardData, BlogImageData, BlogPostAuthor, BlogTocItem } from "@/types/blog";
+import { Head, Link } from '@inertiajs/react';
+import { Breadcrumb } from '@/components/breadcrumb';
+import { BlogAuthorBox } from '@/components/blog/blog-author-box';
+import { BlogAuthorByline } from '@/components/blog/blog-author-byline';
+import { BlogBody } from '@/components/blog/blog-body';
+import { BlogImage } from '@/components/blog/blog-image';
+import { BlogRelated } from '@/components/blog/blog-related';
+import { BlogToc } from '@/components/blog/blog-toc';
+import { home } from '@/routes';
+import { show as categoryShow } from '@/routes/categories';
+import { index as blogIndex } from '@/routes/blog';
+import { show as blogCategoryShow } from '@/routes/blog/categories';
+import { show as blogTagShow } from '@/routes/blog/tags';
+import type {
+    BlogCardData,
+    BlogImageData,
+    BlogPostAuthor,
+    BlogTocItem,
+} from '@/types/blog';
 
 type Props = {
     post: {
@@ -42,8 +47,8 @@ export default function BlogShow({ post, author, related, cta }: Props) {
             <article className="pt-4 md:pt-6">
                 <Breadcrumb
                     items={[
-                        { label: "Home", href: home().url },
-                        { label: "Blog", href: blogIndex.url() },
+                        { label: 'Home', href: home().url },
+                        { label: 'Blog', href: blogIndex.url() },
                         {
                             label: post.category.name,
                             href: blogCategoryShow.url(post.category.slug),
@@ -60,7 +65,9 @@ export default function BlogShow({ post, author, related, cta }: Props) {
                         {post.category.name}
                     </Link>
                     <h1 className="text-h1">{post.title}</h1>
-                    <p className="mt-2 text-body-lg text-muted-foreground">{post.excerpt}</p>
+                    <p className="mt-2 text-body-lg text-muted-foreground">
+                        {post.excerpt}
+                    </p>
                     <BlogAuthorByline
                         author={author}
                         publishedAt={post.published_at}
@@ -83,8 +90,8 @@ export default function BlogShow({ post, author, related, cta }: Props) {
                 <div
                     className={
                         hasToc
-                            ? "mx-auto mt-6 grid max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]"
-                            : "mx-auto mt-6 max-w-3xl"
+                            ? 'mx-auto mt-6 grid max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]'
+                            : 'mx-auto mt-6 max-w-3xl'
                     }
                 >
                     {hasToc && (
@@ -98,7 +105,10 @@ export default function BlogShow({ post, author, related, cta }: Props) {
                         <BlogBody html={post.html} />
 
                         {post.tags.length > 0 && (
-                            <ul aria-label="Tags" className="mt-6 flex flex-wrap gap-2">
+                            <ul
+                                aria-label="Tags"
+                                className="mt-6 flex flex-wrap gap-2"
+                            >
                                 {post.tags.map((tag) => (
                                     <li key={tag.slug}>
                                         <Link
@@ -120,7 +130,10 @@ export default function BlogShow({ post, author, related, cta }: Props) {
                                 <p className="text-h3 text-primary-soft-foreground">
                                     Ready to shop what you just read about?
                                 </p>
-                                <Link href={categoryShow.url(cta.category_slug)} className="btn">
+                                <Link
+                                    href={categoryShow.url(cta.category_slug)}
+                                    className="btn"
+                                >
                                     {cta.label}
                                 </Link>
                             </aside>

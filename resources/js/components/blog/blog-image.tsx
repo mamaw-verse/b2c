@@ -1,4 +1,4 @@
-import type { BlogImageData } from "@/types/blog";
+import type { BlogImageData } from '@/types/blog';
 
 type BlogImageProps = {
     image: BlogImageData;
@@ -9,7 +9,12 @@ type BlogImageProps = {
 };
 
 /** Responsive blog image from the generated variants; width/height are always set to avoid layout shift. */
-export function BlogImage({ image, sizes, priority = false, className }: BlogImageProps) {
+export function BlogImage({
+    image,
+    sizes,
+    priority = false,
+    className,
+}: BlogImageProps) {
     return (
         <img
             src={image.src}
@@ -18,8 +23,8 @@ export function BlogImage({ image, sizes, priority = false, className }: BlogIma
             width={image.width}
             height={image.height}
             alt={image.alt}
-            loading={priority ? "eager" : "lazy"}
-            fetchPriority={priority ? "high" : undefined}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : undefined}
             decoding="async"
             className={className}
         />

@@ -1,13 +1,18 @@
-import { Head, Link } from "@inertiajs/react";
-import { Breadcrumb } from "@/components/breadcrumb";
-import { BlogAuthorAvatar } from "@/components/blog/blog-author-avatar";
-import { BlogCardGrid } from "@/components/blog/blog-card";
-import { Pagination } from "@/components/pagination";
-import { EmptyState } from "@/components/ui/empty-state";
-import { home } from "@/routes";
-import { index as blogIndex } from "@/routes/blog";
-import { show as blogAuthorShow } from "@/routes/blog/authors";
-import type { BlogAvatarData, BlogCardData, BlogLink, BlogPaged } from "@/types/blog";
+import { Head, Link } from '@inertiajs/react';
+import { Breadcrumb } from '@/components/breadcrumb';
+import { BlogAuthorAvatar } from '@/components/blog/blog-author-avatar';
+import { BlogCardGrid } from '@/components/blog/blog-card';
+import { Pagination } from '@/components/pagination';
+import { EmptyState } from '@/components/ui/empty-state';
+import { home } from '@/routes';
+import { index as blogIndex } from '@/routes/blog';
+import { show as blogAuthorShow } from '@/routes/blog/authors';
+import type {
+    BlogAvatarData,
+    BlogCardData,
+    BlogLink,
+    BlogPaged,
+} from '@/types/blog';
 
 type Props = {
     author: {
@@ -31,13 +36,20 @@ export default function BlogAuthor({ author, posts }: Props) {
                 <div className="pt-4 md:pt-6">
                     <Breadcrumb
                         items={[
-                            { label: "Home", href: home().url },
-                            { label: "Blog", href: blogIndex.url() },
+                            { label: 'Home', href: home().url },
+                            { label: 'Blog', href: blogIndex.url() },
                             { label: author.name },
                         ]}
                     />
-                    <div className="mt-4 flex items-start gap-4" data-edge="start">
-                        <BlogAuthorAvatar name={author.name} avatar={author.avatar} size="xl" />
+                    <div
+                        className="mt-4 flex items-start gap-4"
+                        data-edge="start"
+                    >
+                        <BlogAuthorAvatar
+                            name={author.name}
+                            avatar={author.avatar}
+                            size="xl"
+                        />
                         <div className="min-w-0">
                             <h1 className="text-h1">{author.name}</h1>
                             {author.job_title && (
@@ -80,7 +92,10 @@ export default function BlogAuthor({ author, posts }: Props) {
                         <EmptyState
                             title="No published stories yet"
                             action={
-                                <Link href={blogIndex.url()} className="btn btn-neutral">
+                                <Link
+                                    href={blogIndex.url()}
+                                    className="btn btn-neutral"
+                                >
                                     Browse the blog
                                 </Link>
                             }

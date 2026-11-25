@@ -25,7 +25,7 @@ final readonly class ShowBlogPost
         $author = $post->author;
         $hasProfile = ! $author->is_house && $author->is_active;
 
-        $modified = $post->published_at !== null && $post->updated_at !== null
+        $modified = $post->published_at !== null
             && $post->updated_at->gt($post->published_at->addDay());
 
         $toc = $post->toc ?? [];
@@ -39,7 +39,7 @@ final readonly class ShowBlogPost
                 'excerpt' => $post->excerpt,
                 'published_at' => $post->published_at?->toIso8601String(),
                 // "Updated" is shown only when materially later than published.
-                'updated_at' => $modified ? $post->updated_at?->toIso8601String() : null,
+                'updated_at' => $modified ? $post->updated_at->toIso8601String() : null,
                 'reading_minutes' => $post->reading_minutes,
                 'category' => ['name' => $post->category->name, 'slug' => $post->category->slug],
                 'cover' => $post->coverImage === null ? null : BlogImageData::for($post->coverImage, 'large'),

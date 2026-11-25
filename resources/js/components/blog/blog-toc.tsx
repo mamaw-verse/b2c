@@ -1,18 +1,26 @@
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import type { BlogTocItem } from "@/types/blog";
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import type { BlogTocItem } from '@/types/blog';
 
-function TocList({ items, activeId }: { items: BlogTocItem[]; activeId: string | null }) {
+function TocList({
+    items,
+    activeId,
+}: {
+    items: BlogTocItem[];
+    activeId: string | null;
+}) {
     return (
         <ol className="grid gap-1 text-body-sm">
             {items.map((item) => (
-                <li key={item.id} className={cn(item.level >= 3 && "pl-3")}>
+                <li key={item.id} className={cn(item.level >= 3 && 'pl-3')}>
                     <a
                         href={`#${item.id}`}
-                        aria-current={activeId === item.id ? "location" : undefined}
+                        aria-current={
+                            activeId === item.id ? 'location' : undefined
+                        }
                         className={cn(
-                            "inline-flex min-h-touch items-center text-muted-foreground underline-offset-2 hover:text-primary-text hover:underline lg:min-h-0 lg:py-0.5",
-                            activeId === item.id && "font-bold text-foreground",
+                            'inline-flex min-h-touch items-center text-muted-foreground underline-offset-2 hover:text-primary-text hover:underline lg:min-h-0 lg:py-0.5',
+                            activeId === item.id && 'font-bold text-foreground',
                         )}
                     >
                         {item.text}
@@ -31,7 +39,7 @@ export function BlogToc({ items }: { items: BlogTocItem[] }) {
     const [activeId, setActiveId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (items.length === 0 || typeof IntersectionObserver === "undefined") {
+        if (items.length === 0 || typeof IntersectionObserver === 'undefined') {
             return;
         }
 
@@ -46,7 +54,7 @@ export function BlogToc({ items }: { items: BlogTocItem[] }) {
                     setActiveId(visible.target.id);
                 }
             },
-            { rootMargin: "0px 0px -70% 0px" },
+            { rootMargin: '0px 0px -70% 0px' },
         );
         headings.forEach((h) => observer.observe(h));
 
@@ -67,7 +75,10 @@ export function BlogToc({ items }: { items: BlogTocItem[] }) {
                     <TocList items={items} activeId={activeId} />
                 </nav>
             </details>
-            <nav aria-label="Table of contents" className="sticky top-24 hidden lg:block">
+            <nav
+                aria-label="Table of contents"
+                className="sticky top-24 hidden lg:block"
+            >
                 <p className="mb-2 text-label font-bold">In this article</p>
                 <TocList items={items} activeId={activeId} />
             </nav>

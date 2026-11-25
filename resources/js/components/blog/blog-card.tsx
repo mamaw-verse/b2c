@@ -1,8 +1,8 @@
-import { Link } from "@inertiajs/react";
-import { BlogImage } from "@/components/blog/blog-image";
-import { formatBlogDate, readingTime } from "@/lib/blog";
-import { show as blogShow } from "@/routes/blog";
-import type { BlogCardData } from "@/types/blog";
+import { Link } from '@inertiajs/react';
+import { BlogImage } from '@/components/blog/blog-image';
+import { formatBlogDate, readingTime } from '@/lib/blog';
+import { show as blogShow } from '@/routes/blog';
+import type { BlogCardData } from '@/types/blog';
 
 type BlogCardProps = {
     card: BlogCardData;
@@ -13,7 +13,11 @@ type BlogCardProps = {
 };
 
 /** Whole-card link with a single accessible name (the title). */
-export function BlogCard({ card, priority = false, compact = false }: BlogCardProps) {
+export function BlogCard({
+    card,
+    priority = false,
+    compact = false,
+}: BlogCardProps) {
     return (
         <article className="h-full">
             <Link
@@ -48,7 +52,7 @@ export function BlogCard({ card, priority = false, compact = false }: BlogCardPr
                                 {formatBlogDate(card.published_at)}
                             </time>
                         )}
-                        {card.published_at && " · "}
+                        {card.published_at && ' · '}
                         {readingTime(card.reading_minutes)}
                     </p>
                 </div>

@@ -28,7 +28,7 @@ final readonly class ListBlogIndex
      *     hero: list<array<string, mixed>>,
      *     popular: list<array<string, mixed>>,
      *     categories: list<array{name: string, slug: string}>,
-     *     posts: array{data: list<array<string, mixed>>, meta: array<string, int>},
+     *     posts: array{data: list<array<string, mixed>>, meta: array{current_page: int, last_page: int, total: int, per_page: int}},
      *     total_live: int
      * }
      */
@@ -69,7 +69,7 @@ final readonly class ListBlogIndex
                 }
 
                 return $card;
-            })->all();
+            })->values()->all();
         });
     }
 

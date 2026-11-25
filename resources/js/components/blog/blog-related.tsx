@@ -1,5 +1,5 @@
-import { BlogCard } from "@/components/blog/blog-card";
-import type { BlogCardData } from "@/types/blog";
+import { BlogCard } from '@/components/blog/blog-card';
+import type { BlogCardData } from '@/types/blog';
 
 export function BlogRelated({ posts }: { posts: BlogCardData[] }) {
     if (posts.length === 0) {

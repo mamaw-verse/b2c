@@ -1,9 +1,9 @@
-import { Link } from "@inertiajs/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
-import { BlogImage } from "@/components/blog/blog-image";
-import { show as blogShow } from "@/routes/blog";
-import type { BlogCardData } from "@/types/blog";
+import { Link } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef } from 'react';
+import { BlogImage } from '@/components/blog/blog-image';
+import { show as blogShow } from '@/routes/blog';
+import type { BlogCardData } from '@/types/blog';
 
 /**
  * Featured stories as a scroll-snap strip (no autoplay, so reduced-motion needs nothing special; the
@@ -22,10 +22,12 @@ export function BlogHero({ posts }: { posts: BlogCardData[] }) {
         if (!el) {
             return;
         }
-        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const reduce = window.matchMedia(
+            '(prefers-reduced-motion: reduce)',
+        ).matches;
         el.scrollBy({
             left: direction * el.clientWidth,
-            behavior: reduce ? "auto" : "smooth",
+            behavior: reduce ? 'auto' : 'smooth',
         });
     };
 

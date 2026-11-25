@@ -260,6 +260,8 @@ test('the house author has no profile link or box and a deactivated author keeps
 
 test('updated date shows only when materially later than published and the shop CTA follows the category', function () {
     $post = livePost(['published_at' => now()->subDays(10)]);
+    // Eloquent stamps updated_at = now(); backdate it so the post counts as never revised.
+    $post->forceFill(['updated_at' => $post->published_at])->saveQuietly();
     $this->get(route('blog.show', $post))->assertInertia(fn (Assert $page) => $page->where('post.updated_at', null)->where('cta', null));
 
     $post->forceFill(['updated_at' => now()->subDay()])->saveQuietly();

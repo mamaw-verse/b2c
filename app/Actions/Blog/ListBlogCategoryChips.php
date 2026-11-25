@@ -24,6 +24,7 @@ final readonly class ListBlogCategoryChips
             ->orderBy('name')
             ->get(['id', 'name', 'slug'])
             ->map(fn (BlogCategory $category): array => ['name' => $category->name, 'slug' => $category->slug])
+            ->values()
             ->all());
     }
 }

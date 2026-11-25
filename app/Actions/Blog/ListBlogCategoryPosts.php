@@ -12,7 +12,7 @@ final readonly class ListBlogCategoryPosts
     public function __construct(private PaginateLiveBlogPosts $paginate) {}
 
     /**
-     * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
+     * @return array{data: list<array<string, mixed>>, meta: array{current_page: int, last_page: int, total: int, per_page: int}}
      */
     public function handle(BlogCategory $category): array
     {
