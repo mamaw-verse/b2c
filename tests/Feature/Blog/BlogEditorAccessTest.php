@@ -117,9 +117,13 @@ test('an editor cannot change admin settings or categories', function () {
     $this->actingAs(blogEditor())->post(route('admin.categories.store'), ['name' => 'X'])->assertNotFound();
 });
 
-test('buyers get 404 and guests are sent to login on the blog admin routes', function () {
+test('buyers get 404 on the blog admin routes', function () {
     $this->actingAs(User::factory()->create())->getJson(route('admin.blog.images.index'))->assertNotFound();
+});
+
+test('guests are sent to login on the blog admin routes', function () {
     $this->get(route('admin.blog.images.index'))->assertRedirect(route('login'));
+    $this->getJson(route('admin.blog.images.index'))->assertUnauthorized();
 });
 
 test('an editor can upload an image and gets the markdown to insert', function () {
