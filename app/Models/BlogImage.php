@@ -97,6 +97,14 @@ final class BlogImage extends Model
         return array_values(array_unique($paths));
     }
 
+    protected static function booted(): void
+    {
+        $invalidate = static fn () => resolve(\App\Actions\Blog\InvalidateBlogCache::class)->handle();
+
+        self::saved($invalidate);
+        self::deleted($invalidate);
+    }
+
     protected function casts(): array
     {
         return [

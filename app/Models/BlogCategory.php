@@ -39,6 +39,14 @@ final class BlogCategory extends Model
         return $this->belongsTo(Category::class, 'shop_category_id');
     }
 
+    protected static function booted(): void
+    {
+        $invalidate = static fn () => resolve(\App\Actions\Blog\InvalidateBlogCache::class)->handle();
+
+        self::saved($invalidate);
+        self::deleted($invalidate);
+    }
+
     protected function casts(): array
     {
         return [

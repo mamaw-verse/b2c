@@ -72,6 +72,17 @@ Route::get('staff-invitations/{staffInvitation}', [App\Http\Controllers\ShopStaf
 Route::get('editor-invitations/{invitation}', [App\Http\Controllers\Blog\EditorInvitationController::class, 'show'])->name('editor-invitations.show');
 Route::get('media/{media}/view', MediaViewController::class)->name('media.view');
 
+// Public blog (docs/planning/15-blog.md §4.2). Every route 404s while BLOG_ENABLED is false.
+// Order matters: the fixed prefixes must be registered before the catch-all `{blogPost}` slug.
+// The `/blog/feed.xml` route lands in Phase 4 (B4.1) and must also be registered above `{blogPost}`.
+Route::prefix('blog')->name('blog.')->middleware('blog')->group(function () {
+    Route::get('/', [App\Http\Controllers\Blog\BlogController::class, 'index'])->name('index');
+    Route::get('category/{blogCategory:slug}', [App\Http\Controllers\Blog\BlogCategoryController::class, 'show'])->name('categories.show');
+    Route::get('tag/{blogTag:slug}', [App\Http\Controllers\Blog\BlogTagController::class, 'show'])->name('tags.show');
+    Route::get('author/{blogAuthor:slug}', [App\Http\Controllers\Blog\BlogAuthorController::class, 'show'])->name('authors.show');
+    Route::get('{blogPost:slug}', [App\Http\Controllers\Blog\BlogPostController::class, 'show'])->name('show');
+});
+
 Route::get('social/{type}/{slug}.jpg', SocialImageController::class)->name('social.image');
 Route::get('sitemap.xml', SitemapIndexController::class)->name('sitemap.index');
 Route::get('sitemap-pages.xml', SitemapPagesController::class)->name('sitemap.pages');

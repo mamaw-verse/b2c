@@ -174,6 +174,15 @@ final class BlogPost extends Model
             && $this->published_at->gt(now());
     }
 
+    protected static function booted(): void
+    {
+        $invalidate = static fn () => resolve(\App\Actions\Blog\InvalidateBlogCache::class)->handle();
+
+        self::saved($invalidate);
+        self::deleted($invalidate);
+        self::restored($invalidate);
+    }
+
     protected function casts(): array
     {
         return [

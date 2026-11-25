@@ -75,6 +75,14 @@ final class BlogAuthor extends Model
         $query->where('is_active', true);
     }
 
+    protected static function booted(): void
+    {
+        $invalidate = static fn () => resolve(\App\Actions\Blog\InvalidateBlogCache::class)->handle();
+
+        self::saved($invalidate);
+        self::deleted($invalidate);
+    }
+
     protected function casts(): array
     {
         return [
