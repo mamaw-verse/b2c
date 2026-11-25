@@ -31,7 +31,7 @@ final class UpdateBlogPostRequest extends FormRequest
         $this->defaultAuthorToOwnProfile();
     }
 
-    private function post(): BlogPost
+    private function blogPost(): BlogPost
     {
         $post = $this->route('post');
         assert($post instanceof BlogPost);
@@ -44,7 +44,7 @@ final class UpdateBlogPostRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->postRules($this->post());
+        return $this->postRules($this->blogPost());
     }
 
     /**
@@ -58,7 +58,7 @@ final class UpdateBlogPostRequest extends FormRequest
                     return;
                 }
 
-                $post = $this->post();
+                $post = $this->blogPost();
                 $authorId = (string) $this->input('blog_author_id');
 
                 if ($authorId === $post->blog_author_id) {
