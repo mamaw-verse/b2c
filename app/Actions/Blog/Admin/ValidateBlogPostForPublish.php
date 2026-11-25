@@ -94,7 +94,7 @@ final readonly class ValidateBlogPostForPublish
         }
 
         if (! collect($body->toc)->contains(fn (array $entry): bool => $entry['level'] === 2)) {
-            $warnings[] = 'Add at least one section heading (## Heading) so readers can scan the article.';
+            $warnings[] = 'Add at least one section heading (# Heading becomes an h2) so readers can scan the article.';
         }
 
         $haystack = mb_strtolower($post->title.' '.$post->excerpt.' '.$post->body_markdown);

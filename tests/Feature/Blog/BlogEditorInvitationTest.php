@@ -133,7 +133,9 @@ test('email mismatch, expiry, suspended users and admins cannot accept', functio
     $this->actingAs($user)->put(route('editor-invitations.update', invFor('late@example.com', ['expires_at' => now()->subMinute()])), ['consent' => '1'])->assertNotFound();
 
     $suspended = User::factory()->create(['email' => 's@example.com', 'suspended_at' => now()]);
-    $this->actingAs($suspended)->put(route('editor-invitations.update', invFor('s@example.com')), ['consent' => '1'])->assertNotFound();
+    // A suspended user is logged out and sent to login by EnsureUserNotSuspended before the request runs.
+    $this->actingAs($suspended)->put(route('editor-invitations.update', invFor('s@example.com')), ['consent' => '1'])->assertRedirect(route('login'));
+    expect($suspended->fresh()->role)->not->toBe('editor');
 
     $admin = User::factory()->create(['role' => 'admin', 'email' => 'boss@example.com']);
     $this->actingAs($admin)->put(route('editor-invitations.update', invFor('boss@example.com')), ['consent' => '1'])->assertNotFound();
@@ -145,7 +147,7 @@ test('an invitation cannot be accepted twice', function () {
     $invitation = invFor('w@example.com');
 
     $this->actingAs($user)->put(route('editor-invitations.update', $invitation), ['consent' => '1'])->assertRedirect();
-    $this->actingAs(User::factory()->create(['email' => 'w@example.com']))
+    $this->actingAs($user->fresh())
         ->put(route('editor-invitations.update', $invitation), ['consent' => '1'])->assertNotFound();
 });
 

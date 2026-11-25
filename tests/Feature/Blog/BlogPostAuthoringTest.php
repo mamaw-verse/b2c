@@ -32,7 +32,7 @@ function paPayload(array $overrides = []): array
     return [
         'title' => 'Halal Pantry Guide',
         'excerpt' => 'A short guide to stocking a halal pantry with confidence, from spices to sauces.',
-        'body_markdown' => "## Start here\n\n".implode(' ', array_fill(0, 200, 'pantry')),
+        'body_markdown' => "# Start here\n\n".implode(' ', array_fill(0, 200, 'pantry')),
         'blog_category_id' => BlogCategory::factory()->create()->id,
         'blog_author_id' => BlogAuthor::factory()->create()->id,
         ...$overrides,
@@ -45,7 +45,7 @@ function paReady(User $creator, array $overrides = []): BlogPost
     return BlogPost::factory()->draft()->create([
         'created_by_id' => $creator->id,
         'excerpt' => 'A short guide to stocking a halal pantry with confidence, from spices to sauces.',
-        'body_markdown' => "## Start here\n\n".implode(' ', array_fill(0, 200, 'pantry')),
+        'body_markdown' => "# Start here\n\n".implode(' ', array_fill(0, 200, 'pantry')),
         'cover_image_id' => BlogImage::factory()->create(['uploaded_by_id' => $creator->id])->id,
         ...$overrides,
     ]);
@@ -154,7 +154,7 @@ test('saving rebuilds tags, product and image relations from the content', funct
     $this->actingAs($editor)->post(route('admin.blog.posts.store'), paPayload([
         'cover_image_id' => $cover->id,
         'tags' => ['Ramadan', 'ramadan', 'Pantry Staples'],
-        'body_markdown' => "## Hi\n\nText.\n\n![Alt](blog-image:{$bodyImage->id})\n\n[[product:{$product->slug}]]\n",
+        'body_markdown' => "# Hi\n\nText.\n\n![Alt](blog-image:{$bodyImage->id})\n\n[[product:{$product->slug}]]\n",
     ]))->assertRedirect();
 
     $post = BlogPost::query()->firstOrFail();
@@ -213,12 +213,12 @@ test('each blocking publish rule stops publishing', function (string $case) {
         'no cover' => $post->update(['cover_image_id' => null]),
         'cover without alt' => $post->coverImage->update(['alt' => '']),
         'short excerpt' => $post->update(['excerpt' => 'Too short']),
-        'short body' => $post->update(['body_markdown' => "## Hi\n\nOnly a few words here."]),
+        'short body' => $post->update(['body_markdown' => "# Hi\n\nOnly a few words here."]),
         'author without consent' => $post->author->update(['consent_confirmed_at' => null]),
         'inactive author' => $post->author->update(['is_active' => false]),
         'unknown product' => $post->update(['body_markdown' => $post->body_markdown."\n\n[[product:does-not-exist]]\n"]),
         'unknown image' => $post->update(['body_markdown' => $post->body_markdown."\n\n![x](blog-image:01hzzzzzzzzzzzzzzzzzzzzzzz)\n"]),
-        'body image without alt' => $post->update(['body_markdown' => "## Hi\n\n".implode(' ', array_fill(0, 200, 'pantry'))."\n\n![](blog-image:".BlogImage::factory()->purpose('body')->create(['alt' => null])->id.")\n"]),
+        'body image without alt' => $post->update(['body_markdown' => "# Hi\n\n".implode(' ', array_fill(0, 200, 'pantry'))."\n\n![](blog-image:".BlogImage::factory()->purpose('body')->create(['alt' => null])->id.")\n"]),
         'reserved slug' => $post->update(['slug' => 'category']),
     };
 
