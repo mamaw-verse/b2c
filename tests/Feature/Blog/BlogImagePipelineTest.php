@@ -117,8 +117,9 @@ test('gif and svg uploads are rejected', function () {
 });
 
 test('a file over the size limit is rejected', function () {
-    $file = blogUpload(800, 600);
-    $file = UploadedFile::fake()->createWithContent('big.jpg', file_get_contents($file->getRealPath()))->size(4000);
+    $source = blogUpload(800, 600);
+    $bytes = (string) file_get_contents((string) $source->getRealPath());
+    $file = UploadedFile::fake()->createWithContent('big.jpg', $bytes)->size(4000);
 
     expect(fn () => storeBlogImage($file))->toThrow(ValidationException::class, 'larger than');
 });
@@ -144,10 +145,11 @@ test('alt text is required for cover and body images only', function () {
 });
 
 test('metadata segments and trailing payloads do not survive re-encoding', function () {
-    $jpeg = (string) file_get_contents(blogUpload(900, 600)->getRealPath());
+    $source = blogUpload(900, 600);
+    $jpeg = (string) file_get_contents((string) $source->getRealPath());
     $sentinel = 'GPSLatitude-SENTINEL-51.5N';
     $payload = "Exif\0\0".$sentinel;
-    $tainted = substr($jpeg, 0, 2)."\xFF\xE1".pack('n', strlen($payload) + 2).$payload.substr($jpeg, 2)."<?php system('id'); ?>";
+    $tainted = mb_substr($jpeg, 0, 2, '8bit')."\xFF\xE1".pack('n', mb_strlen($payload, '8bit') + 2).$payload.mb_substr($jpeg, 2, null, '8bit')."<?php system('id'); ?>";
 
     $image = storeBlogImage(UploadedFile::fake()->createWithContent('photo.jpg', $tainted));
 

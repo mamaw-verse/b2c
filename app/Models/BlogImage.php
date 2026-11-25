@@ -82,7 +82,11 @@ final class BlogImage extends Model
         return ! self::query()->whereKey($this->getKey())->unreferenced()->exists();
     }
 
-    /** Every file this row owns (original plus variants). @return list<string> */
+    /**
+     * Every file this row owns (original plus variants).
+     *
+     * @return list<string>
+     */
     public function storedPaths(): array
     {
         $paths = [$this->original_path];

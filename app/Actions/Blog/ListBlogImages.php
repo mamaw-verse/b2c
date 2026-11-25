@@ -6,7 +6,7 @@ namespace App\Actions\Blog;
 
 use App\Models\BlogImage;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 final readonly class ListBlogImages
 {

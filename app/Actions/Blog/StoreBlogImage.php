@@ -139,7 +139,7 @@ final readonly class StoreBlogImage
     /** JPEG output has no alpha: flatten transparent PNG/WebP onto white. */
     private function flattenOnWhite(GdImage $image): GdImage
     {
-        $canvas = imagecreatetruecolor(imagesx($image), imagesy($image));
+        $canvas = imagecreatetruecolor(max(1, imagesx($image)), max(1, imagesy($image)));
         imagefill($canvas, 0, 0, (int) imagecolorallocate($canvas, 255, 255, 255));
         imagecopy($canvas, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
 
@@ -170,7 +170,7 @@ final readonly class StoreBlogImage
 
     private function resize(GdImage $image, int $width, int $height): GdImage
     {
-        $out = imagecreatetruecolor($width, $height);
+        $out = imagecreatetruecolor(max(1, $width), max(1, $height));
         imagecopyresampled($out, $image, 0, 0, 0, 0, $width, $height, imagesx($image), imagesy($image));
 
         return $out;
@@ -187,7 +187,7 @@ final readonly class StoreBlogImage
         $x = (int) floor(($srcW - $cropW) / 2);
         $y = (int) floor(($srcH - $cropH) / 2);
 
-        $out = imagecreatetruecolor($width, $height);
+        $out = imagecreatetruecolor(max(1, $width), max(1, $height));
         imagecopyresampled($out, $image, 0, 0, max(0, $x), max(0, $y), $width, $height, $cropW, $cropH);
 
         return $out;

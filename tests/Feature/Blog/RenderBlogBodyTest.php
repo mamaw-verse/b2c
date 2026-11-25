@@ -75,7 +75,7 @@ test('external links open in a new tab with noopener noreferrer nofollow, intern
         ->toContain('target="_blank"')
         ->toContain('rel="noopener noreferrer nofollow"');
 
-    expect(substr_count($out->html, 'target="_blank"'))->toBe(1);
+    expect(mb_substr_count($out->html, 'target="_blank"'))->toBe(1);
 });
 
 test('nofollow can be turned off', function () {
@@ -122,7 +122,7 @@ Text ![inline](https://evil.example/y.png) more
 MD;
 
     $out = renderBlog($hostile);
-    $html = strtolower($out->html);
+    $html = mb_strtolower($out->html);
 
     foreach (['<script', '<iframe', 'onerror', 'onclick', 'onmouseover', 'style=', 'javascript:', 'vbscript:', 'data:', 'file:', 'ftp:', '<img', 'evil.example', '/etc/passwd'] as $needle) {
         expect($html)->not->toContain($needle);
@@ -187,7 +187,7 @@ test('image ids are unique and the lookup is one batched query', function () {
 
     expect($out->imageIds)->toBe([$a->id, $b->id]);
     expect($queries)->toBe(1);
-    expect(substr_count($out->html, '<figure>'))->toBe(3);
+    expect(mb_substr_count($out->html, '<figure>'))->toBe(3);
 });
 
 test('a standalone product token becomes a marker element', function () {

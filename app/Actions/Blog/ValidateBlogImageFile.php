@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Blog;
 
+use finfo;
 use Illuminate\Http\UploadedFile;
 
 /**
@@ -38,13 +39,13 @@ final readonly class ValidateBlogImageFile
             return 'The image is larger than '.(int) config('blog.images.max_kb').' KB.';
         }
 
-        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $path) ?: '';
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($path) ?: '';
         if (! in_array($mime, self::MIMES, true)) {
             return 'Only JPEG, PNG and WebP images are accepted.';
         }
 
         $info = @getimagesize($path);
-        if ($info === false || ($info[0] ?? 0) < 1 || ($info[1] ?? 0) < 1) {
+        if ($info === false || $info[0] < 1 || $info[1] < 1) {
             return 'The file is not a valid image.';
         }
 
@@ -78,15 +79,15 @@ final readonly class ValidateBlogImageFile
 
         if ($mime === 'image/png') {
             // APNG: an acTL chunk precedes the first IDAT.
-            $idat = strpos($head, 'IDAT');
-            $actl = strpos($head, 'acTL');
+            $idat = mb_strpos($head, 'IDAT', 0, '8bit');
+            $actl = mb_strpos($head, 'acTL', 0, '8bit');
 
             return $actl !== false && ($idat === false || $actl < $idat);
         }
 
         if ($mime === 'image/webp') {
             // Extended header (VP8X) with the animation flag, or any ANIM chunk.
-            if (substr($head, 12, 4) === 'VP8X' && strlen($head) > 20 && (ord($head[20]) & 0x02) !== 0) {
+            if (mb_substr($head, 12, 4, '8bit') === 'VP8X' && mb_strlen($head, '8bit') > 20 && (ord($head[20]) & 0x02) !== 0) {
                 return true;
             }
 

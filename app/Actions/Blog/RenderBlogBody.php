@@ -11,11 +11,11 @@ use App\Support\Blog\RenderedBlogBody;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Code;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Image;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Link;
-use League\CommonMark\Extension\CommonMarkCoreExtension;
 use League\CommonMark\Node\Block\Document;
 use League\CommonMark\Node\Block\Paragraph;
 use League\CommonMark\Node\Inline\Text;
@@ -104,14 +104,14 @@ final readonly class RenderBlogBody
      */
     private function rewriteLinks(Document $document): void
     {
-        $ownHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+        $ownHost = mb_strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
         $nofollow = (bool) config('blog.nofollow_external', true);
 
         foreach ($this->collect($document, Link::class) as $link) {
             $url = trim($link->getUrl());
 
             if (preg_match('/^([a-z][a-z0-9+.\-]*):/i', $url, $match) === 1
-                && ! in_array(strtolower($match[1]), self::ALLOWED_LINK_SCHEMES, true)) {
+                && ! in_array(mb_strtolower($match[1]), self::ALLOWED_LINK_SCHEMES, true)) {
                 $link->setUrl('');
 
                 continue;
@@ -119,9 +119,9 @@ final readonly class RenderBlogBody
 
             $host = null;
             if (str_starts_with($url, '//')) {
-                $host = strtolower((string) parse_url('https:'.$url, PHP_URL_HOST));
+                $host = mb_strtolower((string) parse_url('https:'.$url, PHP_URL_HOST));
             } elseif (preg_match('#^https?://#i', $url) === 1) {
-                $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+                $host = mb_strtolower((string) parse_url($url, PHP_URL_HOST));
             }
 
             if ($host === null || $host === '' || $host === $ownHost) {
@@ -199,8 +199,8 @@ final readonly class RenderBlogBody
     {
         $url = trim($url);
 
-        return str_starts_with(strtolower($url), self::IMAGE_SCHEME)
-            ? strtolower(substr($url, strlen(self::IMAGE_SCHEME)))
+        return str_starts_with(mb_strtolower($url), self::IMAGE_SCHEME)
+            ? mb_strtolower(mb_substr($url, mb_strlen(self::IMAGE_SCHEME)))
             : null;
     }
 
