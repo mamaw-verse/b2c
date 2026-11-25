@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\BlogPostStatus;
 use App\Enums\ShopRole;
 use App\Enums\ShopStaffStatus;
 use App\Support\ActiveShop;
@@ -133,6 +134,30 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /** Invited blog editor (docs/planning/15-blog.md §4.4). Keeps the buyer and seller workspaces. */
+    public function isEditor(): bool
+    {
+        return $this->role === 'editor';
+    }
+
+    public function canManageBlog(): bool
+    {
+        return $this->isAdmin() || $this->isEditor();
+    }
+
+    /** The one place the §4.4 ownership rule lives: admins edit any post, editors only ones they created. */
+    public function canEditBlogPost(BlogPost $post): bool
+    {
+        return $this->isAdmin() || ($this->isEditor() && $post->created_by_id === $this->getKey());
+    }
+
+    /** Admins delete any post; editors only their own drafts. */
+    public function canDeleteBlogPost(BlogPost $post): bool
+    {
+        return $this->isAdmin()
+            || ($this->canEditBlogPost($post) && $post->status === BlogPostStatus::Draft);
     }
 
     /** Google-only accounts are created without a password. */

@@ -34,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'feature' => App\Http\Middleware\EnsureFeatureEnabled::class,
             'human' => App\Http\Middleware\EnsureHumanPass::class,
             'blog' => App\Http\Middleware\EnsureBlogEnabled::class,
+            'admin.only' => App\Http\Middleware\EnsureAdminOnly::class,
+            'blog.manage' => App\Http\Middleware\EnsureCanManageBlog::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -171,23 +171,32 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
     });
 
     Route::prefix('admin')->name('admin.')->middleware('workspace:admin')->group(function () {
-        Route::get('dashboard', App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
-        Route::resource('moderation', App\Http\Controllers\Admin\ModerationQueueController::class)->parameters(['moderation' => 'moderationQueueItem'])->only(['index', 'show'])->names('moderation');
-        Route::post('moderation/{moderationQueueItem}/decisions', [App\Http\Controllers\Admin\ModerationDecisionController::class, 'store'])->name('moderation.decisions.store');
-        Route::post('moderation/flags', [App\Http\Controllers\Admin\ModerationFlagController::class, 'store'])->name('moderation.flags.store');
-        Route::get('products/search', [App\Http\Controllers\Admin\ProductSearchController::class, 'index'])->name('products.search');
-        Route::resource('payouts', App\Http\Controllers\Admin\PayoutController::class)->only(['index', 'update'])->names('payouts');
-        Route::put('refunds/{refund}', [App\Http\Controllers\Admin\RefundController::class, 'update'])->name('refunds.update');
-        Route::post('moderation/bulk-decisions', [App\Http\Controllers\Admin\BulkModerationDecisionController::class, 'store'])->name('moderation.bulk-decisions.store');
-        Route::get('audit-log', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-log.index');
-        Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->names('categories');
-        Route::resource('vouchers', App\Http\Controllers\Admin\VoucherController::class)->only(['index', 'store', 'update', 'destroy'])->names('vouchers');
-        Route::resource('users', App\Http\Controllers\Admin\UserController::class)->only(['index', 'show'])->names('users');
-        Route::resource('admins', App\Http\Controllers\Admin\AdminAccountController::class)->only(['store', 'destroy'])->names('admins');
-        Route::post('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'store'])->name('users.suspension.store');
-        Route::delete('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'destroy'])->name('users.suspension.destroy');
-        Route::get('settings', [App\Http\Controllers\Admin\SettingController::class, 'edit'])->name('settings.edit');
-        Route::put('settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+        // Editor-visible routes. Everything else in this workspace is admin-only (deny by default).
+        Route::prefix('blog')->name('blog.')->middleware('blog.manage')->group(function () {
+            Route::get('images', [App\Http\Controllers\Admin\BlogImageController::class, 'index'])->name('images.index');
+            Route::post('images', [App\Http\Controllers\Admin\BlogImageController::class, 'store'])->middleware('throttle:30,1')->name('images.store');
+            Route::delete('images/{blogImage}', [App\Http\Controllers\Admin\BlogImageController::class, 'destroy'])->name('images.destroy');
+        });
+
+        Route::middleware('admin.only')->group(function () {
+            Route::get('dashboard', App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
+            Route::resource('moderation', App\Http\Controllers\Admin\ModerationQueueController::class)->parameters(['moderation' => 'moderationQueueItem'])->only(['index', 'show'])->names('moderation');
+            Route::post('moderation/{moderationQueueItem}/decisions', [App\Http\Controllers\Admin\ModerationDecisionController::class, 'store'])->name('moderation.decisions.store');
+            Route::post('moderation/flags', [App\Http\Controllers\Admin\ModerationFlagController::class, 'store'])->name('moderation.flags.store');
+            Route::get('products/search', [App\Http\Controllers\Admin\ProductSearchController::class, 'index'])->name('products.search');
+            Route::resource('payouts', App\Http\Controllers\Admin\PayoutController::class)->only(['index', 'update'])->names('payouts');
+            Route::put('refunds/{refund}', [App\Http\Controllers\Admin\RefundController::class, 'update'])->name('refunds.update');
+            Route::post('moderation/bulk-decisions', [App\Http\Controllers\Admin\BulkModerationDecisionController::class, 'store'])->name('moderation.bulk-decisions.store');
+            Route::get('audit-log', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-log.index');
+            Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->names('categories');
+            Route::resource('vouchers', App\Http\Controllers\Admin\VoucherController::class)->only(['index', 'store', 'update', 'destroy'])->names('vouchers');
+            Route::resource('users', App\Http\Controllers\Admin\UserController::class)->only(['index', 'show'])->names('users');
+            Route::resource('admins', App\Http\Controllers\Admin\AdminAccountController::class)->only(['store', 'destroy'])->names('admins');
+            Route::post('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'store'])->name('users.suspension.store');
+            Route::delete('users/{user}/suspension', [App\Http\Controllers\Admin\UserSuspensionController::class, 'destroy'])->name('users.suspension.destroy');
+            Route::get('settings', [App\Http\Controllers\Admin\SettingController::class, 'edit'])->name('settings.edit');
+            Route::put('settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+        });
     });
 });
 

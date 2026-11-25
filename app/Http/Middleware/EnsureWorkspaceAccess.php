@@ -13,7 +13,7 @@ final class EnsureWorkspaceAccess
     /**
      * Safety net behind the workspace FormRequests. The URL decides who may
      * enter: `workspace:seller` requires an approved, unsuspended shop and
-     * `workspace:admin` requires the admin role — anyone else is redirected
+     * `workspace:admin` requires the admin or editor role — anyone else is redirected
      * to the application flow or gets a 404. `workspace:buyer` covers the
      * account surfaces open to every verified non-admin.
      *
@@ -34,7 +34,8 @@ final class EnsureWorkspaceAccess
         }
 
         if ($workspace === 'admin') {
-            if (! $request->user()?->isAdmin()) {
+            // Editors pass here; `admin.only` keeps them out of everything except the blog routes.
+            if (! $request->user()?->canManageBlog()) {
                 abort(404);
             }
 

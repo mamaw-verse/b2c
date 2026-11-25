@@ -69,12 +69,13 @@ enum Workspace: string
         return match ($this) {
             self::Buyer => '/account',
             self::Seller => $user?->isShopStaff() ? '/seller/orders' : '/seller/dashboard',
-            self::Admin => '/admin/dashboard',
+            self::Admin => $user?->isAdmin() === false && $user->isEditor() ? '/admin/blog/posts' : '/admin/dashboard',
         };
     }
 
     /**
-     * Whether the user may enter this workspace right now.
+     * Whether the user may enter this workspace right now. Editors enter the Admin
+     * workspace too, but only its blog routes (`EnsureAdminOnly` guards the rest).
      */
     public function accessibleBy(?User $user): bool
     {
@@ -85,7 +86,7 @@ enum Workspace: string
         return match ($this) {
             self::Buyer => ! $user->isAdmin(),
             self::Seller => ! $user->isAdmin() && ($shop = $user->operatedShop()) !== null && $shop->isApproved(),
-            self::Admin => $user->isAdmin(),
+            self::Admin => $user->canManageBlog(),
         };
     }
 }
