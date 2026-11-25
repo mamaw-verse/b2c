@@ -69,6 +69,7 @@ Route::get('why-choose-us', WhyChooseUsController::class)->name('why-choose-us')
 Route::get('pages/{page}', [App\Http\Controllers\ContentPageController::class, 'show'])->name('pages.show');
 Route::get('seller/terms', App\Http\Controllers\Seller\SellerTermsController::class)->name('seller.terms');
 Route::get('staff-invitations/{staffInvitation}', [App\Http\Controllers\ShopStaffInvitationController::class, 'show'])->name('staff-invitations.show');
+Route::get('editor-invitations/{invitation}', [App\Http\Controllers\Blog\EditorInvitationController::class, 'show'])->name('editor-invitations.show');
 Route::get('media/{media}/view', MediaViewController::class)->name('media.view');
 
 Route::get('social/{type}/{slug}.jpg', SocialImageController::class)->name('social.image');
@@ -101,6 +102,8 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
     Route::redirect('chat', '/account/chat', 301);
     Route::redirect('chat/{conversation}', '/account/chat/{conversation}', 301);
     Route::redirect('notifications', '/account/notifications', 301);
+
+    Route::put('editor-invitations/{invitation}', [App\Http\Controllers\Blog\EditorInvitationController::class, 'update'])->name('editor-invitations.update');
 
     Route::post('reports', [App\Http\Controllers\Report\ReportController::class, 'store'])->name('reports.store');
 
@@ -176,6 +179,35 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
             Route::get('images', [App\Http\Controllers\Admin\BlogImageController::class, 'index'])->name('images.index');
             Route::post('images', [App\Http\Controllers\Admin\BlogImageController::class, 'store'])->middleware('throttle:30,1')->name('images.store');
             Route::delete('images/{blogImage}', [App\Http\Controllers\Admin\BlogImageController::class, 'destroy'])->name('images.destroy');
+
+            Route::post('markdown-preview', [App\Http\Controllers\Admin\BlogMarkdownPreviewController::class, 'store'])->middleware('throttle:60,1')->name('markdown-preview.store');
+
+            Route::resource('posts', App\Http\Controllers\Admin\BlogPostController::class)->except(['show'])->names('posts');
+            Route::get('posts/{post}/preview', [App\Http\Controllers\Admin\BlogPostPreviewController::class, 'show'])->name('posts.preview');
+            Route::post('posts/{post}/publication', [App\Http\Controllers\Admin\BlogPostPublicationController::class, 'store'])->name('posts.publication.store');
+            Route::delete('posts/{post}/publication', [App\Http\Controllers\Admin\BlogPostPublicationController::class, 'destroy'])->name('posts.publication.destroy');
+            Route::post('posts/{post}/archive', [App\Http\Controllers\Admin\BlogPostArchiveController::class, 'store'])->name('posts.archive.store');
+            Route::delete('posts/{post}/archive', [App\Http\Controllers\Admin\BlogPostArchiveController::class, 'destroy'])->name('posts.archive.destroy');
+
+            Route::get('profile', [App\Http\Controllers\Admin\BlogProfileController::class, 'edit'])->name('profile.edit');
+            Route::post('profile', [App\Http\Controllers\Admin\BlogProfileController::class, 'store'])->name('profile.store');
+            Route::put('profile', [App\Http\Controllers\Admin\BlogProfileController::class, 'update'])->name('profile.update');
+
+            // Admin-only blog screens (each request also authorizes with isAdmin()).
+            Route::middleware('admin.only')->group(function () {
+                Route::put('posts/{post}/featured', [App\Http\Controllers\Admin\BlogPostFeaturedController::class, 'update'])->name('posts.featured.update');
+
+                Route::resource('categories', App\Http\Controllers\Admin\BlogCategoryController::class)->only(['index', 'store', 'update', 'destroy'])->names('categories');
+
+                Route::resource('authors', App\Http\Controllers\Admin\BlogAuthorController::class)->only(['index', 'store', 'update'])->names('authors');
+                Route::post('authors/{author}/deactivation', [App\Http\Controllers\Admin\BlogAuthorDeactivationController::class, 'store'])->name('authors.deactivation.store');
+                Route::delete('authors/{author}/deactivation', [App\Http\Controllers\Admin\BlogAuthorDeactivationController::class, 'destroy'])->name('authors.deactivation.destroy');
+
+                Route::resource('editors', App\Http\Controllers\Admin\BlogEditorController::class)->parameters(['editors' => 'editor'])->only(['index', 'destroy'])->names('editors');
+                Route::post('editor-invitations', [App\Http\Controllers\Admin\BlogEditorInvitationController::class, 'store'])->middleware('throttle:10,1')->name('editor-invitations.store');
+                Route::delete('editor-invitations/{invitation}', [App\Http\Controllers\Admin\BlogEditorInvitationController::class, 'destroy'])->name('editor-invitations.destroy');
+                Route::post('editor-invitations/{invitation}/resend', [App\Http\Controllers\Admin\BlogEditorInvitationResendController::class, 'store'])->middleware('throttle:10,1')->name('editor-invitations.resend.store');
+            });
         });
 
         Route::middleware('admin.only')->group(function () {

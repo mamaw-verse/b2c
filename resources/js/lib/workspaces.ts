@@ -1,16 +1,19 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     Bell,
+    BookOpen,
     Boxes,
     Flag,
     FolderTree,
     Gauge,
     Home,
     Inbox,
+    Mail,
     LockKeyhole,
     MapPin,
     MessageCircle,
     Package,
+    PenLine,
     Palette,
     Percent,
     ScrollText,
@@ -19,7 +22,9 @@ import {
     ShoppingBag,
     Ticket,
     UserRound,
+    UserRoundPen,
     Users,
+    Tags,
     Wallet,
 } from 'lucide-react';
 import { home as accountHome } from '@/routes/account';
@@ -27,6 +32,11 @@ import { index as accountAffiliate } from '@/routes/account/affiliate';
 import { index as addresses } from '@/routes/addresses';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as adminAuditLog } from '@/routes/admin/audit-log';
+import { index as adminBlogAuthors } from '@/routes/admin/blog/authors';
+import { index as adminBlogCategories } from '@/routes/admin/blog/categories';
+import { index as adminBlogEditors } from '@/routes/admin/blog/editors';
+import { index as adminBlogPosts } from '@/routes/admin/blog/posts';
+import { edit as adminBlogProfile } from '@/routes/admin/blog/profile';
 import { index as adminCategories } from '@/routes/admin/categories';
 import { index as adminPayouts } from '@/routes/admin/payouts';
 import { edit as adminSettings } from '@/routes/admin/settings';
@@ -49,6 +59,9 @@ import { index as sellerStaff } from '@/routes/seller/staff';
 import { index as sellerVouchers } from '@/routes/seller/vouchers';
 
 export type WorkspaceKey = 'buyer' | 'seller' | 'admin';
+
+/** Who is looking at the Admin workspace. Editors see only the blog items flagged for them. */
+export type AdminAudience = 'admin' | 'editor';
 
 /** Sections that are planned but not built yet stay in this map behind a
  * flag; nav items referencing a disabled feature are filtered out of
@@ -79,6 +92,8 @@ export type WorkspaceNavItem = {
     badgeKey?: 'orders' | 'chat' | 'queue';
     /** Restrict the item to these seller roles; undefined = visible to all. */
     roles?: ('owner' | 'staff')[];
+    /** Admin workspace only: who sees the item. Undefined means admins only (deny by default). */
+    audience?: AdminAudience[];
 };
 
 export type WorkspaceNavGroup = {
@@ -104,18 +119,21 @@ const accountSettingsNavGroup: WorkspaceNavGroup = {
             href: editProfile().url,
             icon: UserRound,
             matchPrefix: '/settings/profile',
+            audience: ['admin', 'editor'],
         },
         {
             label: 'Security',
             href: editSecurity().url,
             icon: LockKeyhole,
             matchPrefix: '/settings/security',
+            audience: ['admin', 'editor'],
         },
         {
             label: 'Appearance',
             href: editAppearance().url,
             icon: Palette,
             matchPrefix: '/settings/appearance',
+            audience: ['admin', 'editor'],
         },
     ],
 };
@@ -312,6 +330,43 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
                     },
                 ],
             },
+            {
+                label: 'Blog',
+                items: [
+                    {
+                        label: 'Posts',
+                        href: adminBlogPosts().url,
+                        icon: PenLine,
+                        matchPrefix: '/admin/blog/posts',
+                        audience: ['admin', 'editor'],
+                    },
+                    {
+                        label: 'My profile',
+                        href: adminBlogProfile().url,
+                        icon: UserRoundPen,
+                        matchPrefix: '/admin/blog/profile',
+                        audience: ['editor'],
+                    },
+                    {
+                        label: 'Blog categories',
+                        href: adminBlogCategories().url,
+                        icon: Tags,
+                        matchPrefix: '/admin/blog/categories',
+                    },
+                    {
+                        label: 'Authors',
+                        href: adminBlogAuthors().url,
+                        icon: BookOpen,
+                        matchPrefix: '/admin/blog/authors',
+                    },
+                    {
+                        label: 'Editors',
+                        href: adminBlogEditors().url,
+                        icon: Mail,
+                        matchPrefix: '/admin/blog/editors',
+                    },
+                ],
+            },
             // Admins get a single unified shell: the menu only adds the
             // profile settings entries — all other buyer/seller surfaces
             // are stripped.
@@ -320,15 +375,28 @@ export const workspaces: Record<WorkspaceKey, WorkspaceConfig> = {
     },
 };
 
+/** Invited blog editors use the Admin workspace for the blog screens only; they see this title and home instead. */
+export const editorWorkspace = {
+    label: 'Editorial',
+    home: adminBlogPosts().url,
+} as const;
+
 /** Nav groups with items hidden behind disabled feature flags or role removed. */
 export function navGroups(
     workspace: WorkspaceKey,
     sellerRole?: 'owner' | 'staff',
+    adminAudience: AdminAudience = 'admin',
 ): WorkspaceNavGroup[] {
     return workspaces[workspace].nav
         .map((group) => ({
             ...group,
             items: group.items.filter((item) => {
+                if (
+                    workspace === 'admin' &&
+                    !(item.audience ?? ['admin']).includes(adminAudience)
+                ) {
+                    return false;
+                }
                 if (
                     item.feature !== undefined &&
                     !workspaceFeatures[item.feature]
@@ -347,8 +415,11 @@ export function navGroups(
 export function flatNav(
     workspace: WorkspaceKey,
     sellerRole?: 'owner' | 'staff',
+    adminAudience: AdminAudience = 'admin',
 ): WorkspaceNavItem[] {
-    return navGroups(workspace, sellerRole).flatMap((group) => group.items);
+    return navGroups(workspace, sellerRole, adminAudience).flatMap(
+        (group) => group.items,
+    );
 }
 
 export function navItemActive(

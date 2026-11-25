@@ -13,6 +13,7 @@ import {
 } from '@/components/workspace-switcher';
 import { cn } from '@/lib/utils';
 import {
+    editorWorkspace,
     flatNav,
     navItemActive,
     sellerHome,
@@ -98,14 +99,18 @@ export default function WorkspaceShell({
     badges?: Partial<Record<'orders' | 'chat' | 'queue', number>>;
     headerExtra?: ReactNode;
 }>) {
-    const { name, unreadCounts, pendingQueueCount, seller } =
+    const { name, unreadCounts, pendingQueueCount, seller, auth } =
         usePage<AppLayoutProps>().props;
     const notifUnread = unreadCounts?.notifications ?? 0;
     const [navOpen, setNavOpen] = useState(false);
     const currentPath =
         typeof window !== 'undefined' ? window.location.pathname : '';
 
-    const config = workspaces[workspace];
+    // Invited blog editors enter the Admin workspace for the blog screens only (docs/planning/15-blog.md §6.5).
+    const isEditor = workspace === 'admin' && auth?.user?.role === 'editor';
+    const config = isEditor
+        ? { ...workspaces.admin, ...editorWorkspace }
+        : workspaces[workspace];
     const notificationsHref =
         workspace === 'seller'
             ? sellerNotifications().url
@@ -119,7 +124,11 @@ export default function WorkspaceShell({
     const homeHref =
         workspace === 'seller' ? sellerHome(sellerRole) : config.home;
 
-    const navItems: NavItem[] = flatNav(workspace, sellerRole).map((item) => ({
+    const navItems: NavItem[] = flatNav(
+        workspace,
+        sellerRole,
+        isEditor ? 'editor' : 'admin',
+    ).map((item) => ({
         ...item,
         badge:
             item.badgeKey === 'queue'

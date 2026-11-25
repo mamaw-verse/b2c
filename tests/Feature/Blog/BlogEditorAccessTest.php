@@ -78,11 +78,29 @@ test('editors keep their buyer workspace and gain the admin workspace; admins st
         ->and(Workspace::Admin->accessibleBy(User::factory()->create()))->toBeFalse();
 });
 
-test('every admin route is admin-only unless it is a blog route, and blog routes are editor-visible', function () {
+/** The only admin routes an editor may reach (plan §4.4 / §6.5). Anything new is admin-only until listed here. */
+function editorVisibleAdminRoutes(): array
+{
+    return [
+        'admin.blog.images.index', 'admin.blog.images.store', 'admin.blog.images.destroy',
+        'admin.blog.markdown-preview.store',
+        'admin.blog.posts.index', 'admin.blog.posts.create', 'admin.blog.posts.store',
+        'admin.blog.posts.edit', 'admin.blog.posts.update', 'admin.blog.posts.destroy',
+        'admin.blog.posts.preview',
+        'admin.blog.posts.publication.store', 'admin.blog.posts.publication.destroy',
+        'admin.blog.posts.archive.store', 'admin.blog.posts.archive.destroy',
+        'admin.blog.profile.edit', 'admin.blog.profile.store', 'admin.blog.profile.update',
+    ];
+}
+
+test('every admin route is admin-only unless it is on the explicit editor allow-list', function () {
     $adminRoutes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($route) => str_starts_with((string) $route->getName(), 'admin.'));
 
     expect($adminRoutes)->not->toBeEmpty();
+
+    $allowList = editorVisibleAdminRoutes();
+    $seen = [];
 
     foreach ($adminRoutes as $route) {
         $middleware = $route->gatherMiddleware();
@@ -90,13 +108,17 @@ test('every admin route is admin-only unless it is a blog route, and blog routes
 
         expect(in_array('workspace:admin', $middleware, true))->toBeTrue("{$name} lost workspace:admin");
 
-        if (str_starts_with($name, 'admin.blog.')) {
+        if (in_array($name, $allowList, true)) {
+            $seen[] = $name;
             expect(in_array('blog.manage', $middleware, true))->toBeTrue("{$name} must use blog.manage");
             expect(in_array('admin.only', $middleware, true))->toBeFalse("{$name} would lock editors out");
         } else {
             expect(in_array('admin.only', $middleware, true))->toBeTrue("{$name} is reachable by editors");
         }
     }
+
+    // A typo in the allow-list must not silently pass.
+    expect(array_values(array_diff($allowList, $seen)))->toBe([]);
 });
 
 test('an editor gets 404 on admin screens outside the blog', function (string $routeName) {

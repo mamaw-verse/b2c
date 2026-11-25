@@ -8,6 +8,7 @@ use App\Actions\Seller\AcceptShopStaffInvitation;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Enums\ShopStaffStatus;
+use App\Models\BlogEditorInvitation;
 use App\Models\ShopStaff;
 use App\Models\User;
 use App\Rules\TurnstileRule;
@@ -57,18 +58,32 @@ final readonly class CreateNewUser implements CreatesNewUsers
             }
         }
 
-        return DB::transaction(function () use ($input, $invitation): User {
+        // A blog editor invitation link proves ownership of the invited address the same way.
+        $editorInvitation = null;
+        $editorInvitationId = session()->get('editor_invitation_id');
+        if (is_string($editorInvitationId) && $editorInvitationId !== '') {
+            $candidate = BlogEditorInvitation::query()->find($editorInvitationId);
+            if ($candidate !== null && $candidate->isPending() && mb_strtolower($candidate->email) === mb_strtolower($input['email'])) {
+                $editorInvitation = $candidate;
+            }
+        }
+
+        return DB::transaction(function () use ($input, $invitation, $editorInvitation): User {
             $user = User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => $input['password'],
-                'email_verified_at' => $invitation !== null ? now() : null,
+                'email_verified_at' => $invitation !== null || $editorInvitation !== null ? now() : null,
             ]);
 
             if ($invitation !== null) {
                 $this->acceptStaffInvitation->handle($invitation, $user, request()->ip());
                 session()->forget('staff_invitation_id');
                 session()->flash('success', "Welcome to the {$invitation->shop->name} team!");
+            }
+
+            if ($editorInvitation !== null) {
+                session()->forget('editor_invitation_id');
             }
 
             return $user;

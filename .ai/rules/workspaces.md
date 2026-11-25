@@ -11,11 +11,11 @@ paths:
 
 The app has three workspaces (portals), each with its own shell, page directory, route prefix, and audience:
 
-| Workspace | Label           | Route prefix | Pages                        | Audience                      |
-| --------- | --------------- | ------------ | ---------------------------- | ----------------------------- |
-| `buyer`   | "My account"    | `/account/*` | `resources/js/pages/account` | Every authenticated user      |
-| `seller`  | "Seller Centre" | `/seller/*`  | `resources/js/pages/seller`  | Users with an approved shop   |
-| `admin`   | "Admin"         | `/admin/*`   | `resources/js/pages/admin`   | Users with `role === 'admin'` |
+| Workspace | Label           | Route prefix | Pages                        | Audience                                                                                                                |
+| --------- | --------------- | ------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `buyer`   | "My account"    | `/account/*` | `resources/js/pages/account` | Every authenticated user                                                                                                |
+| `seller`  | "Seller Centre" | `/seller/*`  | `resources/js/pages/seller`  | Users with an approved shop                                                                                             |
+| `admin`   | "Admin"         | `/admin/*`   | `resources/js/pages/admin`   | Users with `role === 'admin'`; invited blog editors (`role === 'editor'`) see only the blog screens, titled "Editorial" |
 
 All navigation is defined centrally in `resources/js/lib/workspaces.ts` and rendered by `resources/js/layouts/workspace-shell.tsx` (sidebar on md+, bottom tabs + drawer on phones). Never hardcode nav links in pages or layouts — add a `WorkspaceNavItem` to the right workspace's `nav` array.
 
@@ -35,6 +35,10 @@ Add an entry to the matching `nav` group in `workspaces.ts`:
 - `matchPrefix`: URL prefix that marks the item active; use `exact: true` for workspace home items that would otherwise match everything.
 - `icon`: a `lucide-react` icon.
 - `badgeKey`: `'orders' | 'chat' | 'queue'` if the item shows a live count (wired in `workspace-shell.tsx` via the `badges` prop / `pendingQueueCount`).
+
+## Editors in the Admin workspace
+
+Invited blog editors enter the Admin workspace but only reach routes on the explicit allow-list in `tests/Feature/Blog/BlogEditorAccessTest.php` (`blog.manage` middleware); everything else in `/admin/*` sits behind `admin.only`. In `workspaces.ts` an admin nav item without an `audience` flag is admin-only; add `audience: ['admin', 'editor']` only for items editors may see. A new `admin.*` route is admin-only until it is added to that allow-list.
 
 ## Planned-but-unbuilt sections
 
