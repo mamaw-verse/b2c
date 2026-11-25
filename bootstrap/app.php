@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'workspace' => App\Http\Middleware\EnsureWorkspaceAccess::class,
             'feature' => App\Http\Middleware\EnsureFeatureEnabled::class,
             'human' => App\Http\Middleware\EnsureHumanPass::class,
+            'blog' => App\Http\Middleware\EnsureBlogEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
