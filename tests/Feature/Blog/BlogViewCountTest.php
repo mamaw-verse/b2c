@@ -22,11 +22,12 @@ beforeEach(function () {
  *
  * @param  array<string, string>  $server
  */
-function viewRequest(string $sessionId = 'visitor-one', string $method = 'GET', array $server = []): Request
+function viewRequest(string $sessionId = 'visitorone', string $method = 'GET', array $server = []): Request
 {
     $request = Request::create('/blog/some-post', $method, server: ['HTTP_USER_AGENT' => BROWSER_UA, ...$server]);
 
     $session = app('session')->driver();
+    // Laravel only accepts 40 alphanumeric characters; anything else is silently replaced by a random id.
     $session->setId(str_pad($sessionId, 40, 'x'));
     $request->setLaravelSession($session);
 
@@ -48,8 +49,8 @@ test('a normal page load counts as one view', function () {
 test('the same session is counted once per post per day', function () {
     $post = BlogPost::factory()->published()->create(['view_count' => 0]);
 
-    expect(recordView($post, viewRequest('visitor-one')))->toBeTrue()
-        ->and(recordView($post, viewRequest('visitor-one')))->toBeFalse()
+    expect(recordView($post, viewRequest('visitorone')))->toBeTrue()
+        ->and(recordView($post, viewRequest('visitorone')))->toBeFalse()
         ->and($post->fresh()->view_count)->toBe(1);
 });
 
@@ -57,9 +58,9 @@ test('a different session or a different post counts separately', function () {
     $post = BlogPost::factory()->published()->create(['view_count' => 0]);
     $other = BlogPost::factory()->published()->create(['view_count' => 0]);
 
-    recordView($post, viewRequest('visitor-one'));
-    recordView($post, viewRequest('visitor-two'));
-    recordView($other, viewRequest('visitor-one'));
+    recordView($post, viewRequest('visitorone'));
+    recordView($post, viewRequest('visitortwo'));
+    recordView($other, viewRequest('visitorone'));
 
     expect($post->fresh()->view_count)->toBe(2)
         ->and($other->fresh()->view_count)->toBe(1);
@@ -79,7 +80,7 @@ test('the same session is counted again the next day', function () {
 test('bots, empty user agents, HEAD and prefetch requests are ignored', function (array $server, string $method) {
     $post = BlogPost::factory()->published()->create(['view_count' => 0]);
 
-    expect(recordView($post, viewRequest('visitor-one', $method, $server)))->toBeFalse()
+    expect(recordView($post, viewRequest('visitorone', $method, $server)))->toBeFalse()
         ->and($post->fresh()->view_count)->toBe(0);
 })->with([
     'Googlebot' => [['HTTP_USER_AGENT' => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'], 'GET'],
@@ -97,8 +98,9 @@ test('counting touches neither updated_at nor the blog cache', function () {
     $post = BlogPost::factory()->published()->create(['view_count' => 0]);
     $updatedAt = $post->fresh()->updated_at->toIso8601String();
 
-    Cache::put('blog:index:popular', ['cached'], 300);
+    // Travel first: the cache entry has a 5-minute TTL and would expire during the jump.
     $this->travelTo(now()->addHours(2));
+    Cache::put('blog:index:popular', ['cached'], 300);
 
     recordView($post, viewRequest());
 
