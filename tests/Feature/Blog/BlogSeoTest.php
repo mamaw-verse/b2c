@@ -336,8 +336,12 @@ test('the index lists the blog sitemap only when there is a live post', function
 
     $post = seoPost();
 
+    // Iterating a SimpleXMLElement repeats the key `sitemap`, so collect() would keep only the last entry.
     $xml = simplexml_load_string($this->get('/sitemap.xml')->assertOk()->getContent());
-    $entries = collect($xml->sitemap)->keyBy(fn ($s) => (string) $s->loc);
+    $entries = [];
+    foreach ($xml->sitemap as $sitemap) {
+        $entries[(string) $sitemap->loc] = $sitemap;
+    }
 
     expect($entries)->toHaveKey('https://halalbenta.test/sitemap-blog.xml')
         ->and((string) $entries['https://halalbenta.test/sitemap-blog.xml']->lastmod)->toBe($post->updated_at->toIso8601String());
@@ -405,11 +409,10 @@ test('no static sitemap file shadows the blog sitemap route', function () {
 
 test('llms.txt gets a Blog section with the latest live posts only', function () {
     $this->app['env'] = 'production';
-    $this->withServerVariables(['HTTPS' => 'on']);
     $live = seoPost(['excerpt' => "A guide\n to dates."]);
     $draft = BlogPost::factory()->draft()->create();
 
-    $body = $this->get('/llms.txt')->assertOk()->getContent();
+    $body = $this->get('https://halalbenta.test/llms.txt')->assertOk()->getContent();
 
     expect($body)->toContain('## Blog')
         ->and($body)->toContain("[{$live->title}](https://halalbenta.test/blog/{$live->slug}): A guide to dates.")
@@ -419,10 +422,9 @@ test('llms.txt gets a Blog section with the latest live posts only', function ()
 
 test('llms.txt lists at most the 10 newest posts', function () {
     $this->app['env'] = 'production';
-    $this->withServerVariables(['HTTPS' => 'on']);
     $posts = collect(range(1, 12))->map(fn ($i) => seoPost(['published_at' => now()->subDays($i)]));
 
-    $body = $this->get('/llms.txt')->assertOk()->getContent();
+    $body = $this->get('https://halalbenta.test/llms.txt')->assertOk()->getContent();
 
     expect($body)->toContain($posts[0]->slug)
         ->and($body)->toContain($posts[9]->slug)
@@ -432,20 +434,18 @@ test('llms.txt lists at most the 10 newest posts', function () {
 
 test('llms.txt has no Blog section when the blog is off or empty', function () {
     $this->app['env'] = 'production';
-    $this->withServerVariables(['HTTPS' => 'on']);
 
-    expect($this->get('/llms.txt')->getContent())->not->toContain('## Blog');
+    expect($this->get('https://halalbenta.test/llms.txt')->getContent())->not->toContain('## Blog');
 
     seoPost();
     Cache::flush();
     config(['blog.enabled' => false]);
 
-    expect($this->get('/llms.txt')->getContent())->not->toContain('## Blog');
+    expect($this->get('https://halalbenta.test/llms.txt')->getContent())->not->toContain('## Blog');
 });
 
 test('robots.txt disallows the q search parameter', function () {
     $this->app['env'] = 'production';
-    $this->withServerVariables(['HTTPS' => 'on']);
 
-    expect($this->get('/robots.txt')->assertOk()->getContent())->toContain('Disallow: /*?*q=');
+    expect($this->get('https://halalbenta.test/robots.txt')->assertOk()->getContent())->toContain('Disallow: /*?*q=');
 });
