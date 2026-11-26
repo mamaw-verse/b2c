@@ -99,6 +99,11 @@
             <link rel="next" href="{{ $seo->next }}">
         @endif
 
+        {{-- Blog RSS autodiscovery (docs/planning/15-blog.md B4.1) --}}
+        @if (config('blog.enabled') && request()->routeIs('blog.*'))
+            <link rel="alternate" type="application/rss+xml" title="{{ config('blog.title', 'HalalBenta Blog') }}" href="{{ \App\Actions\Blog\BuildBlogFeed::url() }}">
+        @endif
+
         {{-- Hreflang --}}
         <link rel="alternate" hreflang="en-PH" href="{{ $seo->canonical }}">
         <link rel="alternate" hreflang="x-default" href="{{ $seo->canonical }}">

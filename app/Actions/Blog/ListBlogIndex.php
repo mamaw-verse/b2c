@@ -8,6 +8,7 @@ use App\Models\BlogPost;
 use App\Support\Blog\BlogCard;
 use App\Support\Blog\BlogImageData;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Data for `/blog`: hero, category chips, latest grid (paginated, searchable) and the popular rail.
@@ -73,15 +74,27 @@ final readonly class ListBlogIndex
         });
     }
 
-    /** @return list<array<string, mixed>> */
+    /**
+     * Top posts by views in the last `blog.popular_window_days` days (B4.2). Posts with no recent
+     * views still fill the rail, newest first, so it is never emptier than the blog.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function popular(): array
     {
+        $since = now()->subDays(max(1, config()->integer('blog.popular_window_days', 30)) - 1)->toDateString();
+
+        $recentViews = DB::table('blog_post_daily_views')
+            ->selectRaw('COALESCE(SUM(views), 0)')
+            ->whereColumn('blog_post_daily_views.blog_post_id', 'blog_posts.id')
+            ->where('blog_post_daily_views.day', '>=', $since);
+
         return Cache::remember('blog:index:popular', self::TTL_SECONDS, fn (): array => BlogCard::many(
             BlogPost::query()
                 ->live()
                 ->select(BlogCard::COLUMNS)
                 ->with(BlogCard::RELATIONS)
-                ->orderByDesc('view_count')
+                ->orderByDesc($recentViews)
                 ->orderByDesc('published_at')
                 ->limit(max(1, config()->integer('blog.popular_count', 5)))
                 ->get()

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\Blog\RenderBlogBody;
 use App\Http\Requests\Admin\CreateBlogMarkdownPreviewRequest;
+use App\Support\Blog\BlogFacts;
 use Illuminate\Http\JsonResponse;
 
 final class BlogMarkdownPreviewController
@@ -15,7 +16,7 @@ final class BlogMarkdownPreviewController
         $body = $action->handle($request->markdown());
 
         return response()->json([
-            'html' => $body->html,
+            'html' => BlogFacts::resolve($body->html),
             'toc' => $body->toc,
             'word_count' => $body->wordCount,
             'reading_minutes' => $body->readingMinutes,

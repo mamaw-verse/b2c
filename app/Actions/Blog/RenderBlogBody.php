@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Blog;
 
 use App\Models\BlogImage;
+use App\Support\Blog\BlogFacts;
 use App\Support\Blog\BlogTrustedHtml;
 use App\Support\Blog\BlogTrustedHtmlRenderer;
 use App\Support\Blog\RenderedBlogBody;
@@ -63,6 +64,7 @@ final readonly class RenderBlogBody
         $this->rewriteLinks($document);
         $imageIds = $this->rewriteImages($document, $errors, $warnings);
         $productSlugs = $this->rewriteProductEmbeds($document, $warnings);
+        $this->checkFacts($document, $errors);
         $toc = $this->rewriteHeadings($document);
         $words = $this->countWords($document);
 
@@ -268,6 +270,51 @@ final readonly class RenderBlogBody
         }
 
         return array_keys($slugs);
+    }
+
+    /**
+     * Validates `[[fact:key]]` tokens (B4.5). The tokens stay in the stored HTML and are resolved on
+     * every render (`BlogFacts::resolve`), so here they only need to be known and currently backed.
+     *
+     * @param  list<string>  $errors
+     */
+    private function checkFacts(Document $document, array &$errors): void
+    {
+        foreach ([Heading::class, Paragraph::class] as $class) {
+            foreach ($this->collect($document, $class) as $block) {
+                // Text nodes only: a token inside `inline code` is documentation, not a claim.
+                foreach (BlogFacts::tokensIn($this->textOnly($block)) as $key) {
+                    if ($class === Heading::class) {
+                        $errors[] = 'A [[fact:…]] token cannot be used in a heading.';
+
+                        continue;
+                    }
+
+                    if (preg_match('/^[a-z][a-z0-9_]*$/', $key) !== 1 || ! BlogFacts::isKnown($key)) {
+                        $errors[] = "Unknown fact: {$key}. Available: ".implode(', ', BlogFacts::keys()).'.';
+
+                        continue;
+                    }
+
+                    if (BlogFacts::value($key) === null) {
+                        $errors[] = "The fact \"{$key}\" is not available right now because the marketplace setting behind it is off or empty.";
+                    }
+                }
+            }
+        }
+    }
+
+    private function textOnly(Node $node): string
+    {
+        $parts = [];
+        $walker = $node->walker();
+        while (($event = $walker->next()) !== null) {
+            if ($event->isEntering() && $event->getNode() instanceof Text) {
+                $parts[] = $event->getNode()->getLiteral();
+            }
+        }
+
+        return implode('', $parts);
     }
 
     /**

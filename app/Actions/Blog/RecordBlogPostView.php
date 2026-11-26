@@ -7,6 +7,7 @@ namespace App\Actions\Blog;
 use App\Models\BlogPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Counts a public post view (plan §9): never for bots, HEAD or prefetch requests, and at most once
@@ -42,6 +43,13 @@ final readonly class RecordBlogPostView
         }
 
         BlogPost::query()->whereKey($post->getKey())->toBase()->increment('view_count');
+
+        // Per-day row for the 30-day popularity rail (B4.2): insert, or add one on conflict.
+        DB::table('blog_post_daily_views')->upsert(
+            [['blog_post_id' => $post->getKey(), 'day' => now()->toDateString(), 'views' => 1]],
+            ['blog_post_id', 'day'],
+            ['views' => DB::raw('blog_post_daily_views.views + 1')],
+        );
 
         return true;
     }

@@ -39,6 +39,7 @@ test('every public blog route is a 404 while the blog is disabled', function () 
         route('blog.tags.show', $tag),
         route('blog.authors.show', $post->author),
         route('blog.show', $post),
+        route('blog.feed'),
         '/blog/old-slug',
     ] as $url) {
         $this->get($url)->assertNotFound();
@@ -76,9 +77,12 @@ test('a retired slug 301s to the current live URL, but not when the post is not 
 test('reserved paths never resolve as a post', function () {
     livePost();
 
-    foreach (['category', 'tag', 'author', 'search', 'page', 'feed.xml'] as $path) {
+    foreach (['category', 'tag', 'author', 'search', 'page'] as $path) {
         $this->get("/blog/{$path}")->assertNotFound();
     }
+
+    // `feed.xml` is reserved too, but since B4.1 it is the RSS feed rather than a 404 (never a post).
+    $this->get('/blog/feed.xml')->assertOk()->assertHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
 });
 
 test('author pages exist for active people only, never the house author', function () {

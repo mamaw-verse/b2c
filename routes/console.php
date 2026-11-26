@@ -28,3 +28,4 @@ Schedule::command('sitemap:generate')->dailyAt('02:00');
 Schedule::command('seo:audit --sample=15')->weeklyOn(1, '05:00')->environments(['production'])->withoutOverlapping();
 Schedule::job(new App\Jobs\ReconcileMediaOrphansJob)->dailyAt('04:00');
 Schedule::job(new App\Jobs\ReconcileBlogImageOrphansJob)->dailyAt('04:15');
+Schedule::job(new App\Jobs\PruneBlogDailyViewsJob)->dailyAt('04:30');

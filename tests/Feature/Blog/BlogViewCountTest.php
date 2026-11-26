@@ -122,3 +122,104 @@ test('the public post page records a view for a browser and not for a crawler', 
         ->assertOk();
     expect($other->fresh()->view_count)->toBe(0);
 });
+
+// ---- B4.2: thirty-day popularity ----
+
+use App\Actions\Blog\ListBlogIndex;
+use App\Jobs\PruneBlogDailyViewsJob;
+use Illuminate\Support\Facades\DB;
+
+/** Seeds a per-day view row directly, as if the views had been recorded on that day. */
+function dailyViews(BlogPost $post, int $daysAgo, int $views): void
+{
+    DB::table('blog_post_daily_views')->insert([
+        'blog_post_id' => $post->id,
+        'day' => now()->subDays($daysAgo)->toDateString(),
+        'views' => $views,
+    ]);
+}
+
+/** @return list<string> slugs on the popular rail, in order */
+function popularSlugs(): array
+{
+    Cache::flush();
+
+    return array_column(app(ListBlogIndex::class)->handle()['popular'], 'slug');
+}
+
+test('a counted view also writes one per-day row, and the same day adds to it', function () {
+    $post = BlogPost::factory()->published()->create(['view_count' => 0]);
+
+    recordView($post, viewRequest('visitorone'));
+    recordView($post, viewRequest('visitortwo'));
+
+    $rows = DB::table('blog_post_daily_views')->where('blog_post_id', $post->id)->get();
+
+    expect($rows)->toHaveCount(1)
+        ->and((int) $rows->first()->views)->toBe(2)
+        ->and($rows->first()->day)->toBe(now()->toDateString())
+        ->and($post->fresh()->view_count)->toBe(2);
+});
+
+test('an ignored request writes no per-day row', function () {
+    $post = BlogPost::factory()->published()->create();
+
+    recordView($post, viewRequest('visitorone', 'GET', ['HTTP_USER_AGENT' => 'curl/8.5.0']));
+
+    expect(DB::table('blog_post_daily_views')->count())->toBe(0);
+});
+
+test('the popular rail ranks by the last 30 days, not by the all-time total', function () {
+    $oldHit = BlogPost::factory()->published()->create(['slug' => 'old-hit', 'view_count' => 5000, 'published_at' => now()->subDays(200)]);
+    $recent = BlogPost::factory()->published()->create(['slug' => 'recent', 'view_count' => 10, 'published_at' => now()->subDays(5)]);
+    $middling = BlogPost::factory()->published()->create(['slug' => 'middling', 'view_count' => 3, 'published_at' => now()->subDays(6)]);
+
+    dailyViews($oldHit, 45, 5000); // outside the window
+    dailyViews($recent, 2, 8);
+    dailyViews($recent, 29, 2); // the oldest day still inside a 30-day window
+    dailyViews($middling, 1, 3);
+
+    expect(popularSlugs())->toBe(['recent', 'middling', 'old-hit']);
+});
+
+test('day 30 ago is outside the window and posts without recent views follow newest first', function () {
+    $edge = BlogPost::factory()->published()->create(['slug' => 'edge', 'published_at' => now()->subDays(90)]);
+    $fresh = BlogPost::factory()->published()->create(['slug' => 'fresh', 'published_at' => now()->subDay()]);
+    $stale = BlogPost::factory()->published()->create(['slug' => 'stale', 'published_at' => now()->subDays(60)]);
+
+    dailyViews($edge, 30, 999);
+
+    expect(popularSlugs())->toBe(['fresh', 'stale', 'edge']);
+});
+
+test('only live posts can be popular', function () {
+    $draft = BlogPost::factory()->draft()->create(['slug' => 'draft-one']);
+    $live = BlogPost::factory()->published()->create(['slug' => 'live-one']);
+
+    dailyViews($draft, 0, 500);
+
+    expect(popularSlugs())->toBe(['live-one']);
+});
+
+test('the prune job drops old per-day rows but keeps recent ones and all-time totals', function () {
+    $post = BlogPost::factory()->published()->create(['view_count' => 77]);
+
+    dailyViews($post, 120, 4);
+    dailyViews($post, 91, 4);
+    dailyViews($post, 89, 4);
+    dailyViews($post, 0, 4);
+
+    (new PruneBlogDailyViewsJob)->handle();
+
+    expect(DB::table('blog_post_daily_views')->count())->toBe(2)
+        ->and($post->fresh()->view_count)->toBe(77);
+});
+
+test('deleting a post removes its per-day rows', function () {
+    $post = BlogPost::factory()->published()->create();
+    dailyViews($post, 1, 3);
+
+    $post->forceDelete();
+
+    expect(DB::table('blog_post_daily_views')->count())->toBe(0);
+});

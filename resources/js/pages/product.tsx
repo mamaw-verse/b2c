@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { BlogCard } from '@/components/blog/blog-card';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { Carousel } from '@/components/carousel';
 import { ColdChainNote } from '@/components/cold-chain-note';
@@ -35,6 +36,7 @@ import { cn } from '@/lib/utils';
 import { home, login } from '@/routes';
 import { show as categoryShow } from '@/routes/categories';
 import { show as shopShow } from '@/routes/shops';
+import type { BlogCardData } from '@/types/blog';
 import type {
     ProductCardData,
     ProductDetail,
@@ -46,11 +48,14 @@ export default function Product({
     product: p,
     reviews = [],
     related = [],
+    featured_in: featuredIn = [],
     share,
 }: {
     product: ProductDetail;
     reviews?: ReviewData[];
     related?: ProductCardData[];
+    /** Live blog posts that embed this product (empty while the blog is off). */
+    featured_in?: BlogCardData[];
     share?: ProductShareData;
 }) {
     const { auth, seller, workspaces } = usePage().props;
@@ -848,7 +853,23 @@ export default function Product({
                     </div>
                 </section>
 
-                {/* 5. "You may also like" (unchanged) */}
+                {/* 5. Blog posts that feature this product */}
+                {featuredIn.length > 0 && (
+                    <section aria-labelledby="pd-blog" className="mt-6 md:mt-8">
+                        <h2 id="pd-blog" className="text-h3">
+                            Featured in our blog
+                        </h2>
+                        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {featuredIn.map((card) => (
+                                <li key={card.id}>
+                                    <BlogCard card={card} compact />
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {/* 6. "You may also like" (unchanged) */}
                 {related.length > 0 && (
                     <section aria-labelledby="pd-also" className="mt-6 md:mt-8">
                         <h2 id="pd-also" className="text-h3">

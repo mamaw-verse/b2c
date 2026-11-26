@@ -6,6 +6,7 @@ namespace App\Actions\Blog\Admin;
 
 use App\Actions\Blog\RenderBlogBody;
 use App\Models\BlogPost;
+use App\Support\Blog\BlogFacts;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -37,7 +38,7 @@ final readonly class ShowBlogPostPreview
                 'reading_minutes' => $body->readingMinutes,
                 'cover_alt' => $post->coverImage?->alt,
                 'cover_url' => $post->coverImage === null ? null : $this->coverUrl($post),
-                'html' => $body->html,
+                'html' => BlogFacts::resolve($body->html),
                 'toc' => $body->toc,
             ],
         ];

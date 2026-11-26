@@ -20,6 +20,10 @@ return [
     'per_page' => (int) env('BLOG_PER_PAGE', 12),
     'hero_count' => 5,
     'popular_count' => 5,
+
+    /* Popular rail ranks by views in the last N days; older per-day rows are pruned after `daily_views_keep_days`. */
+    'popular_window_days' => 30,
+    'daily_views_keep_days' => 90,
     'related_count' => 3,
 
     'house_author_name' => env('BLOG_HOUSE_AUTHOR', 'HalalBenta Editorial'),

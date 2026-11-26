@@ -74,12 +74,13 @@ Route::get('media/{media}/view', MediaViewController::class)->name('media.view')
 
 // Public blog (docs/planning/15-blog.md §4.2). Every route 404s while BLOG_ENABLED is false.
 // Order matters: the fixed prefixes must be registered before the catch-all `{blogPost}` slug.
-// The `/blog/feed.xml` route lands in Phase 4 (B4.1) and must also be registered above `{blogPost}`.
+// `feed.xml` (B4.1) is registered above `{blogPost}` for the same reason.
 Route::prefix('blog')->name('blog.')->middleware('blog')->group(function () {
     Route::get('/', [App\Http\Controllers\Blog\BlogController::class, 'index'])->name('index');
     Route::get('category/{blogCategory:slug}', [App\Http\Controllers\Blog\BlogCategoryController::class, 'show'])->name('categories.show');
     Route::get('tag/{blogTag:slug}', [App\Http\Controllers\Blog\BlogTagController::class, 'show'])->name('tags.show');
     Route::get('author/{blogAuthor:slug}', [App\Http\Controllers\Blog\BlogAuthorController::class, 'show'])->name('authors.show');
+    Route::get('feed.xml', App\Http\Controllers\Blog\BlogFeedController::class)->name('feed');
     Route::get('{blogPost:slug}', [App\Http\Controllers\Blog\BlogPostController::class, 'show'])->name('show');
 });
 
@@ -214,6 +215,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\RememberWorkspace::cl
                 Route::resource('authors', App\Http\Controllers\Admin\BlogAuthorController::class)->only(['index', 'store', 'update'])->names('authors');
                 Route::post('authors/{author}/deactivation', [App\Http\Controllers\Admin\BlogAuthorDeactivationController::class, 'store'])->name('authors.deactivation.store');
                 Route::delete('authors/{author}/deactivation', [App\Http\Controllers\Admin\BlogAuthorDeactivationController::class, 'destroy'])->name('authors.deactivation.destroy');
+                Route::post('authors/{author}/reassignment', [App\Http\Controllers\Admin\BlogAuthorReassignmentController::class, 'store'])->name('authors.reassignment.store');
 
                 Route::resource('editors', App\Http\Controllers\Admin\BlogEditorController::class)->parameters(['editors' => 'editor'])->only(['index', 'destroy'])->names('editors');
                 Route::post('editor-invitations', [App\Http\Controllers\Admin\BlogEditorInvitationController::class, 'store'])->middleware('throttle:10,1')->name('editor-invitations.store');

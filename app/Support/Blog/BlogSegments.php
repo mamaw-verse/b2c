@@ -29,6 +29,9 @@ final class BlogSegments
             return [];
         }
 
+        // Policy facts (`[[fact:…]]`) are resolved on every render so they track the live settings (B4.5).
+        $html = BlogFacts::resolve($html);
+
         $parts = preg_split(self::MARKER, $html, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         // preg_split only returns false on a PCRE error; fall back to the plain body.

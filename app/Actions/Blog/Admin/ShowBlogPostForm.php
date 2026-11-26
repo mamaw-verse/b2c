@@ -10,6 +10,7 @@ use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\User;
 use App\Support\Blog\BlogAuthorPayload;
+use App\Support\Blog\BlogFacts;
 use App\Support\Blog\BlogFaqs;
 use App\Support\Blog\BlogImagePayload;
 
@@ -82,6 +83,7 @@ final readonly class ShowBlogPostForm
                 'faq_max' => BlogFaqs::MAX_ENTRIES,
                 'faq_question_max' => BlogFaqs::QUESTION_MAX,
                 'faq_answer_max' => BlogFaqs::ANSWER_MAX,
+                'fact_keys' => BlogFacts::keys(),
             ],
         ];
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Blog\ListBlogPostsFeaturingProduct;
 use App\Actions\Catalogue\BuildProductSeoMeta;
 use App\Actions\Seo\BuildProductSeoData;
 use App\Http\Requests\ShowProductRequest;
@@ -23,6 +24,7 @@ final class ProductController
         Product $product,
         BuildProductSeoMeta $buildSeoMeta,
         BuildProductSeoData $buildSeoData,
+        ListBlogPostsFeaturingProduct $featuredIn,
         Seo $seo
     ): Response {
         $product->load(['shop', 'category.parent', 'variations', 'images', 'halalCertification', 'video']);
@@ -41,6 +43,7 @@ final class ProductController
                 'url' => route('products.show', $product),
                 'count' => $shareCount,
             ],
+            'featured_in' => $featuredIn->handle($product),
             'reviews' => Inertia::defer(fn () => $product->reviews()
                 ->with(['user', 'orderItem', 'photos'])
                 ->limit(20)

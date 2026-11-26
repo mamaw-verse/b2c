@@ -8,6 +8,7 @@ use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
 uses(RefreshDatabase::class);
@@ -152,4 +153,109 @@ test('admin blog categories: CRUD, reserved slugs, system and non-empty categori
     $this->actingAs($admin)->delete(route('admin.blog.categories.destroy', $empty))->assertRedirect();
     expect(BlogCategory::query()->whereKey($empty->id)->exists())->toBeFalse()
         ->and(AuditLog::query()->whereIn('action', ['blog.category.created', 'blog.category.updated', 'blog.category.deleted'])->count())->toBe(3);
+});
+
+// ---- B4.4: bulk reassign posts ----
+
+test('an admin moves all of an author\'s posts, trashed ones included, without touching updated_at', function () {
+    $admin = acAdmin();
+    $from = BlogAuthor::factory()->inactive()->create(['display_name' => 'Gone Writer']);
+    $to = BlogAuthor::factory()->create(['display_name' => 'New Writer']);
+    $untouched = BlogAuthor::factory()->create();
+
+    $live = BlogPost::factory()->published()->create(['blog_author_id' => $from->id]);
+    $draft = BlogPost::factory()->draft()->create(['blog_author_id' => $from->id]);
+    $trashed = BlogPost::factory()->published()->create(['blog_author_id' => $from->id]);
+    $trashed->delete();
+    $elsewhere = BlogPost::factory()->published()->create(['blog_author_id' => $untouched->id]);
+
+    $updatedAt = $live->fresh()->updated_at->toIso8601String();
+    $this->travelTo(now()->addHours(3));
+
+    $this->actingAs($admin)
+        ->post(route('admin.blog.authors.reassignment.store', $from), ['to_author_id' => $to->id])
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    expect($live->fresh()->blog_author_id)->toBe($to->id)
+        ->and($draft->fresh()->blog_author_id)->toBe($to->id)
+        ->and(BlogPost::withTrashed()->find($trashed->id)->blog_author_id)->toBe($to->id)
+        ->and($elsewhere->fresh()->blog_author_id)->toBe($untouched->id)
+        ->and($live->fresh()->updated_at->toIso8601String())->toBe($updatedAt);
+
+    $audit = AuditLog::query()->where('action', 'blog.author.posts_reassigned')->sole();
+
+    expect($audit->metadata['count'])->toBe(3)
+        ->and($audit->metadata['from_author_id'])->toBe($from->id)
+        ->and($audit->metadata['to_author_id'])->toBe($to->id)
+        ->and($audit->metadata['post_ids'])->toHaveCount(3);
+});
+
+test('reassigning clears the public blog cache so the new byline shows', function () {
+    $admin = acAdmin();
+    $from = BlogAuthor::factory()->create();
+    $to = BlogAuthor::factory()->create();
+    BlogPost::factory()->published()->create(['blog_author_id' => $from->id]);
+
+    config(['blog.enabled' => true]);
+    Cache::put('blog:index:popular', ['stale'], 300);
+    Cache::put('blog:feed', 'stale', 300);
+
+    $this->actingAs($admin)->post(route('admin.blog.authors.reassignment.store', $from), ['to_author_id' => $to->id])->assertRedirect();
+
+    expect(Cache::has('blog:index:popular'))->toBeFalse()
+        ->and(Cache::has('blog:feed'))->toBeFalse();
+});
+
+test('the target must be a different, active, consented author', function () {
+    $admin = acAdmin();
+    $from = BlogAuthor::factory()->create();
+    BlogPost::factory()->published()->create(['blog_author_id' => $from->id]);
+
+    $inactive = BlogAuthor::factory()->inactive()->create();
+    $noConsent = BlogAuthor::factory()->create(['consent_confirmed_at' => null]);
+
+    $post = fn (string $to) => $this->actingAs($admin)->post(route('admin.blog.authors.reassignment.store', $from), ['to_author_id' => $to]);
+
+    $post($from->id)->assertSessionHasErrors('to_author_id');
+    $post($inactive->id)->assertSessionHasErrors('to_author_id');
+    $post($noConsent->id)->assertSessionHasErrors('to_author_id');
+    $post('does-not-exist')->assertSessionHasErrors('to_author_id');
+    $this->actingAs($admin)->post(route('admin.blog.authors.reassignment.store', $from))->assertSessionHasErrors('to_author_id');
+
+    expect(BlogPost::query()->where('blog_author_id', $from->id)->count())->toBe(1)
+        ->and(AuditLog::query()->where('action', 'blog.author.posts_reassigned')->count())->toBe(0);
+});
+
+test('the house author can receive posts', function () {
+    $admin = acAdmin();
+    $from = BlogAuthor::factory()->create();
+    $house = BlogAuthor::factory()->house()->create();
+    $post = BlogPost::factory()->published()->create(['blog_author_id' => $from->id]);
+
+    $this->actingAs($admin)->post(route('admin.blog.authors.reassignment.store', $from), ['to_author_id' => $house->id])->assertRedirect();
+
+    expect($post->fresh()->blog_author_id)->toBe($house->id);
+});
+
+test('an author with no posts reports it and writes no audit row', function () {
+    $admin = acAdmin();
+    $from = BlogAuthor::factory()->create();
+    $to = BlogAuthor::factory()->create();
+
+    $this->actingAs($admin)->post(route('admin.blog.authors.reassignment.store', $from), ['to_author_id' => $to->id])
+        ->assertRedirect()
+        ->assertSessionHas('success', "{$from->display_name} has no posts to reassign.");
+
+    expect(AuditLog::query()->where('action', 'blog.author.posts_reassigned')->count())->toBe(0);
+});
+
+test('editors cannot reassign posts', function () {
+    $from = BlogAuthor::factory()->create();
+    $to = BlogAuthor::factory()->create();
+    $post = BlogPost::factory()->published()->create(['blog_author_id' => $from->id]);
+
+    $this->actingAs(acEditor())->post(route('admin.blog.authors.reassignment.store', $from), ['to_author_id' => $to->id])->assertNotFound();
+
+    expect($post->fresh()->blog_author_id)->toBe($from->id);
 });

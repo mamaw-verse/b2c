@@ -18,6 +18,7 @@ final readonly class InvalidateBlogCache
         'blog:index:chips',
         'blog:index:popular',
         ListHomeBlogStrip::CACHE_KEY,
+        BuildBlogFeed::CACHE_KEY,
     ];
 
     public function handle(): void

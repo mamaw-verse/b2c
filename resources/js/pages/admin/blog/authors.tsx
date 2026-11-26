@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Pencil } from 'lucide-react';
+import { ArrowRightLeft, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import {
     AuthorContentFields,
@@ -19,6 +19,9 @@ import {
     destroy as reactivateAuthor,
     store as deactivateAuthor,
 } from '@/routes/admin/blog/authors/deactivation';
+import {
+    store as reassignAuthorPosts,
+} from '@/routes/admin/blog/authors/reassignment';
 import {
     store as storeAuthor,
     update as updateAuthor,
@@ -132,6 +135,9 @@ export default function BlogAuthors({
 }) {
     const [creating, setCreating] = useState(false);
     const [editing, setEditing] = useState<Author | null>(null);
+    const [reassigning, setReassigning] = useState<Author | null>(null);
+    // Who may take over posts: the same rule as publishing (active, and consented or the house author).
+    const creditable = authors.filter((a) => a.is_active && a.consented);
 
     return (
         <AdminLayout>
@@ -197,6 +203,19 @@ export default function BlogAuthors({
                                 label={`Edit ${author.display_name}`}
                                 onClick={() => setEditing(author)}
                             />
+                            {author.posts_count > 0 && (
+                                <IconButton
+                                    variant="plain"
+                                    icon={
+                                        <ArrowRightLeft
+                                            aria-hidden="true"
+                                            className="size-4"
+                                        />
+                                    }
+                                    label={`Reassign ${author.display_name}'s posts`}
+                                    onClick={() => setReassigning(author)}
+                                />
+                            )}
                             {!author.is_house &&
                                 (author.is_active ? (
                                     <ConfirmActionButton
@@ -261,6 +280,49 @@ export default function BlogAuthors({
                             consentText={consent.guest}
                             errors={errors}
                         />
+                    )}
+                </FormModal>
+            )}
+            {reassigning && (
+                <FormModal
+                    key={reassigning.id}
+                    title={`Reassign ${reassigning.display_name}'s posts`}
+                    action={
+                        reassignAuthorPosts({ author: reassigning.id }).url
+                    }
+                    method="post"
+                    submitLabel="Reassign posts"
+                    onClose={() => setReassigning(null)}
+                >
+                    {(errors) => (
+                        <div className="grid gap-4">
+                            <p className="text-body-sm text-muted-foreground">
+                                Moves all {reassigning.posts_count}{' '}
+                                {reassigning.posts_count === 1
+                                    ? 'post'
+                                    : 'posts'}{' '}
+                                to the author you pick. The post dates are
+                                not changed.
+                            </p>
+                            <FormField
+                                label="New author"
+                                required
+                                error={errors.to_author_id}
+                            >
+                                <Select name="to_author_id" defaultValue="">
+                                    <option value="" disabled>
+                                        Choose an author
+                                    </option>
+                                    {creditable
+                                        .filter((a) => a.id !== reassigning.id)
+                                        .map((a) => (
+                                            <option key={a.id} value={a.id}>
+                                                {a.display_name}
+                                            </option>
+                                        ))}
+                                </Select>
+                            </FormField>
+                        </div>
                     )}
                 </FormModal>
             )}
