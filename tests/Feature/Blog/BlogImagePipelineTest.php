@@ -6,6 +6,7 @@ use App\Actions\Blog\DeleteBlogImage;
 use App\Actions\Blog\ListBlogImages;
 use App\Actions\Blog\StoreBlogImage;
 use App\Jobs\ReconcileBlogImageOrphansJob;
+use App\Models\AuditLog;
 use App\Models\BlogAuthor;
 use App\Models\BlogImage;
 use App\Models\BlogPost;
@@ -177,11 +178,11 @@ test('a referenced image cannot be deleted, an unreferenced one can', function (
     $post = BlogPost::factory()->create();
     $post->images()->attach($image->id);
 
-    expect(fn () => app(DeleteBlogImage::class)->handle($image))->toThrow(ValidationException::class);
+    expect(fn () => app(DeleteBlogImage::class)->handle($image, User::factory()->create()))->toThrow(ValidationException::class);
     expect(BlogImage::query()->whereKey($image->id)->exists())->toBeTrue();
 
     $post->images()->detach($image->id);
-    app(DeleteBlogImage::class)->handle($image->refresh());
+    app(DeleteBlogImage::class)->handle($image->refresh(), User::factory()->create());
 
     expect(BlogImage::query()->whereKey($image->id)->exists())->toBeFalse();
     foreach ($paths as $path) {
@@ -233,4 +234,34 @@ test('the library shows editors only their own uploads and admins everything', f
     expect($list->handle($editor)->total())->toBe(1)
         ->and($list->handle($admin)->total())->toBe(3)
         ->and($list->handle($admin, 'cover')->total())->toBe(0);
+});
+
+test('uploading and deleting an image each write an audit row', function () {
+    $user = User::factory()->create();
+    $image = app(StoreBlogImage::class)->handle($user, blogUpload(1300, 700), 'cover', 'A cover', null, '203.0.113.9');
+
+    $uploaded = AuditLog::query()->where('action', 'blog.image.uploaded')->firstOrFail();
+    expect($uploaded->actor_id)->toBe($user->id)
+        ->and($uploaded->subject_id)->toBe($image->id)
+        ->and($uploaded->ip)->toBe('203.0.113.9')
+        ->and($uploaded->metadata['purpose'])->toBe('cover');
+
+    $admin = User::factory()->create();
+    app(DeleteBlogImage::class)->handle($image, $admin, '203.0.113.10');
+
+    $deleted = AuditLog::query()->where('action', 'blog.image.deleted')->firstOrFail();
+    expect($deleted->actor_id)->toBe($admin->id)
+        ->and($deleted->subject_id)->toBe($image->id)
+        ->and($deleted->metadata['uploaded_by_id'])->toBe($user->id);
+});
+
+test('a rejected upload or a blocked delete writes no audit row', function () {
+    expect(fn () => storeBlogImage(blogUpload(1300, 700), 'nonsense'))->toThrow(ValidationException::class);
+
+    $image = storeBlogImage(blogUpload(1300, 700), 'cover', 'A cover');
+    BlogPost::factory()->create(['cover_image_id' => $image->id]);
+    AuditLog::query()->delete();
+
+    expect(fn () => app(DeleteBlogImage::class)->handle($image, User::factory()->create()))->toThrow(ValidationException::class);
+    expect(AuditLog::query()->where('action', 'blog.image.deleted')->count())->toBe(0);
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Blog;
 
+use App\Actions\Admin\RecordAuditLog;
 use App\Models\BlogImage;
 use App\Models\User;
 use GdImage;
@@ -26,7 +27,7 @@ final readonly class StoreBlogImage
     /** @var array<string, int> */
     private const WIDTHS = ['thumb' => 480, 'medium' => 960, 'large' => 1600];
 
-    public function __construct(private ValidateBlogImageFile $validator)
+    public function __construct(private ValidateBlogImageFile $validator, private RecordAuditLog $audit)
     {
         //
     }
@@ -34,7 +35,7 @@ final readonly class StoreBlogImage
     /**
      * @throws ValidationException
      */
-    public function handle(User $uploader, UploadedFile $file, string $purpose, ?string $alt = null, ?string $caption = null): BlogImage
+    public function handle(User $uploader, UploadedFile $file, string $purpose, ?string $alt = null, ?string $caption = null, ?string $ip = null): BlogImage
     {
         if (! in_array($purpose, BlogImage::PURPOSES, true)) {
             throw ValidationException::withMessages(['purpose' => 'Unknown image purpose.']);
@@ -91,7 +92,7 @@ final readonly class StoreBlogImage
                 }
             }
 
-            return BlogImage::query()->create([
+            $image = BlogImage::query()->create([
                 'uploaded_by_id' => $uploader->getKey(),
                 'purpose' => $purpose,
                 'disk' => $disk,
@@ -104,6 +105,14 @@ final readonly class StoreBlogImage
                 'alt' => $alt !== null && mb_trim($alt) !== '' ? mb_trim($alt) : null,
                 'caption' => $caption !== null && mb_trim($caption) !== '' ? mb_trim($caption) : null,
             ]);
+
+            $this->audit->handle($uploader, 'blog.image.uploaded', $image, [
+                'purpose' => $purpose,
+                'bytes' => $image->bytes,
+                'mime' => $image->mime,
+            ], $ip);
+
+            return $image;
         } catch (Throwable $e) {
             $storage->delete($written);
 

@@ -11,6 +11,7 @@ use App\Http\Requests\Admin\DeleteBlogImageRequest;
 use App\Http\Requests\Admin\ListBlogImagesRequest;
 use App\Http\Requests\Admin\StoreBlogImageRequest;
 use App\Models\BlogImage;
+use App\Models\User;
 use App\Support\Blog\BlogImagePayload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -35,6 +36,7 @@ final class BlogImageController
             $request->purpose(),
             $request->alt(),
             $request->caption(),
+            $request->ip(),
         );
 
         return response()->json(['data' => BlogImagePayload::from($image)], 201);
@@ -42,7 +44,10 @@ final class BlogImageController
 
     public function destroy(DeleteBlogImageRequest $request, BlogImage $blogImage, DeleteBlogImage $action): Response
     {
-        $action->handle($blogImage);
+        $user = $request->user();
+        assert($user instanceof User);
+
+        $action->handle($blogImage, $user, $request->ip());
 
         return response()->noContent();
     }

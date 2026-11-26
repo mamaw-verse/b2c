@@ -19,6 +19,14 @@ const surfaces = [
         ],
     },
     {
+        // Only runs when the app under test has BLOG_ENABLED=true (the blog
+        // ships dark and every /blog route is a 404 until then).
+        role: 'blog',
+        email: null,
+        requiresBlog: true,
+        paths: ['/blog'],
+    },
+    {
         role: 'buyer',
         email: 'test@example.com',
         paths: [
@@ -70,6 +78,13 @@ for (const surface of surfaces) {
         page,
     }) => {
         test.setTimeout(120_000);
+        if ('requiresBlog' in surface) {
+            const probe = await page.request.get('/blog', { maxRedirects: 0 });
+            test.skip(
+                probe.status() === 404,
+                'Blog is disabled: run the app with BLOG_ENABLED=true',
+            );
+        }
         await page.emulateMedia({ reducedMotion: 'reduce' });
         if (surface.email) await login(page, surface.email);
 
