@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Socialite\AbstractUser as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 use Throwable;
@@ -62,8 +63,7 @@ final class GoogleAuthController
      */
     public function confirmRedirect(Request $request): SymfonyRedirectResponse
     {
-        return Socialite::driver('google')
-            ->redirectUrl(route('auth.google.confirm.callback'))
+        return $this->confirmDriver()
             ->with([
                 'login_hint' => $request->user()->email,
                 'prompt' => 'login',
@@ -74,9 +74,7 @@ final class GoogleAuthController
     public function confirmCallback(Request $request): RedirectResponse
     {
         try {
-            $googleUser = Socialite::driver('google')
-                ->redirectUrl(route('auth.google.confirm.callback'))
-                ->user();
+            $googleUser = $this->confirmDriver()->user();
             $user = $request->user();
 
             if (! $googleUser instanceof SocialiteUser
@@ -95,6 +93,21 @@ final class GoogleAuthController
         $request->session()->passwordConfirmed();
 
         return redirect()->intended(route('security.edit'));
+    }
+
+    /**
+     * The Google driver pointed at the confirm-password callback. `redirectUrl()` lives on
+     * AbstractProvider (which the Google driver extends), not on the Provider contract.
+     * No native return type on purpose: Socialite::fake() hands back a mock of the contract.
+     *
+     * @return AbstractProvider
+     */
+    private function confirmDriver()
+    {
+        /** @var AbstractProvider $driver */
+        $driver = Socialite::driver('google');
+
+        return $driver->redirectUrl(route('auth.google.confirm.callback'));
     }
 
     private function hasVerifiedEmail(SocialiteUser $googleUser): bool

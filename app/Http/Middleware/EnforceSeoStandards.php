@@ -62,7 +62,10 @@ final class EnforceSeoStandards
                     $needsRedirect = true;
                 }
 
-                $rawPath = parse_url($uri, PHP_URL_PATH) ?? '/';
+                $rawPath = parse_url($uri, PHP_URL_PATH);
+                if (! is_string($rawPath)) {
+                    $rawPath = '/';
+                }
                 if ($rawPath !== '/' && str_ends_with($rawPath, '/')) {
                     $needsRedirect = true;
                 }

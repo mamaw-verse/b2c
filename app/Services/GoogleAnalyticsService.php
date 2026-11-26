@@ -64,20 +64,21 @@ final class GoogleAnalyticsService
 
             $response = $this->client->runReport($request);
 
-            $row = $response->getRows()->offsetGet(0) ?? null;
+            $rows = $response->getRows();
 
-            if ($row === null) {
+            // RepeatedField::offsetGet() throws on an empty field, so check the count first.
+            if (count($rows) === 0) {
                 return $this->emptyMetrics();
             }
 
-            $metricValues = $row->getMetricValues();
+            $metricValues = $rows->offsetGet(0)->getMetricValues();
 
             return [
-                'active_users' => (int) ($metricValues->offsetGet(0)?->getValue() ?? 0),
-                'sessions' => (int) ($metricValues->offsetGet(1)?->getValue() ?? 0),
-                'page_views' => (int) ($metricValues->offsetGet(2)?->getValue() ?? 0),
-                'bounce_rate' => round((float) ($metricValues->offsetGet(3)?->getValue() ?? 0), 1),
-                'avg_session_duration' => round((float) ($metricValues->offsetGet(4)?->getValue() ?? 0), 0),
+                'active_users' => (int) $metricValues->offsetGet(0)->getValue(),
+                'sessions' => (int) $metricValues->offsetGet(1)->getValue(),
+                'page_views' => (int) $metricValues->offsetGet(2)->getValue(),
+                'bounce_rate' => round((float) $metricValues->offsetGet(3)->getValue(), 1),
+                'avg_session_duration' => round((float) $metricValues->offsetGet(4)->getValue(), 0),
             ];
         } catch (Exception $e) {
             report($e);

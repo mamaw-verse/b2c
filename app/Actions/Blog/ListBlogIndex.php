@@ -63,14 +63,14 @@ final readonly class ListBlogIndex
                 ->get();
 
             // The hero shows the cover (large), not the card thumbnail.
-            return $posts->map(function (BlogPost $post): array {
+            return array_values($posts->map(function (BlogPost $post): array {
                 $card = BlogCard::from($post);
                 if ($post->coverImage !== null) {
                     $card['image'] = BlogImageData::for($post->coverImage, 'large');
                 }
 
                 return $card;
-            })->values()->all();
+            })->all());
         });
     }
 

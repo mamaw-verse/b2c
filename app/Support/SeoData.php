@@ -98,6 +98,8 @@ final readonly class SeoData
 
     /**
      * Generate an absolute, canonical URL without tracking parameters.
+     *
+     * @param  array<string, mixed>  $params
      */
     public static function buildCanonical(string $path = '/', array $params = []): string
     {
@@ -176,7 +178,7 @@ final readonly class SeoData
 
     public static function fallback(?string $path = null): self
     {
-        $currentPath = $path ?? (request()?->path() ? '/'.request()->path() : '/');
+        $currentPath = $path ?? (request()->path() ? '/'.request()->path() : '/');
         $canonical = self::buildCanonical($currentPath);
         $robots = self::defaultRobots($currentPath);
         $defaultImage = self::defaultOgImage();

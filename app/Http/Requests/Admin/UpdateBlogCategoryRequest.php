@@ -28,10 +28,13 @@ final class UpdateBlogCategoryRequest extends FormRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{name: string, description?: string|null, sort_order?: int|null, shop_category_id?: string|null}
      */
     public function categoryData(): array
     {
-        return $this->validated();
+        /** @var array{name: string, description?: string|null, sort_order?: int|null, shop_category_id?: string|null} $data */
+        $data = $this->validated();
+
+        return $data;
     }
 }

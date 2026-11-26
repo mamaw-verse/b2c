@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Shop;
 use GdImage;
 use Illuminate\Support\Facades\File;
+use RuntimeException;
 use Throwable;
 
 final readonly class GenerateSocialImage
@@ -77,8 +78,8 @@ final readonly class GenerateSocialImage
         }
 
         $price = '₱'.number_format($product->price / 100, $product->price % 100 === 0 ? 0 : 2);
-        $shopName = $product->shop?->name ?? 'HalalBenta Seller';
-        $city = $product->shop?->city ?? $product->location;
+        $shopName = $product->shop->name ?? 'HalalBenta Seller';
+        $city = $product->shop->city ?? $product->location;
         $subtitle = 'Sold by '.$shopName.($city ? ' in '.$city : '');
 
         $badge = match ($product->halal_status) {
@@ -171,12 +172,12 @@ final readonly class GenerateSocialImage
         }
 
         // Palette
-        $bg = imagecolorallocate($im, 240, 247, 243); // soft green
-        $dark = imagecolorallocate($im, 19, 34, 25);
-        $muted = imagecolorallocate($im, 85, 105, 95);
-        $green = imagecolorallocate($im, 23, 100, 60); // HalalBenta brand green
-        $white = imagecolorallocate($im, 255, 255, 255);
-        $borderCol = imagecolorallocate($im, 209, 224, 215);
+        $bg = $this->allocateColor($im, 240, 247, 243); // soft green
+        $dark = $this->allocateColor($im, 19, 34, 25);
+        $muted = $this->allocateColor($im, 85, 105, 95);
+        $green = $this->allocateColor($im, 23, 100, 60); // HalalBenta brand green
+        $white = $this->allocateColor($im, 255, 255, 255);
+        $borderCol = $this->allocateColor($im, 209, 224, 215);
 
         imagefilledrectangle($im, 0, 0, self::WIDTH, self::HEIGHT, $bg);
 
@@ -329,7 +330,26 @@ final readonly class GenerateSocialImage
         return $lines;
     }
 
-    private function drawFilledRoundedRect($im, int $x1, int $y1, int $x2, int $y2, int $radius, int $color): void
+    /**
+     * imagecolorallocate() returns false when the palette is exhausted; a truecolor canvas never hits that,
+     * so treat it as a hard failure instead of passing `false` on to the drawing functions.
+     *
+     * @param  int<0, 255>  $red
+     * @param  int<0, 255>  $green
+     * @param  int<0, 255>  $blue
+     */
+    private function allocateColor(GdImage $im, int $red, int $green, int $blue): int
+    {
+        $color = imagecolorallocate($im, $red, $green, $blue);
+
+        if ($color === false) {
+            throw new RuntimeException('Unable to allocate a GD colour.');
+        }
+
+        return $color;
+    }
+
+    private function drawFilledRoundedRect(GdImage $im, int $x1, int $y1, int $x2, int $y2, int $radius, int $color): void
     {
         imagefilledrectangle($im, $x1 + $radius, $y1, $x2 - $radius, $y2, $color);
         imagefilledrectangle($im, $x1, $y1 + $radius, $x2, $y2 - $radius, $color);
@@ -339,10 +359,7 @@ final readonly class GenerateSocialImage
         imagefilledellipse($im, $x2 - $radius, $y2 - $radius, $radius * 2, $radius * 2, $color);
     }
 
-    /**
-     * @return GdImage|resource|null
-     */
-    private function loadSourceImage(string $src)
+    private function loadSourceImage(string $src): ?GdImage
     {
         try {
             $localPath = null;
@@ -359,12 +376,14 @@ final readonly class GenerateSocialImage
                     return null;
                 }
 
-                return match ($info[2]) {
+                $image = match ($info[2]) {
                     IMAGETYPE_JPEG => @imagecreatefromjpeg($localPath),
                     IMAGETYPE_PNG => @imagecreatefrompng($localPath),
                     IMAGETYPE_WEBP => @imagecreatefromwebp($localPath),
                     default => null,
                 };
+
+                return $image === false ? null : $image;
             }
 
             // Remote image or storage url

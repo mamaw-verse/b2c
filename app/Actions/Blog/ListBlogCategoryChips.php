@@ -18,13 +18,12 @@ final readonly class ListBlogCategoryChips
      */
     public function handle(): array
     {
-        return Cache::remember('blog:index:chips', 300, fn (): array => BlogCategory::query()
+        return Cache::remember('blog:index:chips', 300, fn (): array => array_values(BlogCategory::query()
             ->whereHas('posts', fn ($query) => $query->live())
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get(['id', 'name', 'slug'])
             ->map(fn (BlogCategory $category): array => ['name' => $category->name, 'slug' => $category->slug])
-            ->values()
-            ->all());
+            ->all()));
     }
 }

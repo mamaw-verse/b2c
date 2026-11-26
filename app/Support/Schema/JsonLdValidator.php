@@ -64,7 +64,7 @@ final class JsonLdValidator
     {
         preg_match_all('#<script\b[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#is', $html, $matches);
 
-        return array_values(array_map('trim', $matches[1]));
+        return array_map('trim', $matches[1]);
     }
 
     /**

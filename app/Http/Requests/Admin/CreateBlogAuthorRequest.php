@@ -36,11 +36,14 @@ final class CreateBlogAuthorRequest extends FormRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{display_name: string, slug?: string|null, job_title?: string|null, bio?: string|null, avatar_image_id?: string|null, links?: array<int, array{label: string, url: string}>|null, user_id?: string|null}
      */
     public function authorData(): array
     {
-        return collect($this->validated())->except('consent')->all();
+        /** @var array{display_name: string, slug?: string|null, job_title?: string|null, bio?: string|null, avatar_image_id?: string|null, links?: array<int, array{label: string, url: string}>|null, user_id?: string|null} $data */
+        $data = collect($this->validated())->except('consent')->all();
+
+        return $data;
     }
 
     public function consent(): bool

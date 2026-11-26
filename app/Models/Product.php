@@ -227,7 +227,7 @@ final class Product extends Model
             'halal_status' => $this->halal_status->value,
             'certifier' => $this->halalCertification?->certifying_body,
             'image_url' => $this->images->firstWhere('url', '!=', '')?->url,
-            'icon' => $this->images->firstWhere('url', '!=', '')?->icon ?? $this->images->first()?->icon ?? 'package',
+            'icon' => $this->images->firstWhere('url', '!=', '')->icon ?? $this->images->first()->icon ?? 'package',
             'created_at' => $this->created_at?->toISOString(),
         ];
     }
@@ -302,7 +302,7 @@ final class Product extends Model
                 dispatch(new \App\Jobs\PreWarmSocialImageJob(
                     'product',
                     $product->slug,
-                    (string) ($product->updated_at?->timestamp ?? time())
+                    (string) ($product->updated_at->timestamp ?? time())
                 ));
             }
         });

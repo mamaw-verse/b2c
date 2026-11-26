@@ -48,7 +48,7 @@ final readonly class BuildShopSeoData
             : SeoData::INDEXABLE_ROBOTS;
 
         // Social image
-        $timestamp = $shop->updated_at?->timestamp ?? time();
+        $timestamp = $shop->updated_at->timestamp ?? time();
         $socialImage = "{$origin}/social/shop/{$shop->slug}.jpg?v={$timestamp}";
 
         $breadcrumb = resolve(BuildBreadcrumbNode::class)->handle($canonical, [
