@@ -22,14 +22,6 @@ final class UpdateBlogAuthorRequest extends FormRequest
         return $this->user()?->isAdmin() ? Response::allow() : Response::denyAsNotFound();
     }
 
-    private function author(): BlogAuthor
-    {
-        $author = $this->route('author');
-        assert($author instanceof BlogAuthor);
-
-        return $author;
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -89,5 +81,13 @@ final class UpdateBlogAuthorRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    private function author(): BlogAuthor
+    {
+        $author = $this->route('author');
+        assert($author instanceof BlogAuthor);
+
+        return $author;
     }
 }

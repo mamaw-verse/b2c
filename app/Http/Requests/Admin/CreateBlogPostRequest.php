@@ -20,11 +20,6 @@ final class CreateBlogPostRequest extends FormRequest
         return $this->user()?->canManageBlog() ? Response::allow() : Response::denyAsNotFound();
     }
 
-    protected function prepareForValidation(): void
-    {
-        $this->defaultAuthorToOwnProfile();
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -49,5 +44,10 @@ final class CreateBlogPostRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->defaultAuthorToOwnProfile();
     }
 }

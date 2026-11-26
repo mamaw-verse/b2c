@@ -15,6 +15,14 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 final class ShowEditorInvitationRequest extends FormRequest
 {
+    /** Whether the signed-in user is the invitee and is eligible to become an editor. */
+    public static function mayAccept(User $user, BlogEditorInvitation $invitation): bool
+    {
+        return mb_strtolower($user->email) === mb_strtolower($invitation->email)
+            && ! $user->canManageBlog()
+            && ! $user->isSuspended();
+    }
+
     public function authorize(): Response
     {
         return Response::allow();
@@ -46,13 +54,5 @@ final class ShowEditorInvitationRequest extends FormRequest
         $user = $this->user();
 
         return ! $user instanceof User || self::mayAccept($user, $invitation);
-    }
-
-    /** Whether the signed-in user is the invitee and is eligible to become an editor. */
-    public static function mayAccept(User $user, BlogEditorInvitation $invitation): bool
-    {
-        return mb_strtolower($user->email) === mb_strtolower($invitation->email)
-            && ! $user->canManageBlog()
-            && ! $user->isSuspended();
     }
 }

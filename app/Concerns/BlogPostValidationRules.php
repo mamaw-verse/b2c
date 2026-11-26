@@ -13,6 +13,14 @@ use Illuminate\Validation\Rule;
 trait BlogPostValidationRules
 {
     /**
+     * @return array<string, mixed>
+     */
+    public function postData(): array
+    {
+        return $this->validated();
+    }
+
+    /**
      * Drafts may be incomplete (excerpt and body can be empty); the publish gate is stricter.
      *
      * @return array<string, mixed>
@@ -58,13 +66,5 @@ trait BlogPostValidationRules
         if ($own !== null) {
             $this->merge(['blog_author_id' => $own]);
         }
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function postData(): array
-    {
-        return $this->validated();
     }
 }

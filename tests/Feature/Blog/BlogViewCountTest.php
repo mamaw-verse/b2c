@@ -28,7 +28,7 @@ function viewRequest(string $sessionId = 'visitorone', string $method = 'GET', a
 
     $session = app('session')->driver();
     // Laravel only accepts 40 alphanumeric characters; anything else is silently replaced by a random id.
-    $session->setId(str_pad($sessionId, 40, 'x'));
+    $session->setId(mb_str_pad($sessionId, 40, 'x'));
     $request->setLaravelSession($session);
 
     return $request;

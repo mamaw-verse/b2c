@@ -26,19 +26,6 @@ final class UpdateBlogPostRequest extends FormRequest
             : Response::denyAsNotFound();
     }
 
-    protected function prepareForValidation(): void
-    {
-        $this->defaultAuthorToOwnProfile();
-    }
-
-    private function blogPost(): BlogPost
-    {
-        $post = $this->route('post');
-        assert($post instanceof BlogPost);
-
-        return $post;
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -77,5 +64,18 @@ final class UpdateBlogPostRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->defaultAuthorToOwnProfile();
+    }
+
+    private function blogPost(): BlogPost
+    {
+        $post = $this->route('post');
+        assert($post instanceof BlogPost);
+
+        return $post;
     }
 }

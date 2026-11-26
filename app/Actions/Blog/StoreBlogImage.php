@@ -101,8 +101,8 @@ final readonly class StoreBlogImage
                 'height' => imagesy($original),
                 'bytes' => (int) $file->getSize(),
                 'mime' => (string) $file->getMimeType(),
-                'alt' => $alt !== null && trim($alt) !== '' ? trim($alt) : null,
-                'caption' => $caption !== null && trim($caption) !== '' ? trim($caption) : null,
+                'alt' => $alt !== null && mb_trim($alt) !== '' ? mb_trim($alt) : null,
+                'caption' => $caption !== null && mb_trim($caption) !== '' ? mb_trim($caption) : null,
             ]);
         } catch (Throwable $e) {
             $storage->delete($written);

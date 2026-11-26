@@ -54,7 +54,7 @@ final class BlogSegments
 
         foreach ($parts as $index => $part) {
             if ($index % 2 === 0) {
-                if (trim($part) !== '') {
+                if (mb_trim($part) !== '') {
                     $segments[] = ['type' => 'html', 'html' => $part];
                 }
 

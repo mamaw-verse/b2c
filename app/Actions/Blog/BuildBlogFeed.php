@@ -22,14 +22,14 @@ final readonly class BuildBlogFeed
 
     private const int LIMIT = 20;
 
-    public function handle(): string
-    {
-        return Cache::remember(self::CACHE_KEY, self::TTL_SECONDS, fn (): string => $this->render());
-    }
-
     public static function url(): string
     {
         return BlogSeo::url('feed.xml');
+    }
+
+    public function handle(): string
+    {
+        return Cache::remember(self::CACHE_KEY, self::TTL_SECONDS, fn (): string => $this->render());
     }
 
     private function render(): string

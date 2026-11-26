@@ -68,7 +68,7 @@ final readonly class RenderBlogBody
         $toc = $this->rewriteHeadings($document);
         $words = $this->countWords($document);
 
-        $html = trim((new HtmlRenderer($environment))->renderDocument($document)->getContent());
+        $html = mb_trim((new HtmlRenderer($environment))->renderDocument($document)->getContent());
 
         return new RenderedBlogBody(
             html: $html,
@@ -96,7 +96,7 @@ final readonly class RenderBlogBody
             }
         }
 
-        $words = preg_split('/\s+/u', trim(implode(' ', $parts)), -1, PREG_SPLIT_NO_EMPTY);
+        $words = preg_split('/\s+/u', mb_trim(implode(' ', $parts)), -1, PREG_SPLIT_NO_EMPTY);
 
         return $words === false ? 0 : count($words);
     }
@@ -110,7 +110,7 @@ final readonly class RenderBlogBody
         $nofollow = (bool) config('blog.nofollow_external', true);
 
         foreach ($this->collect($document, Link::class) as $link) {
-            $url = trim($link->getUrl());
+            $url = mb_trim($link->getUrl());
 
             if (preg_match('/^([a-z][a-z0-9+.\-]*):/i', $url, $match) === 1
                 && ! in_array(mb_strtolower($match[1]), self::ALLOWED_LINK_SCHEMES, true)) {
@@ -199,7 +199,7 @@ final readonly class RenderBlogBody
 
     private function imageId(string $url): ?string
     {
-        $url = trim($url);
+        $url = mb_trim($url);
 
         return str_starts_with(mb_strtolower($url), self::IMAGE_SCHEME)
             ? mb_strtolower(mb_substr($url, mb_strlen(self::IMAGE_SCHEME)))
@@ -224,7 +224,7 @@ final readonly class RenderBlogBody
         $height = $main['height'] ?? $image->height;
 
         $alt = $markdownAlt !== '' ? $markdownAlt : (string) $image->alt;
-        $caption = ($title !== null && trim($title) !== '') ? trim($title) : trim((string) $image->caption);
+        $caption = ($title !== null && mb_trim($title) !== '') ? mb_trim($title) : mb_trim((string) $image->caption);
 
         $html = '<figure><img src="'.e($src).'"';
         if ($sources !== []) {
@@ -257,7 +257,7 @@ final readonly class RenderBlogBody
                 }
             }
 
-            if ($onlyText && preg_match(self::PRODUCT_LINE, trim($literal), $match) === 1) {
+            if ($onlyText && preg_match(self::PRODUCT_LINE, mb_trim($literal), $match) === 1) {
                 $slugs[$match[1]] = true;
                 $paragraph->replaceWith(new BlogTrustedHtml('<div data-blog-product="'.e($match[1]).'"></div>'."\n"));
 
@@ -368,7 +368,7 @@ final readonly class RenderBlogBody
             }
         }
 
-        return trim((string) preg_replace('/\s+/u', ' ', implode('', $parts)));
+        return mb_trim((string) preg_replace('/\s+/u', ' ', implode('', $parts)));
     }
 
     /**

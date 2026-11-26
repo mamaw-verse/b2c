@@ -30,7 +30,7 @@ final readonly class ValidateBlogImageFile
             return 'The upload could not be read.';
         }
 
-        if (in_array($purpose, ['cover', 'body'], true) && trim((string) $alt) === '') {
+        if (in_array($purpose, ['cover', 'body'], true) && mb_trim((string) $alt) === '') {
             return 'Alt text is required for cover and body images.';
         }
 

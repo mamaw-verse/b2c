@@ -31,11 +31,20 @@ test.describe('public pages', () => {
         // Each benefit card carries a CTA (qa3 task 5.3). The header/footer
         // "Start selling" labels are lowercase, so exact matching isolates
         // the card buttons.
+        const benefitsSection = page.getByRole('region', {
+            name: 'Why Choose Our Marketplace?',
+        });
         await expect(
-            page.getByRole('link', { name: 'Start Shopping', exact: true }),
+            benefitsSection.getByRole('link', {
+                name: 'Start Shopping',
+                exact: true,
+            }),
         ).toBeVisible();
         await expect(
-            page.getByRole('link', { name: 'Start Selling', exact: true }),
+            benefitsSection.getByRole('link', {
+                name: 'Start Selling',
+                exact: true,
+            }),
         ).toHaveAttribute('href', '/seller/register');
         await shot(page, '01b-home-benefits');
     });
