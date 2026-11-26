@@ -292,7 +292,7 @@
                 },
                 {
                     "action": "fill-form",
-                    "note": "PSGC selects region\u2192province\u2192city\u2192barangay, postal auto-filled+locked from city, uploads via input[type=file]",
+                    "note": "PSGC selects region→province→city→barangay, postal auto-filled+locked from city, uploads via input[type=file]",
                     "expect": "checklist items turn done"
                 },
                 {
@@ -999,6 +999,53 @@
                 {
                     "action": "open vouchers",
                     "expect": "cards keep their anatomy without overflow"
+                }
+            ]
+        },
+        {
+            "id": "blog",
+            "spec": "specs/blog.spec.ts",
+            "description": "Blog invitation-to-reading path (docs/planning/15-blog.md B5.1). Requires BLOG_ENABLED=true; skips itself when /blog is 404. Serial flow: admin invites an editor, editor accepts, writes a post on behalf of a seeded guest author (cover, thumbnail, body image, product embed), the draft 404s publicly, editor publishes and gets 404 on /admin/dashboard, admin features the post, then the public index, search, author page, post page (with product link) and category page show it.",
+            "steps": [
+                {
+                    "action": "admin invites editor at /admin/blog/editors",
+                    "screenshot": "blog-01-editor-invited",
+                    "expect": "invited email listed"
+                },
+                {
+                    "action": "invitee logs in, opens /editor-invitations/{id}, ticks consent and accepts",
+                    "screenshots": [
+                        "blog-02-invitation",
+                        "blog-03-editor-posts"
+                    ],
+                    "expect": "lands on /admin/blog/posts"
+                },
+                {
+                    "action": "editor fills /admin/blog/posts/create, uploads cover, thumbnail and body image, saves draft",
+                    "screenshots": ["blog-04-post-form"],
+                    "expect": "edit page for the new draft"
+                },
+                {
+                    "action": "anonymous visitor opens the draft URL",
+                    "expect": "404"
+                },
+                {
+                    "action": "editor publishes, then opens /admin/dashboard",
+                    "screenshot": "blog-05-published",
+                    "expect": "post published; dashboard returns 404"
+                },
+                {
+                    "action": "admin ticks Featured on the blog hero",
+                    "expect": "switch stays checked"
+                },
+                {
+                    "action": "anonymous visitor browses /blog, ?q= search, author page, post page and category page",
+                    "screenshots": [
+                        "blog-06-index",
+                        "blog-07-author",
+                        "blog-08-post"
+                    ],
+                    "expect": "post visible everywhere, product embed links to the product"
                 }
             ]
         }
