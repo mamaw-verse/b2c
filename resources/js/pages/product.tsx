@@ -483,7 +483,7 @@ export default function Product({
                                 <button
                                     type="button"
                                     onClick={handleChatClick}
-                                    className="inline-flex items-center gap-1.5 font-medium text-primary-text transition-colors hover:text-primary-hover hover:underline focus-visible:rounded-xs focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                                    className="inline-flex items-center gap-1.5 font-medium text-primary-text transition-colors hover:text-primary-hover hover:underline focus-visible:rounded-xs"
                                 >
                                     <MessageCircle
                                         aria-hidden="true"
@@ -495,7 +495,7 @@ export default function Product({
                                 <button
                                     type="button"
                                     onClick={() => setAdminFlagOpen(true)}
-                                    className="inline-flex items-center gap-1.5 font-medium text-mod-flagged transition-colors hover:underline focus-visible:rounded-xs focus-visible:ring-2 focus-visible:ring-mod-flagged focus-visible:outline-none"
+                                    className="inline-flex items-center gap-1.5 font-medium text-mod-flagged transition-colors hover:underline focus-visible:rounded-xs"
                                 >
                                     <Flag
                                         aria-hidden="true"

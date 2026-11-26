@@ -88,7 +88,7 @@ export function SiteHeader({
             onClick={handleLogoClick}
             aria-label="HalalBenta home"
             data-edge="start"
-            className="flex min-h-touch items-center gap-2 rounded-button focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="flex min-h-touch items-center gap-2 rounded-button"
         >
             <img
                 src="/brand/halalbenta-wordmark.svg"
@@ -109,7 +109,7 @@ export function SiteHeader({
             onClick={handleLogoClick}
             aria-label="HalalBenta home"
             data-edge="start"
-            className="flex size-11 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-button focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="flex size-11 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-button"
         >
             <img
                 src="/brand/halalbenta-mark.svg"

@@ -10,6 +10,7 @@ const ROOT = 'resources/js';
 const IGNORED = new Set([
     'resources/js/pages/welcome.tsx', // starter marketing page, replaced in M2
     'resources/js/components/ui/sidebar.tsx', // shadcn file, restyled in M1
+    'resources/js/components/google-auth-button.tsx', // Google's mandated brand colours
 ]);
 
 /** @type {[string, RegExp, ((match: string, line: string) => boolean) | undefined][]} */

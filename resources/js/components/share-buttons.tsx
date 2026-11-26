@@ -203,7 +203,7 @@ export function ShareButtons({
     );
 
     const ghostBtnCls =
-        'inline-flex size-9 min-h-touch-target min-w-touch-target sm:min-h-9 sm:min-w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-surface-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary';
+        'inline-flex size-9 min-h-touch-target min-w-touch-target sm:min-h-9 sm:min-w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-surface-muted hover:text-foreground transition-colors';
 
     return (
         <div

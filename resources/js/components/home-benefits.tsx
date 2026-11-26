@@ -81,8 +81,7 @@ const audienceImages: Record<
     },
 };
 
-const maskClasses =
-    '[mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_70%)] [-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_70%)] md:[mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_75%)] md:[-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_75%)] lg:[mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_85%)] lg:[-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.35)_45%,transparent_85%)]';
+const maskClasses = 'hero-mask';
 
 export function HomeBenefits({
     variant = 'compact',
