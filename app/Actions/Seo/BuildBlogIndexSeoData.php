@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Actions\Seo\Schema\BuildBlogNode;
 use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildItemListNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Support\Blog\BlogSeo;
 use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 
 /**
@@ -18,8 +21,9 @@ final readonly class BuildBlogIndexSeoData
 {
     /**
      * @param  array{current_page: int, last_page: int, total: int}  $meta
+     * @param  list<array{slug: string, title: string, image: array{src: string}|null}>  $cards  Posts on this page (stubs in the `ItemList`).
      */
-    public function handle(array $meta, ?string $term = null): SeoData
+    public function handle(array $meta, ?string $term = null, array $cards = []): SeoData
     {
         $paging = BlogSeo::paging('', $meta);
         $blogTitle = config()->string('blog.title', 'HalalBenta Blog');
@@ -38,6 +42,9 @@ final readonly class BuildBlogIndexSeoData
             ['name' => $blogTitle, 'url' => BlogSeo::url()],
         ]);
 
+        // Search results list different posts per query, so only the unfiltered listing declares them.
+        $listed = $term === null ? $cards : [];
+
         $graph = SchemaGraph::make()
             ->add(resolve(BuildWebPageNode::class)->handle(
                 type: 'CollectionPage',
@@ -45,8 +52,24 @@ final readonly class BuildBlogIndexSeoData
                 name: $blogTitle,
                 description: $description,
                 breadcrumbId: $breadcrumb['@id'],
+                extra: ['mainEntity' => SchemaGraph::ref(SchemaId::blog())],
             ))
-            ->add($breadcrumb);
+            ->add($breadcrumb)
+            ->add(resolve(BuildBlogNode::class)->handle(
+                $blogTitle,
+                $description,
+                array_column($listed, 'slug'),
+            ));
+
+        if ($listed !== []) {
+            $graph->add(resolve(BuildItemListNode::class)->handle($canonical, array_map(static fn (array $card): array => [
+                'url' => BlogSeo::url($card['slug']),
+                'name' => $card['title'],
+                'image' => $card['image'] === null ? null : SeoData::absoluteUrl($card['image']['src']),
+                'type' => 'BlogPosting',
+                'id' => SchemaId::blogPost($card['slug']),
+            ], $listed)));
+        }
 
         return BlogSeo::make(
             title: $title,

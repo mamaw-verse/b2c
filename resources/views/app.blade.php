@@ -47,6 +47,9 @@
                     <meta property="article:{{ $articleKey }}" content="{{ $seo->og['article'][$articleKey] }}">
                 @endif
             @endforeach
+            @foreach ((array) ($seo->og['article']['tags'] ?? []) as $articleTag)
+                <meta property="article:tag" content="{{ $articleTag }}">
+            @endforeach
         @endif
 
         {{-- Twitter --}}

@@ -21,7 +21,7 @@ final class BlogController
         $term = $request->term();
         $data = $index->handle($request->pageNumber(), $term);
 
-        $seoData = $buildSeoData->handle($data['posts']['meta'], $term);
+        $seoData = $buildSeoData->handle($data['posts']['meta'], $term, $data['posts']['data']);
         $seo->set($seoData);
 
         $intro = mb_trim(config()->string('blog.intro', ''));

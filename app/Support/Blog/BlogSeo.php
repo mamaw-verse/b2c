@@ -51,8 +51,9 @@ final class BlogSeo
 
     /**
      * @param  array{url: string, width: int, height: int, alt: string, type: string}|null  $image
-     * @param  array{published_time?: string, modified_time?: string, section?: string, author?: string}|null  $article
+     * @param  array{published_time?: string, modified_time?: string, section?: string, author?: string, tags?: list<string>}|null  $article
      * @param  array<string, mixed>  $jsonLd
+     * @param  list<array{label: string, data: string}>  $twitterLabels
      */
     public static function make(
         string $title,
@@ -65,6 +66,7 @@ final class BlogSeo
         ?string $prev = null,
         ?string $next = null,
         ?string $author = null,
+        array $twitterLabels = [],
     ): SeoData {
         $image ??= [
             'url' => SeoData::defaultOgImage(),
@@ -103,6 +105,7 @@ final class BlogSeo
                 'description' => $description,
                 'image' => $image['url'],
                 'image_alt' => $image['alt'],
+                ...($twitterLabels === [] ? [] : ['labels' => $twitterLabels]),
             ],
             jsonLd: $jsonLd,
             prev: $prev,

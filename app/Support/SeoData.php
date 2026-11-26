@@ -19,7 +19,7 @@ final readonly class SeoData
      * @param  array{
      *     type: string,
      *     updated_time?: string,
-     *     article?: array{published_time?: string, modified_time?: string, section?: string, author?: string},
+     *     article?: array{published_time?: string, modified_time?: string, section?: string, author?: string, tags?: list<string>},
      *     title: string,
      *     description: string,
      *     url: string,

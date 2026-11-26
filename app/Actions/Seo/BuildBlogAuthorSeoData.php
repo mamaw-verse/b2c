@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildPersonNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Models\BlogAuthor;
 use App\Support\Blog\BlogSeo;
 use App\Support\Schema\SchemaGraph;
+use App\Support\Schema\SchemaId;
 use App\Support\SeoData;
 
 final readonly class BuildBlogAuthorSeoData
@@ -42,8 +44,10 @@ final readonly class BuildBlogAuthorSeoData
                 name: $author->display_name,
                 description: $description,
                 breadcrumbId: $breadcrumb['@id'],
+                extra: ['mainEntity' => SchemaGraph::ref(SchemaId::person($author->slug))],
             ))
-            ->add($breadcrumb);
+            ->add($breadcrumb)
+            ->add(resolve(BuildPersonNode::class)->handle($author->loadMissing('avatar')));
 
         return BlogSeo::make(
             title: BlogSeo::title($author->display_name).$paging['suffix'],

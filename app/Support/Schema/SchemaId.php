@@ -33,6 +33,21 @@ final class SchemaId
         return SeoData::canonicalOrigin()."/products/{$slug}#product";
     }
 
+    public static function blog(): string
+    {
+        return SeoData::canonicalOrigin().'/blog#blog';
+    }
+
+    public static function blogPost(string $slug): string
+    {
+        return SeoData::canonicalOrigin()."/blog/{$slug}#article";
+    }
+
+    public static function person(string $authorSlug): string
+    {
+        return SeoData::canonicalOrigin()."/blog/author/{$authorSlug}#person";
+    }
+
     public static function webPage(string $url): string
     {
         return self::withFragment($url, 'webpage');
