@@ -351,9 +351,9 @@ test.describe.serial('seller products: photos and placeholder (qa4 A)', () => {
             `return \\App\\Models\\Product::where('name', '${name}')->value('slug');`,
         );
         await page.goto(`/products/${slug}`);
-        await expect(page.locator('[aria-roledescription="slide"]')).toHaveCount(
-            1,
-        );
+        await expect(
+            page.locator('[aria-roledescription="slide"]'),
+        ).toHaveCount(1);
         await expect(
             page.locator('[aria-roledescription="slide"] img'),
         ).toHaveCount(0);
@@ -361,7 +361,9 @@ test.describe.serial('seller products: photos and placeholder (qa4 A)', () => {
 
         // Edit: the uploader must not receive the placeholder row.
         await page.goto('/seller/products');
-        await productRow(page, name).getByRole('link', { name: 'Edit' }).click();
+        await productRow(page, name)
+            .getByRole('link', { name: 'Edit' })
+            .click();
         await expect(page).toHaveURL(/\/edit$/);
         await expect(page.locator('[data-ds-uploader] img')).toHaveCount(0);
 
@@ -379,9 +381,9 @@ test.describe.serial('seller products: photos and placeholder (qa4 A)', () => {
             productRow(page, name).locator('img').first(),
         ).toBeVisible();
         await page.goto(`/products/${slug}`);
-        await expect(page.locator('[aria-roledescription="slide"]')).toHaveCount(
-            1,
-        );
+        await expect(
+            page.locator('[aria-roledescription="slide"]'),
+        ).toHaveCount(1);
         await expect(
             page.locator('[aria-roledescription="slide"] img').first(),
         ).toBeVisible();
@@ -389,7 +391,9 @@ test.describe.serial('seller products: photos and placeholder (qa4 A)', () => {
 
         // Edit again: exactly one image, no second (placeholder) tile.
         await page.goto('/seller/products');
-        await productRow(page, name).getByRole('link', { name: 'Edit' }).click();
+        await productRow(page, name)
+            .getByRole('link', { name: 'Edit' })
+            .click();
         await expect(page.locator('[data-ds-uploader] img')).toHaveCount(1);
         await expect(
             page.getByRole('button', { name: 'Remove image 2' }),
@@ -438,7 +442,9 @@ test.describe.serial('seller products: variants and shipping (qa4 B)', () => {
         await cell(page, 'sale_price', 2).fill('60');
         await expect(
             page
-                .getByText('The sale price must be lower than the regular price.')
+                .getByText(
+                    'The sale price must be lower than the regular price.',
+                )
                 .filter({ visible: true })
                 .first(),
         ).toBeVisible();
@@ -518,7 +524,9 @@ test.describe.serial('seller products: variants and shipping (qa4 B)', () => {
         await expect(page).toHaveURL(/seller\/products$/, { timeout: 15_000 });
 
         // One override and the default come back on edit.
-        await productRow(page, name).getByRole('link', { name: 'Edit' }).click();
+        await productRow(page, name)
+            .getByRole('link', { name: 'Edit' })
+            .click();
         await expect(page).toHaveURL(/\/edit$/);
         await expect(page.locator('input[name="weight"]')).toHaveValue('0.5');
 

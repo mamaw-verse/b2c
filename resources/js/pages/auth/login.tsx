@@ -1,18 +1,18 @@
-import { Form, Head, usePage } from "@inertiajs/react";
-import PasskeyVerify from "@/components/passkey-verify";
-import PasswordInput from "@/components/password-input";
-import TextLink from "@/components/text-link";
-import GoogleAuthButton from "@/components/google-auth-button";
-import TurnstileField from "@/components/turnstile-field";
-import { Banner } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { resetTurnstile } from "@/lib/turnstile";
-import { register } from "@/routes";
-import { store } from "@/routes/login";
-import { request } from "@/routes/password";
+import { Form, Head, usePage } from '@inertiajs/react';
+import PasskeyVerify from '@/components/passkey-verify';
+import PasswordInput from '@/components/password-input';
+import TextLink from '@/components/text-link';
+import GoogleAuthButton from '@/components/google-auth-button';
+import TurnstileField from '@/components/turnstile-field';
+import { Banner } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { resetTurnstile } from '@/lib/turnstile';
+import { register } from '@/routes';
+import { store } from '@/routes/login';
+import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
@@ -32,7 +32,7 @@ export default function Login({ status, canResetPassword, email }: Props) {
 
                 <Form
                     {...store.form()}
-                    resetOnSuccess={["password"]}
+                    resetOnSuccess={['password']}
                     onFinish={resetTurnstile}
                 >
                     {({ processing, errors }) => (
@@ -49,7 +49,7 @@ export default function Login({ status, canResetPassword, email }: Props) {
                                     autoFocus={!email}
                                     tabIndex={1}
                                     autoComplete="email"
-                                    defaultValue={email ?? ""}
+                                    defaultValue={email ?? ''}
                                     placeholder="email@example.com"
                                 />
                             </FormField>
@@ -93,7 +93,7 @@ export default function Login({ status, canResetPassword, email }: Props) {
                             </label>
 
                             <TurnstileField
-                                error={errors["cf-turnstile-response"]}
+                                error={errors['cf-turnstile-response']}
                             />
 
                             <Button
@@ -128,7 +128,7 @@ export default function Login({ status, canResetPassword, email }: Props) {
                 )}
 
                 <p className="text-center text-body-sm text-muted-foreground">
-                    Don't have an account?{" "}
+                    Don't have an account?{' '}
                     <TextLink href={register()} tabIndex={5}>
                         Sign up
                     </TextLink>
@@ -145,6 +145,6 @@ export default function Login({ status, canResetPassword, email }: Props) {
 }
 
 Login.layout = {
-    title: "Log in to your account",
-    description: "Enter your email and password below to log in",
+    title: 'Log in to your account',
+    description: 'Enter your email and password below to log in',
 };

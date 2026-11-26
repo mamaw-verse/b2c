@@ -1,13 +1,13 @@
-import { Form, Head } from "@inertiajs/react";
-import TextLink from "@/components/text-link";
-import TurnstileField from "@/components/turnstile-field";
-import { Banner } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { resetTurnstile } from "@/lib/turnstile";
-import { login } from "@/routes";
-import { email } from "@/routes/password";
+import { Form, Head } from '@inertiajs/react';
+import TextLink from '@/components/text-link';
+import TurnstileField from '@/components/turnstile-field';
+import { Banner } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { resetTurnstile } from '@/lib/turnstile';
+import { login } from '@/routes';
+import { email } from '@/routes/password';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
@@ -39,7 +39,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                             </FormField>
 
                             <TurnstileField
-                                error={errors["cf-turnstile-response"]}
+                                error={errors['cf-turnstile-response']}
                             />
 
                             <Button
@@ -64,6 +64,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
 }
 
 ForgotPassword.layout = {
-    title: "Forgot password",
-    description: "Enter your email to receive a password reset link",
+    title: 'Forgot password',
+    description: 'Enter your email to receive a password reset link',
 };

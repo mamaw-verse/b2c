@@ -63,7 +63,11 @@ export function ChatThread({
                 )}
                 <div className="relative shrink-0">
                     <NameAvatar
-                        name={workspace === 'seller' ? (customer?.name ?? 'Customer') : shop.name}
+                        name={
+                            workspace === 'seller'
+                                ? (customer?.name ?? 'Customer')
+                                : shop.name
+                        }
                         size="sm"
                         label={false}
                     />
@@ -76,7 +80,9 @@ export function ChatThread({
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-label">
-                        {workspace === 'seller' ? (customer?.name ?? 'Customer') : shop.name}
+                        {workspace === 'seller'
+                            ? (customer?.name ?? 'Customer')
+                            : shop.name}
                     </p>
                     {workspace !== 'seller' && (
                         <p className="text-caption text-success-text">
@@ -85,7 +91,10 @@ export function ChatThread({
                     )}
                 </div>
                 {workspace !== 'seller' && (
-                    <ButtonLink href={shopShow.url(shop.slug)} label="Visit shop">
+                    <ButtonLink
+                        href={shopShow.url(shop.slug)}
+                        label="Visit shop"
+                    >
                         <Store aria-hidden="true" className="size-5" />
                     </ButtonLink>
                 )}

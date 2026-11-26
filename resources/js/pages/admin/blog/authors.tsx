@@ -19,9 +19,7 @@ import {
     destroy as reactivateAuthor,
     store as deactivateAuthor,
 } from '@/routes/admin/blog/authors/deactivation';
-import {
-    store as reassignAuthorPosts,
-} from '@/routes/admin/blog/authors/reassignment';
+import { store as reassignAuthorPosts } from '@/routes/admin/blog/authors/reassignment';
 import {
     store as storeAuthor,
     update as updateAuthor,
@@ -287,9 +285,7 @@ export default function BlogAuthors({
                 <FormModal
                     key={reassigning.id}
                     title={`Reassign ${reassigning.display_name}'s posts`}
-                    action={
-                        reassignAuthorPosts({ author: reassigning.id }).url
-                    }
+                    action={reassignAuthorPosts({ author: reassigning.id }).url}
                     method="post"
                     submitLabel="Reassign posts"
                     onClose={() => setReassigning(null)}
@@ -301,8 +297,8 @@ export default function BlogAuthors({
                                 {reassigning.posts_count === 1
                                     ? 'post'
                                     : 'posts'}{' '}
-                                to the author you pick. The post dates are
-                                not changed.
+                                to the author you pick. The post dates are not
+                                changed.
                             </p>
                             <FormField
                                 label="New author"

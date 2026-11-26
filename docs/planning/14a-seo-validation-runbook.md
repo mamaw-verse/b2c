@@ -7,13 +7,13 @@ Automated pieces live in the repo; the rest needs a person with access to the de
 
 ## 1. What is automated
 
-| Tool | Where | Run it |
-| --- | --- | --- |
-| PHP structured-data validator | `app/Support/Schema/JsonLdValidator.php` | used by the tests and the audit below |
-| Policy test (every public page passes the validator) | `tests/Feature/SeoStructuredDataPolicyTest.php` | `php artisan test --compact --filter=StructuredDataPolicy` |
-| Validator unit tests | `tests/Unit/JsonLdValidatorTest.php` | `php artisan test --compact --filter=JsonLdValidator` |
-| Node validator + CLI | `scripts/validate-jsonld.mjs` | self-test runs in `npm run check`; live crawl: see below |
-| Weekly audit | `php artisan seo:audit` (scheduled Mondays 05:00, production only) | see below |
+| Tool                                                 | Where                                                              | Run it                                                     |
+| ---------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
+| PHP structured-data validator                        | `app/Support/Schema/JsonLdValidator.php`                           | used by the tests and the audit below                      |
+| Policy test (every public page passes the validator) | `tests/Feature/SeoStructuredDataPolicyTest.php`                    | `php artisan test --compact --filter=StructuredDataPolicy` |
+| Validator unit tests                                 | `tests/Unit/JsonLdValidatorTest.php`                               | `php artisan test --compact --filter=JsonLdValidator`      |
+| Node validator + CLI                                 | `scripts/validate-jsonld.mjs`                                      | self-test runs in `npm run check`; live crawl: see below   |
+| Weekly audit                                         | `php artisan seo:audit` (scheduled Mondays 05:00, production only) | see below                                                  |
 
 **What the validator checks:** exactly one JSON-LD block; `@context` + `@graph`; a `@type` on every node; unique `@id`s; every `@id` reference resolves (the sitewide Organization/WebSite ids may be referenced without being defined); no empty strings, nulls or empty arrays; absolute URLs for `url`/`image`/`logo`/`item`/`sameAs`; and the properties Google requires for the types we emit (Product/ProductGroup, Offer, AggregateRating, Review, BreadcrumbList, ItemList, Organization, WebSite, Store, FAQPage, Article, page types). Product images and Article `datePublished` are warnings, not errors.
 

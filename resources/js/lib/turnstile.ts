@@ -1,5 +1,5 @@
 const SCRIPT_SRC =
-    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 type TurnstileApi = {
     render: (
@@ -20,8 +20,8 @@ let scriptPromise: Promise<TurnstileApi> | null = null;
 
 /** Loads the Turnstile script once and resolves with its API. */
 export function loadTurnstile(): Promise<TurnstileApi> {
-    if (typeof window === "undefined") {
-        return Promise.reject(new Error("Turnstile requires a browser"));
+    if (typeof window === 'undefined') {
+        return Promise.reject(new Error('Turnstile requires a browser'));
     }
 
     if (window.turnstile) {
@@ -29,16 +29,16 @@ export function loadTurnstile(): Promise<TurnstileApi> {
     }
 
     scriptPromise ??= new Promise<TurnstileApi>((resolve, reject) => {
-        const script = document.createElement("script");
+        const script = document.createElement('script');
         script.src = SCRIPT_SRC;
         script.async = true;
         script.onload = () =>
             window.turnstile
                 ? resolve(window.turnstile)
-                : reject(new Error("Turnstile failed to initialise"));
+                : reject(new Error('Turnstile failed to initialise'));
         script.onerror = () => {
             scriptPromise = null;
-            reject(new Error("Turnstile failed to load"));
+            reject(new Error('Turnstile failed to load'));
         };
         document.head.appendChild(script);
     });
@@ -68,16 +68,16 @@ export function resetTurnstile(): void {
 export async function issueHumanPass(token: string): Promise<boolean> {
     const csrf = document
         .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-        ?.getAttribute("content");
+        ?.getAttribute('content');
 
-    const response = await fetch("/human-check", {
-        method: "POST",
-        credentials: "same-origin",
+    const response = await fetch('/human-check', {
+        method: 'POST',
+        credentials: 'same-origin',
         headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            ...(csrf ? { "X-CSRF-TOKEN": csrf } : {}),
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
         },
         body: JSON.stringify({ token }),
     });

@@ -1,14 +1,14 @@
-import { Form, Head, usePage } from "@inertiajs/react";
-import GoogleAuthButton from "@/components/google-auth-button";
-import PasskeyVerify from "@/components/passkey-verify";
-import PasswordInput from "@/components/password-input";
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
-import { store } from "@/routes/password/confirm";
+import { Form, Head, usePage } from '@inertiajs/react';
+import GoogleAuthButton from '@/components/google-auth-button';
+import PasskeyVerify from '@/components/passkey-verify';
+import PasswordInput from '@/components/password-input';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { store } from '@/routes/password/confirm';
 import {
     index as confirmOptions,
     store as confirmStore,
-} from "@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController";
+} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
 
 export default function ConfirmPassword({
     hasGoogleIdentity = false,
@@ -49,7 +49,7 @@ export default function ConfirmPassword({
                     </div>
                 )}
 
-                <Form {...store.form()} resetOnSuccess={["password"]}>
+                <Form {...store.form()} resetOnSuccess={['password']}>
                     {({ processing, errors }) => (
                         <div className="grid gap-5">
                             <FormField
@@ -84,7 +84,7 @@ export default function ConfirmPassword({
 }
 
 ConfirmPassword.layout = {
-    title: "Confirm password",
+    title: 'Confirm password',
     description:
-        "This is a secure area of the application. Please confirm your password before continuing.",
+        'This is a secure area of the application. Please confirm your password before continuing.',
 };

@@ -722,9 +722,9 @@ export default function AdminPayouts({
 
 function PayoutRequestItem({ payout }: { payout: PayoutRow }) {
     const [reference, setReference] = useState(payout.reference ?? '');
-    const [confirming, setConfirming] = useState<
-        'paid' | 'rejected' | null
-    >(null);
+    const [confirming, setConfirming] = useState<'paid' | 'rejected' | null>(
+        null,
+    );
     const [processing, setProcessing] = useState(false);
     const [invalidReference, setInvalidReference] = useState(false);
 
@@ -816,9 +816,7 @@ function PayoutRequestItem({ payout }: { payout: PayoutRow }) {
                         ? `Confirm the ${formatPeso(payout.amount)} payout to ${payout.shop} was sent${reference ? ` (ref: ${reference})` : ''}?`
                         : `Reject the ${formatPeso(payout.amount)} payout to ${payout.shop}? The amount will be returned to the shop's available balance.`
                 }
-                confirmLabel={
-                    confirming === 'paid' ? 'Mark paid' : 'Reject'
-                }
+                confirmLabel={confirming === 'paid' ? 'Mark paid' : 'Reject'}
                 cancelLabel="Cancel"
                 tone={confirming === 'rejected' ? 'danger' : 'primary'}
                 loading={processing}

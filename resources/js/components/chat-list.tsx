@@ -124,17 +124,18 @@ export function ChatList({
                                                 size="md"
                                                 label={false}
                                             />
-                                            {workspace !== 'seller' && c.shop.online !== false && (
-                                                <>
-                                                    <span
-                                                        aria-hidden="true"
-                                                        className="absolute right-0 bottom-0 size-3 rounded-full border-2 border-surface bg-success"
-                                                    />
-                                                    <span className="sr-only">
-                                                        , online
-                                                    </span>
-                                                </>
-                                            )}
+                                            {workspace !== 'seller' &&
+                                                c.shop.online !== false && (
+                                                    <>
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="absolute right-0 bottom-0 size-3 rounded-full border-2 border-surface bg-success"
+                                                        />
+                                                        <span className="sr-only">
+                                                            , online
+                                                        </span>
+                                                    </>
+                                                )}
                                         </div>
                                         <span className="grid min-w-0 flex-1 grid-cols-1 gap-0.5">
                                             <span className="flex items-baseline justify-between gap-2">

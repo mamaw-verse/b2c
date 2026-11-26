@@ -3,10 +3,24 @@ import { shot } from '../helpers';
 
 const PRODUCT = '/products/ajwa-dates-500g-premium-grade-resealable-tub';
 const SHOP = '/shops/barakah-pantry';
-const PUBLIC_PAGES = ['/', '/sellers', '/why-choose-us', '/pages/returns', PRODUCT, SHOP];
-const FAQ_PAGES = ['/why-choose-us', '/pages/returns', '/pages/halal-verification'];
+const PUBLIC_PAGES = [
+    '/',
+    '/sellers',
+    '/why-choose-us',
+    '/pages/returns',
+    PRODUCT,
+    SHOP,
+];
+const FAQ_PAGES = [
+    '/why-choose-us',
+    '/pages/returns',
+    '/pages/halal-verification',
+];
 
-type JsonLdNode = Record<string, unknown> & { '@type'?: unknown; '@id'?: string };
+type JsonLdNode = Record<string, unknown> & {
+    '@type'?: unknown;
+    '@id'?: string;
+};
 type JsonLdDocument = { '@context'?: string; '@graph'?: JsonLdNode[] };
 
 /** Canonical URLs use the configured origin, which may not be the test host. */
@@ -124,9 +138,7 @@ test.describe('indexing directives', () => {
         const noindexEnvironment = await page.request
             .get('/')
             .then((response) =>
-                (response.headers()['x-robots-tag'] ?? '').includes(
-                    'noindex',
-                ),
+                (response.headers()['x-robots-tag'] ?? '').includes('noindex'),
             );
 
         const expectations: Record<string, RegExp> = noindexEnvironment
@@ -206,9 +218,9 @@ test.describe('head metadata on public pages', () => {
             expect(await og('og:image')).toMatch(/^https?:\/\//);
             expect(await og('og:type')).toBeTruthy();
             expect(await og('og:locale')).toBe('en_PH');
-            expect(
-                new URL((await og('og:url')) as string).pathname,
-            ).toBe(new URL(canonical as string).pathname);
+            expect(new URL((await og('og:url')) as string).pathname).toBe(
+                new URL(canonical as string).pathname,
+            );
 
             await expect(
                 page.locator('meta[name="twitter:card"]'),
@@ -247,10 +259,14 @@ test.describe('structured data', () => {
 
             const ids = graph.map((node) => node['@id']);
             for (const node of graph) {
-                expect(types(node).length, JSON.stringify(node)).toBeGreaterThan(0);
-                expect(node['@id'], `${types(node)} node id`).toMatch(
-                    /^https?:\/\//,
-                );
+                expect(
+                    types(node).length,
+                    JSON.stringify(node),
+                ).toBeGreaterThan(0);
+                expect(
+                    node['@id'],
+                    `${types(node).join(', ')} node id`,
+                ).toMatch(/^https?:\/\//);
             }
             expect(new Set(ids).size, 'duplicate @id values').toBe(ids.length);
 
@@ -319,19 +335,21 @@ test.describe('visible FAQ matches FAQPage markup', () => {
             }>;
             expect(entities.length).toBeGreaterThan(0);
 
-            const section = page.locator('section[aria-labelledby="faq-heading"]');
+            const section = page.locator(
+                'section[aria-labelledby="faq-heading"]',
+            );
             await expect(
                 section.getByRole('heading', {
                     name: 'Frequently asked questions',
                 }),
             ).toBeVisible();
 
-            const visibleQuestions = (await section.locator('dt').allTextContents()).map(
-                normalize,
-            );
-            const visibleAnswers = (await section.locator('dd').allTextContents()).map(
-                normalize,
-            );
+            const visibleQuestions = (
+                await section.locator('dt').allTextContents()
+            ).map(normalize);
+            const visibleAnswers = (
+                await section.locator('dd').allTextContents()
+            ).map(normalize);
 
             expect(visibleQuestions).toEqual(
                 entities.map((entity) => normalize(entity.name)),

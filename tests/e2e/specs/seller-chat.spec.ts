@@ -133,7 +133,9 @@ test.describe('seller chat', () => {
         await expect(customer).toHaveClass(/justify-start/);
         await expect(shop).toHaveClass(/justify-end/);
 
-        const customerBox = await customer.getByText(fixture.buyerText).boundingBox();
+        const customerBox = await customer
+            .getByText(fixture.buyerText)
+            .boundingBox();
         const shopBox = await shop.getByText(fixture.sellerText).boundingBox();
         expect(customerBox && shopBox).toBeTruthy();
         expect(customerBox!.x).toBeLessThan(shopBox!.x);
@@ -154,9 +156,7 @@ test.describe('seller chat', () => {
         ).toHaveClass(/justify-start/);
         // The buyer's header still names the shop.
         await expect(
-            page
-                .locator('p.text-label', { hasText: fixture.shopName })
-                .last(),
+            page.locator('p.text-label', { hasText: fixture.shopName }).last(),
         ).toBeVisible();
         await shot(page, 'seller-chat-05-buyer-view');
     });

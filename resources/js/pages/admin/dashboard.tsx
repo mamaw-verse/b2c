@@ -1,4 +1,4 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link } from '@inertiajs/react';
 import {
     Clock,
     FileBadge,
@@ -6,9 +6,9 @@ import {
     Inbox,
     ShieldAlert,
     TriangleAlert,
-} from "lucide-react";
-import AdminLayout from "@/layouts/admin-layout";
-import { StatCard } from "@/components/stat-card";
+} from 'lucide-react';
+import AdminLayout from '@/layouts/admin-layout';
+import { StatCard } from '@/components/stat-card';
 
 type DashboardCounts = Record<string, Record<string, number>>;
 
@@ -96,10 +96,10 @@ export default function AdminDashboard({
                                 Halal Certificate Action Required
                             </h2>
                             <p className="mt-0.5 text-body-sm text-foreground">
-                                {expiringCertificatesCount}{" "}
+                                {expiringCertificatesCount}{' '}
                                 {expiringCertificatesCount === 1
-                                    ? "certificate has expired or is expiring"
-                                    : "certificates have expired or are expiring"}{" "}
+                                    ? 'certificate has expired or is expiring'
+                                    : 'certificates have expired or are expiring'}{' '}
                                 soon. Listings may be automatically hidden upon
                                 expiration.
                             </p>
@@ -130,16 +130,16 @@ export default function AdminDashboard({
                     <div
                         className={
                             expiringCertificatesCount > 0
-                                ? "card grid gap-1 border-warning/40 bg-warning-soft/30 p-4"
-                                : "card grid gap-1 p-4"
+                                ? 'card grid gap-1 border-warning/40 bg-warning-soft/30 p-4'
+                                : 'card grid gap-1 p-4'
                         }
                     >
                         <p className="flex items-center gap-2 text-body-sm text-muted-foreground">
                             <FileBadge
                                 className={
                                     expiringCertificatesCount > 0
-                                        ? "size-4 text-warning-text"
-                                        : "size-4"
+                                        ? 'size-4 text-warning-text'
+                                        : 'size-4'
                                 }
                             />
                             Expiring Certificates
@@ -266,7 +266,7 @@ export default function AdminDashboard({
                                     className="font-bold text-primary-text hover:underline"
                                 >
                                     {(counts.pending?.general ?? 0) +
-                                        (counts.flagged?.general ?? 0)}{" "}
+                                        (counts.flagged?.general ?? 0)}{' '}
                                     pending
                                 </Link>
                             </li>

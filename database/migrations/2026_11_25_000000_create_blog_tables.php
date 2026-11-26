@@ -148,6 +148,9 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Later migrations (2026_11_26_*) add tables with FKs to blog_posts;
+        // drop them first so a standalone rollback of this migration succeeds.
+        Schema::dropIfExists('blog_post_daily_views');
         Schema::dropIfExists('blog_editor_invitations');
         Schema::dropIfExists('blog_post_slug_histories');
         Schema::dropIfExists('blog_post_images');

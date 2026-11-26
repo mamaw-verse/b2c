@@ -8,9 +8,7 @@
     "display": "standalone",
     "theme_color": "#17643c",
     "background_color": "#f7f8f6",
-    "categories": [
-        "shopping"
-    ],
+    "categories": ["shopping"],
     "icons": [
         {
             "src": "/brand/halalbenta-icon-192.png",

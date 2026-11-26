@@ -453,9 +453,9 @@ export default function BlogPostForm({
                                 line to embed a product card. For delivery,
                                 return, escrow and payment statements, use a
                                 fact token such as{' '}
-                                <code>[[fact:{limits.fact_keys[0]}]]</code>{' '}
-                                so the wording follows the live policy.
-                                Available: {limits.fact_keys.join(', ')}.
+                                <code>[[fact:{limits.fact_keys[0]}]]</code> so
+                                the wording follows the live policy. Available:{' '}
+                                {limits.fact_keys.join(', ')}.
                             </p>
                             {form.errors.body_markdown && (
                                 <p className="text-body-sm font-bold text-danger-text">

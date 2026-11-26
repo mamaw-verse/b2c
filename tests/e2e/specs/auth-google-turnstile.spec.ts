@@ -186,7 +186,9 @@ test.describe('turnstile human check', () => {
         await page.click('[data-test="login-button"]');
 
         await expect(page).toHaveURL(/\/login/);
-        await expect(page.getByText(/CAPTCHA validation failed/i)).toBeVisible();
+        await expect(
+            page.getByText(/CAPTCHA validation failed/i),
+        ).toBeVisible();
         await shot(page, 'turnstile-02-login-no-token');
     });
 
@@ -212,7 +214,9 @@ test.describe('turnstile human check', () => {
         });
         await page.click('[data-test="email-password-reset-link-button"]');
 
-        await expect(page.getByText(/CAPTCHA validation failed/i)).toBeVisible();
+        await expect(
+            page.getByText(/CAPTCHA validation failed/i),
+        ).toBeVisible();
         await shot(page, 'turnstile-03-forgot-no-token');
     });
 });

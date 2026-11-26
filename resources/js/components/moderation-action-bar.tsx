@@ -10,11 +10,7 @@ import {
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ReasonPicker } from '@/components/reason-picker';
-import {
-    Dialog,
-    DialogContent,
-    DialogClose,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 
 export type ModerationAction =
     | 'approve'
@@ -462,7 +458,9 @@ export function ModerationActionBar({
                                 </DialogClose>
                                 <button
                                     type="submit"
-                                    disabled={processing || !requestReason.trim()}
+                                    disabled={
+                                        processing || !requestReason.trim()
+                                    }
                                     className="btn"
                                 >
                                     <span>{requestConfig.confirmLabel}</span>

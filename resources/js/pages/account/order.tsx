@@ -946,10 +946,7 @@ export default function OrderDetail({
                                             e.target.files ?? [],
                                         );
                                         setPhotos((prev) =>
-                                            [
-                                                ...prev,
-                                                ...files,
-                                            ].slice(0, 5),
+                                            [...prev, ...files].slice(0, 5),
                                         );
                                         e.target.value = '';
                                     }}
@@ -960,7 +957,7 @@ export default function OrderDetail({
                         <div>
                             <p className="text-label font-semibold">
                                 Video{' '}
-                                <span className="text-muted-foreground font-normal">
+                                <span className="font-normal text-muted-foreground">
                                     (optional)
                                 </span>
                             </p>

@@ -1,5 +1,11 @@
 import { Form, Head, Link, router, useForm } from '@inertiajs/react';
-import { MessageCircle, PackageCheck, Printer, Truck, Image as ImageIcon, Video } from 'lucide-react';
+import {
+    MessageCircle,
+    PackageCheck,
+    Printer,
+    Truck,
+    Video,
+} from 'lucide-react';
 import { useState } from 'react';
 import { FulfillmentCard } from '@/components/fulfillment-card';
 import { Badge } from '@/components/ui/badge';
@@ -155,7 +161,6 @@ export default function SellerOrderShow({ order }: PageProps) {
     const [declineModalOpen, setDeclineModalOpen] = useState(false);
     const [declineNote, setDeclineNote] = useState('');
     const [resolveProcessing, setResolveProcessing] = useState(false);
-    const [refundModalOpen, setRefundModalOpen] = useState(false);
     const [returnSelections, setReturnSelections] = useState<
         Record<string, number>
     >(
@@ -423,7 +428,9 @@ export default function SellerOrderShow({ order }: PageProps) {
                                                     </span>
                                                 )}
                                                 {' · '}
-                                                {formatPeso(item.unit_price)}{' '}
+                                                {formatPeso(
+                                                    item.unit_price,
+                                                )}{' '}
                                                 each
                                             </span>
                                             <Input

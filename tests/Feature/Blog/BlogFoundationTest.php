@@ -21,7 +21,7 @@ uses(RefreshDatabase::class);
 const BLOG_TABLES = [
     'blog_categories', 'blog_images', 'blog_authors', 'blog_posts', 'blog_tags',
     'blog_post_tag', 'blog_post_products', 'blog_post_images',
-    'blog_post_slug_histories', 'blog_editor_invitations',
+    'blog_post_slug_histories', 'blog_editor_invitations', 'blog_post_daily_views',
 ];
 
 test('the blog is disabled by default', function () {
@@ -35,15 +35,23 @@ test('every blog table exists', function () {
 });
 
 test('the blog migration rolls back and re-applies', function () {
-    $path = 'database/migrations/2026_11_25_000000_create_blog_tables.php';
+    $paths = [
+        'database/migrations/2026_11_25_000000_create_blog_tables.php',
+        'database/migrations/2026_11_26_000000_create_blog_post_daily_views_table.php',
+    ];
 
-    Artisan::call('migrate:rollback', ['--path' => $path, '--force' => true]);
+    // Roll back every blog migration (newest first), then re-apply them all.
+    foreach (array_reverse($paths) as $path) {
+        Artisan::call('migrate:rollback', ['--path' => $path, '--force' => true]);
+    }
 
     foreach (BLOG_TABLES as $table) {
         expect(Schema::hasTable($table))->toBeFalse("table {$table} survived rollback");
     }
 
-    Artisan::call('migrate', ['--path' => $path, '--force' => true]);
+    foreach ($paths as $path) {
+        Artisan::call('migrate', ['--path' => $path, '--force' => true]);
+    }
 
     foreach (BLOG_TABLES as $table) {
         expect(Schema::hasTable($table))->toBeTrue("table {$table} not re-created");

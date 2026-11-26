@@ -12,24 +12,24 @@ npm install && npm run build
 
 ### Environment variables
 
-| Var | Purpose |
-|---|---|
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` | Google OAuth. Redirect URI must be `${APP_URL}/auth/google/callback` and `${APP_URL}/auth/google/confirm/callback` in the Google Cloud console. |
-| `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile. Outside production, Cloudflare's always-pass dummy keys are used by default. **Required in production** or logins/registrations fail. |
-| `HUMANCHECK_ENABLED` | Kill switch (default `true`). `phpunit.xml` sets it `false`. |
-| `HUMANCHECK_TTL` / `HUMANCHECK_BIND_IP` | Human-pass cookie lifetime (s, default 1200) / bind to IP. |
-| `TURNSTILE_EXPECTED_HOSTNAME` / `TURNSTILE_EXPECTED_ACTION` | Optional siteverify hostname/action enforcement. |
-| `GOOGLE_ANALYTICS_ID` | GA4 measurement ID (`G-…`) for the gtag snippet. |
-| `GA4_PROPERTY_ID` / `GOOGLE_ANALYTICS_CREDENTIALS` | GA4 Data API property ID and path to a service-account JSON key (admin dashboard). |
+| Var                                                                 | Purpose                                                                                                                                                     |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` | Google OAuth. Redirect URI must be `${APP_URL}/auth/google/callback` and `${APP_URL}/auth/google/confirm/callback` in the Google Cloud console.             |
+| `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY`                       | Cloudflare Turnstile. Outside production, Cloudflare's always-pass dummy keys are used by default. **Required in production** or logins/registrations fail. |
+| `HUMANCHECK_ENABLED`                                                | Kill switch (default `true`). `phpunit.xml` sets it `false`.                                                                                                |
+| `HUMANCHECK_TTL` / `HUMANCHECK_BIND_IP`                             | Human-pass cookie lifetime (s, default 1200) / bind to IP.                                                                                                  |
+| `TURNSTILE_EXPECTED_HOSTNAME` / `TURNSTILE_EXPECTED_ACTION`         | Optional siteverify hostname/action enforcement.                                                                                                            |
+| `GOOGLE_ANALYTICS_ID`                                               | GA4 measurement ID (`G-…`) for the gtag snippet.                                                                                                            |
+| `GA4_PROPERTY_ID` / `GOOGLE_ANALYTICS_CREDENTIALS`                  | GA4 Data API property ID and path to a service-account JSON key (admin dashboard).                                                                          |
 
 ## 1. Google Sign-In
 
 - Routes (`routes/web.php`): `auth/google` + `auth/google/callback` (guest, throttle 6/min); `auth/google/confirm` + `auth/google/confirm/callback` (auth, throttle 6/min).
 - `App\Http\Controllers\Auth\GoogleAuthController`:
-  - Requires a Google ID and `verified_email === true`.
-  - Looks up by `google_id`, then by email (links `google_id` to the existing account; rejects if the email is already tied to a different Google ID); otherwise creates a verified user with null password. All inside a transaction with row locks.
-  - Suspended users are refused. Success: `Auth::login($user, true)`, session regenerate, `redirect()->intended(route('dashboard'))`. Errors go to `login` under the `google` error key.
-  - Confirm flow: re-runs OAuth with `login_hint` and `prompt=login`, requires the same `google_id`, then `session()->passwordConfirmed()`.
+    - Requires a Google ID and `verified_email === true`.
+    - Looks up by `google_id`, then by email (links `google_id` to the existing account; rejects if the email is already tied to a different Google ID); otherwise creates a verified user with null password. All inside a transaction with row locks.
+    - Suspended users are refused. Success: `Auth::login($user, true)`, session regenerate, `redirect()->intended(route('dashboard'))`. Errors go to `login` under the `google` error key.
+    - Confirm flow: re-runs OAuth with `login_hint` and `prompt=login`, requires the same `google_id`, then `session()->passwordConfirmed()`.
 - Migration `2026_11_20_000100_...`: adds unique nullable `users.google_id`, makes `users.password` nullable. `google_id` is hidden from serialization; `User::hasPassword()` / `hasGoogleIdentity()` added.
 - Fortify: password login rejects accounts with no password; confirm-password view receives `hasGoogleIdentity`.
 - Security settings: Google-only users set a password without "current password" (`PasswordUpdateRequest`). Account deletion still requires a password.

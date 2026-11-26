@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
 function GoogleIcon() {
     return (
@@ -28,8 +28,8 @@ function GoogleIcon() {
  * not an Inertia link.
  */
 export default function GoogleAuthButton({
-    href = "/auth/google",
-    label = "Continue with Google",
+    href = '/auth/google',
+    label = 'Continue with Google',
 }: {
     href?: string;
     label?: string;

@@ -1,10 +1,10 @@
-import { usePage } from "@inertiajs/react";
-import { useEffect, useRef, useState } from "react";
+import { usePage } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 import {
     loadTurnstile,
     registerWidget,
     unregisterWidget,
-} from "@/lib/turnstile";
+} from '@/lib/turnstile';
 
 /**
  * Cloudflare Turnstile widget that fills a hidden `cf-turnstile-response`
@@ -17,7 +17,7 @@ import {
 export default function TurnstileField({ error }: { error?: string }) {
     const { turnstileSiteKey } = usePage().props;
     const container = useRef<HTMLDivElement>(null);
-    const [token, setToken] = useState("");
+    const [token, setToken] = useState('');
     const [failed, setFailed] = useState(false);
 
     useEffect(() => {
@@ -36,14 +36,14 @@ export default function TurnstileField({ error }: { error?: string }) {
 
                 widgetId = turnstile.render(container.current, {
                     sitekey: turnstileSiteKey,
-                    appearance: "interaction-only",
+                    appearance: 'interaction-only',
                     callback: (value: string) => {
                         setToken(value);
                         setFailed(false);
                     },
-                    "expired-callback": () => setToken(""),
-                    "error-callback": () => {
-                        setToken("");
+                    'expired-callback': () => setToken(''),
+                    'error-callback': () => {
+                        setToken('');
                         setFailed(true);
                     },
                 });
@@ -67,7 +67,7 @@ export default function TurnstileField({ error }: { error?: string }) {
     const message =
         error ??
         (failed
-            ? "We could not load the security check. Disable content blockers and refresh the page."
+            ? 'We could not load the security check. Disable content blockers and refresh the page.'
             : undefined);
 
     return (

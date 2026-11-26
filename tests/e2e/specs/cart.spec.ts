@@ -135,7 +135,9 @@ test.describe('cart variation merge and stock', () => {
         const picker = page.locator('dialog[open]');
         await expect(picker).toContainText('Change variation');
         await picker.getByText('Sukkari', { exact: true }).click();
-        await expect(picker.getByRole('radio', { name: /500g/ })).toBeDisabled();
+        await expect(
+            picker.getByRole('radio', { name: /500g/ }),
+        ).toBeDisabled();
         await shot(page, 'cart-06-sold-out-variation');
 
         await page.keyboard.press('Escape');

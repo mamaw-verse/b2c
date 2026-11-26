@@ -1,15 +1,15 @@
-import { Form, Head } from "@inertiajs/react";
-import PasswordInput from "@/components/password-input";
-import TextLink from "@/components/text-link";
-import GoogleAuthButton from "@/components/google-auth-button";
-import TurnstileField from "@/components/turnstile-field";
-import { Banner } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { resetTurnstile } from "@/lib/turnstile";
-import { login } from "@/routes";
-import { store } from "@/routes/register";
+import { Form, Head } from '@inertiajs/react';
+import PasswordInput from '@/components/password-input';
+import TextLink from '@/components/text-link';
+import GoogleAuthButton from '@/components/google-auth-button';
+import TurnstileField from '@/components/turnstile-field';
+import { Banner } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { resetTurnstile } from '@/lib/turnstile';
+import { login } from '@/routes';
+import { store } from '@/routes/register';
 
 type Invitation = {
     id: string;
@@ -34,7 +34,7 @@ export default function Register({ passwordRules, invitation, email }: Props) {
                         tone="info"
                         title={`Staff invitation from ${invitation.shop_name}`}
                     >
-                        Complete your registration to automatically join the{" "}
+                        Complete your registration to automatically join the{' '}
                         <strong>{invitation.shop_name}</strong> team.
                     </Banner>
                 </div>
@@ -59,7 +59,7 @@ export default function Register({ passwordRules, invitation, email }: Props) {
             <Form
                 {...store.form()}
                 onFinish={resetTurnstile}
-                resetOnSuccess={["password", "password_confirmation"]}
+                resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
             >
                 {({ processing, errors }) => (
@@ -99,7 +99,7 @@ export default function Register({ passwordRules, invitation, email }: Props) {
                                 tabIndex={2}
                                 autoComplete="email"
                                 name="email"
-                                defaultValue={invitation?.email ?? email ?? ""}
+                                defaultValue={invitation?.email ?? email ?? ''}
                                 readOnly={Boolean(invitation)}
                                 placeholder="email@example.com"
                             />
@@ -136,7 +136,7 @@ export default function Register({ passwordRules, invitation, email }: Props) {
                         </FormField>
 
                         <TurnstileField
-                            error={errors["cf-turnstile-response"]}
+                            error={errors['cf-turnstile-response']}
                         />
 
                         <Button
@@ -154,7 +154,7 @@ export default function Register({ passwordRules, invitation, email }: Props) {
             </Form>
 
             <p className="mt-6 text-center text-body-sm text-muted-foreground">
-                Already have an account?{" "}
+                Already have an account?{' '}
                 <TextLink href={login()} tabIndex={6}>
                     Log in
                 </TextLink>
@@ -164,6 +164,6 @@ export default function Register({ passwordRules, invitation, email }: Props) {
 }
 
 Register.layout = {
-    title: "Create an account",
-    description: "Enter your details below to create your account",
+    title: 'Create an account',
+    description: 'Enter your details below to create your account',
 };

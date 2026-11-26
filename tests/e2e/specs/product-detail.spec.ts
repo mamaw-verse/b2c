@@ -107,7 +107,9 @@ test.describe('product detail', () => {
 
         // Sukkari 500g is the seeded sold-out combination.
         await dialog.getByText('Sukkari', { exact: true }).click();
-        await expect(dialog.getByRole('radio', { name: /500g/ })).toBeDisabled();
+        await expect(
+            dialog.getByRole('radio', { name: /500g/ }),
+        ).toBeDisabled();
         await expect(dialog).toContainText('(sold out)');
         await shot(page, 'pdp-12-sold-out-variation');
     });

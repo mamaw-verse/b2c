@@ -11,18 +11,18 @@
 
 ## Design
 
-| Concern | Decision |
-| --- | --- |
-| Schema | No new table. Migration swaps the unique index to `(shop_id, user_id)` (partial, `user_id IS NOT NULL`). Status stays per membership row. |
-| Roles | Derived per shop (`ShopRole`): `shops.user_id` = Owner, active `shop_staff` row = Staff. Never stored on the user. |
-| Owned shops | Still one owned shop per account (`shops_user_id_unique`, `hasOne`); the resolver is generic over N. |
-| Active shop | `App\Support\ActiveShop`: session key `seller.active_shop_id` used only as a hint, re-validated against live memberships every request; invalid/missing falls back to owned, non-suspended shop first. Memoised per web request only. |
-| Resolution API | `User::operatedShop()` (unchanged signature, now the active shop), `operatedShops()`, `activeShopRole()`, `roleIn()`. |
-| Privilege split | `ownsShop()` now means "owner of the **active** shop"; `ownsAnyShop()` is the global check. Seller requests read `operatedShop()`, never `$user->shop`. |
-| Switching | `PUT /seller/active-shop` (outside `workspace:seller` so a suspended shop can be left). Non-member → 404. Redirects to the new shop's role-appropriate home. |
-| Customers | List/detail open to any operator of the active, non-suspended shop; still read-only; still require an order with the active shop. |
-| Notifications | Seller notifications carry `shop_id`; the seller list, the header bell count and "mark all read" are scoped to the **active shop**. Each shop in the switcher shows its own unread count so activity in a non-active shop is not invisible. Buyer notifications are untouched. |
-| UI | `ShopSwitcher` in the seller header: "My shops" (Owner badge) vs "Managed shops" (Staff badge), active shop + role always shown. |
+| Concern         | Decision                                                                                                                                                                                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Schema          | No new table. Migration swaps the unique index to `(shop_id, user_id)` (partial, `user_id IS NOT NULL`). Status stays per membership row.                                                                                                                                      |
+| Roles           | Derived per shop (`ShopRole`): `shops.user_id` = Owner, active `shop_staff` row = Staff. Never stored on the user.                                                                                                                                                             |
+| Owned shops     | Still one owned shop per account (`shops_user_id_unique`, `hasOne`); the resolver is generic over N.                                                                                                                                                                           |
+| Active shop     | `App\Support\ActiveShop`: session key `seller.active_shop_id` used only as a hint, re-validated against live memberships every request; invalid/missing falls back to owned, non-suspended shop first. Memoised per web request only.                                          |
+| Resolution API  | `User::operatedShop()` (unchanged signature, now the active shop), `operatedShops()`, `activeShopRole()`, `roleIn()`.                                                                                                                                                          |
+| Privilege split | `ownsShop()` now means "owner of the **active** shop"; `ownsAnyShop()` is the global check. Seller requests read `operatedShop()`, never `$user->shop`.                                                                                                                        |
+| Switching       | `PUT /seller/active-shop` (outside `workspace:seller` so a suspended shop can be left). Non-member → 404. Redirects to the new shop's role-appropriate home.                                                                                                                   |
+| Customers       | List/detail open to any operator of the active, non-suspended shop; still read-only; still require an order with the active shop.                                                                                                                                              |
+| Notifications   | Seller notifications carry `shop_id`; the seller list, the header bell count and "mark all read" are scoped to the **active shop**. Each shop in the switcher shows its own unread count so activity in a non-active shop is not invisible. Buyer notifications are untouched. |
+| UI              | `ShopSwitcher` in the seller header: "My shops" (Owner badge) vs "Managed shops" (Staff badge), active shop + role always shown.                                                                                                                                               |
 
 ## Implementation tasks
 
@@ -52,12 +52,12 @@
 - [x] B8. **Mark read:** `MarkNotificationRead` takes an optional scope. From the seller workspace, "mark all read" only clears the active shop's seller notifications; a single id must belong to the scope (otherwise no-op). From the buyer inbox, "mark all read" now clears only buyer notifications (it previously also cleared seller ones, which would defeat per-shop scoping). `NotificationReadController` takes a new validated `workspace` field (`buyer` or `seller`); `seller` is honoured only when the user operates a shop, otherwise 404.
 - [x] B9. **Frontend wiring:** `pages/notifications.tsx` sends `workspace` with the read requests.
 - [x] B10. **Tests** (`tests/Feature/Notification/PerShopNotificationsTest.php`):
-  - a user who owns A and staffs B receives order notifications for both; the seller list and bell count show only the active shop's, and switching changes them;
-  - `seller.shops[].unread_notifications` reports the other shop's count;
-  - "mark all read" in shop A leaves shop B's and the buyer notifications unread;
-  - marking a notification id from a non-active shop is a no-op;
-  - the backfill assigns `shop_id` to legacy rows and leaves orphaned rows out of the list;
-  - removed from shop B, its notifications no longer appear or count.
+    - a user who owns A and staffs B receives order notifications for both; the seller list and bell count show only the active shop's, and switching changes them;
+    - `seller.shops[].unread_notifications` reports the other shop's count;
+    - "mark all read" in shop A leaves shop B's and the buyer notifications unread;
+    - marking a notification id from a non-active shop is a no-op;
+    - the backfill assigns `shop_id` to legacy rows and leaves orphaned rows out of the list;
+    - removed from shop B, its notifications no longer appear or count.
 - [x] B11. **Docs/e2e:** no dedicated notification scenario in `tests/e2e/scenarios.json` (only shell visits to `/account/notifications`); left unchanged.
 
 Dependencies: B1 → B2 → B3 → (B4, B5, B6, B8) → (B7, B9) → B10. Part B needs no new tables and is reversible (the migration only adds a JSON key).
