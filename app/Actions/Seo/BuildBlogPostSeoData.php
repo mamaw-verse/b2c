@@ -102,8 +102,8 @@ final readonly class BuildBlogPostSeoData
         if (isset($og['path'])) {
             return [
                 'url' => SeoData::absoluteUrl((string) BlogImageData::ogUrl($cover)),
-                'width' => (int) ($og['width'] ?? 1200),
-                'height' => (int) ($og['height'] ?? 630),
+                'width' => (int) $og['width'],
+                'height' => (int) $og['height'],
                 'alt' => (string) ($cover->alt ?: $post->title),
                 'type' => 'image/jpeg',
             ];

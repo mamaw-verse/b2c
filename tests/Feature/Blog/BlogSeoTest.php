@@ -9,13 +9,21 @@ use App\Models\BlogTag;
 use App\Support\Schema\JsonLdValidator;
 use App\Support\Schema\SchemaId;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    config(['blog.enabled' => true, 'app.url' => 'https://halalbenta.test']);
+    // Image URLs come from the disk config, which was resolved from APP_URL at boot, so the
+    // runtime app.url override has to be mirrored there (then the cached disk is dropped).
+    config([
+        'blog.enabled' => true,
+        'app.url' => 'https://halalbenta.test',
+        'filesystems.disks.public.url' => 'https://halalbenta.test/storage',
+    ]);
+    Storage::forgetDisk('public');
     Cache::flush();
 });
 
@@ -397,6 +405,7 @@ test('no static sitemap file shadows the blog sitemap route', function () {
 
 test('llms.txt gets a Blog section with the latest live posts only', function () {
     $this->app['env'] = 'production';
+    $this->withServerVariables(['HTTPS' => 'on']);
     $live = seoPost(['excerpt' => "A guide\n to dates."]);
     $draft = BlogPost::factory()->draft()->create();
 
@@ -410,6 +419,7 @@ test('llms.txt gets a Blog section with the latest live posts only', function ()
 
 test('llms.txt lists at most the 10 newest posts', function () {
     $this->app['env'] = 'production';
+    $this->withServerVariables(['HTTPS' => 'on']);
     $posts = collect(range(1, 12))->map(fn ($i) => seoPost(['published_at' => now()->subDays($i)]));
 
     $body = $this->get('/llms.txt')->assertOk()->getContent();
@@ -422,6 +432,7 @@ test('llms.txt lists at most the 10 newest posts', function () {
 
 test('llms.txt has no Blog section when the blog is off or empty', function () {
     $this->app['env'] = 'production';
+    $this->withServerVariables(['HTTPS' => 'on']);
 
     expect($this->get('/llms.txt')->getContent())->not->toContain('## Blog');
 
@@ -434,6 +445,7 @@ test('llms.txt has no Blog section when the blog is off or empty', function () {
 
 test('robots.txt disallows the q search parameter', function () {
     $this->app['env'] = 'production';
+    $this->withServerVariables(['HTTPS' => 'on']);
 
     expect($this->get('/robots.txt')->assertOk()->getContent())->toContain('Disallow: /*?*q=');
 });

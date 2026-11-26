@@ -51,7 +51,7 @@ final class BlogSeo
 
     /**
      * @param  array{url: string, width: int, height: int, alt: string, type: string}|null  $image
-     * @param  array{published_time?: string, modified_time?: string, section?: string, author?: string, tags?: list<string>}|null  $article
+     * @param  array<string, string|list<string>|null>|null  $article  Keys: published_time, modified_time, section, author, tags (null values are dropped).
      * @param  array<string, mixed>  $jsonLd
      * @param  list<array{label: string, data: string}>  $twitterLabels
      */

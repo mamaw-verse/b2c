@@ -21,7 +21,10 @@ final class BlogController
         $term = $request->term();
         $data = $index->handle($request->pageNumber(), $term);
 
-        $seoData = $buildSeoData->handle($data['posts']['meta'], $term, $data['posts']['data']);
+        /** @var list<array{slug: string, title: string, image: array{src: string}|null}> $cards */
+        $cards = $data['posts']['data'];
+
+        $seoData = $buildSeoData->handle($data['posts']['meta'], $term, $cards);
         $seo->set($seoData);
 
         $intro = mb_trim(config()->string('blog.intro', ''));
