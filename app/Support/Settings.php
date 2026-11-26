@@ -55,11 +55,12 @@ final class Settings
 
         // The blog link follows the BLOG_ENABLED flag at request time, so it can never point at a 404.
         if (config('blog.enabled')) {
+            /** @var list<array<string, mixed>> $company */
             $company = Arr::get($config, 'footer.company', []);
 
             if (! collect($company)->contains('href', '/blog')) {
                 $company[] = ['label' => 'Blog', 'href' => '/blog'];
-                Arr::set($config, 'footer.company', array_values($company));
+                Arr::set($config, 'footer.company', $company);
             }
         }
 

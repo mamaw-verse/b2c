@@ -46,7 +46,9 @@ final readonly class GetOrder
         $returnEvent = $order->events->where('title', 'Return/refund requested')->sortByDesc('created_at')->first();
 
         if ($returnEvent) {
-            $photos = collect($returnEvent->metadata['photos'] ?? [])
+            /** @var list<string> $photoPaths */
+            $photoPaths = $returnEvent->metadata['photos'] ?? [];
+            $photos = collect($photoPaths)
                 ->map(fn (string $path) => Storage::disk('public')->url($path))
                 ->values()
                 ->all();

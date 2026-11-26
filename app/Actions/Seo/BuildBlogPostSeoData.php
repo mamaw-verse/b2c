@@ -62,6 +62,9 @@ final readonly class BuildBlogPostSeoData
             $graph->add(resolve(BuildPersonNode::class)->handle($author));
         }
 
+        /** @var list<string> $tags */
+        $tags = $post->tags->pluck('name')->values()->all();
+
         return BlogSeo::make(
             title: BlogSeo::title((string) ($post->seo_title ?: $post->title)),
             description: $description,
@@ -74,7 +77,7 @@ final readonly class BuildBlogPostSeoData
                 'section' => $post->category->name,
                 // The author page URL for people; the house author and deactivated authors have no page.
                 'author' => $author->is_house || ! $author->is_active ? null : BlogSeo::url("author/{$author->slug}"),
-                'tags' => $post->tags->pluck('name')->values()->all(),
+                'tags' => $tags,
             ]),
             jsonLd: $graph->toArray(),
             author: $author->display_name,

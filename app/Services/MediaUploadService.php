@@ -61,7 +61,7 @@ final class MediaUploadService
      */
     public static function allowedExtensions(): array
     {
-        return array_unique(array_merge(...array_values(self::ALLOWED_MIMES)));
+        return array_values(array_unique(array_merge(...array_values(self::ALLOWED_MIMES))));
     }
 
     /**

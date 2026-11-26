@@ -74,7 +74,7 @@ final readonly class BuildCategorySeoData
                 'id' => SchemaId::product($product->slug),
                 'url' => "{$origin}/products/{$product->slug}",
                 'name' => $product->name,
-                'image' => SeoData::absoluteUrl($product->images->firstWhere('url', '!=', '')?->url ?? "/social/product/{$product->slug}.jpg"),
+                'image' => SeoData::absoluteUrl($product->images->firstWhere('url', '!=', '')->url ?? "/social/product/{$product->slug}.jpg"),
             ];
         }
 

@@ -80,7 +80,7 @@ final class HandleInertiaRequests extends Middleware
                     'current' => $w === $workspace || count($allowed) === 1,
                 ])->all(),
             'seller' => $shop === null ? null : [
-                'role' => $user->activeShopRole()?->value ?? 'staff',
+                'role' => $user->activeShopRole()->value ?? 'staff',
                 'status' => $shop->status->value,
                 'suspended' => (bool) $shop->suspended,
                 'shop_name' => $shop->name,

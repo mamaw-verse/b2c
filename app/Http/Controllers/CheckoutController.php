@@ -51,7 +51,7 @@ final class CheckoutController
                         'product_id' => $product->id,
                         'slug' => $product->slug,
                         'name' => $product->name,
-                        'icon' => $product->images->firstWhere('url', '!=', '')?->icon ?? $product->images->first()?->icon ?? 'package',
+                        'icon' => $product->images->firstWhere('url', '!=', '')->icon ?? $product->images->first()->icon ?? 'package',
                         'image_url' => $product->images->firstWhere('url', '!=', '')?->url,
                         'halal_status' => $product->halal_status->value,
                         'certifier' => $product->halalCertification?->certifying_body,

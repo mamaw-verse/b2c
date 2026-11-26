@@ -978,3 +978,26 @@
         outline-color: Highlight;
     }
 }
+
+/* Fade-out mask for hero imagery: black + alpha only, so the colour literals live in CSS, not TSX. */
+@utility hero-mask {
+    --hero-mask-end: 70%;
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.35) 45%,
+        transparent var(--hero-mask-end)
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.35) 45%,
+        transparent var(--hero-mask-end)
+    );
+    @media (min-width: 48rem) {
+        --hero-mask-end: 75%;
+    }
+    @media (min-width: 64rem) {
+        --hero-mask-end: 85%;
+    }
+}

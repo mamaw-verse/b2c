@@ -101,6 +101,7 @@ final readonly class GetPayables
                 SUM(amount) as total
             ', [$now, $now])
             ->groupBy('shop_id')
+            ->toBase()
             ->get();
 
         $shops = Shop::query()
@@ -133,8 +134,8 @@ final readonly class GetPayables
 
             return [
                 'id' => (string) $row->shop_id,
-                'name' => $shop?->name ?? 'Unknown Shop',
-                'slug' => $shop?->slug ?? '',
+                'name' => $shop->name ?? 'Unknown Shop',
+                'slug' => $shop->slug ?? '',
                 'available' => $available,
                 'held' => $held,
                 'total' => $total,
@@ -203,6 +204,7 @@ final readonly class GetPayables
                 SUM(CASE WHEN status = ? THEN amount ELSE 0 END) as available
             ', [$cancelledStatus, $pendingStatus, $availableStatus])
             ->groupBy('affiliate_profile_id')
+            ->toBase()
             ->get()
             ->filter(fn ($row) => (int) $row->total > 0);
 
@@ -221,11 +223,11 @@ final readonly class GetPayables
 
             return [
                 'id' => (string) $row->affiliate_profile_id,
-                'code' => $profile?->code ?? '',
+                'code' => $profile->code ?? '',
                 'user' => [
-                    'id' => $profile?->user?->id ?? '',
-                    'name' => $profile?->user?->name ?? 'Unknown',
-                    'email' => $profile?->user?->email ?? '',
+                    'id' => $profile->user->id ?? '',
+                    'name' => $profile->user->name ?? 'Unknown',
+                    'email' => $profile->user->email ?? '',
                 ],
                 'total' => $total,
                 'pending' => (int) $row->pending,

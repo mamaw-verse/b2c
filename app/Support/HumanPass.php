@@ -50,7 +50,7 @@ final class HumanPass
         }
 
         $raw = $request->cookie(self::COOKIE_NAME);
-        if ($raw === null || $raw === '') {
+        if (! is_string($raw) || $raw === '') {
             return false;
         }
 
@@ -97,7 +97,7 @@ final class HumanPass
     public static function expiresAt(Request $request): ?int
     {
         $raw = $request->cookie(self::COOKIE_NAME);
-        if ($raw === null || $raw === '') {
+        if (! is_string($raw) || $raw === '') {
             return null;
         }
 

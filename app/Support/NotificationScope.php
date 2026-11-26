@@ -33,14 +33,17 @@ final class NotificationScope
     {
         if ($workspace === Workspace::Seller) {
             if ($activeShop === null) {
+                /** @var TQuery */
                 return $query->whereRaw('1 = 0');
             }
 
+            /** @var TQuery */
             return $query
                 ->whereRaw("data::jsonb->>'workspace' = ?", [Workspace::Seller->value])
                 ->whereRaw("data::jsonb->>'shop_id' = ?", [$activeShop->id]);
         }
 
+        /** @var TQuery */
         return $query->whereRaw("COALESCE(data::jsonb->>'workspace', 'buyer') = ?", [$workspace->value]);
     }
 

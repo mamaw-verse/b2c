@@ -36,8 +36,9 @@ final readonly class CategoryIntro
 
         $parts = ["Browse {$total} ".($total === 1 ? 'product' : 'products')." in {$category->name} from independent sellers on {$name}, delivered across the Philippines."];
 
+        /** @var list<string> $children */
         $children = $category->relationLoaded('children')
-            ? $category->children->pluck('name')->take(self::MAX_SUBCATEGORIES)->all()
+            ? $category->children->pluck('name')->take(self::MAX_SUBCATEGORIES)->values()->all()
             : [];
 
         if ($children !== []) {
@@ -54,7 +55,7 @@ final readonly class CategoryIntro
      */
     private static function joinList(array $items): string
     {
-        $items = array_values(array_map('strval', $items));
+        $items = array_map('strval', $items);
 
         if (count($items) === 1) {
             return $items[0];

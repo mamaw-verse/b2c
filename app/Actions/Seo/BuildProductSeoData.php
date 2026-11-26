@@ -32,13 +32,13 @@ final readonly class BuildProductSeoData
             $selectedVariant = $product->variations->first(fn (ProductVariation $v) => (string) $v->id === $variantParam || $v->option1_value === $variantParam);
         }
 
-        $activePrice = $selectedVariant?->price ?? $product->price;
+        $activePrice = $selectedVariant->price ?? $product->price;
         $pesos = $activePrice / 100;
         $priceStr = ($activePrice % 100 === 0)
             ? (string) ((int) $pesos)
             : number_format($pesos, 2);
 
-        $shopName = $shop?->name ?? 'HalalBenta';
+        $shopName = $shop->name ?? 'HalalBenta';
 
         // Title <= 60 chars for <title>
         $titleSuffix = " – ₱{$priceStr} | {$shopName} | HalalBenta";
@@ -67,7 +67,7 @@ final readonly class BuildProductSeoData
 
         // Trust facts
         $facts = ["₱{$priceStr}", $halalLabel];
-        $city = $shop?->city ?? $product->location;
+        $city = $shop->city ?? $product->location;
         if ($city !== '') {
             $facts[] = "Sold by {$shopName} in {$city}";
         } else {
@@ -111,7 +111,7 @@ final readonly class BuildProductSeoData
         }, $images);
 
         // Social image: T3.2 prefers real product photography when available
-        $timestamp = $product->updated_at?->timestamp ?? time();
+        $timestamp = $product->updated_at->timestamp ?? time();
         $generatedCard = "{$origin}/social/product/{$product->slug}.jpg?v={$timestamp}";
         $preferPhoto = (bool) config('seo.prefer_photo_og.product', true);
         $socialImage = ($preferPhoto && ! empty($images))

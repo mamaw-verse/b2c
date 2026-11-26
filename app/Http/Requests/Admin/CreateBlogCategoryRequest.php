@@ -35,10 +35,13 @@ final class CreateBlogCategoryRequest extends FormRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{name: string, slug?: string|null, description?: string|null, sort_order?: int|null, shop_category_id?: string|null}
      */
     public function categoryData(): array
     {
-        return $this->validated();
+        /** @var array{name: string, slug?: string|null, description?: string|null, sort_order?: int|null, shop_category_id?: string|null} $data */
+        $data = $this->validated();
+
+        return $data;
     }
 }

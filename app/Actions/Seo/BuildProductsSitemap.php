@@ -40,7 +40,7 @@ final readonly class BuildProductsSitemap
                 $xml .= '    <lastmod>'.$lastmod.'</lastmod>'."\n";
 
                 $firstImage = $product->images->firstWhere('url', '!=', '');
-                $rawImageUrl = $firstImage?->url ?? $product->thumbnailUrl();
+                $rawImageUrl = $firstImage->url ?? $product->thumbnailUrl();
 
                 if ($rawImageUrl !== null && $rawImageUrl !== '') {
                     $imageLoc = Str::startsWith($rawImageUrl, ['http://', 'https://'])

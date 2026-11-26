@@ -134,11 +134,13 @@ final readonly class GetSellerOrder
             'return_request' => $order->status === OrderStatus::ReturnRefund
                 ? (function () use ($order) {
                     $event = $order->events->where('title', 'Return/refund requested')->sortByDesc('created_at')->first();
+                    /** @var list<string> $photoPaths */
+                    $photoPaths = $event->metadata['photos'] ?? [];
 
                     return $event ? [
                         'reason' => $event->detail,
                         'requested_at' => $event->created_at?->toISOString(),
-                        'photos' => collect($event->metadata['photos'] ?? [])->map(fn (string $path) => Storage::disk('public')->url($path))->values()->all(),
+                        'photos' => collect($photoPaths)->map(fn (string $path) => Storage::disk('public')->url($path))->values()->all(),
                         'video' => isset($event->metadata['video']) ? Storage::disk('public')->url($event->metadata['video']) : null,
                         'items' => $order->items->map(function ($item) use ($event): array {
                             $remaining = max(0, $item->qty - $item->refundedUnits());
@@ -166,8 +168,8 @@ final readonly class GetSellerOrder
                 'processed_at' => $refund->processed_at?->toISOString(),
                 'items' => $refund->items->map(fn ($line) => [
                     'product_name' => $line->orderItem?->product_name,
-                    'variation' => $line->orderItem?->variation_label ?? ($line->orderItem?->variation ? mb_trim(($line->orderItem->variation->option1_value ?? '').' '.($line->orderItem->variation->option2_value ?? '')) : null),
-                    'unit_price' => $line->orderItem?->unit_price ?? 0,
+                    'variation' => $line->orderItem->variation_label ?? ($line->orderItem?->variation ? mb_trim(($line->orderItem->variation->option1_value ?? '').' '.($line->orderItem->variation->option2_value ?? '')) : null),
+                    'unit_price' => $line->orderItem->unit_price ?? 0,
                     'qty' => $line->qty,
                 ])->values()->all(),
             ])->values()->all(),

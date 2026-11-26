@@ -66,8 +66,8 @@ final class OrderController
             'processed_at' => $refund->processed_at?->toISOString(),
             'items' => $refund->items->map(fn ($line) => [
                 'product_name' => $line->orderItem?->product_name,
-                'variation' => $line->orderItem?->variation_label ?? ($line->orderItem?->variation ? mb_trim(($line->orderItem->variation->option1_value ?? '').' '.($line->orderItem->variation->option2_value ?? '')) : null),
-                'unit_price' => $line->orderItem?->unit_price ?? 0,
+                'variation' => $line->orderItem->variation_label ?? ($line->orderItem?->variation ? mb_trim(($line->orderItem->variation->option1_value ?? '').' '.($line->orderItem->variation->option2_value ?? '')) : null),
+                'unit_price' => $line->orderItem->unit_price ?? 0,
                 'qty' => $line->qty,
             ])->values()->all(),
         ])->values()->all();
