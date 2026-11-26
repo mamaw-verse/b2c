@@ -7,6 +7,7 @@ namespace App\Actions\Blog;
 use App\Models\BlogPost;
 use App\Support\Blog\BlogFaqs;
 use App\Support\Blog\BlogImageData;
+use App\Support\Blog\BlogSegments;
 
 /**
  * Props for the public post page. The public byline is always the author profile, never the
@@ -14,7 +15,10 @@ use App\Support\Blog\BlogImageData;
  */
 final readonly class ShowBlogPost
 {
-    public function __construct(private ListRelatedPosts $related) {}
+    public function __construct(
+        private ListRelatedPosts $related,
+        private BlogSegments $segments,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -37,6 +41,8 @@ final readonly class ShowBlogPost
                 'id' => $post->id,
                 'title' => $post->title,
                 'slug' => $post->slug,
+                // Absolute canonical URL for the share bar.
+                'url' => route('blog.show', $post),
                 'excerpt' => $post->excerpt,
                 'published_at' => $post->published_at?->toIso8601String(),
                 // "Updated" is shown only when materially later than published.
@@ -44,7 +50,8 @@ final readonly class ShowBlogPost
                 'reading_minutes' => $post->reading_minutes,
                 'category' => ['name' => $post->category->name, 'slug' => $post->category->slug],
                 'cover' => $post->coverImage === null ? null : BlogImageData::for($post->coverImage, 'large'),
-                'html' => $post->body_html,
+                // HTML runs and live product cards, in reading order (plan §7.2).
+                'segments' => $this->segments->handle($post->body_html),
                 // The table of contents only appears with at least three headings.
                 'toc' => count($toc) >= 3 ? array_values($toc) : [],
                 'tags' => $post->tags->map(fn ($tag): array => ['name' => $tag->name, 'slug' => $tag->slug])->values()->all(),

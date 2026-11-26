@@ -20,6 +20,13 @@ export interface ShareButtonsProps {
     count?: number | null;
     enabled?: boolean;
     slug?: string;
+    /**
+     * Whether shares are reported to the product share endpoint. Turn off for anything that is not
+     * a product (e.g. a blog post), which has no such endpoint.
+     */
+    track?: boolean;
+    /** Accessible name of the share group and buttons. */
+    label?: string;
     className?: string;
 }
 
@@ -31,6 +38,8 @@ export function ShareButtons({
     count,
     enabled = true,
     slug,
+    track = true,
+    label = 'Share this product',
     className,
 }: ShareButtonsProps) {
     const [, copy] = useClipboard();
@@ -55,6 +64,10 @@ export function ShareButtons({
         : `${url.split('?')[0].replace(/\/+$/, '')}/shares`;
 
     const trackShare = (channel: string) => {
+        if (!track) {
+            return;
+        }
+
         fetch(endpoint, {
             method: 'POST',
             keepalive: true,
@@ -195,7 +208,7 @@ export function ShareButtons({
     return (
         <div
             role="group"
-            aria-label="Share this product"
+            aria-label={label}
             className={cn('flex items-center gap-1.5', className)}
         >
             {/* Small screen (< 768px): collapsed Share button */}
@@ -207,7 +220,7 @@ export function ShareButtons({
                         size="sm"
                         onClick={handleNativeShare}
                         className="min-h-touch-target gap-1.5 rounded-full px-3 py-2 text-body-sm text-muted-foreground hover:text-foreground"
-                        aria-label="Share this product"
+                        aria-label={label}
                     >
                         <Share2
                             className="size-4 shrink-0"
@@ -223,7 +236,7 @@ export function ShareButtons({
                                 variant="ghost"
                                 size="sm"
                                 className="min-h-touch-target gap-1.5 rounded-full px-3 py-2 text-body-sm text-muted-foreground hover:text-foreground"
-                                aria-label="Share this product"
+                                aria-label={label}
                             >
                                 <Share2
                                     className="size-4 shrink-0"

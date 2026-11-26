@@ -5,6 +5,7 @@ import {
     Snowflake,
     type LucideIcon,
 } from 'lucide-react';
+import { HomeBlogStrip } from '@/components/blog/home-blog-strip';
 import { CategoryGrid } from '@/components/category-tile';
 import { HomeBenefits } from '@/components/home-benefits';
 import { ProductGrid } from '@/components/product-card';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { VoucherCard } from '@/components/voucher-card';
 import { cn } from '@/lib/utils';
 import { register as sellerRegister } from '@/routes/seller';
+import type { BlogCardData } from '@/types/blog';
 import type {
     CategoryData,
     CursorPage,
@@ -29,6 +31,7 @@ export default function Home({
     categories,
     products,
     vouchers,
+    blogPosts = [],
     canBecomeSeller = false,
     halalCertificationUrl,
     b2bUrl,
@@ -36,6 +39,8 @@ export default function Home({
     categories: CategoryData[];
     products: CursorPage<ProductCardData>;
     vouchers: HomeVoucher[];
+    /** Latest posts for the "From the blog" strip; empty unless the blog is on with 3+ live posts. */
+    blogPosts?: BlogCardData[];
     canBecomeSeller?: boolean;
     halalCertificationUrl?: string | null;
     b2bUrl?: string | null;
@@ -191,6 +196,8 @@ export default function Home({
                         </ul>
                     </section>
                 )}
+
+                <HomeBlogStrip posts={blogPosts} />
 
                 <section aria-labelledby="home-grid-h" className="mt-6 md:mt-8">
                     <h2 id="home-grid-h" className="text-h3">

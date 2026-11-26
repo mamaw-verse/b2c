@@ -224,7 +224,8 @@ test('the post page carries the body, byline author, cover and related posts', f
         ->assertInertia(fn (Assert $page) => $page
             ->component('blog/show')
             ->where('post.slug', $post->slug)
-            ->where('post.html', '<h2 id="a">A</h2><p>Hello</p>')
+            ->where('post.url', route('blog.show', $post))
+            ->where('post.segments', [['type' => 'html', 'html' => '<h2 id="a">A</h2><p>Hello</p>']])
             ->where('author.name', $post->author->display_name)
             ->where('author.has_profile', true)
             ->has('post.cover')

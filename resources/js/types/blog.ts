@@ -1,3 +1,5 @@
+import type { ProductCardData } from '@/types/catalogue';
+
 export type BlogImageData = {
     src: string;
     srcset: string | null;
@@ -49,3 +51,11 @@ export type BlogPostAuthor = {
     is_house: boolean;
     has_profile: boolean;
 };
+
+/**
+ * One run of a post body, in reading order. `html` runs come from `RenderBlogBody` (trusted);
+ * `product` runs are live catalogue cards for `[[product:slug]]` embeds.
+ */
+export type BlogBodySegment =
+    | { type: 'html'; html: string }
+    | { type: 'product'; product: ProductCardData };

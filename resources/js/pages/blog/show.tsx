@@ -5,6 +5,7 @@ import { BlogAuthorByline } from '@/components/blog/blog-author-byline';
 import { BlogBody } from '@/components/blog/blog-body';
 import { BlogImage } from '@/components/blog/blog-image';
 import { BlogRelated } from '@/components/blog/blog-related';
+import { BlogShareBar } from '@/components/blog/blog-share-bar';
 import { BlogToc } from '@/components/blog/blog-toc';
 import { FaqList, type FaqEntry } from '@/components/faq-list';
 import { home } from '@/routes';
@@ -13,6 +14,7 @@ import { index as blogIndex } from '@/routes/blog';
 import { show as blogCategoryShow } from '@/routes/blog/categories';
 import { show as blogTagShow } from '@/routes/blog/tags';
 import type {
+    BlogBodySegment,
     BlogCardData,
     BlogImageData,
     BlogPostAuthor,
@@ -24,13 +26,15 @@ type Props = {
         id: string;
         title: string;
         slug: string;
+        /** Absolute canonical URL, used by the share bar. */
+        url: string;
         excerpt: string;
         published_at: string | null;
         updated_at: string | null;
         reading_minutes: number;
         category: { name: string; slug: string };
         cover: BlogImageData | null;
-        html: string;
+        segments: BlogBodySegment[];
         toc: BlogTocItem[];
         tags: { name: string; slug: string }[];
         faqs: FaqEntry[];
@@ -76,6 +80,11 @@ export default function BlogShow({ post, author, related, cta }: Props) {
                         updatedAt={post.updated_at}
                         readingMinutes={post.reading_minutes}
                     />
+                    <BlogShareBar
+                        url={post.url}
+                        title={post.title}
+                        className="mt-3"
+                    />
                 </header>
 
                 {post.cover && (
@@ -104,7 +113,13 @@ export default function BlogShow({ post, author, related, cta }: Props) {
                     )}
 
                     <div className="min-w-0">
-                        <BlogBody html={post.html} />
+                        <BlogBody
+                            segments={post.segments}
+                            list={{
+                                id: `blog:${post.slug}`,
+                                name: `Blog: ${post.title}`,
+                            }}
+                        />
 
                         {/* The same entries the server emits as FAQPage JSON-LD. */}
                         <FaqList faqs={post.faqs} className="mt-10" />

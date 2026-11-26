@@ -1,4 +1,9 @@
+import {
+    BlogProductCard,
+    type BlogProductList,
+} from '@/components/blog/blog-product-card';
 import { cn } from '@/lib/utils';
+import type { BlogBodySegment } from '@/types/blog';
 
 const TYPOGRAPHY = [
     '[&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:scroll-mt-24 [&_h2]:text-h2',
@@ -10,26 +15,42 @@ const TYPOGRAPHY = [
     '[&_blockquote]:my-4 [&_blockquote]:border-l-4 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground',
     '[&_figure]:my-6 [&_img]:h-auto [&_img]:w-full [&_img]:rounded-panel',
     '[&_figcaption]:mt-2 [&_figcaption]:text-body-sm [&_figcaption]:text-muted-foreground',
-    // Product embed markers are filled in by B2.5; until then an empty marker takes no space.
-    '[&_[data-blog-product]:empty]:hidden',
 ].join(' ');
 
 /**
- * Renders the post body. `html` is trusted only because the server produces it with `RenderBlogBody`
- * (CommonMark with raw HTML stripped, unsafe links and non-`blog-image:` images dropped). Never pass
- * user-supplied or Markdown text here.
+ * Renders the post body as a run of segments. `html` segments are trusted only because the server
+ * produces them with `RenderBlogBody` (CommonMark with raw HTML stripped, unsafe links and
+ * non-`blog-image:` images dropped); never pass user-supplied or Markdown text here. Product
+ * segments render outside the prose styles so the article typography does not leak into the card.
  */
 export function BlogBody({
-    html,
+    segments,
+    list,
     className,
 }: {
-    html: string;
+    segments: BlogBodySegment[];
+    /** The GA4 item list that product clicks are attributed to, e.g. `blog:{slug}`. */
+    list?: BlogProductList;
     className?: string;
 }) {
     return (
-        <div
-            className={cn('max-w-prose', TYPOGRAPHY, className)}
-            dangerouslySetInnerHTML={{ __html: html }}
-        />
+        <div className={className}>
+            {segments.map((segment, index) =>
+                segment.type === 'html' ? (
+                    <div
+                        key={index}
+                        className={cn('max-w-prose', TYPOGRAPHY)}
+                        dangerouslySetInnerHTML={{ __html: segment.html }}
+                    />
+                ) : (
+                    <BlogProductCard
+                        key={index}
+                        product={segment.product}
+                        list={list}
+                        index={index}
+                    />
+                ),
+            )}
+        </div>
     );
 }

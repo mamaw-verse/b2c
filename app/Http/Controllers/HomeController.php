@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Blog\ListHomeBlogStrip;
 use App\Actions\Catalogue\ListHomeFeed;
 use App\Actions\Seo\BuildHomeSeoData;
 use App\Actions\Voucher\ListActiveVouchers;
@@ -22,6 +23,7 @@ final class HomeController
         Request $request,
         ListHomeFeed $feed,
         ListActiveVouchers $vouchers,
+        ListHomeBlogStrip $blogStrip,
         BuildHomeSeoData $buildSeoData,
         Seo $seo
     ): Response {
@@ -34,6 +36,7 @@ final class HomeController
                 ->get(['id', 'name', 'slug', 'icon']),
             'products' => Inertia::scroll(fn () => $feed->handle()),
             'vouchers' => $vouchers->handle(3),
+            'blogPosts' => $blogStrip->handle(),
             'canBecomeSeller' => $request->user()?->isSeller() !== true,
             'halalCertificationUrl' => config('services.halal_certification.url'),
             'b2bUrl' => config('services.b2b.url'),
