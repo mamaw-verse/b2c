@@ -24,7 +24,7 @@ final class BlogAuthorFactory extends Factory
             'user_id' => null,
             'display_name' => $name,
             'slug' => Str::slug($name),
-            'job_title' => fake()->jobTitle(),
+            'job_title' => Str::limit(fake()->jobTitle(), 80, ''),
             'bio' => fake()->sentence(12),
             'avatar_image_id' => null,
             'links' => null,

@@ -134,6 +134,16 @@ test('category page renders CollectionPage and ItemList JSON-LD and clean canoni
     $response->assertSee('"@type":"ItemList"', false);
 });
 
+test('empty category omits the ItemList node instead of emitting one without elements', function () {
+    $empty = Category::factory()->create(['name' => 'Empty Shelf', 'slug' => 'empty-shelf']);
+
+    $response = $this->get('/categories/'.$empty->slug);
+
+    $response->assertOk();
+    $response->assertSee('"@type":"CollectionPage"', false);
+    $response->assertDontSee('"@type":"ItemList"', false);
+});
+
 test('category page with filters sets noindex follow', function () {
     $response = $this->get('/categories/'.$this->category->slug.'?sort=price_asc&halal=true');
 

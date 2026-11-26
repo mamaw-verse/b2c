@@ -78,7 +78,7 @@ final readonly class BuildCategorySeoData
             ];
         }
 
-        $itemList = resolve(BuildItemListNode::class)->handle($canonical, $items);
+        $itemList = $items === [] ? null : resolve(BuildItemListNode::class)->handle($canonical, $items);
 
         $graph = SchemaGraph::make()
             ->add(resolve(BuildWebPageNode::class)->handle(
@@ -88,7 +88,7 @@ final readonly class BuildCategorySeoData
                 description: $description,
                 breadcrumbId: $breadcrumb['@id'],
                 primaryImage: $socialImage,
-                extra: ['mainEntity' => SchemaGraph::ref($itemList['@id'])],
+                extra: $itemList === null ? [] : ['mainEntity' => SchemaGraph::ref($itemList['@id'])],
             ))
             ->add($breadcrumb)
             ->add($itemList);
