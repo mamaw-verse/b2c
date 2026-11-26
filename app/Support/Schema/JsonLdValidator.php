@@ -24,6 +24,12 @@ final class JsonLdValidator
     /** Page-level types that must carry a `name` and `url`. */
     private const array PAGE_TYPES = ['WebPage', 'CollectionPage', 'AboutPage', 'ProfilePage', 'ContactPage', 'ItemPage'];
 
+    /** ISO 8601 date or date-time, as `datePublished` / `dateModified` must be. */
+    private const string ISO_DATE = '/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$/';
+
+    /** Longest `headline` Google documents for article rich results. */
+    private const int HEADLINE_MAX = 110;
+
     /**
      * Extract and validate the single JSON-LD block of a rendered HTML page.
      *
@@ -318,12 +324,71 @@ final class JsonLdValidator
 
                     break;
 
+                case $type === 'BlogPosting':
+                    // Elsewhere (the blog index's ItemList) a BlogPosting is a lightweight stub.
+                    if (! $isFullNode) {
+                        break;
+                    }
+
+                    $this->checkBlogPosting($node, $path, $errors, $warnings);
+
+                    break;
+
+                case $type === 'Blog':
+                    if ($isTopLevel) {
+                        $this->require($node, ['name', 'url'], $path, $errors);
+                    }
+
+                    break;
+
+                case $type === 'Person':
+                    // A deactivated author is still credited, but has no page, so `url` is optional.
+                    $this->require($node, ['name'], $path, $errors);
+
+                    break;
+
+                case $type === 'ProfilePage':
+                    if ($isTopLevel) {
+                        $this->require($node, ['name', 'url', 'mainEntity'], $path, $errors);
+                    }
+
+                    break;
+
                 case in_array($type, self::PAGE_TYPES, true):
                     if ($isTopLevel) {
                         $this->require($node, ['name', 'url'], $path, $errors);
                     }
 
                     break;
+            }
+        }
+    }
+
+    /**
+     * `BlogPosting` (docs/planning/15-blog.md B3.5): the article properties Google needs plus the
+     * references that tie post → person → organization together.
+     *
+     * @param  array<int|string, mixed>  $node
+     * @param  list<string>  $errors
+     * @param  list<string>  $warnings
+     */
+    private function checkBlogPosting(array $node, string $path, array &$errors, array &$warnings): void
+    {
+        $this->require($node, ['headline', 'image', 'datePublished', 'author'], $path, $errors);
+
+        if (isset($node['headline']) && is_string($node['headline']) && mb_strlen($node['headline']) > self::HEADLINE_MAX) {
+            $errors[] = "{$path}.headline is longer than ".self::HEADLINE_MAX.' characters.';
+        }
+
+        foreach (['datePublished', 'dateModified'] as $key) {
+            if (isset($node[$key]) && (! is_string($node[$key]) || preg_match(self::ISO_DATE, $node[$key]) !== 1)) {
+                $errors[] = "{$path}.{$key} must be an ISO 8601 date.";
+            }
+        }
+
+        foreach (['dateModified', 'publisher', 'description', 'mainEntityOfPage'] as $key) {
+            if (! isset($node[$key])) {
+                $warnings[] = "{$path} (BlogPosting) has no {$key}.";
             }
         }
     }

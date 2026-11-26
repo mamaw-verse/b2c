@@ -10,6 +10,7 @@ use App\Actions\Blog\SyncBlogPostRelations;
 use App\Models\BlogPost;
 use App\Models\BlogPostSlugHistory;
 use App\Models\User;
+use App\Support\Blog\BlogFaqs;
 use Illuminate\Support\Facades\DB;
 
 final readonly class UpdateBlogPost
@@ -50,6 +51,8 @@ final readonly class UpdateBlogPost
                 'thumbnail_image_id' => $data['thumbnail_image_id'] ?? null,
                 'seo_title' => ($data['seo_title'] ?? null) ?: null,
                 'seo_description' => ($data['seo_description'] ?? null) ?: null,
+                // A request that omits `faqs` (an older client) must not wipe them; an empty list clears them.
+                ...(array_key_exists('faqs', $data) ? ['faqs' => BlogFaqs::normalize($data['faqs'])] : []),
             ]);
 
             if ($newSlug !== $oldSlug) {

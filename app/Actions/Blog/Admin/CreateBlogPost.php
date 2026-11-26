@@ -10,6 +10,7 @@ use App\Actions\Blog\SyncBlogPostRelations;
 use App\Enums\BlogPostStatus;
 use App\Models\BlogPost;
 use App\Models\User;
+use App\Support\Blog\BlogFaqs;
 use App\Support\Blog\BlogSlug;
 use Illuminate\Support\Facades\DB;
 
@@ -47,6 +48,7 @@ final readonly class CreateBlogPost
                 'reading_minutes' => $body->readingMinutes,
                 'cover_image_id' => $data['cover_image_id'] ?? null,
                 'thumbnail_image_id' => $data['thumbnail_image_id'] ?? null,
+                'faqs' => BlogFaqs::normalize($data['faqs'] ?? null),
                 'status' => BlogPostStatus::Draft,
                 'published_at' => null,
                 'is_featured' => false,

@@ -6,6 +6,7 @@ import { BlogBody } from '@/components/blog/blog-body';
 import { BlogImage } from '@/components/blog/blog-image';
 import { BlogRelated } from '@/components/blog/blog-related';
 import { BlogToc } from '@/components/blog/blog-toc';
+import { FaqList, type FaqEntry } from '@/components/faq-list';
 import { home } from '@/routes';
 import { show as categoryShow } from '@/routes/categories';
 import { index as blogIndex } from '@/routes/blog';
@@ -32,6 +33,7 @@ type Props = {
         html: string;
         toc: BlogTocItem[];
         tags: { name: string; slug: string }[];
+        faqs: FaqEntry[];
     };
     author: BlogPostAuthor;
     related: BlogCardData[];
@@ -103,6 +105,9 @@ export default function BlogShow({ post, author, related, cta }: Props) {
 
                     <div className="min-w-0">
                         <BlogBody html={post.html} />
+
+                        {/* The same entries the server emits as FAQPage JSON-LD. */}
+                        <FaqList faqs={post.faqs} className="mt-10" />
 
                         {post.tags.length > 0 && (
                             <ul

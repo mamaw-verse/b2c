@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Actions\Seo\Schema\BuildItemListNode;
 use App\Enums\HalalStatus;
 use App\Enums\ShopStatus;
+use App\Models\BlogAuthor;
+use App\Models\BlogPost;
+use App\Models\BlogTag;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariation;
@@ -141,4 +144,42 @@ test('list stubs are not mistaken for full products by the validator', function 
     $result = (new JsonLdValidator)->validateDocument(['@context' => 'https://schema.org', '@graph' => [$node]]);
 
     expect($result['errors'])->toBe([]);
+});
+
+test('every public blog page passes the structured-data validator', function () {
+    config(['blog.enabled' => true]);
+
+    $person = BlogAuthor::factory()->create(['links' => [['label' => 'Site', 'url' => 'https://example.com']]]);
+    $post = BlogPost::factory()->published()->create(['blog_author_id' => $person->id]);
+    $post->tags()->attach($tag = BlogTag::factory()->create());
+    $houseAuthored = BlogPost::factory()->published()->create(['blog_author_id' => BlogAuthor::factory()->house()->create()->id]);
+    $deactivated = BlogPost::factory()->published()->create(['blog_author_id' => BlogAuthor::factory()->inactive()->create()->id]);
+
+    $urls = [
+        'index' => route('blog.index'),
+        'search results' => route('blog.index', ['q' => 'dates']),
+        'category' => route('blog.categories.show', $post->category),
+        'tag' => route('blog.tags.show', $tag),
+        'author' => route('blog.authors.show', $person),
+        'post by a person' => route('blog.show', $post),
+        'post by the house author' => route('blog.show', $houseAuthored),
+        'post by a deactivated author' => route('blog.show', $deactivated),
+    ];
+
+    foreach ($urls as $label => $url) {
+        $result = (new JsonLdValidator)->validateHtml($this->get($url)->assertOk()->getContent(), sitewideIds());
+
+        expect($result['errors'])->toBe([], $label);
+    }
+});
+
+test('a live blog post has no validator warnings', function () {
+    config(['blog.enabled' => true]);
+
+    $post = BlogPost::factory()->published()->create();
+
+    $result = (new JsonLdValidator)->validateHtml($this->get(route('blog.show', $post))->assertOk()->getContent(), sitewideIds());
+
+    expect($result['errors'])->toBe([])
+        ->and($result['warnings'])->toBe([]);
 });

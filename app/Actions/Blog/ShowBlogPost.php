@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Blog;
 
 use App\Models\BlogPost;
+use App\Support\Blog\BlogFaqs;
 use App\Support\Blog\BlogImageData;
 
 /**
@@ -47,6 +48,8 @@ final readonly class ShowBlogPost
                 // The table of contents only appears with at least three headings.
                 'toc' => count($toc) >= 3 ? array_values($toc) : [],
                 'tags' => $post->tags->map(fn ($tag): array => ['name' => $tag->name, 'slug' => $tag->slug])->values()->all(),
+                // The same list the FAQPage JSON-LD describes (BlogFaqs is the single source).
+                'faqs' => BlogFaqs::for($post),
             ],
             'author' => $author->is_house
                 ? ['name' => $author->display_name, 'is_house' => true, 'has_profile' => false]

@@ -6,9 +6,11 @@ namespace App\Actions\Seo;
 
 use App\Actions\Seo\Schema\BuildBlogPostingNode;
 use App\Actions\Seo\Schema\BuildBreadcrumbNode;
+use App\Actions\Seo\Schema\BuildFaqNode;
 use App\Actions\Seo\Schema\BuildPersonNode;
 use App\Actions\Seo\Schema\BuildWebPageNode;
 use App\Models\BlogPost;
+use App\Support\Blog\BlogFaqs;
 use App\Support\Blog\BlogImageData;
 use App\Support\Blog\BlogSeo;
 use App\Support\Schema\SchemaGraph;
@@ -51,7 +53,9 @@ final readonly class BuildBlogPostSeoData
                 extra: ['mainEntity' => SchemaGraph::ref(SchemaId::blogPost($post->slug))],
             ))
             ->add(resolve(BuildBlogPostingNode::class)->handle($post, $canonical, $description))
-            ->add($breadcrumb);
+            ->add($breadcrumb)
+            // Null (so no markup at all) when the post has no FAQ; same list the page shows.
+            ->add(resolve(BuildFaqNode::class)->handle($canonical, BlogFaqs::for($post)));
 
         // The house author is the Organization (already sitewide); only real people get a Person node.
         if (! $author->is_house) {

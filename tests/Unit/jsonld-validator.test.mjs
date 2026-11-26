@@ -135,6 +135,169 @@ const article = validateDocument(
 assert.deepEqual(article.errors, []);
 assert.match(article.warnings.join('\n'), /has no datePublished/);
 
+// Blog nodes (docs/planning/15-blog.md B3.5)
+const ORG = 'https://x.test/#organization';
+const PERSON = 'https://x.test/blog/author/aisha#person';
+const posting = (overrides = {}) => ({
+    '@type': 'BlogPosting',
+    '@id': 'https://x.test/blog/dates#article',
+    url: 'https://x.test/blog/dates',
+    headline: 'How to choose dates',
+    description: 'A short guide.',
+    image: ['https://x.test/img/cover.jpg'],
+    datePublished: '2026-11-25T08:00:00+08:00',
+    dateModified: '2026-11-26T09:30:00+08:00',
+    author: { '@id': PERSON },
+    publisher: { '@id': ORG },
+    mainEntityOfPage: { '@id': 'https://x.test/blog/dates#webpage' },
+    ...overrides,
+});
+const blogDoc = (article) =>
+    doc([
+        article,
+        {
+            '@type': 'Person',
+            '@id': PERSON,
+            name: 'Aisha',
+            url: 'https://x.test/blog/author/aisha',
+        },
+    ]);
+const blogExternal = [ORG, 'https://x.test/blog/dates#webpage'];
+
+assert.deepEqual(validateDocument(blogDoc(posting()), blogExternal), {
+    errors: [],
+    warnings: [],
+});
+
+// Required article properties
+const incomplete = posting();
+for (const key of ['headline', 'image', 'datePublished', 'author'])
+    delete incomplete[key];
+const incompleteErrors = errorsOf(blogDoc(incomplete), blogExternal);
+for (const key of ['headline', 'image', 'datePublished', 'author'])
+    assert.match(
+        incompleteErrors,
+        new RegExp(`missing required property "${key}"`),
+    );
+
+// Dates must be ISO 8601 and the headline short enough for rich results
+assert.match(
+    errorsOf(blogDoc(posting({ datePublished: '25 Nov 2026' })), blogExternal),
+    /datePublished must be an ISO 8601 date/,
+);
+assert.equal(
+    errorsOf(blogDoc(posting({ datePublished: '2026-11-25' })), blogExternal),
+    '',
+);
+assert.match(
+    errorsOf(blogDoc(posting({ headline: 'x'.repeat(111) })), blogExternal),
+    /headline is longer than 110 characters/,
+);
+
+// The author reference must resolve inside the graph (or be sitewide)
+assert.match(
+    errorsOf(
+        doc([
+            posting({
+                author: { '@id': 'https://x.test/blog/author/gone#person' },
+            }),
+        ]),
+        blogExternal,
+    ),
+    /does not resolve/,
+);
+
+// Optional article properties only warn
+const sparse = posting();
+for (const key of [
+    'dateModified',
+    'publisher',
+    'description',
+    'mainEntityOfPage',
+])
+    delete sparse[key];
+const sparseResult = validateDocument(blogDoc(sparse), blogExternal);
+assert.deepEqual(sparseResult.errors, []);
+for (const key of [
+    'dateModified',
+    'publisher',
+    'description',
+    'mainEntityOfPage',
+])
+    assert.match(sparseResult.warnings.join('\n'), new RegExp(`has no ${key}`));
+
+// A BlogPosting stub in the blog index's ItemList is not held to the full-article rules
+const indexDocument = doc([
+    {
+        '@type': 'Blog',
+        '@id': 'https://x.test/blog#blog',
+        url: 'https://x.test/blog',
+        name: 'Blog',
+        blogPost: [{ '@id': 'https://x.test/blog/dates#article' }],
+    },
+    {
+        '@type': 'ItemList',
+        '@id': 'https://x.test/blog#itemlist',
+        itemListElement: [
+            {
+                '@type': 'ListItem',
+                position: 1,
+                item: {
+                    '@type': 'BlogPosting',
+                    '@id': 'https://x.test/blog/dates#article',
+                    url: 'https://x.test/blog/dates',
+                    name: 'How to choose dates',
+                },
+            },
+        ],
+    },
+]);
+assert.deepEqual(validateDocument(indexDocument), { errors: [], warnings: [] });
+
+// Blog needs a name and url
+assert.match(
+    errorsOf(doc([{ '@type': 'Blog', '@id': 'https://x.test/blog#blog' }])),
+    /missing required property "name"[\s\S]*missing required property "url"/,
+);
+
+// Person needs a name; a missing url is fine (deactivated author)
+assert.match(
+    errorsOf(doc([{ '@type': 'Person', '@id': PERSON }])),
+    /missing required property "name"/,
+);
+assert.equal(
+    errorsOf(doc([{ '@type': 'Person', '@id': PERSON, name: 'Aisha' }])),
+    '',
+);
+
+// ProfilePage needs name, url and mainEntity
+assert.match(
+    errorsOf(
+        doc([
+            {
+                '@type': 'ProfilePage',
+                '@id': 'https://x.test/blog/author/aisha#webpage',
+            },
+        ]),
+    ),
+    /missing required property "name"[\s\S]*missing required property "url"[\s\S]*missing required property "mainEntity"/,
+);
+assert.equal(
+    errorsOf(
+        doc([
+            {
+                '@type': 'ProfilePage',
+                '@id': 'https://x.test/blog/author/aisha#webpage',
+                name: 'Aisha',
+                url: 'https://x.test/blog/author/aisha',
+                mainEntity: { '@id': PERSON },
+            },
+            { '@type': 'Person', '@id': PERSON, name: 'Aisha' },
+        ]),
+    ),
+    '',
+);
+
 // HTML extraction: exactly one parseable block
 const block = (json) => `<script type="application/ld+json">${json}</script>`;
 assert.equal(extractBlocks(block('{}') + block('{}')).length, 2);

@@ -6,6 +6,7 @@ namespace App\Concerns;
 
 use App\Models\BlogAuthor;
 use App\Models\BlogPost;
+use App\Support\Blog\BlogFaqs;
 use App\Support\Blog\BlogSlug;
 use Illuminate\Validation\Rule;
 
@@ -37,6 +38,11 @@ trait BlogPostValidationRules
             'tags.*' => ['string', 'max:60'],
             'seo_title' => ['nullable', 'string', 'max:70'],
             'seo_description' => ['nullable', 'string', 'max:170'],
+            // FAQ (B3.6): complete question + answer pairs only, plain text, distinct questions.
+            'faqs' => ['nullable', 'array', 'max:'.BlogFaqs::MAX_ENTRIES],
+            'faqs.*' => ['array'],
+            'faqs.*.question' => ['required_with:faqs.*.answer', 'nullable', 'string', 'max:'.BlogFaqs::QUESTION_MAX, 'distinct:ignore_case'],
+            'faqs.*.answer' => ['required_with:faqs.*.question', 'nullable', 'string', 'max:'.BlogFaqs::ANSWER_MAX],
         ];
     }
 

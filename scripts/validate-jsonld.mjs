@@ -32,6 +32,11 @@ const PAGE_TYPES = new Set([
     'ContactPage',
     'ItemPage',
 ]);
+// ISO 8601 date or date-time, as `datePublished` / `dateModified` must be.
+const ISO_DATE =
+    /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$/;
+// Longest `headline` Google documents for article rich results.
+const HEADLINE_MAX = 110;
 const DEFAULT_PATHS = ['/', '/sellers', '/why-choose-us', '/seller/terms'];
 
 const isObject = (value) =>
@@ -258,9 +263,54 @@ function checkNode(node, path, { errors, warnings }) {
             needs(node, ['headline'], path, errors);
             if (!has('datePublished'))
                 warnings.push(`${path} (Article) has no datePublished.`);
+        } else if (type === 'BlogPosting') {
+            // Elsewhere (the blog index's ItemList) a BlogPosting is a lightweight stub.
+            if (isFullNode) checkBlogPosting(node, path, { errors, warnings });
+        } else if (type === 'Blog') {
+            if (isTopLevel) needs(node, ['name', 'url'], path, errors);
+        } else if (type === 'Person') {
+            // A deactivated author is still credited, but has no page, so `url` is optional.
+            needs(node, ['name'], path, errors);
+        } else if (type === 'ProfilePage') {
+            if (isTopLevel)
+                needs(node, ['name', 'url', 'mainEntity'], path, errors);
         } else if (PAGE_TYPES.has(type) && isTopLevel) {
             needs(node, ['name', 'url'], path, errors);
         }
+    }
+}
+
+// `BlogPosting` (docs/planning/15-blog.md B3.5): the article properties Google needs plus the
+// references that tie post -> person -> organization together.
+function checkBlogPosting(node, path, { errors, warnings }) {
+    needs(node, ['headline', 'image', 'datePublished', 'author'], path, errors);
+
+    if (
+        typeof node.headline === 'string' &&
+        node.headline.length > HEADLINE_MAX
+    )
+        errors.push(
+            `${path}.headline is longer than ${HEADLINE_MAX} characters.`,
+        );
+
+    for (const key of ['datePublished', 'dateModified']) {
+        const value = node[key];
+        if (
+            value !== undefined &&
+            value !== null &&
+            (typeof value !== 'string' || !ISO_DATE.test(value))
+        )
+            errors.push(`${path}.${key} must be an ISO 8601 date.`);
+    }
+
+    for (const key of [
+        'dateModified',
+        'publisher',
+        'description',
+        'mainEntityOfPage',
+    ]) {
+        if (node[key] === undefined || node[key] === null)
+            warnings.push(`${path} (BlogPosting) has no ${key}.`);
     }
 }
 

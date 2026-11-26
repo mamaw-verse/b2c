@@ -10,6 +10,7 @@ use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\User;
 use App\Support\Blog\BlogAuthorPayload;
+use App\Support\Blog\BlogFaqs;
 use App\Support\Blog\BlogImagePayload;
 
 /**
@@ -50,6 +51,7 @@ final readonly class ShowBlogPostForm
                 'cover' => $post->coverImage === null ? null : BlogImagePayload::from($post->coverImage),
                 'thumbnail' => $post->thumbnailImage === null ? null : BlogImagePayload::from($post->thumbnailImage),
                 'tags' => $post->tags->pluck('name')->values(),
+                'faqs' => BlogFaqs::for($post),
                 'seo_title' => $post->seo_title,
                 'seo_description' => $post->seo_description,
                 'status' => $post->status->value,
@@ -77,6 +79,9 @@ final readonly class ShowBlogPostForm
                 'excerpt_min' => 50,
                 'excerpt_max' => 300,
                 'min_words' => 150,
+                'faq_max' => BlogFaqs::MAX_ENTRIES,
+                'faq_question_max' => BlogFaqs::QUESTION_MAX,
+                'faq_answer_max' => BlogFaqs::ANSWER_MAX,
             ],
         ];
     }

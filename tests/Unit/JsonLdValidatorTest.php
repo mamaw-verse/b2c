@@ -171,6 +171,142 @@ test('an article without datePublished only warns', function () {
         ->and($result['warnings'])->toContain('@graph[0] (Article) has no datePublished.');
 });
 
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function validBlogPosting(array $overrides = []): array
+{
+    return [
+        '@type' => 'BlogPosting',
+        '@id' => 'https://x.test/blog/dates#article',
+        'url' => 'https://x.test/blog/dates',
+        'headline' => 'How to choose dates',
+        'description' => 'A short guide.',
+        'image' => ['https://x.test/img/cover.jpg'],
+        'datePublished' => '2026-11-25T08:00:00+08:00',
+        'dateModified' => '2026-11-26T09:30:00+08:00',
+        'author' => ['@id' => 'https://x.test/blog/author/aisha#person'],
+        'publisher' => ['@id' => 'https://x.test/#organization'],
+        'mainEntityOfPage' => ['@id' => 'https://x.test/blog/dates#webpage'],
+        ...$overrides,
+    ];
+}
+
+/**
+ * @param  array<string, mixed>  $article
+ * @return array<string, mixed>
+ */
+function blogPostingDocument(array $article): array
+{
+    return jsonLdDocument([
+        $article,
+        ['@type' => 'Person', '@id' => 'https://x.test/blog/author/aisha#person', 'name' => 'Aisha', 'url' => 'https://x.test/blog/author/aisha'],
+    ]);
+}
+
+/** @var list<string> $blogExternal */
+$blogExternal = ['https://x.test/#organization', 'https://x.test/blog/dates#webpage'];
+
+test('a complete blog posting document has no errors or warnings', function () use ($blogExternal) {
+    $result = (new JsonLdValidator)->validateDocument(blogPostingDocument(validBlogPosting()), $blogExternal);
+
+    expect($result['errors'])->toBe([])
+        ->and($result['warnings'])->toBe([]);
+});
+
+test('a blog posting needs a headline, image, publish date and author', function () use ($blogExternal) {
+    $article = validBlogPosting();
+    unset($article['headline'], $article['image'], $article['datePublished'], $article['author']);
+
+    $errors = implode("\n", (new JsonLdValidator)->validateDocument(blogPostingDocument($article), $blogExternal)['errors']);
+
+    expect($errors)
+        ->toContain('missing required property "headline"')
+        ->toContain('missing required property "image"')
+        ->toContain('missing required property "datePublished"')
+        ->toContain('missing required property "author"');
+});
+
+test('blog posting dates must be ISO 8601 and the headline at most 110 characters', function () use ($blogExternal) {
+    $validator = new JsonLdValidator;
+
+    expect($validator->validateDocument(blogPostingDocument(validBlogPosting(['datePublished' => '25 Nov 2026'])), $blogExternal)['errors'])
+        ->toContain('@graph[0].datePublished must be an ISO 8601 date.')
+        ->and($validator->validateDocument(blogPostingDocument(validBlogPosting(['datePublished' => '2026-11-25'])), $blogExternal)['errors'])->toBe([])
+        ->and($validator->validateDocument(blogPostingDocument(validBlogPosting(['headline' => str_repeat('x', 111)])), $blogExternal)['errors'])
+        ->toContain('@graph[0].headline is longer than 110 characters.');
+});
+
+test('a blog posting author that is not in the graph is an unresolved reference', function () use ($blogExternal) {
+    $document = jsonLdDocument([validBlogPosting(['author' => ['@id' => 'https://x.test/blog/author/gone#person']])]);
+
+    expect((new JsonLdValidator)->validateDocument($document, $blogExternal)['errors'])
+        ->toContain('Reference to https://x.test/blog/author/gone#person does not resolve inside the graph.');
+});
+
+test('optional blog posting properties only warn', function () use ($blogExternal) {
+    $article = validBlogPosting();
+    unset($article['dateModified'], $article['publisher'], $article['description'], $article['mainEntityOfPage']);
+
+    $result = (new JsonLdValidator)->validateDocument(blogPostingDocument($article), $blogExternal);
+
+    expect($result['errors'])->toBe([])
+        ->and($result['warnings'])->toContain('@graph[0] (BlogPosting) has no dateModified.')
+        ->toContain('@graph[0] (BlogPosting) has no publisher.')
+        ->toContain('@graph[0] (BlogPosting) has no description.')
+        ->toContain('@graph[0] (BlogPosting) has no mainEntityOfPage.');
+});
+
+test('blog posting stubs in the blog index list are not held to the full article rules', function () {
+    $document = jsonLdDocument([
+        ['@type' => 'Blog', '@id' => 'https://x.test/blog#blog', 'url' => 'https://x.test/blog', 'name' => 'Blog', 'blogPost' => [['@id' => 'https://x.test/blog/dates#article']]],
+        [
+            '@type' => 'ItemList',
+            '@id' => 'https://x.test/blog#itemlist',
+            'itemListElement' => [[
+                '@type' => 'ListItem',
+                'position' => 1,
+                'item' => ['@type' => 'BlogPosting', '@id' => 'https://x.test/blog/dates#article', 'url' => 'https://x.test/blog/dates', 'name' => 'How to choose dates'],
+            ]],
+        ],
+    ]);
+
+    expect((new JsonLdValidator)->validateDocument($document))->toBe(['errors' => [], 'warnings' => []]);
+});
+
+test('a blog needs a name and url, a person needs a name', function () {
+    $validator = new JsonLdValidator;
+
+    $errors = implode("\n", $validator->validateDocument(jsonLdDocument([['@type' => 'Blog', '@id' => 'https://x.test/blog#blog']]))['errors']);
+
+    expect($errors)
+        ->toContain('missing required property "name"')
+        ->toContain('missing required property "url"')
+        ->and($validator->validateDocument(jsonLdDocument([['@type' => 'Person', '@id' => 'https://x.test/blog/author/a#person']]))['errors'])
+        ->toContain('@graph[0] is missing required property "name".')
+        // A deactivated author is still credited but has no page, so no url is fine.
+        ->and($validator->validateDocument(jsonLdDocument([['@type' => 'Person', '@id' => 'https://x.test/blog/author/a#person', 'name' => 'Aisha']]))['errors'])->toBe([]);
+});
+
+test('a profile page needs a name, url and main entity', function () {
+    $validator = new JsonLdValidator;
+    $person = ['@type' => 'Person', '@id' => 'https://x.test/blog/author/aisha#person', 'name' => 'Aisha'];
+
+    $errors = implode("\n", $validator->validateDocument(jsonLdDocument([
+        ['@type' => 'ProfilePage', '@id' => 'https://x.test/blog/author/aisha#webpage'],
+    ]))['errors']);
+
+    expect($errors)
+        ->toContain('missing required property "name"')
+        ->toContain('missing required property "url"')
+        ->toContain('missing required property "mainEntity"')
+        ->and($validator->validateDocument(jsonLdDocument([
+            ['@type' => 'ProfilePage', '@id' => 'https://x.test/blog/author/aisha#webpage', 'name' => 'Aisha', 'url' => 'https://x.test/blog/author/aisha', 'mainEntity' => ['@id' => $person['@id']]],
+            $person,
+        ]))['errors'])->toBe([]);
+});
+
 test('html extraction requires exactly one parseable block', function () {
     $validator = new JsonLdValidator;
     $block = fn (string $json): string => '<script type="application/ld+json">'.$json.'</script>';

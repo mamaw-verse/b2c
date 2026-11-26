@@ -33,6 +33,7 @@ import {
 } from '@/routes/admin/blog/posts/publication';
 import { edit as editProfile } from '@/routes/admin/blog/profile';
 
+type Faq = { question: string; answer: string };
 type Post = {
     id: string;
     title: string;
@@ -44,6 +45,7 @@ type Post = {
     cover: BlogImage | null;
     thumbnail: BlogImage | null;
     tags: string[];
+    faqs: Faq[];
     seo_title: string | null;
     seo_description: string | null;
     status: 'draft' | 'published' | 'archived';
@@ -82,6 +84,9 @@ type Props = {
         excerpt_min: number;
         excerpt_max: number;
         min_words: number;
+        faq_max: number;
+        faq_question_max: number;
+        faq_answer_max: number;
     };
 };
 
@@ -158,6 +163,7 @@ export default function BlogPostForm({
         cover_image_id: post?.cover?.id ?? '',
         thumbnail_image_id: post?.thumbnail?.id ?? '',
         tags: (post?.tags ?? []).join(', '),
+        faqs: (post?.faqs ?? []) as Faq[],
         seo_title: post?.seo_title ?? '',
         seo_description: post?.seo_description ?? '',
     });
@@ -202,6 +208,10 @@ export default function BlogPostForm({
                 .split(',')
                 .map((t) => t.trim())
                 .filter(Boolean),
+            // Untouched blank rows are dropped here; the server also ignores them.
+            faqs: data.faqs.filter(
+                (faq) => faq.question.trim() !== '' || faq.answer.trim() !== '',
+            ),
         }));
         if (post) {
             form.put(updatePost({ post: post.id }).url, {
@@ -447,6 +457,137 @@ export default function BlogPostForm({
                                 </p>
                             )}
                         </div>
+
+                        <section
+                            aria-labelledby="faq-editor-heading"
+                            className="panel grid gap-3 p-4"
+                        >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <h2 id="faq-editor-heading" className="text-h4">
+                                    FAQ (optional)
+                                </h2>
+                                <Button
+                                    type="button"
+                                    variant="neutral"
+                                    size="sm"
+                                    disabled={
+                                        form.data.faqs.length >= limits.faq_max
+                                    }
+                                    onClick={() =>
+                                        form.setData('faqs', [
+                                            ...form.data.faqs,
+                                            { question: '', answer: '' },
+                                        ])
+                                    }
+                                >
+                                    Add question
+                                </Button>
+                            </div>
+                            <p className="text-body-sm text-muted-foreground">
+                                Shown under the article and published as FAQ
+                                markup, so write only questions readers can see
+                                answered here. Plain text, up to{' '}
+                                {limits.faq_max} entries.
+                            </p>
+                            {form.data.faqs.map((faq, index) => {
+                                const errors = form.errors as Record<
+                                    string,
+                                    string | undefined
+                                >;
+                                return (
+                                    <div
+                                        key={index}
+                                        className="grid gap-2 rounded-card border border-border-control p-3"
+                                    >
+                                        <FormField
+                                            label={`Question ${index + 1}`}
+                                            counter={`${faq.question.length}/${limits.faq_question_max}`}
+                                            error={
+                                                errors[`faqs.${index}.question`]
+                                            }
+                                        >
+                                            <Input
+                                                value={faq.question}
+                                                maxLength={
+                                                    limits.faq_question_max
+                                                }
+                                                onChange={(e) =>
+                                                    form.setData(
+                                                        'faqs',
+                                                        form.data.faqs.map(
+                                                            (item, at) =>
+                                                                at === index
+                                                                    ? {
+                                                                          ...item,
+                                                                          question:
+                                                                              e
+                                                                                  .target
+                                                                                  .value,
+                                                                      }
+                                                                    : item,
+                                                        ),
+                                                    )
+                                                }
+                                            />
+                                        </FormField>
+                                        <FormField
+                                            label={`Answer ${index + 1}`}
+                                            counter={`${faq.answer.length}/${limits.faq_answer_max}`}
+                                            error={
+                                                errors[`faqs.${index}.answer`]
+                                            }
+                                        >
+                                            <TextArea
+                                                rows={3}
+                                                value={faq.answer}
+                                                maxLength={
+                                                    limits.faq_answer_max
+                                                }
+                                                onChange={(e) =>
+                                                    form.setData(
+                                                        'faqs',
+                                                        form.data.faqs.map(
+                                                            (item, at) =>
+                                                                at === index
+                                                                    ? {
+                                                                          ...item,
+                                                                          answer: e
+                                                                              .target
+                                                                              .value,
+                                                                      }
+                                                                    : item,
+                                                        ),
+                                                    )
+                                                }
+                                            />
+                                        </FormField>
+                                        <div>
+                                            <Button
+                                                type="button"
+                                                variant="plain"
+                                                size="sm"
+                                                onClick={() =>
+                                                    form.setData(
+                                                        'faqs',
+                                                        form.data.faqs.filter(
+                                                            (_, at) =>
+                                                                at !== index,
+                                                        ),
+                                                    )
+                                                }
+                                            >
+                                                Remove question {index + 1}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {form.errors.faqs && (
+                                <p className="text-body-sm font-bold text-danger-text">
+                                    {form.errors.faqs}
+                                </p>
+                            )}
+                        </section>
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <FormField
