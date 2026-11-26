@@ -10,6 +10,7 @@ use App\Support\Schema\JsonLdValidator;
 use App\Support\Schema\SchemaId;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Carbon;
 
 uses(RefreshDatabase::class);
 
@@ -298,4 +299,141 @@ test('an empty category is 200 but noindex', function () {
 
     expect($this->get(route('blog.categories.show', $empty))->assertOk()->getContent())
         ->toContain('<meta name="robots" content="noindex, follow">');
+});
+
+// ---- B3.3: sitemap ----
+
+/** @return array<string, string|null> loc => lastmod */
+function blogSitemapEntries(): array
+{
+    $xml = simplexml_load_string(test()->get('/sitemap-blog.xml')->assertOk()->getContent());
+    $entries = [];
+    foreach ($xml->url as $url) {
+        $entries[(string) $url->loc] = isset($url->lastmod) ? (string) $url->lastmod : null;
+    }
+
+    return $entries;
+}
+
+test('the blog sitemap 404s while the blog is off and is not listed in the index', function () {
+    config(['blog.enabled' => false]);
+    seoPost();
+
+    $this->get('/sitemap-blog.xml')->assertNotFound();
+    expect($this->get('/sitemap.xml')->getContent())->not->toContain('sitemap-blog.xml');
+});
+
+test('the index lists the blog sitemap only when there is a live post', function () {
+    expect($this->get('/sitemap.xml')->getContent())->not->toContain('sitemap-blog.xml');
+
+    $post = seoPost();
+
+    $xml = simplexml_load_string($this->get('/sitemap.xml')->assertOk()->getContent());
+    $entries = collect($xml->sitemap)->keyBy(fn ($s) => (string) $s->loc);
+
+    expect($entries)->toHaveKey('https://halalbenta.test/sitemap-blog.xml')
+        ->and((string) $entries['https://halalbenta.test/sitemap-blog.xml']->lastmod)->toBe($post->updated_at->toIso8601String());
+});
+
+test('the blog sitemap lists live posts, categories and authors with posts, and nothing else', function () {
+    $live = seoPost();
+    $draft = BlogPost::factory()->draft()->create();
+    $scheduled = BlogPost::factory()->scheduled()->create();
+    $archived = BlogPost::factory()->archived()->create();
+    $houseCategoryless = BlogCategory::factory()->create();
+    $inactive = BlogAuthor::factory()->inactive()->create();
+    $inactivePost = seoPost(['blog_author_id' => $inactive->id]);
+    $housePost = seoPost(['blog_author_id' => BlogAuthor::factory()->house()->create()->id]);
+
+    $entries = blogSitemapEntries();
+    $origin = 'https://halalbenta.test';
+
+    expect($entries)->toHaveKey("{$origin}/blog")
+        ->and($entries)->toHaveKey("{$origin}/blog/{$live->slug}")
+        ->and($entries)->toHaveKey("{$origin}/blog/{$inactivePost->slug}")
+        ->and($entries)->toHaveKey("{$origin}/blog/category/{$live->category->slug}")
+        ->and($entries)->toHaveKey("{$origin}/blog/author/{$live->author->slug}")
+        ->and($entries)->not->toHaveKey("{$origin}/blog/{$draft->slug}")
+        ->and($entries)->not->toHaveKey("{$origin}/blog/{$scheduled->slug}")
+        ->and($entries)->not->toHaveKey("{$origin}/blog/{$archived->slug}")
+        ->and($entries)->not->toHaveKey("{$origin}/blog/category/{$houseCategoryless->slug}")
+        ->and($entries)->not->toHaveKey("{$origin}/blog/author/{$inactive->slug}")
+        ->and($entries)->not->toHaveKey("{$origin}/blog/author/{$housePost->author->slug}");
+});
+
+test('tags appear in the sitemap only with three live posts, and lastmod is the real updated_at', function () {
+    $thin = BlogTag::factory()->create();
+    $full = BlogTag::factory()->create();
+    $posts = BlogPost::factory()->published()->count(3)->create();
+    $posts->each(fn ($post) => $post->tags()->attach($full));
+    $posts->first()->tags()->attach($thin);
+
+    $stamp = Carbon::parse('2026-03-04 10:00:00');
+    $posts->first()->forceFill(['updated_at' => $stamp])->saveQuietly();
+    Cache::flush();
+
+    $entries = blogSitemapEntries();
+    $origin = 'https://halalbenta.test';
+
+    expect($entries)->toHaveKey("{$origin}/blog/tag/{$full->slug}")
+        ->and($entries)->not->toHaveKey("{$origin}/blog/tag/{$thin->slug}")
+        ->and($entries["{$origin}/blog/{$posts->first()->slug}"])->toBe($stamp->toIso8601String());
+});
+
+test('publishing clears the cached blog sitemap and index', function () {
+    $first = seoPost();
+    expect(array_keys(blogSitemapEntries()))->toContain('https://halalbenta.test/blog/'.$first->slug);
+
+    $second = seoPost();
+
+    expect(array_keys(blogSitemapEntries()))->toContain('https://halalbenta.test/blog/'.$second->slug);
+});
+
+test('no static sitemap file shadows the blog sitemap route', function () {
+    expect(glob(public_path('sitemap*.xml')))->toBe([]);
+});
+
+// ---- B3.4: llms.txt and robots ----
+
+test('llms.txt gets a Blog section with the latest live posts only', function () {
+    $this->app['env'] = 'production';
+    $live = seoPost(['excerpt' => "A guide\n to dates."]);
+    $draft = BlogPost::factory()->draft()->create();
+
+    $body = $this->get('/llms.txt')->assertOk()->getContent();
+
+    expect($body)->toContain('## Blog')
+        ->and($body)->toContain("[{$live->title}](https://halalbenta.test/blog/{$live->slug}): A guide to dates.")
+        ->and($body)->toContain('https://halalbenta.test/blog)')
+        ->and($body)->not->toContain($draft->slug);
+});
+
+test('llms.txt lists at most the 10 newest posts', function () {
+    $this->app['env'] = 'production';
+    $posts = collect(range(1, 12))->map(fn ($i) => seoPost(['published_at' => now()->subDays($i)]));
+
+    $body = $this->get('/llms.txt')->assertOk()->getContent();
+
+    expect($body)->toContain($posts[0]->slug)
+        ->and($body)->toContain($posts[9]->slug)
+        ->and($body)->not->toContain($posts[10]->slug)
+        ->and($body)->not->toContain($posts[11]->slug);
+});
+
+test('llms.txt has no Blog section when the blog is off or empty', function () {
+    $this->app['env'] = 'production';
+
+    expect($this->get('/llms.txt')->getContent())->not->toContain('## Blog');
+
+    seoPost();
+    Cache::flush();
+    config(['blog.enabled' => false]);
+
+    expect($this->get('/llms.txt')->getContent())->not->toContain('## Blog');
+});
+
+test('robots.txt disallows the q search parameter', function () {
+    $this->app['env'] = 'production';
+
+    expect($this->get('/robots.txt')->assertOk()->getContent())->toContain('Disallow: /*?*q=');
 });

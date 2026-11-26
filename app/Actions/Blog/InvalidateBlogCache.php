@@ -26,6 +26,7 @@ final readonly class InvalidateBlogCache
         }
 
         Cache::forget('sitemap:blog');
+        Cache::forget('sitemap:index');
         Cache::forget(BuildLlmsTxt::CACHE_KEY);
     }
 }

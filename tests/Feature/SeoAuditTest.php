@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Seo\AuditSeoPages;
 use App\Enums\ShopStatus;
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
@@ -140,4 +141,28 @@ test('seo:audit is scheduled weekly in production only', function () {
         ->and($event->expression)->toBe('0 5 * * 1')
         ->and($event->environments)->toBe(['production'])
         ->and($event->withoutOverlapping)->toBeTrue();
+});
+
+test('the audit samples the blog index, latest posts, an author page and the blog sitemap when the blog is on', function () {
+    config(['blog.enabled' => true]);
+    $post = BlogPost::factory()->published()->create();
+    fakeSite($this);
+
+    $report = resolve(AuditSeoPages::class)->handle('http://localhost:8000', 10);
+
+    expect($report['failures'])->toBe([]);
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'http://localhost:8000/blog');
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'http://localhost:8000/blog/'.$post->slug);
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'http://localhost:8000/blog/author/'.$post->author->slug);
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'http://localhost:8000/sitemap-blog.xml');
+});
+
+test('the audit skips the blog while it is switched off', function () {
+    BlogPost::factory()->published()->create();
+    fakeSite($this);
+
+    resolve(AuditSeoPages::class)->handle('http://localhost:8000', 10);
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/blog'));
 });

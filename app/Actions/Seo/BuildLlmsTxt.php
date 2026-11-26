@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions\Seo;
 
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Support\SeoData;
 use App\Support\TrustFacts;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * Builds /llms.txt (docs/planning/14 T4.2): a short Markdown map of the marketplace for LLM-based
@@ -69,6 +71,19 @@ final readonly class BuildLlmsTxt
             $lines[] = '';
         }
 
+        $posts = $this->latestPosts();
+
+        if ($posts->isNotEmpty()) {
+            $lines[] = '## Blog';
+            $lines[] = '';
+            $lines[] = "- [All stories]({$origin}/blog): Halal shopping guides, recipes and tips";
+            foreach ($posts as $post) {
+                $excerpt = Str::limit(preg_replace('/\s+/', ' ', mb_trim($post->excerpt)) ?? '', 160, '…');
+                $lines[] = "- [{$post->title}]({$origin}/blog/{$post->slug}): {$excerpt}";
+            }
+            $lines[] = '';
+        }
+
         $lines[] = '## About and policies';
         $lines[] = '';
         $lines[] = "- [Why choose {$name}]({$origin}/why-choose-us): Buyer protection, halal and delivery overview";
@@ -85,6 +100,20 @@ final readonly class BuildLlmsTxt
         $lines[] = "- [Sitemap]({$origin}/sitemap.xml): Every public category, shop and product";
 
         return implode("\n", $lines)."\n";
+    }
+
+    /**
+     * The 10 newest live posts; empty while the blog is switched off.
+     *
+     * @return \Illuminate\Support\Collection<int, BlogPost>
+     */
+    private function latestPosts(): \Illuminate\Support\Collection
+    {
+        if (! config()->boolean('blog.enabled', false)) {
+            return collect();
+        }
+
+        return BlogPost::query()->live()->orderByDesc('published_at')->limit(10)->get(['id', 'title', 'slug', 'excerpt']);
     }
 
     /**

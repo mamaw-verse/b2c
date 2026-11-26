@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\Seo\BuildBlogSitemap;
 use App\Actions\Seo\BuildCategoriesSitemap;
 use App\Actions\Seo\BuildPagesSitemap;
 use App\Actions\Seo\BuildProductsSitemap;
@@ -36,7 +37,8 @@ final class GenerateSitemaps extends Command
         BuildPagesSitemap $buildPages,
         BuildCategoriesSitemap $buildCategories,
         BuildShopsSitemap $buildShops,
-        BuildProductsSitemap $buildProducts
+        BuildProductsSitemap $buildProducts,
+        BuildBlogSitemap $buildBlog,
     ): int {
         $this->info('Invalidating sitemap caches...');
         $invalidator->handle();
@@ -54,6 +56,11 @@ final class GenerateSitemaps extends Command
 
         $this->info('Generating shops sitemap...');
         File::put($publicPath.'/sitemap-shops.xml', $buildShops->handle());
+
+        if (config()->boolean('blog.enabled', false)) {
+            $this->info('Generating blog sitemap...');
+            File::put($publicPath.'/sitemap-blog.xml', $buildBlog->handle());
+        }
 
         $totalProducts = Product::visible()->count();
         $chunks = max(1, (int) ceil($totalProducts / 5000));

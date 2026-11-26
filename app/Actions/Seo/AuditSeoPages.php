@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Enums\ShopStatus;
+use App\Models\BlogAuthor;
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
@@ -140,6 +142,26 @@ final readonly class AuditSeoPages
 
         foreach ($shops as $slug) {
             $targets[] = ['path' => "/shops/{$slug}", 'name' => null];
+        }
+
+        // Blog samples (only while the blog is on): the index, the 2 latest posts and one author page.
+        if (config()->boolean('blog.enabled', false)) {
+            $targets[] = ['path' => '/blog', 'name' => null];
+
+            foreach (BlogPost::query()->live()->orderByDesc('published_at')->limit(2)->get(['slug', 'title']) as $post) {
+                $targets[] = ['path' => "/blog/{$post->slug}", 'name' => $post->title];
+            }
+
+            $author = BlogAuthor::query()
+                ->where('is_active', true)
+                ->where('is_house', false)
+                ->whereHas('posts', fn ($query) => $query->live())
+                ->inRandomOrder()
+                ->first(['slug']);
+
+            if ($author !== null) {
+                $targets[] = ['path' => "/blog/author/{$author->slug}", 'name' => null];
+            }
         }
 
         $products = Product::visible()->inRandomOrder()->limit(max(0, $sample))->get(['slug', 'name']);

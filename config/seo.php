@@ -103,8 +103,12 @@ return [
         'search',
     ],
 
-    /* Faceted / sorting query params: Disallowed in robots.txt as `/*?*{param}=`. */
+    /*
+     * Faceted / sorting / search query params: Disallowed in robots.txt as `/*?*{param}=`.
+     * `q` covers blog search (`/blog?q=`), which is also `noindex, follow` on the page itself.
+     */
     'disallowed_query_params' => [
+        'q',
         'sort',
         'filter',
         'halal',

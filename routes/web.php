@@ -88,6 +88,7 @@ Route::get('sitemap.xml', SitemapIndexController::class)->name('sitemap.index');
 Route::get('sitemap-pages.xml', SitemapPagesController::class)->name('sitemap.pages');
 Route::get('sitemap-categories.xml', SitemapCategoriesController::class)->name('sitemap.categories');
 Route::get('sitemap-shops.xml', SitemapShopsController::class)->name('sitemap.shops');
+Route::get('sitemap-blog.xml', App\Http\Controllers\SitemapBlogController::class)->middleware('blog')->name('sitemap.blog');
 Route::get('sitemap-products-{page}.xml', SitemapProductsController::class)->name('sitemap.products');
 Route::get('robots.txt', RobotsController::class)->name('robots');
 Route::get('llms.txt', LlmsTxtController::class)->name('llms');

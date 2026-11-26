@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Seo;
 
 use App\Enums\ShopStatus;
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
@@ -36,6 +37,14 @@ final readonly class BuildSitemapIndex
                         ->max('updated_at'),
                 )],
             ];
+
+            // The blog sitemap is listed only while the blog is on and has a live post.
+            if (config()->boolean('blog.enabled', false)) {
+                $latestPost = BlogPost::query()->live()->max('updated_at');
+                if ($latestPost !== null) {
+                    $subSitemaps[] = [$origin.'/sitemap-blog.xml', $this->toDate($latestPost)];
+                }
+            }
 
             for ($i = 1; $i <= $productChunks; $i++) {
                 $subSitemaps[] = [$origin."/sitemap-products-{$i}.xml", $this->productChunkLastmod($i)];
