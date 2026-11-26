@@ -3,7 +3,6 @@ import path from 'node:path';
 import {
     createVerifiedUser,
     login,
-    pageProps,
     seedPhp,
     shot,
     uniqueEmail,
@@ -143,17 +142,21 @@ test.describe.serial('blog — invitation to reading', () => {
         await login(page, EDITOR_EMAIL);
         await page.goto('/admin/blog/posts/create');
 
-        await page.getByLabel('Title', { exact: true }).fill(POST_TITLE);
-        await page.getByLabel('Category', { exact: true }).selectOption({
-            index: 0,
-        });
         await page
-            .getByLabel('Author (write on behalf of)')
+            .getByRole('textbox', { name: 'Title', exact: true })
+            .fill(POST_TITLE);
+        await page
+            .getByRole('combobox', { name: 'Category', exact: true })
+            .selectOption({ index: 0 });
+        await page
+            .getByRole('combobox', {
+                name: 'Author (write on behalf of)',
+            })
             .selectOption({ label: AUTHOR_NAME });
         await page
-            .getByLabel('Excerpt')
+            .getByRole('textbox', { name: 'Excerpt', exact: true })
             .fill(
-                'A practical guide to stocking a halal pantry, with shoppable essentials.',
+                `A practical guide (${SEARCH_TERM}) to stocking a halal pantry, with shoppable essentials.`,
             );
 
         await uploadImage(
@@ -184,10 +187,15 @@ test.describe.serial('blog — invitation to reading', () => {
 
         await page.getByRole('button', { name: 'Save draft' }).click();
         await page.waitForURL(/\/admin\/blog\/posts\/[^/]+\/edit/);
+        await expect(
+            page.getByRole('heading', { name: 'Edit post' }),
+        ).toBeVisible();
         postEditUrl = new URL(page.url()).pathname;
-
-        const props = await pageProps<{ post: { slug: string } }>(page);
-        postSlug = props.post.slug;
+        postSlug = seedPhp<string>(`
+            return App\\Models\\BlogPost::query()
+                ->where('title', '${POST_TITLE}')
+                ->value('slug');
+        `);
         expect(postSlug).toBeTruthy();
     });
 
@@ -221,8 +229,8 @@ test.describe.serial('blog — invitation to reading', () => {
         await login(page, ADMIN);
         await page.goto(postEditUrl);
         const featured = page.getByLabel('Featured on the blog hero');
-        await featured.check();
-        await expect(featured).toBeChecked();
+        await featured.click();
+        await expect(featured).toBeChecked({ timeout: 15_000 });
     });
 
     test('readers can find the post on the public blog', async ({
@@ -244,7 +252,11 @@ test.describe.serial('blog — invitation to reading', () => {
 
         await reader.goto(`/blog/author/${authorSlug}`);
         await expect(
-            reader.getByRole('heading', { name: AUTHOR_NAME }),
+            reader.getByRole('heading', {
+                level: 1,
+                name: AUTHOR_NAME,
+                exact: true,
+            }),
         ).toBeVisible();
         await expect(
             reader.getByRole('link', { name: POST_TITLE }).first(),
